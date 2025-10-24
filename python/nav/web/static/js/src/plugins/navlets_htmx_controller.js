@@ -33,9 +33,12 @@ define(['plugins/room_mapper'], function (RoomMapper) {
                     this.getNavlets().removeClass('outline');
                 },
                 update: () => {
-                    this.saveOrder(this.findOrder());
+                    this.updateOrder();
                 }
             });
+        },
+        updateOrder: function () {
+            this.saveOrder(this.findOrder());
         },
         findOrder: function () {
             return this.container.find(this.sorterSelector).toArray().map((column) => {
@@ -90,13 +93,23 @@ define(['plugins/room_mapper'], function (RoomMapper) {
             const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains('navlet');
             if (isNavlet)  {
                 // Initialize the navlet
-                var $node = $(swappedNode);
-                var map_wrapper = $node.find('.mapwrapper');
-                var room_map = map_wrapper.find('#room_map');
+                const $node = $(swappedNode);
+                const map_wrapper = $node.find('.mapwrapper');
+                const room_map = map_wrapper.find('#room_map');
                 if (room_map.length > 0) {
                     createRoomMap(map_wrapper, room_map);
                 }
             }
+        });
+        document.body.addEventListener('nav.navlet.added', function (event) {
+            controller.updateOrder();
+            const node = document.getElementById('no-widgets-message');
+            if (node) {
+                node.remove();
+            }
+        })
+        document.body.addEventListener('nav.navlet.removed', function (event) {
+            controller.updateOrder();
         });
     }
 

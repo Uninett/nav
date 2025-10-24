@@ -1,0 +1,17 @@
+<div
+    data-id="{{ navlet.id }}"
+    class="navlet {{ navlet.navlet_class }}"
+    {% if navlet.highlight %}
+    data-highlight="true"
+    {% endif %}
+>
+    <div
+        hx-get="{% url 'get-user-navlet' navlet.id %}"
+        hx-vals='{"mode": "VIEW"}'
+        hx-target="[data-id='{{ navlet.id }}']"
+        hx-trigger="load"
+        hx-swap="innerHTML"
+    >
+        Loading...
+    </div>
+</div>
