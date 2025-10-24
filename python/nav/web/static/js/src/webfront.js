@@ -1,22 +1,12 @@
 require([
-    'plugins/room_mapper',
-    'plugins/navlets_controller',
     'plugins/navlets_htmx_controller',
-    'plugins/sensors_controller',
     'plugins/fullscreen',
     'jquery-ui',
-    'src/getting_started_wizard'
-], function (RoomMapper, NavletsController, NavletsHtmxController, SensorsController, fullscreen, _, GettingStartedWizard) {
+], function (NavletsHtmxController, fullscreen, _,) {
     'use strict';
 
     const $navletsContainer = $('#navlets-htmx');
     const $dashboardNavigator = $('#dashboard-nav');
-
-    function createRoomMap(mapwrapper, room_map) {
-        mapwrapper.show();
-        new RoomMapper(room_map.get(0));
-    }
-
 
     /**
      * Keyboard navigation to switch dashboards
@@ -191,31 +181,6 @@ require([
     }
 
 
-    /** Change number of columns */
-    function addColumnListener() {
-        $('.column-chooser').click(function () {
-            $navletsContainer.empty();
-            const columns = $(this).data('columns');
-            new NavletsController($navletsContainer, columns);
-            // Save number of columns
-            const url = $(this).closest('.button-group').data('url');
-            const csrfToken = $('#update-columns-form input[name=csrfmiddlewaretoken]').val();
-            const request = $.ajax({
-                url,
-                type: 'POST',
-                data: {num_columns: columns},
-                headers: {'X-CSRFToken': csrfToken}
-            });
-            request.done(function () {
-                $navletsContainer.data('widget-columns', columns);
-                // trigger event on body to let other components know
-                $('body').trigger('nav.dashboard.reload');
-                document.body.dispatchEvent(new CustomEvent('nav.dashboard.reload'));
-            });
-        });
-    }
-
-
     /** Functions for handling setting of default dashboard */
     function addDefaultDashboardListener(feedback) {
         var defaultDashboardContainer = $('#default-dashboard-container'),
@@ -296,34 +261,7 @@ require([
      * Load runner - runs on page load
      */
     $(function () {
-        var numColumns = $navletsContainer.data('widget-columns');
-        var controller = new NavletsController($navletsContainer, numColumns);
-
         NavletsHtmxController.initialize();
-
-        controller.container.on('navlet-rendered', function (event, node) {
-            var mapwrapper = node.find('.mapwrapper');
-            var room_map = mapwrapper.find('#room_map');
-            if (room_map.length > 0) {
-                createRoomMap(mapwrapper, room_map);
-            }
-
-
-            if (node.hasClass('SensorWidget')) {
-                var sensor = new SensorsController(node.find('.room-sensor'));
-            }
-        });
-
-        /* Add click listener to joyride button */
-        $navletsContainer.on('click', '#getting-started-wizard', function () {
-            GettingStartedWizard.start();
-        });
-
-        /* Need some way of doing javascript stuff on widgets */
-        $navletsContainer.on('click', '.watchdog-tests .label.alert', function (event) {
-            $(event.target).closest('li').find('ul').toggle();
-        });
-
 
         /**
          * DASHBOARD related stuff
@@ -345,7 +283,6 @@ require([
          */
 
         var feedback = createFeedbackElements();
-        addColumnListener();
         addDefaultDashboardListener(feedback);
         addCreateDashboardListener(feedback);
         addRenameDashboardListener(feedback);
