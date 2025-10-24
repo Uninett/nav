@@ -44,6 +44,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        libz-dev \
        libldap2-dev \
        libsasl2-dev \
+       # Necessary to run LDAP authentication: \
+       libldap-common \
        # Useful tools for network debugging and SNMP querying: \
        dnsutils \
        iproute2 \

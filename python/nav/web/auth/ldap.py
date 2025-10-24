@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Contains ldap authentication functionality for NAV web.
+Contains low-level ldap authentication functionality for NAV web.
 """
 
 import logging
