@@ -12,8 +12,10 @@
  * - Visual feedback for user interactions
  */
 define([
-    'plugins/navlet_handlers'
-], function (NavletHandlers) {
+    'plugins/room_mapper',
+    'plugins/sensors_controller',
+    'src/getting_started_wizard'
+], function (RoomMapper, SensorsController, GettingStartedWizard) {
 
     const NAVLETS_CONTAINER_ID = 'navlets-htmx';
 
@@ -45,7 +47,6 @@ define([
         }
         this.save_ordering_url = this.container.attr('data-save-order-url');
         this.initSortable();
-        this.initializeExistingNavlets();
     }
 
     NavletsHtmxController.prototype = {
@@ -129,7 +130,7 @@ define([
                 this.reinitializeSortable();
             }
             if (this.isNavlet(swappedNode)) {
-                NavletHandlers.handle(swappedNode);
+                handleNavletSwap(swappedNode);
             }
         },
 
@@ -152,15 +153,46 @@ define([
 
         handleNavletRemoved: function () {
             this.updateOrder();
-        },
-
-        initializeExistingNavlets: function () {
-            const existingNavlets = document.querySelectorAll(`#${NAVLETS_CONTAINER_ID} ${SELECTORS.NAVLET}`);
-            existingNavlets.forEach(navlet => NavletHandlers.handle(navlet));
         }
     };
 
+    function createRoomMap(mapwrapper, room_map) {
+        mapwrapper.show();
+        new RoomMapper(room_map.get(0));
+    }
 
+    function handleNavletSwap(swappedNode) {
+        const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains('navlet');
+        if (!isNavlet) return;
+        const $node = $(swappedNode);
+
+        // Initialize RoomMapNavlet
+        if ($node.hasClass('RoomMapNavlet')) {
+            const room_map = $node.find('#room_map');
+            if (!room_map.length) return;
+            const map_wrapper = $node.find('.mapwrapper');
+            createRoomMap(map_wrapper, room_map);
+        }
+
+        // Initialize SensorWidget
+        if ($node.hasClass('SensorWidget')) {
+            const sensors = $node.find('.room-sensor');
+            if (!sensors.length) return;
+            new SensorsController($node.find('.room-sensor'));
+        }
+
+        if ($node.hasClass('GetStartedWidget')) {
+            $node.on('click', '#getting-started-wizard', function () {
+                GettingStartedWizard.start();
+            })
+        }
+
+        if ($node.hasClass('WatchDogWidget')) {
+            $node.on('click', '.watchdog-tests .label.alert', function (event) {
+                $(event.target).closest('li').find('ul').toggle();
+            });
+        }
+    }
 
     function initialize() {
         const controller = new NavletsHtmxController();
