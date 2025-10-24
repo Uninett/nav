@@ -55,6 +55,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.base import TemplateView
+from django_htmx.http import trigger_client_event
 
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
@@ -309,18 +310,32 @@ def _handle_htmx_error_response(
     )
 
 
+@require_POST
 def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
-    if request.method == 'POST' and 'navlet' in request.POST:
-        account = get_account(request)
-        dashboard = find_dashboard(account, dashboard_id=dashboard_id)
+    navlet_class = request.POST.get('navlet')
+    if not navlet_class:
+        return HttpResponse(status=400)
 
-        if can_modify_navlet(account, request):
-            navlet_class = request.POST.get('navlet')
-            navlet = add_navlet(account, navlet_class, dashboard=dashboard)
-            return JsonResponse(create_navlet_object(navlet))
+    account = get_account(request)
+    dashboard = find_dashboard(account, dashboard_id=dashboard_id)
 
-    return HttpResponse(status=400)
+    if not can_modify_navlet(account, request):
+        return HttpResponse(status=403)
+
+    navlet = add_navlet(account, navlet_class, dashboard=dashboard)
+    navlet_object = create_navlet_object(navlet)
+    response = render(
+        request,
+        'navlets/_add_navlet_response.html',
+        context={'navlet': navlet_object},
+    )
+    return trigger_client_event(
+        response,
+        name="nav.navlet.added",
+        params={"navlet_id": navlet.id},
+        after='settle',
+    )
 
 
 def add_navlet_modal(request, dashboard_id):
@@ -425,8 +440,23 @@ def remove_user_navlet(request):
 
     try:
         account_navlet = AccountNavlet.objects.get(pk=navlet_id, account=account)
+        dashboard = account_navlet.dashboard
         account_navlet.delete()
-        return resolve_modal(request, modal_id=modal_id)
+
+        navlet_count = AccountNavlet.objects.filter(dashboard=dashboard).count()
+        response = resolve_modal(
+            request,
+            'navlets/_remove_navlet_response.html',
+            context={'navlet_count': navlet_count},
+            modal_id=modal_id,
+        )
+
+        return trigger_client_event(
+            response,
+            name="nav.navlet.removed",
+            params={"navlet_id": navlet_id},
+            after='settle',
+        )
     except AccountNavlet.DoesNotExist:
         return render_modal_alert(
             request, 'This widget no longer exists. Try refreshing the page.', modal_id

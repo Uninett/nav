@@ -133,6 +133,7 @@ def load_dashboard(request, dashboard_id=None):
             'has_navlets': len(usernavlets) > 0,
             'dashboard_id': dashboard.id,
             'columns': column_map,
+            'column_count': columns,
             'compact': compact,
             'column_class': COLUMNS_MAPPER.get(str(columns), 'medium-4'),
         },
