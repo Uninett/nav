@@ -1,0 +1,40 @@
+<form
+        hx-post="{% url 'save-dashboard-columns' dashboard.pk %}"
+        hx-trigger="click"
+        hx-swap="outerHTML"
+>
+    <ul class="button-group">
+        <li>
+            <button type="submit"
+                    class="button tiny {% if dashboard.num_columns == 1 %}primary{% else %}secondary{% endif %}"
+                    name="num_columns" value="1">One
+            </button>
+        </li>
+        <li>
+            <button type="submit"
+                    class="button tiny {% if dashboard.num_columns == 2 %}primary{% else %}secondary{% endif %}"
+                    name="num_columns" value="2">Two
+            </button>
+        </li>
+        <li>
+            <button type="submit"
+                    class="button tiny {% if dashboard.num_columns == 3 %}primary{% else %}secondary{% endif %}"
+                    name="num_columns" value="3">Three
+            </button>
+        </li>
+        <li>
+            <button type="submit"
+                    class="button tiny {% if dashboard.num_columns == 4 %}primary{% else %}secondary{% endif %}"
+                    name="num_columns" value="4">Four
+            </button>
+        </li>
+    </ul>
+</form>
+
+{% if message %}
+<div id="dashboard-settings-feedback" hx-swap-oob="innerHtml">
+    <div class="alert-box success">
+        {{ message }}
+    </div>
+</div>
+{% endif %}
