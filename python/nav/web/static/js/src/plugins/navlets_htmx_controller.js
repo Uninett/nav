@@ -1,4 +1,8 @@
-define(['plugins/room_mapper'], function (RoomMapper) {
+define([
+    'plugins/room_mapper',
+    'plugins/sensors_controller',
+    'src/getting_started_wizard'
+], function (RoomMapper, SensorsController, GettingStartedWizard) {
 
     const NAVLETS_CONTAINER_ID = 'navlets-htmx';
 
@@ -81,25 +85,49 @@ define(['plugins/room_mapper'], function (RoomMapper) {
         new RoomMapper(room_map.get(0));
     }
 
+    function handleNavletSwap(swappedNode) {
+        const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains('navlet');
+        if (!isNavlet) return;
+        const $node = $(swappedNode);
+
+        // Initialize RoomMapNavlet
+        if ($node.hasClass('RoomMapNavlet')) {
+            const room_map = $node.find('#room_map');
+            if (!room_map.length) return;
+            const map_wrapper = $node.find('.mapwrapper');
+            createRoomMap(map_wrapper, room_map);
+        }
+
+        // Initialize SensorWidget
+        if ($node.hasClass('SensorWidget')) {
+            const sensors = $node.find('.room-sensor');
+            if (!sensors.length) return;
+            new SensorsController($node.find('.room-sensor'));
+        }
+
+        if ($node.hasClass('GetStartedWidget')) {
+            $node.on('click', '#getting-started-wizard', function () {
+                GettingStartedWizard.start();
+            })
+        }
+
+        if ($node.hasClass('WatchDogWidget')) {
+            $node.on('click', '.watchdog-tests .label.alert', function (event) {
+                $(event.target).closest('li').find('ul').toggle();
+            });
+        }
+    }
+
     function initialize() {
         const controller = new NavletsHtmxController();
         document.body.addEventListener('htmx:afterSwap', function (event) {
             const swappedNode = event.detail.elt;
+
             const isNavletContainer = swappedNode.id === NAVLETS_CONTAINER_ID;
             if (isNavletContainer) {
                 controller.addListeners();
             }
-
-            const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains('navlet');
-            if (isNavlet)  {
-                // Initialize the navlet
-                const $node = $(swappedNode);
-                const map_wrapper = $node.find('.mapwrapper');
-                const room_map = map_wrapper.find('#room_map');
-                if (room_map.length > 0) {
-                    createRoomMap(map_wrapper, room_map);
-                }
-            }
+            handleNavletSwap(swappedNode);
         });
         document.body.addEventListener('nav.navlet.added', function (event) {
             controller.updateOrder();
