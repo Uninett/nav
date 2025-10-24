@@ -3,9 +3,22 @@
 {% block base_header_additional_head %}
   {{ block.super }}
   <style>
+   #device-groups-table {
+       width: 100%;
+       max-width: 1300px;
+   }
+   #device-groups-table th.description, td.description {
+      width: 100%;
+      overflow-wrap: anywhere;
+   }
+   #device-groups-table th:not(.description), td:not(.description) {
+      white-space: nowrap;
+      width: 1%;
+   }
    #device-groups-table .netboxgroup {
        max-height: 10em;
        overflow: auto;
+       margin-left: 0;
    }
   </style>
 {% endblock %}
@@ -15,51 +28,9 @@
 {% block content %}
 
   <h3>Device Group search</h3>
-  {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
-
-  <table id="device-groups-table" class="listtable">
-    <caption>Device Groups</caption>
-
-    <thead>
-      <tr>
-        <th>Group</th>
-        <th>Description</th>
-        <th>Devices</th>
-        <th>&nbsp;</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {% for netboxgroup in netboxgroups %}
-        <tr>
-          <td>
-            <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
-          </td>
-          <td>{{ netboxgroup.description }}</td>
-          <td>
-            <ul class="netboxgroup inside">
-              {% with netboxgroup.netboxes.all as netboxes %}
-                {% if netboxes %}
-                  {% for netbox in netboxes %}
-                    <li>
-                      <a href="{% url 'ipdevinfo-details-by-name' netbox.sysname %}">
-                        {{ netbox.sysname }}
-                      </a>
-                    </li>
-                  {% endfor %}
-                {% else %}
-                  <li>No devices in this group</li>
-                {% endif %}
-              {% endwith %}
-            </ul>
-          </td>
-          <td>
-            <a href="{% url 'netbox-group-edit' netboxgroup.pk %}">Edit</a>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-
-  </table>
+  {% include 'info/_search_form.html' with form=searchform %}
+  <div id="search-results">
+  {% include 'info/netboxgroup/_search_results.html' with netboxgroups=netboxgroups %}
+  </div>
 
 {% endblock %}
