@@ -9,6 +9,6 @@
     <div id="room_map" class="navletmap"></div>
   </div>
 
-  {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
+  {% include 'custom_crispy_templates/flat_form.html' with form=searchform disable_csrf=True %}
 
 {% endblock navlet-content %}

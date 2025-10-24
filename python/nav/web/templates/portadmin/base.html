@@ -16,7 +16,7 @@
 
   {% block page_content %}
 
-    {% include 'custom_crispy_templates/flat_form.html' %}
+    {% include 'custom_crispy_templates/flat_form.html' with disable_csrf=True %}
 
     {% block content %}
       {% if form.is_bound %}

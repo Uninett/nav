@@ -22,7 +22,7 @@
     </div>
   {% endif %}
 
-  {% include 'custom_crispy_templates/flat_form.html' %}
+  {% include 'custom_crispy_templates/flat_form.html' with disable_csrf=True %}
 
   {# Display view if exists #}
   {% if result %}
