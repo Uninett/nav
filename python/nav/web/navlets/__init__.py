@@ -144,7 +144,7 @@ class Navlet(TemplateView):
         """Get context for the edit mode"""
         return context
 
-    def post(self, _request, **kwargs):
+    def post(self, request, *_, **kwargs):
         """Save preferences
 
         Make sure you're not overriding stuff with the form
@@ -156,7 +156,7 @@ class Navlet(TemplateView):
         if form.is_valid():
             self.account_navlet.preferences.update(form.cleaned_data)
             self.account_navlet.save()
-            return HttpResponse()
+            return self.get(request=request)
         else:
             return JsonResponse(form.errors, status=400)
 

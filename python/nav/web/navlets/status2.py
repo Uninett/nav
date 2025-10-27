@@ -126,6 +126,6 @@ class Status2Widget(Navlet):
             except (TypeError, ValueError, MultiValueDictKeyError):
                 pass
             navlet.save()
-            return JsonResponse(self.preferences)
+            return self.get(request)
         else:
             return JsonResponse(form.errors, status=400)

@@ -56,10 +56,13 @@
       {% endif %}
     <script>
      (function(){
-         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
-         $navlet.find('.configure-link').click(function() {
-             console.log('clicked');
-             $navlet.find('.navlet-mode-switch').click();
+         const $navlet = $('[data-id="{{ navlet.navlet_id }}"]');
+         $navlet.find('.configure-link').click(function(e) {
+             e.preventDefault();
+             const $switch = $navlet.find('.navlet-mode-switch')[0];
+             if ($switch) {
+                 htmx.trigger($switch, 'click');
+             }
          });
      })();
     </script>

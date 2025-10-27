@@ -3,7 +3,12 @@
 
 {% block navlet-content %}
 
-  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post" class="panel">
+  <form
+    hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+    hx-target="[data-id='{{ navlet.navlet_id }}']"
+    hx-swap="innerHTML"
+    class="panel"
+  >
     {% csrf_token %}
     <label>
       {{ form.show_graph }}
