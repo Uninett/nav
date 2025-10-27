@@ -33,7 +33,7 @@ pynetsnmp-2>=0.1.10
 
 napalm>=5.1.0,<5.2.0
 
-git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth
+drf-jwt-multi-auth
 
 # The following modules are really sub-requirements of Twisted, not of
 # NAV directly.  They may be optional from Twisted's point of view,
