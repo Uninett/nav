@@ -2,7 +2,11 @@
 
 {% block navlet-content %}
 
-  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+  <form
+    hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+    hx-target="[data-id='{{ navlet.navlet_id }}']"
+    hx-swap="innerHTML"
+  >
     {% csrf_token %}
     {{ form }}
     <input type="submit" class="button tiny" value="Save">

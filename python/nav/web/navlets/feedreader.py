@@ -16,7 +16,6 @@
 """Feed reader widget"""
 
 import feedparser
-from django.http import HttpResponse
 from nav.web.auth.utils import get_account
 from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet, NAVLET_MODE_VIEW
@@ -74,4 +73,4 @@ class FeedReaderNavlet(Navlet):
             account_navlet.preferences['maxposts'] = maxposts
         account_navlet.save()
 
-        return HttpResponse()
+        return self.get(request)
