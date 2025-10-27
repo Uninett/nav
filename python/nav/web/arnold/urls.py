@@ -32,7 +32,7 @@ urlpatterns = [
         name="arnold-manual-detention",
     ),
     path(
-        "manualdetention/<target>",
+        "manualdetention/<str:target>",
         views.render_manual_detention_step_two,
         name="arnold-manual-detention-step-two",
     ),

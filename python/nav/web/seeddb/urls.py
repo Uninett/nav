@@ -83,12 +83,12 @@ urlpatterns = [
     # Management Profile
     path('management-profile/', management_profile, name='seeddb-management-profile'),
     path(
-        'management-profile/edit/<management_profile_id>/',
+        'management-profile/edit/<str:management_profile_id>/',
         management_profile_edit,
         name='seeddb-management-profile-edit',
     ),
     path(
-        'management-profile/delete/<object_id>/',
+        'management-profile/delete/<str:object_id>/',
         management_profile_delete,
         name='seeddb-management-profile-delete',
     ),
@@ -118,20 +118,20 @@ urlpatterns = [
     path('service/bulk/', service.service_bulk, name='seeddb-service-bulk'),
     # Room
     path('room/', room.room, name='seeddb-room'),
-    path('room/edit/<room_id>/', room.room_edit, name='seeddb-room-edit'),
-    path('room/delete/<object_id>/', room.room_delete, name='seeddb-room-delete'),
+    path('room/edit/<str:room_id>/', room.room_edit, name='seeddb-room-edit'),
+    path('room/delete/<str:object_id>/', room.room_delete, name='seeddb-room-delete'),
     re_path(
         r'^room/(?P<action>copy)/(?P<room_id>.+)/$',
         room.room_edit,
         name='seeddb-room-copy',
     ),
     path('room/add/', room.room_edit, name='seeddb-room-edit'),
-    path('room/add/<lat>/<lon>/', room.room_edit, name='seeddb-room-edit'),
+    path('room/add/<str:lat>/<str:lon>/', room.room_edit, name='seeddb-room-edit'),
     path('room/bulk/', room.room_bulk, name='seeddb-room-bulk'),
     # Location
     path('location/', location.location, name='seeddb-location'),
     path(
-        'location/edit/<location_id>/',
+        'location/edit/<str:location_id>/',
         location.location_edit,
         name='seeddb-location-edit',
     ),
@@ -150,12 +150,12 @@ urlpatterns = [
     # Organization
     path('organization/', organization.organization, name='seeddb-organization'),
     path(
-        'organization/edit/<organization_id>/',
+        'organization/edit/<str:organization_id>/',
         organization.organization_edit,
         name='seeddb-organization-edit',
     ),
     path(
-        'organization/delete/<object_id>/',
+        'organization/delete/<str:object_id>/',
         organization.organization_delete,
         name='seeddb-organization-delete',
     ),
@@ -171,13 +171,14 @@ urlpatterns = [
     ),
     # Usage category
     path('usage/', usage.usage, name='seeddb-usage'),
+    # This can't use path because it must allow slashes
     re_path(
         r'^usage/edit/(?P<usage_id>.+)/$',
         usage.usage_edit,
         name='seeddb-usage-edit',
     ),
     path(
-        'usage/delete/<object_id>/',
+        'usage/delete/<str:object_id>/',
         usage.usage_delete,
         name='seeddb-usage-delete',
     ),
@@ -204,12 +205,12 @@ urlpatterns = [
     # Netbox Group
     path('netboxgroup/', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
     path(
-        'netboxgroup/edit/<netboxgroup_id>/',
+        'netboxgroup/edit/<str:netboxgroup_id>/',
         netboxgroup.netboxgroup_edit,
         name='seeddb-netboxgroup-edit',
     ),
     path(
-        'netboxgroup/delete/<object_id>/',
+        'netboxgroup/delete/<str:object_id>/',
         netboxgroup.netboxgroup_delete,
         name='seeddb-netboxgroup-delete',
     ),

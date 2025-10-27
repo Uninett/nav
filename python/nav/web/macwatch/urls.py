@@ -24,6 +24,6 @@ urlpatterns = [
     # Default view
     path('', views.list_watch, name='listwatch'),
     path('add/', views.add_macwatch),
-    path('delete/<int:id>/', views.delete_macwatch),
-    path('edit/<int:id>/', views.edit_macwatch),
+    path('delete/<int:macwatchid>/', views.delete_macwatch),
+    path('edit/<int:macwatchid>/', views.edit_macwatch),
 ]

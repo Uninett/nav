@@ -29,11 +29,11 @@ urlpatterns = [
         r'^matrix/(?P<scope>[^&]+)$', views.matrix_report, name='report-matrix-scope'
     ),
     path('reportlist', views.report_list, name='report-reportlist'),
-    re_path(r'^(?P<report_name>[^/]+)$', views.get_report, name='report-by-name'),
     path('widget/add/', views.add_report_widget, name='report-add-widget'),
     path(
-        'widget/<report_name>',
+        'widget/<str:report_name>',
         views.get_report_for_widget,
         name='widget-report-by-name',
     ),
+    path('<str:report_name>', views.get_report, name='report-by-name'),
 ]

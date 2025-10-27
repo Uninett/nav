@@ -27,7 +27,7 @@ urlpatterns = [
     # Service list
     path('service/', views.service_list, name='ipdevinfo-service-list-all'),
     path(
-        'service/handler=<handler>/',
+        'service/handler=<str:handler>/',
         views.service_list,
         name='ipdevinfo-service-list-handler',
     ),
@@ -40,7 +40,7 @@ urlpatterns = [
         name='ipdevinfo-details-by-addr',
     ),
     path('id=<int:netbox_id>/', views.ipdev_details, name='ipdevinfo-details-by-id'),
-    path('<name>/', views.ipdev_details, name='ipdevinfo-details-by-name'),
+    path('<str:name>/', views.ipdev_details, name='ipdevinfo-details-by-name'),
     re_path(
         r'^save_port_layout_pref',
         views.save_port_layout_pref,
@@ -48,13 +48,13 @@ urlpatterns = [
     ),
     # Module details
     path(
-        '<netbox_sysname>/module=<module_name>/',
+        '<str:netbox_sysname>/module=<str:module_name>/',
         views.module_details,
         name='ipdevinfo-module-details',
     ),
     # PoE details
     path(
-        '<netbox_sysname>/poegroup=<grpindex>/',
+        '<str:netbox_sysname>/poegroup=<str:grpindex>/',
         views.poegroup_details,
         name='ipdevinfo-poegroup-details',
     ),
@@ -70,7 +70,7 @@ urlpatterns = [
     ),
     # Interface details
     path(
-        '<netbox_sysname>/interface=<int:port_id>/',
+        '<str:netbox_sysname>/interface=<int:port_id>/',
         views.port_details,
         name='ipdevinfo-interface-details',
     ),
