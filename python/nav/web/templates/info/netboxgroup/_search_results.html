@@ -16,7 +16,7 @@
       <td>
         <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
       </td>
-      <td>{{ netboxgroup.description }}</td>
+      <td class="description">{{ netboxgroup.description }}</td>
       <td>
         <ul class="netboxgroup inside">
           {% with netboxgroup.netboxes.all as netboxes %}
