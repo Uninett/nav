@@ -92,6 +92,14 @@
       <div class="alert-box error">
         {{ error_message }}
       </div>
+    {% elif errors %}
+        <div class="alert-box error">
+            <ul class="no-bullet">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
     {% endif %}
   </div>
 </div>
