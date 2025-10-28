@@ -20,6 +20,7 @@ from operator import itemgetter
 
 from django.http import QueryDict, JsonResponse
 from django.test.client import RequestFactory
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
 
 from nav.models.profiles import Account
@@ -122,7 +123,7 @@ class Status2Widget(Navlet):
                 navlet.preferences['refresh_interval'] = (
                     int(request.POST['interval']) * 1000
                 )
-            except (TypeError, ValueError):
+            except (TypeError, ValueError, MultiValueDictKeyError):
                 pass
             navlet.save()
             return JsonResponse(self.preferences)

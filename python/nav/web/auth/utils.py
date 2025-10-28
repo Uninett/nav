@@ -83,7 +83,7 @@ def ensure_account(request):
     account_id = session.get(ACCOUNT_ID_VAR, Account.DEFAULT_ACCOUNT)
     account = Account.objects.get(id=account_id)
 
-    if account.locked:
+    if account.locked and not account.is_default_account():
         # logout of locked account
         clear_session(request)
 

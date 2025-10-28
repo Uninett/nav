@@ -2,6 +2,7 @@ from django.core.cache import cache
 from django.test import RequestFactory
 from django.urls import reverse
 
+from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.utils import (
     default_account,
     get_account,
@@ -98,6 +99,16 @@ class TestEnsureAccount:
         ensure_account(session_request)
         assert session_request.account == non_admin_account
         assert session_request.session[ACCOUNT_ID_VAR] == non_admin_account.id
+
+    def test_session_should_not_be_flushed_if_account_is_default(
+        self, db, session_request, default_account, admin_account
+    ):
+        session_request.session[SUDOER_ID_VAR] = admin_account.id
+
+        set_account(session_request, default_account)
+        ensure_account(session_request)
+        assert session_request.account == default_account
+        assert session_request.session.get(SUDOER_ID_VAR) == admin_account.id
 
     def test_session_id_should_be_changed_if_going_from_locked_to_default_account(
         self, db, session_request, locked_account, default_account
