@@ -118,21 +118,30 @@ class Navlet(TemplateView):
         """
         raise NotImplementedError
 
-    def get_template_names(self):
-        """Get template name based on navlet mode"""
-        if self.mode == NAVLET_MODE_VIEW:
+    def get_template_names(self, override_mode: Optional[str] = None):
+        """
+        Get template name based on navlet mode.
+
+        :param override_mode: Optional\; if provided, overrides the mode (VIEW or EDIT)
+            sent in the request. If None, uses self.mode. Used to enable the navlet to
+            return the correct template in error situations.
+        :return: The template name for the specified mode.
+        """
+        template_mode = override_mode or self.mode
+        if template_mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             return 'navlets/%s_edit.html' % self.get_template_basename()
         else:
             return 'navlets/%s_view.html' % self.get_template_basename()
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, override_mode=None, **kwargs):
+        template_mode = override_mode or self.mode
         context = super(Navlet, self).get_context_data(**kwargs)
         context['navlet'] = self
-        if self.mode == NAVLET_MODE_VIEW:
+        if template_mode == NAVLET_MODE_VIEW:
             context = self.get_context_data_view(context)
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             context = self.get_context_data_edit(context)
         return context
 
@@ -149,7 +158,7 @@ class Navlet(TemplateView):
 
         Make sure you're not overriding stuff with the form
         """
-        form = kwargs.get('form')
+        form = kwargs.pop('form')
         if not form:
             return HttpResponse('No form supplied', status=400)
 
@@ -158,7 +167,16 @@ class Navlet(TemplateView):
             self.account_navlet.save()
             return self.get(request=request)
         else:
-            return JsonResponse(form.errors, status=400)
+            return self.handle_error_response(request, form=form, **kwargs)
+
+    def handle_error_response(self, request, form, **kwargs):
+        """Render error response for invalid form submissions"""
+        context = self.get_context_data(
+            override_mode=NAVLET_MODE_EDIT, form=form, **kwargs
+        )
+        return render(
+            request, self.get_template_names(override_mode=NAVLET_MODE_EDIT), context
+        )
 
     @classmethod
     def get_class(cls):
