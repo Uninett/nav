@@ -61,7 +61,7 @@ _logger = logging.getLogger(__name__)
 
 def redirect_to_calendar(_request):
     """Redirect to main page for this tool"""
-    return redirect(reverse('maintenance'))
+    return redirect(reverse('maintenance-calendar'))
 
 
 def calendar(request, year=None, month=None):
