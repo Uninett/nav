@@ -24,8 +24,6 @@ from nav.web.maintenance import views
 
 urlpatterns = [
     path('', views.redirect_to_calendar),
-    # XXX: WTF?
-    path('calendar/', views.calendar, name='maintenance'),
     path('calendar/', views.calendar, name='maintenance-calendar'),
     re_path(
         r'^calendar/(?P<year>\d{4})/(?P<month>\d{1,2})$',
