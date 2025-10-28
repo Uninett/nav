@@ -26,8 +26,8 @@ urlpatterns = [
     path('', views.search, name='ipdevinfo-search'),
     # Service list
     path('service/', views.service_list, name='ipdevinfo-service-list-all'),
-    re_path(
-        r'^service/handler=(?P<handler>\w+)/$',
+    path(
+        'service/handler=<str:handler>/',
         views.service_list,
         name='ipdevinfo-service-list-handler',
     ),
@@ -40,23 +40,21 @@ urlpatterns = [
         name='ipdevinfo-details-by-addr',
     ),
     path('id=<int:netbox_id>/', views.ipdev_details, name='ipdevinfo-details-by-id'),
-    re_path(
-        r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'
-    ),
+    path('<str:name>/', views.ipdev_details, name='ipdevinfo-details-by-name'),
     re_path(
         r'^save_port_layout_pref',
         views.save_port_layout_pref,
         name='ipdevinfo-save-port-layout',
     ),
     # Module details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
+    path(
+        '<str:netbox_sysname>/module=<str:module_name>/',
         views.module_details,
         name='ipdevinfo-module-details',
     ),
     # PoE details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
+    path(
+        '<str:netbox_sysname>/poegroup=<str:grpindex>/',
         views.poegroup_details,
         name='ipdevinfo-poegroup-details',
     ),
@@ -71,8 +69,8 @@ urlpatterns = [
         name='ipdevinfo-poe-classification-hint-modal',
     ),
     # Interface details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
+    path(
+        '<str:netbox_sysname>/interface=<int:port_id>/',
         views.port_details,
         name='ipdevinfo-interface-details',
     ),
@@ -86,8 +84,8 @@ urlpatterns = [
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
-    re_path(
-        r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$',
+    path(
+        'g/port/<int:interfaceid>/<kind>/',
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
