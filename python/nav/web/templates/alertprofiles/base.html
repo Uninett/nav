@@ -37,7 +37,7 @@
             <a href="{% url 'alertprofiles-sms' %}">My SMS</a>
         </li>
 
-        {% if request.account.is_admin %}
+        {% if request.user.is_admin %}
             <li class="{{ active.matchfields|yesno:"tabactive," }}">
                 <a href="{% url 'alertprofiles-matchfields' %}">Matchfields</a>
             </li>

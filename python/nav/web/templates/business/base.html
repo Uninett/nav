@@ -54,9 +54,9 @@
           {% endfor %}
         </select>
         to
-        {% if request.account.get_email_addresses|length %}
+        {% if request.user.get_email_addresses|length %}
           <select name="address">
-            {% for address in request.account.get_email_addresses  %}
+            {% for address in request.user.get_email_addresses  %}
               <option value="{{ address.pk }}">{{ address.address }}</option>
             {% endfor %}
           </select>
