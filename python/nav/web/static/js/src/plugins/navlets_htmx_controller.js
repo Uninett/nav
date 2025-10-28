@@ -192,6 +192,30 @@ define([
                 $(event.target).closest('li').find('ul').toggle();
             });
         }
+
+        handleSelect2Initialization(swappedNode);
+    }
+
+    function handleSelect2Initialization(swappedNode) {
+        const $selectElements = $(swappedNode).find('select');
+
+        if ($selectElements.length > 0) {
+            $selectElements.each((_, element) => {
+                // If the element has the `select2-offscreen` class, it means select2 was previously initialized.
+                // TODO: Update class detection when upgrading to select2 v4.
+                //  See: https://select2.org/programmatic-control/methods#checking-if-the-plugin-is-initialized
+
+                if ($(element).hasClass('select2-offscreen')) {
+                    // Re-initialize after a short delay to allow destroy to complete
+                    // Timeout value selected based on manual testing
+                    setTimeout(() => {
+                        $(element).select2();
+                    }, 30);
+                } else {
+                    $(element).select2();
+                }
+            });
+        }
     }
 
     function initialize() {
