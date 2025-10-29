@@ -46,6 +46,7 @@ Templates
 
 import logging
 import json
+from datetime import datetime
 from operator import attrgetter
 from typing import Optional
 
@@ -182,6 +183,19 @@ class Navlet(TemplateView):
     def get_class(cls):
         """This string is used to identify the Widget"""
         return "%s.%s" % (cls.__module__, cls.__name__)
+
+    @staticmethod
+    def add_bust_param_to_url(url: str) -> str:
+        """
+        Add a cache-busting parameter to a URL
+
+        Used to ensure that images are not cached by the browser
+
+        :param url: The URL to add the parameter to
+        :return: The URL with the cache-busting parameter added
+        """
+        timestamp = int(datetime.now().timestamp())
+        return f'{url}&bust={timestamp}'
 
 
 def list_navlets():

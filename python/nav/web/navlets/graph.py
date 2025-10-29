@@ -56,7 +56,9 @@ class GraphWidget(Navlet):
         self.title = self.get_title()
         show_controls = self.preferences.get('show_controls')
         context['hide_buttons'] = 'false' if show_controls else 'true'
-        context['graph_url'] = self.preferences.get('url')
+        url = self.preferences.get('url')
+        if url:
+            context['graph_url'] = self.add_bust_param_to_url(url)
         return context
 
     def get_context_data_edit(self, context):
