@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django_htmx.http import reswap, retarget, HttpResponseClientRefresh
+from django_htmx.http import HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
@@ -1002,8 +1002,6 @@ def refresh_ipdevinfo_job_status_query(
                 "alert_message": alert_message,
             },
         )
-        retarget(response, ".row")
-        reswap(response, "beforeend")
         return response
 
     def check_if_job_is_running_longer_than_expected(
