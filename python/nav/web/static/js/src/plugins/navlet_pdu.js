@@ -15,17 +15,20 @@ define(function(require, exports, module) {
         this.limits = getLimits(this.$navlet.find('.pdu-load-status').data('limits')).sort().reverse();
         this.config = getConfig(this.limits.length);
         this.parameters = getParameters(metrics);
+        this.isDestroyed = false;
 
         this.update();
-        $navlet.on('refresh', this.update.bind(this));  // navlet controller determines when to update
-        $navlet.on('render', function(event, renderType){
-            /* We need to unregister eventlistener, as it will not be removed
-             when going into edit-mode, and thus we will have one for each time
-             you have edited the widget. */
-            if (renderType === 'EDIT') {
-                $navlet.off('refresh');
-            }
-        });
+        this.refreshHandler = this.update.bind(this);
+        this.cleanupHandler = this.cleanup.bind(this);
+        $navlet.on('refresh', this.refreshHandler);
+        $navlet.on('htmx:beforeSwap', this.cleanupHandler);
+    }
+
+    PduController.prototype.cleanup = function() {
+        if (this.isDestroyed) return;
+        this.$navlet.off('refresh');
+        this.$navlet.off('htmx:beforeSwap');
+        this.isDestroyed = true;
     }
 
     PduController.prototype.update = function() {

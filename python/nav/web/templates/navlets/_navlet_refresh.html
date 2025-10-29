@@ -16,6 +16,11 @@
         const refreshScript = document.getElementById("navlet-ajax-refresh-{{ navlet.navlet_id }}")
         if (refreshScript) {
             console.log("Refreshing navlet {{ navlet.navlet_id }} via AJAX");
+            // Trigger 'refresh' event on the navlet element
+            const navletElement = refreshScript.closest('.navlet');
+            if (navletElement) {
+                navletElement.dispatchEvent(new Event('refresh'));
+            }
         } else {
             clearInterval(navletIntervalId);
             navletIntervalId = null;
