@@ -1,3 +1,4 @@
+{% include "navlets/_navlet_refresh.html" with navlet=navlet %}
 {% if navlet %}
 <div class="row navlet-header">
   <div class="small-12 column">
@@ -76,7 +77,7 @@
 <div class="row navlet-header">
   <div class="small-12 column">
     <div class="title-container">
-      <span class="subheader" title="{{ navlet.description }}">
+      <span class="subheader" title="The requested widget could not be found">
         <span class="navlet-title">Widget not found</span>
       </span>
     </div>
