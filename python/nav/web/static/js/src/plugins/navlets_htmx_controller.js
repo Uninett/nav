@@ -1,3 +1,16 @@
+/**
+ * Navlets HTMX Controller
+ *
+ * Manages the interactive dashboard widget system with drag-and-drop functionality,
+ * HTMX integration, and dynamic widget lifecycle management.
+ *
+ * Features:
+ * - Sortable widget columns with drag-and-drop reordering
+ * - HTMX event handling for dynamic content updates
+ * - Automatic widget initialization and cleanup
+ * - Order persistence to backend via AJAX
+ * - Visual feedback for user interactions
+ */
 define([
     'plugins/room_mapper',
     'plugins/sensors_controller',
@@ -6,10 +19,25 @@ define([
 
     const NAVLETS_CONTAINER_ID = 'navlets-htmx';
 
+    const SELECT2_REINIT_DELAY_MS = 30;
+    const CSS_CLASSES = {
+        NAVLET: 'navlet',
+        OUTLINE: 'outline',
+        MARK_NEW: 'mark-new',
+        // If the element has the `select2-offscreen` class, it means select2 was previously initialized.
+        // TODO: Update class detection when upgrading to select2 v4.
+        //  See: https://select2.org/programmatic-control/methods#checking-if-the-plugin-is-initialized
+        SELECT2_INITIALIZED: 'select2-offscreen'
+    }
+    const SELECTORS = {
+        NAVLET: '.' + CSS_CLASSES.NAVLET,
+        SORTER: '.navletColumn',
+        DRAG_HANDLE: '.navlet-drag-button',
+        CSRF_TOKEN: '#navlets-action-form input[name="csrfmiddlewaretoken"]'
+    }
+
     function NavletsHtmxController() {
         this.container = $('#' + NAVLETS_CONTAINER_ID);
-        this.navletSelector = '.navlet';
-        this.sorterSelector = '.navletColumn';
         this.save_ordering_url = this.container.attr('data-save-order-url');
 
         this.addListeners();
@@ -19,33 +47,34 @@ define([
         addListeners: function () {
             this.initSortable();
         },
+
         initSortable: function () {
-            const $sorterSelectors = this.container.find(this.sorterSelector);
+            const $sorterSelectors = this.container.find(SELECTORS.SORTER);
             if ($sorterSelectors.length === 0) {
                 return;
             }
             $sorterSelectors.sortable({
-                connectWith: '.navletColumn',
+                connectWith: SELECTORS.SORTER,
                 forcePlaceholderSize: true,
-                handle: '.navlet-drag-button',
+                handle: SELECTORS.DRAG_HANDLE,
                 placeholder: 'highlight',
                 tolerance: 'pointer',
-                start: () => {
-                    this.getNavlets().addClass('outline');
-                },
-                stop: () => {
-                    this.getNavlets().removeClass('outline');
-                },
-                update: () => {
-                    this.updateOrder();
-                }
+                start: () => this.toggleNavletOutline(true),
+                stop: () => this.toggleNavletOutline(false),
+                update: () => this.updateOrder()
             });
         },
+
+        toggleNavletOutline: function (show) {
+          this.getNavlets().toggleClass(CSS_CLASSES.OUTLINE, show);
+        },
+
         updateOrder: function () {
             this.saveOrder(this.findOrder());
         },
+
         findOrder: function () {
-            return this.container.find(this.sorterSelector).toArray().map((column) => {
+            return this.container.find(SELECTORS.SORTER).toArray().map((column) => {
                 const columnNavlets = {};
                 this.getNavlets(column).each((idx, navlet) => {
                     const navletId = $(navlet).attr('data-id');
@@ -56,9 +85,10 @@ define([
                 return columnNavlets;
             });
         },
+
         saveOrder: function (ordering) {
             // Get csrf token from #navlets-action-form
-            const csrfToken = $('#navlets-action-form input[name="csrfmiddlewaretoken"]').val();
+            const csrfToken = $(SELECTORS.CSRF_TOKEN).val();
             $.ajax({
                url: this.save_ordering_url,
                type: 'POST',
@@ -71,11 +101,12 @@ define([
                console.error('Failed to save widget order');
             });
         },
+
         getNavlets: function (column) {
             if (column) {
-                return $(column).find(this.navletSelector);
+                return $(column).find(SELECTORS.NAVLET);
             } else {
-                return this.container.find(this.navletSelector);
+                return this.container.find(SELECTORS.NAVLET);
             }
         },
     };
@@ -86,7 +117,7 @@ define([
     }
 
     function handleNavletSwap(swappedNode) {
-        const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains('navlet');
+        const isNavlet = swappedNode?.dataset?.id && swappedNode.classList.contains(CSS_CLASSES.NAVLET);
         if (!isNavlet) return;
         const $node = $(swappedNode);
 
@@ -104,13 +135,13 @@ define([
             if (!sensors.length) return;
             new SensorsController($node.find('.room-sensor'));
         }
-
-        if ($node.hasClass('GetStartedWidget')) {
+        // Handle wizard button for GettingStartedWidget
+        if ($node.hasClass('GettingStartedWidget')) {
             $node.on('click', '#getting-started-wizard', function () {
                 GettingStartedWizard.start();
             })
         }
-
+        // Handle list expansion for WatchDogWidget
         if ($node.hasClass('WatchDogWidget')) {
             $node.on('click', '.watchdog-tests .label.alert', function (event) {
                 $(event.target).closest('li').find('ul').toggle();
@@ -125,16 +156,12 @@ define([
 
         if ($selectElements.length > 0) {
             $selectElements.each((_, element) => {
-                // If the element has the `select2-offscreen` class, it means select2 was previously initialized.
-                // TODO: Update class detection when upgrading to select2 v4.
-                //  See: https://select2.org/programmatic-control/methods#checking-if-the-plugin-is-initialized
-
-                if ($(element).hasClass('select2-offscreen')) {
+                if ($(element).hasClass(CSS_CLASSES.SELECT2_INITIALIZED)) {
                     // Re-initialize after a short delay to allow destroy to complete
                     // Timeout value selected based on manual testing
                     setTimeout(() => {
                         $(element).select2();
-                    }, 30);
+                    }, SELECT2_REINIT_DELAY_MS);
                 } else {
                     $(element).select2();
                 }
@@ -144,6 +171,8 @@ define([
 
     function initialize() {
         const controller = new NavletsHtmxController();
+
+        // HTMX afterSwap listener
         document.body.addEventListener('htmx:afterSwap', function (event) {
             const swappedNode = event.detail.elt;
 
@@ -153,6 +182,8 @@ define([
             }
             handleNavletSwap(swappedNode);
         });
+
+        // Navlet added listener
         document.body.addEventListener('nav.navlet.added', function (event) {
             controller.updateOrder();
             const navlet = document.querySelector(`[data-id="${event.detail.navlet_id}"]`);
@@ -168,6 +199,8 @@ define([
                 node.remove();
             }
         })
+
+        // Navlet removed listener
         document.body.addEventListener('nav.navlet.removed', function (event) {
             controller.updateOrder();
         });
