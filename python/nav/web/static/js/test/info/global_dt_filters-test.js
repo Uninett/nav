@@ -1,5 +1,5 @@
 
-define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
+define(['info/global_dt_filters', 'jquery'], function (plugin) {
     describe("Global DT Filters", function () {
         beforeEach(function () {
             this.trunk_cell = '<span class="pointer" title="Allowed vlans: 21,40,130">Trunk</span>';
@@ -13,7 +13,7 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
                 assert.throw(plugin.add_filters, Error);
             });
         });
-        
+
         describe("is_trunk", function () {
             it("should match trunk string", function () {
                 assert.isTrue(plugin.is_trunk(this.trunk_cell));
@@ -119,4 +119,3 @@ define(['info/global_dt_filters', 'libs/jquery'], function (plugin) {
         });
     });
 });
-

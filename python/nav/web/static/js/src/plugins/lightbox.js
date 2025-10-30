@@ -1,4 +1,4 @@
-define(["libs/jquery"], function () {
+define(["jquery"], function () {
 
     let currentLightbox = null;
     let currentIndex = 0;

@@ -10,8 +10,8 @@ require(
         "dt_plugins/altsort",
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
-        "libs/jquery",
-        "libs/jquery-ui.min",
+        "jquery",
+        "jquery-ui",
         "libs/datatables.min",
         "plugins/lightbox"
     ],

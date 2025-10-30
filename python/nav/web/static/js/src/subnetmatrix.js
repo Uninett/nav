@@ -1,4 +1,4 @@
-require(['libs/underscore', 'libs/jquery.sparkline'], function() {
+require(['libs/underscore', 'jquery-sparkline'], function() {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query
@@ -233,7 +233,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                     }
                 });
 
-                request.error(function() {
+                request.fail(function() {
                     sparkContainer.html('Error fetching data from Graphite');
                 });
             }
