@@ -1,7 +1,6 @@
 <button class="table-button secondary refresh-button"
         hx-get="{% url 'refresh-ipdevinfo-job-status-query' netbox_sysname=netbox_sysname job_name=job_name job_started_timestamp=job_started_timestamp %}"
         hx-trigger="load delay:2s"
-        hx-on::after-settle="htmx.findAll('.refresh-button').forEach(button => button.disabled=true);"
         hx-swap="outerHTML">
     <img src="/static/images/select2/select2-spinner.gif" alt="refresh ongoing"/>
 </button>
