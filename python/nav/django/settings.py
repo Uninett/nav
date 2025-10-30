@@ -22,6 +22,7 @@ import sys
 import copy
 import warnings
 
+
 from django.utils.log import DEFAULT_LOGGING
 
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
@@ -29,6 +30,7 @@ from nav.db import get_connection_parameters
 import nav.buildconf
 from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
+from nav.django.utils import get_os_version
 
 
 # Changes to `True` by default in Django 5.0
@@ -315,3 +317,7 @@ OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+# Add NAV and OS-versions so they are added to exception views
+NAV_VERSION = nav.buildconf.VERSION
+OS_VERSION = get_os_version()
