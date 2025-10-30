@@ -1,5 +1,6 @@
 <button class="table-button secondary refresh-button"
-        hx-get="{% url 'refresh-ipdevinfo-job' netbox_sysname=netbox.sysname job_name=job.job_name %}"
-        hx-swap="outerHTML">
+        hx-get="{% url 'refresh-ipdevinfo-job' netbox_sysname=netbox_sysname job_name=job_name %}"
+        hx-swap="outerHTML"
+>
     Refresh
 </button>

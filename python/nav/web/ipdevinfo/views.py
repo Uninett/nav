@@ -988,7 +988,9 @@ def refresh_ipdevinfo_job_status_query(
     """
 
     def show_error_message(
-        request, alert_level: str, alert_message: str
+        request,
+        alert_level: str,
+        alert_message: str,
     ) -> HttpResponse:
         """
         Returns a HTTPResponse showing an alert box indicating a problem with running
@@ -996,8 +998,10 @@ def refresh_ipdevinfo_job_status_query(
         """
         response = render(
             request,
-            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            "ipdevinfo/frag-ipdevinfo-refresh-error.html",
             context={
+                "netbox_sysname": netbox_sysname,
+                "job_name": job_name,
                 "alert_level": alert_level,
                 "alert_message": alert_message,
             },

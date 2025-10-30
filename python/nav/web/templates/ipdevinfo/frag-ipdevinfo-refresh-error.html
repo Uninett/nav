@@ -1,0 +1,7 @@
+{% include 'ipdevinfo/frag-ipdevinfo-refresh-button.html' with netbox_sysname=netbox_sysname job_name=job_name %}
+<div id="ipdevpoll-jobs-alert" hx-swap-oob="true">
+  <div class="alert-box with-icon {{ alert_level }}" data-nav-alert>
+      {{ alert_message }}
+      <span class="close">x</span>
+  </div>
+</div>
