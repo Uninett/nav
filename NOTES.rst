@@ -8,8 +8,8 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-Unreleased
-==========
+NAV 5.15
+========
 
 Dependency changes
 ------------------
@@ -17,6 +17,31 @@ Dependency changes
 Python modules with changed version requirements:
 
 * :mod:`napalm` (``>=5.1.0,<5.2.0``)
+
+
+Shareable dashboards
+--------------------
+
+Users can now elect to share their dashboards with other users of the same NAV
+installation. Instead of relying on exporting a static dashboard definition to
+JSON and having other users import this definition, users can now *subscribe*
+to other users' shared dashboards.
+
+The active dashboard can be marked as shared by opening the dashboard
+configuration dialog (the cog icon on the right-hand side of the screen) and
+click on "Share dashboard", followed by clicking on the "Save sharing settings"
+button.
+
+Discovering the shared dashboards of other users is done by clicking the "add
+dashboard" button (the plus sign next to your dashboard list) and then clicking
+on "Find shared dashboard". Search for a dashboard name or another user's
+name. Clicking on a shared dashboard name gives you a preview of the dashboard.
+To keep it permanently in your list of dashboards, you must click on the
+"Subscribe" button.
+
+When viewing a dashboard, its owner is clearly named in top right corner of the
+dashboard.
+
 
 NAV 5.14
 ========
