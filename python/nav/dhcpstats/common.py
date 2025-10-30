@@ -18,6 +18,7 @@ Common classes and functions used by DHCP API clients and various other parts of
 NAV that wants to make use of DHCP stats.
 """
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Iterable, Literal, Optional, Union
@@ -34,6 +35,8 @@ from nav.metrics.graphs import (
 from nav.metrics.names import get_expanded_nodes, safe_name
 from nav.metrics.templates import metric_path_for_dhcp
 
+
+_logger = logging.getLogger(__name__)
 
 # Type expected by functions in NAV that send stats to a Graphite/Carbon backend. Values
 # of this type are interpreted as (path, (timestamp, value)).
@@ -130,7 +133,13 @@ def fetch_paths_from_graphite():
     for graphite_path in graphite_paths:
         try:
             native_path = DhcpPath.from_graphite_path(graphite_path)
-        except ValueError:
+        except ValueError as err:
+            _logger.warning(
+                "Could not decode the timeseries path '%s' fetched from Graphite: %s. "
+                "NAV will ignore this path, whereas Graphite will not; this incorrect "
+                "Graphite state is a likely cause of graphing-related bugs.",
+                graphite_path, err
+            )
             pass
         else:
             native_paths.append(native_path)

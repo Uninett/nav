@@ -1,10 +1,12 @@
+import logging
+import re
 from dataclasses import dataclass, replace
 from itertools import chain
 
 import IPy
 import pytest
 
-from nav.dhcpstats.common import DhcpPath, drop_groups_not_in_prefixes, group_paths
+from nav.dhcpstats.common import DhcpPath, drop_groups_not_in_prefixes, fetch_paths_from_graphite, group_paths
 from nav.metrics.templates import metric_path_for_dhcp
 
 @dataclass
@@ -310,3 +312,30 @@ def test_drop_groups_not_in_prefixes_should_work_as_expected(prefixes, test_inpu
     remaining_grouped_paths = drop_groups_not_in_prefixes(grouped_paths, prefixes)
     remaining_graphite_paths = [path.to_graphite_path("foo") for path in chain.from_iterable(remaining_grouped_paths)]
     assert sorted(remaining_graphite_paths) == sorted(expected_output)
+
+
+@pytest.mark.parametrize(
+    "path,log_pattern",
+    [
+        ("nav.dhcp.4.kea-trd.range.custom_groups.staff.193_0_2_1.192_0_2_16", r"first_ip.{0,10}193\.0\.2\.1.{0,10}greater than.{0,10}last_ip.{0,10}192\.0\.2\.16"),
+        ("nav.dhcp.4.kea-trd.Range.custom_groups.staff.192_0_2_1.192_0_2_16", r"allocation_type.{0,10}Range.{0,10}is not in.{0,30}range"),
+        ("nav.dhcp.4.kea-trd.range.Custom_groups.staff.192_0_2_1.192_0_2_16", r"group_source_name.{0,10}Custom_groups.{0,10}is not.{0,50}custom_groups"),
+        ("nav.dhcp.6.kea-trd.range.custom_groups.staff.192_0_2_1.192_0_2_16", r"expected ip_version.{0,3}6"),
+        ("nav.dhcp.6.kea-trd.range.custom_groups.staff.0_0_0_0_c0_0_2_1.192_0_2_16", r"expected ip_version.{0,3}6|first_ip.{0,10}c0:0:2:1.{0,10}not.{0,10}same version as last_ip.{0,10}192\.0\.2\.16"),
+        ("nav.dhcp.6.kea-trd.range.custom_groups.staff.192_0_2_1.0_0_0_0_c0_0_2_10", r"expected ip_version.{0,3}6|first_ip.{0,10}192\.0\.2\.1.{0,10}not.{0,10}same version as last_ip.{0,10}c0:0:2:10"),
+        ("dhcp.4.kea-trd.range.custom_groups.staff.192_0_2_1.192_0_2_16", r"expected.{0,20}dhcp\.4\.kea-trd\.range\.custom_groups\.staff\.192_0_2_1\.192_0_2_16.{0,20}to have.{0,20}9.{0,20}segments"),
+    ]
+)
+def test_fetch_paths_from_graphite_should_warn_when_paths_from_graphite_are_bad(
+        path,
+        log_pattern,
+        caplog,
+        monkeypatch
+):
+    monkeypatch.setattr(
+        "nav.dhcpstats.common.get_expanded_nodes",
+        lambda *args, **kwargs: [path]
+    )
+    with caplog.at_level(logging.WARNING):
+        fetch_paths_from_graphite()
+        assert re.search(log_pattern, caplog.text, flags=re.IGNORECASE)
