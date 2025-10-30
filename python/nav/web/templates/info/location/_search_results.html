@@ -1,0 +1,29 @@
+{% if locations %}
+<table class="listtable">
+  <caption>{{ locations|length }} result{{ locations|pluralize:",s" }}
+    for "{{ searchform.data.query }}"
+  </caption>
+
+  <thead>
+    <tr>
+      <th>Location</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for location in locations %}
+      <tr>
+        <td>
+          <a href="{% url 'location-info' location.id %}">{{ location.id }}</a>
+        </td>
+        <td>
+          {{ location.description }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert-box">No location(s) found</div>
+{% endif %}

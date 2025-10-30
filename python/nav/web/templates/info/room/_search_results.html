@@ -1,0 +1,37 @@
+{% if rooms %}
+<table class="listtable">
+  <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
+    for "{{ searchform.data.query }}"
+  </caption>
+
+  <thead>
+    <tr>
+      <th>Room</th>
+      <th>Location</th>
+      <th>Description</th>
+      <th>#Netboxes</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for room in rooms %}
+      <tr>
+        <td>
+          <a href="{% url 'room-info' room.id %}">{{ room.id }}</a>
+        </td>
+        <td>
+          {{ room.location.id }}
+        </td>
+        <td>
+          {{ room.description }}
+        </td>
+        <td>
+          {{ room.filtered_netboxes.count }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert-box">No room(s) found</div>
+{% endif %}
