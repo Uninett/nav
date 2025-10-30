@@ -1,11 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
+from django import forms
 from django.test.client import RequestFactory
 from django.urls import reverse
 
 from nav.models.profiles import Account, AccountDashboard, AccountNavlet
-from nav.web.navlets import add_navlet, modify_navlet
+from nav.web.navlets import Navlet, add_navlet, get_navlet_from_name, modify_navlet
 
 
 class TestAddUserNavletView:
@@ -101,6 +102,101 @@ class TestRemoveUserNavletView:
         payload = {'navletid': 99999}
         response = client.post(reverse('remove-user-navlet'), data=payload)
         assert b"This widget no longer exists" in response.content
+
+
+class TestNavletPost:
+    """Tests for the Navlet.post method."""
+
+    def test_when_no_form_supplied_it_should_return_400(self, admin_account, dashboard):
+        request = RequestFactory().post('/fake-url')
+        navlet = Navlet()
+        navlet.request = request
+        navlet.account_navlet = AccountNavlet(
+            account=admin_account,
+            dashboard=dashboard,
+            navlet='nav.web.navlets.alert.AlertWidget',
+            preferences={},
+        )
+
+        response = navlet.post(request)
+        assert response.status_code == 400
+        assert b'No form supplied' in response.content
+
+    def test_given_valid_form_it_should_save_preferences(
+        self, admin_account, dashboard
+    ):
+        request = RequestFactory().post('/fake-url')
+        navlet = Navlet()
+        navlet.request = request
+        navlet.account_navlet = AccountNavlet(
+            account=admin_account,
+            dashboard=dashboard,
+            navlet='nav.web.navlets.alert.AlertWidget',
+            preferences={},
+        )
+
+        # Mock valid form
+        mock_form = Mock()
+        mock_form.is_valid.return_value = True
+        mock_form.cleaned_data = {'test_pref': 'test_value'}
+
+        with patch.object(navlet, 'get') as mock_get:
+            mock_get.return_value = Mock()
+            navlet.post(request, form=mock_form)
+
+        assert navlet.account_navlet.preferences['test_pref'] == 'test_value'
+
+    def test_given_invalid_form_it_should_call_handle_error_response(
+        self, admin_account, dashboard
+    ):
+        request = RequestFactory().post('/fake-url')
+        navlet = Navlet()
+        navlet.request = request
+        navlet.account_navlet = AccountNavlet(
+            account=admin_account,
+            dashboard=dashboard,
+            navlet='nav.web.navlets.alert.AlertWidget',
+            preferences={},
+        )
+
+        # Mock invalid form
+        mock_form = Mock()
+        mock_form.is_valid.return_value = False
+
+        with patch.object(navlet, 'handle_error_response') as mock_handle_error:
+            mock_handle_error.return_value = Mock()
+            navlet.post(request, form=mock_form)
+            mock_handle_error.assert_called_once()
+
+
+class TestNavletHandleErrorResponse:
+    """Tests for the Navlet.handle_error_response method."""
+
+    def test_should_render_form_errors_in_context(self, admin_account, new_navlet):
+        # Create a simple form class for testing
+        class TestForm(forms.Form):
+            test_field = forms.CharField(required=True)
+
+        # Create an invalid form with errors, and trigger validation to populate errors
+        form = TestForm(data={})
+        form.is_valid()
+
+        request = RequestFactory().post('/fake-url')
+        # Set up the navlet instance
+        navlet_cls = get_navlet_from_name(new_navlet.navlet)
+        navlet = navlet_cls()
+        navlet.request = request
+        navlet.account_navlet = new_navlet
+        navlet.navlet_id = new_navlet.id
+
+        # Call handle_error_response
+        response = navlet.handle_error_response(request, form=form)
+
+        # Verify the response contains error information
+        assert response.status_code == 200
+        assert (
+            b'test_field' in response.content or b'required' in response.content.lower()
+        )
 
 
 def _get_dashboard_url(dashboard: AccountDashboard):

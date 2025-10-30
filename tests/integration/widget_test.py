@@ -130,6 +130,44 @@ def test_given_navlet_id_when_navlet_type_is_invalid_then_return_error_widget(
     assert navlet.title == "Error"
 
 
+def test_given_htmx_request_with_non_existent_navlet_id_then_it_should_return_htmx_error_response(  # noqa: E501
+    client, admin_account
+):
+    """
+    Tests that dispatcher returns HTMX error response for non-existent navlet ID
+    on HTMX requests
+    """
+    url = reverse('get-user-navlet', kwargs={'navlet_id': 999})
+    response = client.get(url, HTTP_HX_REQUEST='true')
+
+    assert response.status_code == 200
+    assert response.context['error_message'] == 'This widget does not exist'
+
+
+def test_given_htmx_request_with_unauthorized_navlet_then_it_should_return_htmx_error_response(  # noqa: E501
+    client, admin_account, non_admin_account
+):
+    """
+    Tests that dispatcher returns HTMX error response for unauthorized access
+    on HTMX requests
+    """
+    dashboard = AccountDashboard.objects.create(
+        account=non_admin_account, name="Private Dashboard", is_shared=False
+    )
+    private_navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.welcome.WelcomeNavlet",
+        account=non_admin_account,
+        dashboard=dashboard,
+    )
+
+    # Admin account tries to access non_admin_account's private navlet via HTMX
+    url = reverse('get-user-navlet', kwargs={'navlet_id': private_navlet.id})
+    response = client.get(url, HTTP_HX_REQUEST='true')
+
+    assert response.status_code == 200
+    assert response.context['error_message'] == 'Not authorized to view this widget'
+
+
 #
 # Fixtures
 #

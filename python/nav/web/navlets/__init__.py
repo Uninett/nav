@@ -159,7 +159,7 @@ class Navlet(TemplateView):
 
         Make sure you're not overriding stuff with the form
         """
-        form = kwargs.pop('form')
+        form = kwargs.pop('form', None)
         if not form:
             return HttpResponse('No form supplied', status=400)
 
