@@ -1,3 +1,9 @@
-<div class="fixed-alert">
-  <div class="alert-box with-icon {{ alert_level }}">{{ alert_message }}<span class="close" hx-on:click="htmx.remove(this.closest('.alert-box'))">x</span></div>
+<div hx-swap-oob="afterend:#ipdevpoll-jobs">
+  <div class="alert-box with-icon {{ alert_level }}" data-nav-alert>
+      {{ alert_message }}
+      <span class="close">x</span>
+  </div>
 </div>
+<button class="table-button secondary refresh-button" disabled>
+    Refresh
+</button>
