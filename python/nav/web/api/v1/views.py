@@ -525,7 +525,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """
 
-    queryset = manage.Interface.objects.all()
+    queryset = manage.Interface.objects.prefetch_related('swport_vlans__vlan').all()
     search_fields = ('ifalias', 'ifdescr', 'ifname')
 
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
