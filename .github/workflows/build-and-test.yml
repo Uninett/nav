@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload Selenium driver logs (${{ matrix.python-version }})
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pytest-logs-${{ matrix.python-version }}
           path: |
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload test reports (${{ matrix.python-version }})
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-reports-${{ matrix.python-version }}
           path: |
@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload core dumps (${{ matrix.python-version }})
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: core-dumps-${{ matrix.python-version }}
           path: |
@@ -147,7 +147,7 @@ jobs:
 
       - name: Upload JavaScript test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: javascript-test-reports
           path: |
@@ -169,7 +169,7 @@ jobs:
         run: |
           echo $BASE_SHA > ./extra/base_sha
       - name: Upload PR number file and base SHA file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: extra
           path: extra/
