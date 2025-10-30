@@ -3,7 +3,17 @@
 
 {% block base_header_additional_head %}
   <style>
-   .search-form { max-width: 450px; }
+   .info-search-form {
+      display: flex;
+      gap: 1rem;
+      max-width: 500px;
+      & > div:first-child {
+        flex: 1;
+      }
+      .htmx-indicator {
+        margin-top: 6px;
+      }
+    }
   </style>
 {% endblock %}
 
@@ -62,11 +72,7 @@
         same as searching in the navbar.
       </div>
 
-      <div class="row">
-        <div class="medium-6 column">
-          {% include 'info/_search_form.html' %}
-        </div>
-      </div>
+      {% include 'info/_search_form.html' %}
 
       <div class="row">
         <div id="search-results" class="large-6 medium-10 small-12 column">

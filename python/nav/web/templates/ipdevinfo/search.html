@@ -2,13 +2,8 @@
 
 {% block content %}
 
-<h4>IP Device search</h4>
-
-<div class="row">
-    <div class="column medium-6">
-        {% include 'info/_search_form.html' with form=search_form %}
-    </div>
-</div>
+<h3>IP Device search</h3>
+{% include 'info/_search_form.html' with form=search_form %}
 
 <div id="search-results">
 {% include "ipdevinfo/_search_results.html" with netboxes=netboxes query=query %}
