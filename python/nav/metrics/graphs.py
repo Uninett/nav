@@ -357,7 +357,7 @@ def aliased_series(series_list: str, name: str, **meta: str) -> str:
 
     Supported keyword arguments:
     :param color: the css color of the graph
-    :param renderer: Rickshaw graph renderer to use; either "area" or "line"
+    :param renderer: Rickshaw graph renderer to use; one of "area", "stack", "bar", "line", or "scatterplot"
     """
     tmpl = "alias({series_list}, '{name}')"
     if len(meta) > 0:

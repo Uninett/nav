@@ -153,8 +153,8 @@ def group_paths(paths: list["DhcpPath"]):
 
 def drop_groups_not_in_prefixes(grouped_paths: list[list["DhcpPath"]], prefixes: list[IPy.IP]):
     """
-    Takes a list of grouped DhcpPath instances, and return only the groups that
-    has at least one DhcpPath instance that intersect with one or more of the
+    Takes a list of grouped DhcpPath instances, and returns only the groups that
+    have at least one DhcpPath instance that intersect with one or more of the
     given prefixes.
     """
     grouped_paths_to_keep: list[list[DhcpPath]] = []

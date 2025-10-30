@@ -48,9 +48,9 @@ class Pool:
     """
     A pool configured in a Kea DHCP server.
 
-    Note that what is called a pool in Kea is called a range in NAV because it
-    is a continous set of IP addresses (i.e. it contains all IP addresses
-    between a first and a last IP address).
+    Note that what is called a pool in Kea is more specifically called a range
+    in NAV because it is guaranteed to contain all IP addresses between a first
+    and a last IP address (whereas a pool in NAV might contain gaps).
     """
 
     subnet_id: int
