@@ -2,6 +2,11 @@ define([], function () {
   "use strict";
 
   function init() {
+    if (!document.body) {
+        document.addEventListener('DOMContentLoaded', init);
+        return;
+    }
+
     // Prevent double initialization
     if (document.body.dataset.popoverInitialized) return;
     document.body.dataset.popoverInitialized = "true";
