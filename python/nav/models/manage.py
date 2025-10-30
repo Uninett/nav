@@ -2005,6 +2005,16 @@ class Interface(models.Model):
             ifname=self.ifname, netbox=self.netbox.get_short_sysname()
         )
 
+    @property
+    def vlan_netident(self):
+        """Returns the netident of the VLAN assigned to this port.
+        Returns None if the port is a trunk port or has no VLAN assigned.
+        """
+        if self.trunk:
+            return None
+        swportvlan = self.swport_vlans.first()
+        return swportvlan.vlan.net_ident if swportvlan else None
+
     @classmethod
     def sort_ports_by_ifname(cls, ports):
         return sorted(ports, key=lambda p: nav.natsort.split(p.ifname))

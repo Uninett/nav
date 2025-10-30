@@ -72,6 +72,13 @@ define(function(require) {
         },
 
         {
+            data: "vlan_netident",
+            render: function(data, type, row, meta) {
+                return data;
+            }
+        },
+
+        {
             data: "speed",
             render: function(data, type, row, meta) {
                 if (row.duplex === 'h') {
@@ -163,7 +170,7 @@ define(function(require) {
         fixSearchDelay(this.dataTable);
 
         // Special treatment for the last used column that is an optional column
-        var lastUsedColIndex = 8;
+        var lastUsedColIndex = 9;
         var lastUsedColumn = this.dataTable.column(lastUsedColIndex);
 
         // Create form, add handlers
