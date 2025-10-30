@@ -11,7 +11,17 @@
         hx-target="[data-id='{{ navlet.id }}']"
         hx-trigger="load"
         hx-swap="innerHTML"
-    >
-        Loading...
-    </div>
+    ></div>
+    <script>
+        require(['libs/spin.min'], function (Spinner) {
+            const node = document.querySelector("[data-id='{{ navlet.id }}']");
+            const spinner = new Spinner({zIndex: 10});
+            node.addEventListener('htmx:beforeRequest', function () {
+                spinner.spin(node);
+            });
+            node.addEventListener('htmx:afterRequest', function () {
+                spinner.stop();
+            });
+        })
+    </script>
 </div>
