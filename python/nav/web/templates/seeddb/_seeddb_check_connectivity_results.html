@@ -1,0 +1,57 @@
+{% if not profiles %}
+    <div class="alert-box error">
+        No profiles found.
+    </div>
+{% endif %}
+{% if profiles.succeeded %}
+    <div class="alert-box success">
+        <ul>
+            {% for profile in profiles.succeeded %}
+                <li>
+                    <em>
+                        {% if profile.url %}
+                            <a href="{{ profile.url }}" title="View profile details">{{ profile.name }}</a>
+                        {% else %}
+                            {{ profile.name }}
+                        {% endif %}
+                    </em>: <strong>OK</strong>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+{% if profiles.failed %}
+    <div class="alert-box error">
+        <ul>
+            {% for profile in profiles.failed %}
+                <li>
+                    <em>
+                        {% if profile.url %}
+                            <a href="{{ profile.url }}" title="View profile details">{{ profile.name }}</a>
+                        {% else %}
+                            {{ profile.name }}
+                        {% endif %}
+                    </em>
+                    <br>
+                    {% if profile.custom_error == 'UnicodeDecodeError' %}
+                        <span>Connection failed due to character encoding issues, perhaps because of
+                        non-ASCII characters in the sysLocation field.</span><br>
+                        <strong>sysLocation:</strong> {{ profile.syslocation }}
+                    {% else %}
+                        <strong>Error</strong>:
+                        <span>{{ profile.error_message|default:"Connection failed due to unknown error" }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<div id="collected-info-fields" hx-swap-oob="true">
+    {% include "seeddb/_seeddb_collected_info.html" with sysname=sysname type=netbox_type %}
+</div>
+
+<script id="remove-me">
+    document.querySelector("#seeddb-netbox-form").classList.remove("loading")
+    document.querySelector("#remove-me").remove()
+</script>

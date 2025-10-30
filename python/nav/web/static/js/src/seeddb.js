@@ -3,10 +3,8 @@ require([
     'plugins/checkbox_selector',
     'plugins/seeddb_hstore',
     'plugins/seeddb_management_profile',
-    'plugins/netbox_connectivity_checker',
-    'plugins/ip_chooser',
     'plugins/seeddb_map'],
-function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivityChecker, IpChooser, seedDBRoomMap) {
+function (datatables, CheckboxSelector, FormFuck, ManagementProfile, seedDBRoomMap) {
 
     function executeOnLoad() {
         /**
@@ -117,23 +115,18 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivit
     function activateIpDeviceFormPlugins() {
         // The connectivity checker
         var $form = $('#seeddb-netbox-form'),
-            $addressField = $('#id_ip'),
-            $feedbackElement = $('#verify-address-feedback');
-
-        var chooser = new IpChooser($feedbackElement, $addressField);
-
-        // Initialize connectivitychecker with a chooser as we only wants one.
-        connectivityChecker(chooser);
+            $addressField = $('#id_ip');
 
         $form.on('submit', function (event, validated) {
             if (!validated) {
                 event.preventDefault();
-                var deferred = chooser.getAddresses();
-                deferred.done(function () {
-                    if (chooser.isSingleAddress) {
-                        $form.trigger('submit', true);
-                    }
-                });
+                const verification = $.get(
+                    NAV.urls.seeddb.validateIpAddress,
+                    {'address': $addressField.val()}
+                );
+                verification.done(function () {
+                    $form.trigger('submit', true);
+                })
             }
         });
     }

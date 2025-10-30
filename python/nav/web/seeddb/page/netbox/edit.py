@@ -23,9 +23,10 @@ import logging
 
 from django.db import transaction
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
 
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
@@ -126,10 +127,88 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
     return render(request, 'seeddb/netbox_wizard.html', context)
 
 
-def get_read_only_variables(request):
-    """Fetches read only attributes for an IP-address"""
-    ip_address = request.GET.get('ip_address')
-    profile_ids = request.GET.getlist('profiles[]')
+@require_POST
+def check_connectivity(request):
+    """
+    HTMX endpoint to validate an IP address or hostname and
+    associated management profiles.
+
+    - Checks if both IP address and management profiles are provided.
+    - If the IP is invalid, attempts to resolve it as a hostname and
+      prompts for address selection.
+    - If the IP is valid, returns a loading status to trigger connectivity tests.
+    """
+
+    ip_address = request.POST.get('ip', '').strip()
+    profile_ids = request.POST.getlist('profiles')
+
+    if not (ip_address and profile_ids):
+        return render(
+            request,
+            'seeddb/_seeddb_check_connectivity_response.html',
+            {
+                'status': 'error',
+                'message': (
+                    'We need an IP-address and at least one management profile '
+                    'to talk to the device.'
+                ),
+            },
+        )
+
+    if not is_valid_ip(ip_address, strict=True):
+        return _handle_invalid_ip(request, ip_address)
+
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_response.html',
+        {
+            'status': 'loading',
+        },
+    )
+
+
+def _handle_invalid_ip(request: HttpRequest, ip_address: str):
+    """
+    Handle the case where the given IP address is not valid.
+
+    Attempts to resolve it as a hostname and returns the results.
+    """
+    try:
+        address_tuples = socket.getaddrinfo(ip_address, None, 0, socket.SOCK_STREAM)
+        sorted_tuples = sorted(
+            address_tuples, key=lambda item: socket.inet_pton(item[0], item[4][0])
+        )
+        addresses = [x[4][0] for x in sorted_tuples]
+    except (socket.error, UnicodeError) as error:
+        context = {
+            'status': 'error',
+            'message': str(error),
+        }
+    else:
+        context = {
+            'status': 'select-address',
+            'addresses': addresses,
+            'hostname': ip_address,
+        }
+
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_response.html',
+        context,
+    )
+
+
+@require_POST
+def load_connectivity_test_results(request):
+    """
+    HTMX endpoint to perform connectivity tests for given management profiles.
+
+    Returns test results, including sysname and netbox type, grouped by
+    success or failure.
+    """
+
+    ip_address = request.POST.get('ip')
+    profile_ids = request.POST.getlist('profiles')
     profiles = ManagementProfile.objects.filter(id__in=profile_ids)
     _logger.debug(
         "testing management profiles against %s: %r = %r",
@@ -138,7 +217,10 @@ def get_read_only_variables(request):
         profiles,
     )
     if not profiles:
-        raise Http404
+        return render(
+            request,
+            'seeddb/_seeddb_check_connectivity_results.html',
+        )
 
     sysname = get_sysname(ip_address)
     netbox_type = None
@@ -151,8 +233,20 @@ def get_read_only_variables(request):
             response = test_napalm_connectivity(ip_address, profile)
         else:
             response = None
+            result[profile.id].update(
+                {
+                    "id": profile.id,
+                    "name": profile.name,
+                    "status": False,
+                    "error_message": (
+                        "Connectivity check not supported for profile with",
+                        f"protocol {profile.get_protocol_display()}",
+                    ),
+                }
+            )
 
         if response:
+            response["id"] = profile.id
             response["name"] = profile.name
             response["url"] = reverse(
                 "seeddb-management-profile-edit",
@@ -162,12 +256,23 @@ def get_read_only_variables(request):
             if response.get("type"):
                 netbox_type = response["type"]
 
+    # split result by status for better display: status True and False
+    success_profiles = [p for p in result.values() if p.get('status')]
+    failed_profiles = [p for p in result.values() if not p.get('status')]
+
     data = {
         'sysname': sysname,
         'netbox_type': netbox_type,
-        'profiles': result,
+        'profiles': {
+            'succeeded': success_profiles,
+            'failed': failed_profiles,
+        },
     }
-    return JsonResponse(data)
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_results.html',
+        data,
+    )
 
 
 def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
@@ -176,8 +281,10 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
     if profile.configuration.get("write"):
         result = snmp_write_test(ip_address, profile)
     else:
-        result["type"] = get_type_id(ip_address, profile)
+        result["type"] = get_netbox_type(ip_address, profile)
         result["status"] = check_snmp_version(ip_address, profile)
+        if not result["status"]:
+            result["error_message"] = "SNMP connection failed"
     return result
 
 
@@ -202,11 +309,17 @@ def snmp_write_test(ip, profile):
         value = safestring(snmp.get(syslocation))
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
-        testresult['error_message'] = error.args
+        testresult['error_message'] = error.args[0]
         testresult['status'] = False
     except UnicodeDecodeError as error:
+        _logger.exception(
+            "Could not decode SNMP response for profile %s with address %s: %s",
+            profile.name,
+            ip,
+            error,
+        )
         testresult['custom_error'] = 'UnicodeDecodeError'
-        testresult['error_message'] = error.args
+        testresult['error_message'] = 'Could not decode SNMP response'
         testresult['status'] = False
     else:
         testresult['status'] = True
@@ -234,7 +347,10 @@ def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dic
             return {"status": True}
     except Exception as error:  # noqa: BLE001
         _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
-        return {"status": False, "error_message": str(error)}
+        error_message = str(error)
+        if error_message == 'None':
+            error_message = 'Connection failed'
+        return {"status": False, "error_message": error_message}
 
 
 def get_sysname(ip_address):
@@ -246,11 +362,10 @@ def get_sysname(ip_address):
         return None
 
 
-def get_type_id(ip_addr, profile):
-    """Gets the id of the type of the ip_addr"""
+def get_netbox_type(ip_addr, profile):
+    """Gets the netbox type of the ip_addr"""
     netbox_type = snmp_type(ip_addr, profile)
-    if netbox_type:
-        return netbox_type.id
+    return netbox_type
 
 
 def snmp_type(ip_addr, profile: ManagementProfile):
@@ -311,30 +426,9 @@ def netbox_do_save(form):
     return netbox
 
 
-def get_address_info(request):
-    """Displays a template for the user for manual verification of the
-    address"""
-
+def validate_ip_address(request):
+    """Endpoint to check if an address is a valid IP address"""
     address = request.GET.get('address')
-    if address:
-        if is_valid_ip(address):
-            return JsonResponse({'is_ip': True})
-
-        try:
-            address_tuples = socket.getaddrinfo(address, None, 0, socket.SOCK_STREAM)
-            sorted_tuples = sorted(
-                address_tuples, key=lambda item: socket.inet_pton(item[0], item[4][0])
-            )
-            addresses = [x[4][0] for x in sorted_tuples]
-        except socket.error as error:
-            context = {'error': str(error)}
-        except UnicodeError as error:
-            context = {'error': str(error)}
-        else:
-            context = {
-                'addresses': addresses,
-            }
-
-        return JsonResponse(context)
-    else:
-        return HttpResponse('No address given', status=400)
+    if not address or not is_valid_ip(address.strip(), strict=True):
+        return HttpResponse(status=400)
+    return HttpResponse(status=200)
