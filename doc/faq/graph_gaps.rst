@@ -10,6 +10,8 @@ each issue in the order they are listed.
 Problems at the Graphite end of things
 ======================================
 
+.. _graph_gaps_storage_schema:
+
 Whisper files have the wrong storage schema
 -------------------------------------------
 
