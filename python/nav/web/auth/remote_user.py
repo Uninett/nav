@@ -21,10 +21,13 @@ import logging
 from os.path import join
 import secrets
 
+from django.conf import settings
+
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
 from nav.models.profiles import Account
 from nav.web.auth.utils import set_account
+from nav.util import check_log_level
 
 
 __all__ = []
@@ -179,6 +182,10 @@ def get_username(request):
     if not request:
         return None
 
+    if settings.DEBUG or check_log_level(_logger, logging.DEBUG):
+        for metakey, value in request.META.items():
+            if metakey[0] == metakey[0].upper():
+                _logger.debug('%s: %s', metakey, value)
     workaround = 'none'
     try:
         workaround_config = _config.get('remote-user', 'workaround')
