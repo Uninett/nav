@@ -42,6 +42,7 @@ from nav.auditlog.models import LogEntry
 from nav.models.profiles import (
     AccountDashboard,
     AccountDashboardSubscription,
+    AccountDefaultDashboard,
     AccountNavlet,
     NavbarLink,
 )
@@ -119,6 +120,9 @@ def toggle_dashboard_shared(request, did):
 
     if not is_shared:
         AccountDashboardSubscription.objects.filter(dashboard=dashboard).delete()
+        AccountDefaultDashboard.objects.exclude(account=account).filter(
+            dashboard=dashboard
+        ).delete()
 
     return _render_share_form_response(
         request,
@@ -532,19 +536,8 @@ def set_account_preference(request):
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
     account = get_account(request)
-    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
-
-    old_defaults = list(
-        AccountDashboard.objects.filter(account=account, is_default=True)
-    )
-    for old_default in old_defaults:
-        old_default.is_default = False
-
-    dash.is_default = True
-
-    AccountDashboard.objects.bulk_update(
-        objs=old_defaults + [dash], fields=["is_default"]
-    )
+    dash = find_dashboard(account, did)
+    account.set_default_dashboard(dash.id)
 
     return HttpResponse('Default dashboard set to «{}»'.format(dash.name))
 
@@ -569,7 +562,7 @@ def delete_dashboard(request, did):
 
     dash = get_object_or_404(AccountDashboard, pk=did, account=account)
 
-    if dash.is_default:
+    if dash.is_default_for_account(request.account):
         return HttpResponseBadRequest('Cannot delete default dashboard')
 
     dash.delete()
