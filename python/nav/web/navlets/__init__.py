@@ -154,7 +154,7 @@ class Navlet(TemplateView):
         """Get context for the edit mode"""
         return context
 
-    def post(self, request, **kwargs):
+    def post(self, request, *_, **kwargs):
         """Save preferences
 
         Make sure you're not overriding stuff with the form
