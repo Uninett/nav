@@ -84,7 +84,9 @@ class RoomSearchProvider(SearchProvider):
     link = 'Roomid'
 
     def fetch_results(self):
-        results = Room.objects.filter(id__icontains=self.query).order_by("id")
+        results = Room.objects.filter(
+            Q(id__icontains=self.query) | Q(description__icontains=self.query)
+        ).order_by("id")
         for result in results:
             self.results.append(
                 SearchResult(reverse('room-info', kwargs={'roomid': result.id}), result)
@@ -99,7 +101,9 @@ class LocationSearchProvider(SearchProvider):
     link = 'Locationid'
 
     def fetch_results(self):
-        results = Location.objects.filter(id__icontains=self.query).order_by("id")
+        results = Location.objects.filter(
+            Q(id__icontains=self.query) | Q(description__icontains=self.query)
+        ).order_by("id")
         for result in results:
             self.results.append(
                 SearchResult(
@@ -211,6 +215,7 @@ class VlanSearchProvider(SearchProvider):
                 Q(vlan__contains=self.query)
                 | Q(net_ident__icontains=self.query)
                 | Q(net_type__description__icontains=self.query)
+                | Q(description__icontains=self.query)
             )
             .order_by('vlan')
         )
@@ -273,9 +278,11 @@ class DevicegroupSearchProvider(SearchProvider):
     link = 'Device Group'
 
     def fetch_results(self):
-        self.results = [
-            SearchResult(g.get_absolute_url(), g)
-            for g in NetboxGroup.objects.filter(id__icontains=self.query)
+        query_result = (
+            NetboxGroup.objects.filter(
+                Q(id__icontains=self.query) | Q(description__icontains=self.query)
+            )
             .order_by('id')
             .annotate(num_netboxes=Count('netboxes'))
-        ]
+        )
+        self.results = [SearchResult(g.get_absolute_url(), g) for g in query_result]
