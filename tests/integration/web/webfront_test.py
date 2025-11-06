@@ -81,21 +81,25 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     )
 
 
-def test_delete_last_dashboard_should_fail(db, client, admin_account):
+def test_delete_last_dashboard_should_render_error_message(db, client, admin_account):
     """Tests that the last dashboard cannot be deleted"""
     dashboard = AccountDashboard.objects.get(
         is_default=True,
         account=admin_account,
     )
     url = reverse("delete-dashboard", args=(dashboard.pk,))
-    response = client.post(url, follow=True)
+    response = client.post(
+        url,
+    )
 
-    assert response.status_code == 400
+    assert response.status_code == 200
     assert "Cannot delete last dashboard" in smart_str(response.content)
     assert AccountDashboard.objects.filter(id=dashboard.id).exists()
 
 
-def test_delete_default_dashboard_should_fail(db, client, admin_account):
+def test_delete_default_dashboard_should_render_error_message(
+    db, client, admin_account
+):
     """Tests that the default dashboard cannot be deleted"""
     # Creating another dashboard, so that default is not the last one
     AccountDashboard.objects.create(
@@ -109,9 +113,9 @@ def test_delete_default_dashboard_should_fail(db, client, admin_account):
         account=admin_account,
     )
     url = reverse("delete-dashboard", args=(default_dashboard.pk,))
-    response = client.post(url, follow=True)
+    response = client.post(url)
 
-    assert response.status_code == 400
+    assert response.status_code == 200
     assert "Cannot delete default dashboard" in smart_str(response.content)
     assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
 

@@ -25,7 +25,6 @@ from urllib.parse import quote as urlquote
 from django.db import models
 from django.db.models import Q
 from django.http import (
-    HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponseRedirect,
     HttpResponse,
@@ -561,20 +560,39 @@ def add_dashboard(request):
 
 @require_POST
 def delete_dashboard(request, did):
-    """Delete this dashboard and all widgets on it"""
+    """Delete this dashboard and all widgets on it, with confirmation modal"""
     account = get_account(request)
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=account)
+
     is_last = AccountDashboard.objects.filter(account=account).count() == 1
-    if is_last:
-        return HttpResponseBadRequest('Cannot delete last dashboard')
+    if is_last or dashboard.is_default:
+        error_message = (
+            "Cannot delete last dashboard"
+            if is_last
+            else "Cannot delete default dashboard"
+        )
+        return render_modal(
+            request,
+            'webfront/_dashboard_settings_delete_confirmation.html',
+            context={'error_message': error_message},
+            modal_id='delete-dashboard-confirmation',
+            size='small',
+        )
 
-    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
+    confirm_delete = request.POST.get("confirm_delete", None) == "true"
+    if confirm_delete:
+        dashboard.delete()
+        return HttpResponseClientRedirect(reverse('webfront-index'))
 
-    if dash.is_default:
-        return HttpResponseBadRequest('Cannot delete default dashboard')
+    subscribers_count = dashboard.subscribers.count()
 
-    dash.delete()
-
-    return HttpResponse('Dashboard deleted')
+    return render_modal(
+        request,
+        'webfront/_dashboard_settings_delete_confirmation.html',
+        context={'dashboard': dashboard, 'subscribers_count': subscribers_count},
+        modal_id='delete-dashboard-confirmation',
+        size='small',
+    )
 
 
 @require_POST
