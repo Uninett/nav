@@ -21,7 +21,6 @@ Packages:
 
 """
 
-from nav.models import manage
 from nav.ipdevpoll.config import IpdevpollConfig
 from .log import ContextLogger, ContextFormatter
 
@@ -114,6 +113,8 @@ class Plugin(object):
         virtual device contexts, all the subdevices will be returned.
 
         """
+        from nav.models import manage
+
         netboxes = [self.netbox.sysname]
         instances = manage.Netbox.objects.filter(master=self.netbox.id).values_list(
             'sysname', flat=True
