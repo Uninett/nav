@@ -4,7 +4,7 @@
     Are you sure you want to permanently delete the dashboard <em>{{ dashboard.name }}</em> and all its associated navlets?
 </p>
 {% if subscribers_count > 0 %}
-<p>
+<p data-test-id="subscriber-warning">
     This dashboard has <strong>{{ subscribers_count }}</strong>
     {{ subscribers_count|pluralize:"subscriber,subscribers" }}.
     They will lose access if you proceed.
