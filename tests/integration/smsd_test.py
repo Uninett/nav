@@ -10,7 +10,9 @@ import pytest
 
 from nav.config import find_config_file, find_config_dir
 
-BINDIR = "./python/nav/bin"
+# Use absolute path relative to this test file
+_test_dir = os.path.dirname(os.path.abspath(__file__))
+BINDIR = os.path.join(_test_dir, '..', '..', 'python', 'nav', 'bin')
 
 
 def test_smsd_test_message_with_uninettmaildispatcher_should_work(

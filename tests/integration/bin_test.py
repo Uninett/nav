@@ -1,11 +1,13 @@
+import os
 from shutil import which
 import subprocess
 import sys
 
 import pytest
 
-
-BINDIR = './python/nav/bin'
+# Use absolute path relative to this test file
+_test_dir = os.path.dirname(os.path.abspath(__file__))
+BINDIR = os.path.join(_test_dir, '..', '..', 'python', 'nav', 'bin')
 
 
 def test_script_runs(postgresql, script):

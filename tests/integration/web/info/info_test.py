@@ -38,7 +38,9 @@ def test_failures_should_be_mentioned_in_search_page(client, failing_searchprovi
     assert failing_searchprovider in response.content.decode('utf-8')
 
 
-def test_room_csv_download_should_not_produce_bytestring_representations(postgresql, admin_account):
+def test_room_csv_download_should_not_produce_bytestring_representations(
+    postgresql, admin_account
+):
     factory = RequestFactory()
     request = factory.post(
         reverse("room-csv"), data={"roomid": "myroom", "rows": "one;two;three\n"}
@@ -53,9 +55,12 @@ def test_room_csv_download_should_not_produce_bytestring_representations(postgre
 def test_save_thumbnail_should_produce_a_file(tmpdir):
     """This is more or less a regression test for the third party library Pillow"""
     image = "closet.jpg"
+    # Use absolute path relative to this test file
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    functional_dir = os.path.join(test_dir, '..', '..', '..', 'functional')
     save_thumbnail(
         imagename=image,
-        imagedirectory="tests/functional",
+        imagedirectory=functional_dir,
         thumb_dir=tmpdir,
     )
     assert os.path.exists(os.path.join(tmpdir, image))
