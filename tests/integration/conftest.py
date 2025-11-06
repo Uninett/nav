@@ -25,8 +25,6 @@ SNMP_TEST_PORT = 1024
 ########################################################################
 
 
-
-
 ########################################################################
 #                                                                      #
 # All to do with discovering all NAV binaries and building fixtures to #
@@ -67,7 +65,10 @@ def _nav_scripts_map() -> dict[str, str]:
     """Returns a map of installable script names to NAV module names from
     pyproject.toml.
     """
-    data = toml.load('pyproject.toml')
+    # Use absolute path relative to this conftest.py file
+    conftest_dir = os.path.dirname(os.path.abspath(__file__))
+    pyproject_path = os.path.join(conftest_dir, '..', '..', 'pyproject.toml')
+    data = toml.load(pyproject_path)
     scripts: dict[str, str] = data.get('project', {}).get('scripts', {})
     return {
         script: module.split(':', maxsplit=1)[0]
@@ -275,7 +276,9 @@ def snmpsim():
     """
     snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getcwd())
+    # Get top-level source directory relative to this conftest.py file
+    conftest_dir = os.path.dirname(os.path.abspath(__file__))
+    workspace = os.path.join(conftest_dir, '..', '..')
     proc = subprocess.Popen(
         [
             snmpsimd,
