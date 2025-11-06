@@ -47,7 +47,7 @@ def test_get_navlets_should_return_200(client):
 
 def test_get_pdu_navlet_in_edit_mode_should_return_200(client, admin_account):
     """Tests a GET request against the pdu navlet in edit mode"""
-    from nav.models.profiles import AccountNavlet
+    from nav.models.profiles import AccountDashboard, AccountNavlet
 
     dashboard = AccountDashboard.objects.create(
         account=admin_account, name="Test Dashboard"
@@ -80,6 +80,8 @@ def test_given_navlet_belonging_to_other_account_when_shared_then_return_200(
 
     Should return 200 if `dashboard.is_shared == True`
     """
+    from nav.models.profiles import AccountDashboard, AccountNavlet
+
     dashboard = AccountDashboard.objects.create(
         account=non_admin_account, name="User Dashboard", is_shared=True
     )
@@ -101,6 +103,8 @@ def test_given_navlet_belonging_to_other_account_when_not_shared_then_return_403
 
     Should return 403 unless `dashboard.is_shared == True`
     """
+    from nav.models.profiles import AccountDashboard, AccountNavlet
+
     dashboard = AccountDashboard.objects.create(
         account=non_admin_account, name="User Dashboard"
     )
@@ -122,6 +126,7 @@ def test_given_navlet_id_when_navlet_type_is_invalid_then_return_error_widget(
 
     Should return a navlet with title "Error"
     """
+    from nav.models.profiles import AccountDashboard, AccountNavlet
 
     dashboard = AccountDashboard.objects.create(
         account=admin_account, name="Test Dashboard"
