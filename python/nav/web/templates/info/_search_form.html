@@ -1,0 +1,20 @@
+<form
+      class="info-search-form"
+      {% if form.attrs.action %}
+      hx-get="{% url form.attrs.action %}"
+      hx-target="#search-results"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+      hx-indicator=".htmx-indicator"
+      {% endif %}
+      {% if form.attrs.form_class %}class="{{ form.attrs.form_class }}"{% endif %}
+      {% if form.attrs.form_id %}id="{{ form.attrs.form_id }}"{% endif %}
+>
+    {% block form_content %}
+        {% include 'custom_crispy_templates/_form_content.html' with disable_csrf=True %}
+    {% endblock %}
+    <div class="htmx-indicator">
+        <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" />
+        <span>Searching...</span>
+    </div>
+</form>

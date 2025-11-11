@@ -72,6 +72,16 @@ def index(request):
 
     _logger.debug(vlans)
 
+    if request.htmx:
+        return render(
+            request,
+            "info/vlan/_search_results.html",
+            {
+                'vlans': vlans,
+                'form': searchform,
+            },
+        )
+
     return render(
         request,
         "info/vlan/base.html",
