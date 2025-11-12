@@ -7,7 +7,7 @@
   </p>
 
   <div class="row">
-    {% if request.account.is_admin %}
+    {% if request.user.is_admin %}
       <div class="column medium-6">
         <button id="getting-started-wizard" class="button small full-width">
           Take the 30 second tour

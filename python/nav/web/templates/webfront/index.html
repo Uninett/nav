@@ -23,7 +23,7 @@
   <script>
    require(["src/webfront"]);
    NAV.preference_keys = NAV.preference_keys || {};
-   NAV.preference_keys.widget_display_density = '{{ request.account.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
+   NAV.preference_keys.widget_display_density = '{{ request.user.PREFERENCE_KEY_WIDGET_DISPLAY_DENSITY }}';
    NAV.urls.dashboard_index = "{% url 'dashboard-index' %}";
   </script>
 {% endblock %}
@@ -52,15 +52,15 @@
 
       <div id="widgets-layout-normal"
            class="widgets-layout-toggler widget-action
-                  {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
-                  {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
+                  {% if request.user.preferences.widget_display_density == 'normal' %}hide{% endif %}
+                  {% if not request.user.preferences.widget_display_density %}hide{% endif %}"
            title="Use normal layout for dashboard">
         <i class="fa fa-expand"></i>
       </div>
 
       <div id="widgets-layout-compact"
            class="widgets-layout-toggler widget-action
-                  {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
+                  {% if request.user.preferences.widget_display_density == 'compact' %}hide{% endif %}"
            title="Use compact layout for dashboard">
         <i class="fa fa-compress"></i>
       </div>
@@ -95,7 +95,7 @@
     {% csrf_token %}
   </form>
   <div id="navlets"
-       {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
+       {% if request.user.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
        data-list-navlets="{% url 'get-user-navlets' dashboard.pk %}"
        data-remove-navlet="{% url 'remove-user-navlet' %}"
        data-save-order-url="{% url 'save-navlet-order' %}"
