@@ -245,7 +245,7 @@ AUTH_USER_MODEL = 'nav_models.Account'
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
-    'UNAUTHENTICATED_USER': 'nav.django.utils.default_account',
+    'UNAUTHENTICATED_USER': 'nav.web.auth.utils.default_account',
 }
 
 # Classes that implement a search engine for the web navbar
