@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from django.db import models
 from django.urls import reverse
 
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Location, NetType, Room, Vlan, NetboxGroup
+from nav.web.info.forms import SearchForm
+from nav.web.info.views import process_form
 
 
 def test_search_for_ip_devices_should_not_crash(client):
@@ -38,6 +41,67 @@ def test_search_for_device_groups_should_not_crash(client):
     url = reverse('netbox-group') + '?query=a'
     response = client.get(url)
     assert response.status_code == 200
+
+
+class TestProcessFormDescriptionSearch:
+    """Tests for process_form view searching by description."""
+
+    def test_location_search_by_description_should_return_results(self, db):
+        location = Location.objects.create(
+            id="testlocation", description="test location description"
+        )
+
+        self.assert_search_provider_result(
+            instance=location,
+            provider_name='Locations',
+        )
+
+    def test_room_search_by_description_should_return_results(self, db):
+        room = Room.objects.create(
+            id="testroom", description="test room description", location_id="mylocation"
+        )
+
+        self.assert_search_provider_result(
+            instance=room,
+            provider_name='Rooms',
+        )
+
+    def test_vlan_search_by_description_should_return_results(self, db):
+        nettype = NetType.objects.create(description="testdescription")
+        vlan = Vlan.objects.create(
+            vlan="20", description="test vlan description", net_type=nettype
+        )
+        self.assert_search_provider_result(
+            instance=vlan,
+            provider_name='Vlans',
+        )
+
+    def test_devicegroup_search_by_description_should_return_results(
+        self, db, localhost
+    ):
+        device_group = NetboxGroup.objects.create(
+            id='test-group-001', description='Core network switches group'
+        )
+        self.assert_search_provider_result(
+            instance=device_group,
+            provider_name='Device groups',
+        )
+
+    @staticmethod
+    def assert_search_provider_result(instance: models.Model, provider_name: str):
+        """
+        Helper method to assert that a search by description returns
+        the expected instance.
+        """
+
+        form = SearchForm({'query': instance.description}, auto_id=False)
+        form.is_valid()
+        providers, _ = process_form(form)
+
+        provider = next((p for p in providers if p.name == provider_name), None)
+        assert provider is not None
+        assert len(provider.results) == 1
+        assert provider.results[0].inst.id == instance.id
 
 
 class TestIndexSearchPreviewView:
