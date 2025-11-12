@@ -46,10 +46,20 @@
 
             <div class="column medium-4">
                 {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
-                <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
-                    {% csrf_token %}
-                    <input type="submit" class="small button alert expand" value="Delete dashboard">
-                </form>
+                    <form
+                        hx-post="{% url 'delete-dashboard' dashboard.pk %}"
+                            hx-target="body"
+                            hx-swap="beforeend"
+                    >
+                        {% csrf_token %}
+                        <button
+                                class="small alert expand"
+                                type="submit"
+                                close-popover
+                        >
+                            Delete dashboard
+                        </button>
+                    </form>
                 {% endif %}
 
             </div>

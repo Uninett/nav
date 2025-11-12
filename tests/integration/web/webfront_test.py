@@ -81,39 +81,121 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     )
 
 
-def test_delete_last_dashboard_should_fail(db, client, admin_account):
-    """Tests that the last dashboard cannot be deleted"""
-    dashboard = AccountDashboard.objects.get(
-        is_default=True,
-        account=admin_account,
-    )
-    url = reverse("delete-dashboard", args=(dashboard.pk,))
-    response = client.post(url, follow=True)
+class TestDeleteDashboardView:
+    """Tests for the delete_dashboard view which allows deleting dashboards"""
 
-    assert response.status_code == 400
-    assert "Cannot delete last dashboard" in smart_str(response.content)
-    assert AccountDashboard.objects.filter(id=dashboard.id).exists()
+    def test_given_dashboard_when_delete_unconfirmed_then_do_not_delete_dashboard(
+        self, db, client, admin_account
+    ):
+        """
+        Tests that the dashboard is not deleted when deletion is not yet confirmed
+        """
+        dashboard = self._create_dashboard(
+            admin_account,
+            name="to_be_deleted",
+            is_default=False,
+        )
+        url = reverse("delete-dashboard", args=(dashboard.pk,))
+        response = client.post(url)
 
+        assert response.status_code == 200
+        assert AccountDashboard.objects.filter(id=dashboard.id).exists()
 
-def test_delete_default_dashboard_should_fail(db, client, admin_account):
-    """Tests that the default dashboard cannot be deleted"""
-    # Creating another dashboard, so that default is not the last one
-    AccountDashboard.objects.create(
-        name="non_default",
-        is_default=False,
-        account=admin_account,
-    )
+    def test_given_dashboard_id_when_delete_unconfirmed_then_render_confirmation(
+        self, db, client, admin_account
+    ):
+        """
+        Tests that the deletion confirmation is rendered when deletion is unconfirmed
+        """
+        dashboard = self._create_dashboard(
+            admin_account,
+            name="to_be_deleted",
+            is_default=False,
+        )
+        url = reverse("delete-dashboard", args=(dashboard.pk,))
+        response = client.post(url)
 
-    default_dashboard = AccountDashboard.objects.get(
-        is_default=True,
-        account=admin_account,
-    )
-    url = reverse("delete-dashboard", args=(default_dashboard.pk,))
-    response = client.post(url, follow=True)
+        assert response.status_code == 200
+        assert 'id="delete-dashboard-confirmation"' in smart_str(response.content)
 
-    assert response.status_code == 400
-    assert "Cannot delete default dashboard" in smart_str(response.content)
-    assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
+    def test_given_dashboard_with_subscribers_then_render_subscriber_warning(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that the deletion confirmation shows subscriber info when applicable"""
+        dashboard = self._create_dashboard(
+            admin_account,
+            is_shared=True,
+        )
+        AccountDashboardSubscription.objects.create(
+            account=non_admin_account,
+            dashboard=dashboard,
+        )
+        url = reverse("delete-dashboard", args=(dashboard.pk,))
+        response = client.post(url)
+        response_content = smart_str(response.content)
+
+        assert response.status_code == 200
+        assert 'data-test-id="subscriber-warning"' in response_content
+
+    def test_given_dashboard_when_delete_confirmed_then_delete_dashboard(
+        self, db, client, admin_account
+    ):
+        """Tests that an existing dashboard can be deleted"""
+        dashboard = self._create_dashboard(admin_account)
+        url = reverse("delete-dashboard", args=(dashboard.pk,))
+        response = client.post(
+            url,
+            data={"confirm_delete": "true"},
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert not AccountDashboard.objects.filter(id=dashboard.id).exists()
+
+    def test_given_last_dashboard_of_account_then_render_error_message(
+        self, db, client, admin_account
+    ):
+        """Tests that the last dashboard cannot be deleted"""
+
+        # Ensure only one dashboard exists for the account
+        AccountDashboard.objects.filter(account=admin_account).delete()
+        dashboard = self._create_dashboard(admin_account, name="last_dashboard")
+
+        url = reverse("delete-dashboard", args=(dashboard.pk,))
+        response = client.post(
+            url,
+        )
+
+        assert response.status_code == 200
+        assert "Cannot delete last dashboard" in smart_str(response.content)
+        assert AccountDashboard.objects.filter(id=dashboard.id).exists()
+
+    def test_given_default_dashboard_of_account_then_render_error_message(
+        self, db, client, admin_account
+    ):
+        """Tests that the default dashboard cannot be deleted"""
+        # Ensure at least one non-default dashboard exists
+        self._create_dashboard(admin_account, name="non_default_dashboard")
+        default_dashboard = AccountDashboard.objects.get(
+            is_default=True, account=admin_account
+        )
+        url = reverse("delete-dashboard", args=(default_dashboard.pk,))
+        response = client.post(url)
+
+        assert response.status_code == 200
+        assert "Cannot delete default dashboard" in smart_str(response.content)
+        assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
+
+    @staticmethod
+    def _create_dashboard(
+        account, name="to_be_deleted", is_default=False, is_shared=False
+    ):
+        return AccountDashboard.objects.create(
+            name=name,
+            is_default=is_default,
+            account=account,
+            is_shared=is_shared,
+        )
 
 
 def test_when_logging_in_it_should_change_the_session_id(

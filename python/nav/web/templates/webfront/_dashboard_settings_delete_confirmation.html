@@ -1,0 +1,28 @@
+{% if not error_message %}
+<h4>Delete Dashboard?</h4>
+<p>
+    Are you sure you want to permanently delete the dashboard <em>{{ dashboard.name }}</em> and all its associated navlets?
+</p>
+{% if subscribers_count > 0 %}
+<p data-test-id="subscriber-warning">
+    This dashboard has <strong>{{ subscribers_count }}</strong>
+    {{ subscribers_count|pluralize:"subscriber,subscribers" }}.
+    They will lose access if you proceed.
+</p>
+{% endif %}
+<form hx-post="{% url 'delete-dashboard' dashboard.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_delete" value="true">
+    <button class="small alert" type="submit">Yes, delete this dashboard</button>
+    <button class="small secondary" type="button" hx-on:click="htmx.remove(this.closest('.nav-modal'))">
+        Cancel
+    </button>
+</form>
+{% else %}
+<div class="alert-box error">
+    {{ error_message }}
+</div>
+<button class="small secondary" type="button" hx-on:click="htmx.remove(this.closest('.nav-modal'))">
+    Close modal
+</button>
+{% endif %}

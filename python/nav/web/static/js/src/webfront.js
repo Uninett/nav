@@ -288,24 +288,6 @@ require([
     }
 
 
-    /** Functions for deleting a dashboard */
-    function addDeleteDashboardListener(feedback) {
-        $('#form-delete-dashboard').submit(function (event) {
-            event.preventDefault();
-            var $this = $(this);
-            var doDelete = confirm('Really delete dashboard and all widgets on it?');
-            if (doDelete) {
-                var request = $.post(this.getAttribute('action'), $this.serialize());
-                request.done(function (response) {
-                    window.location = '/';
-                });
-                request.fail(function (response) {
-                    feedback.addFeedback(response.responseText, 'error');
-                });
-            }
-        });
-    }
-
     /**
      * Load runner - runs on page load
      */
@@ -363,7 +345,6 @@ require([
         addDefaultDashboardListener(feedback);
         addCreateDashboardListener(feedback);
         addRenameDashboardListener(feedback);
-        addDeleteDashboardListener(feedback);
     });
 
 });
