@@ -48,7 +48,7 @@ urlpatterns = [
     ),
     # Module details
     path(
-        '<str:netbox_sysname>/module=<str:module_name>/',
+        '<str:netbox_sysname>/module=<path:module_name>/',
         views.module_details,
         name='ipdevinfo-module-details',
     ),
