@@ -91,6 +91,18 @@ def test_bad_name_should_not_crash_ipdevinfo(client, badname):
     assert badname in smart_str(response.content)
 
 
+def test_when_module_name_contains_slash_then_module_details_should_not_crash(
+    client, netbox
+):
+    module = netbox.modules.first()
+    module.name = "1/A"
+    module.save()
+    url = reverse('ipdevinfo-module-details', args=(netbox.sysname, "1/A"))
+    response = client.get(url)
+    assert netbox.sysname in smart_str(response.content)
+    assert module.name in smart_str(response.content)
+
+
 class TestRefreshIpdevinfoJob:
     def test_given_netbox_and_job_posts_refresh_event(db, client, netbox):
         now = datetime.now()
