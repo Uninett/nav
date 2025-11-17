@@ -56,7 +56,7 @@ router.register(r'netboxentity', views.NetboxEntityViewSet, basename='netboxenti
 
 
 urlpatterns = [
-    path('', views.api_root),
+    path('', views.api_root, name="root"),
     path('token/', views.get_or_create_token, name="token"),
     path('version/', views.get_nav_version, name="version"),
     path('prefix/routed/', views.RoutedPrefixList.as_view(), name="prefix-routed-list"),

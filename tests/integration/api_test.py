@@ -69,6 +69,17 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
         assert response.status_code == 200
 
 
+def test_unauthenticated_user_can_access_api_root(db):
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+
+    url = reverse("api:1:root")
+
+    response = client.get(url)
+    assert response.status_code == 200
+
+
 @pytest.mark.parametrize("endpoint", ['account', 'location', 'room', 'vlan'])
 def test_delete(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
