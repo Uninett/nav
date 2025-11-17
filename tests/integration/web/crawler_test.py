@@ -14,6 +14,7 @@ all reachable pages.
 from collections import namedtuple
 from http.client import BadStatusLine
 from lxml.html import fromstring
+import lxml.html
 
 import pytest
 
@@ -165,10 +166,15 @@ class WebCrawler(object):
                 self.queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
     def login(self):
-        login_url = urljoin(self.base_url, '/index/login/')
         opener = build_opener(HTTPCookieProcessor())
-        data = urlencode({'username': self.username, 'password': self.password})
-        opener.open(login_url, data.encode('utf-8'), TIMEOUT)
+        login_url = urljoin(self.base_url, "/index/login/")
+        login_response = opener.open(login_url)
+        login_html = lxml.html.parse(login_response)
+        login_form = login_html.find("//form[@method='post'][@action='/index/login/']")
+        login_form.fields["username"] = self.username
+        login_form.fields["password"] = self.password
+        login_data = urlencode(login_form.form_values()).encode("utf-8")
+        opener.open(login_form.action, login_data, TIMEOUT)
         install_opener(opener)
 
     def _add_seen(self, page, url=None):
