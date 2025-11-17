@@ -11,6 +11,18 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.15.1] - 2025-11-17
+
+### Fixed
+
+- Fixed crash reports being sent by unauthenticated clients accessing the API
+  ([#3650](https://github.com/Uninett/nav/issues/3650))
+- Fixed non-working port overviews for devices that contain modules with
+  slashes in their name. A broken interfaces API endpoint caused both
+  *ipdevinfo* and *interface browser* port lists to malfunction.
+  ([#3652](https://github.com/Uninett/nav/issues/3652))
+
+
 ## [5.15.0] - 2025-10-30
 
 ### Security
