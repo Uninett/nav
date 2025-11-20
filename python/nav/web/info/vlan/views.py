@@ -28,6 +28,7 @@ from django.http import HttpResponse
 
 from nav.models.manage import Prefix, Vlan
 from nav.web.utils import create_title
+from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series
 from nav.metrics.templates import metric_path_for_prefix
@@ -115,6 +116,13 @@ def vlan_details(request, vlanid):
 
     navpath = get_path([(str(vlan), '')])
 
+    try:
+        dhcp_graph_urls = vlan.get_dhcp_graph_urls()
+        graphite_error = False
+    except GraphiteUnreachableError:
+        dhcp_graph_urls = []
+        graphite_error = True
+
     return render(
         request,
         'info/vlan/vlandetails.html',
@@ -126,6 +134,8 @@ def vlan_details(request, vlanid):
             'has_v4': has_v4,
             'has_v6': has_v6,
             'title': create_title(navpath),
+            'dhcp_graph_urls': dhcp_graph_urls,
+            'graphite_error': graphite_error,
         },
     )
 

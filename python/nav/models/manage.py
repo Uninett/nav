@@ -41,7 +41,13 @@ from django.urls import reverse
 from nav import util
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
-from nav.metrics.graphs import get_simple_graph_url, Graph
+from nav.metrics.graphs import (
+    aliased_series,
+    get_simple_graph_url,
+    Graph,
+    json_graph_url,
+    summed_series,
+)
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
     metric_prefix_for_interface,
@@ -57,6 +63,7 @@ from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
 from nav.oids import get_enterprise_id
+import nav.dhcpstats.common
 
 
 _logger = logging.getLogger(__name__)
@@ -1458,16 +1465,26 @@ class Prefix(models.Model):
     def get_graph_url(self):
         """Creates the graph url used for graphing this prefix"""
         path = partial(metric_path_for_prefix, self.net_address)
-        ip_count = 'alias({0}, "IP addresses ")'.format(path('ip_count'))
-        ip_range = 'alias({0}, "Max addresses")'.format(path('ip_range'))
-        mac_count = 'alias({0}, "MAC addresses")'.format(path('mac_count'))
+        ip_count = aliased_series(path('ip_count'), name="IP addresses")
+        ip_range = aliased_series(path('ip_range'), name="Max addresses")
+        mac_count = aliased_series(path('mac_count'), name="MAC addresses")
         metrics = [ip_count, mac_count]
         if IPy.IP(self.net_address).version() == 4:
             metrics.append(ip_range)
-        return get_simple_graph_url(metrics, title=str(self), format='json')
+        return json_graph_url(*metrics, title=str(self))
 
     def get_absolute_url(self):
         return reverse('prefix-details', args=[self.pk])
+
+    def get_dhcp_graph_urls(self):
+        """
+        Creates urls to graphs showing range/pool/subnet utilization, with one
+        url (and one graph) per set of ranges/pools/subnets in graphite with the
+        same ip_version, server_name and group where at least one
+        range/pool/subnet intersects this prefix.
+        """
+        prefix = IPy.IP(self.net_address)
+        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes([prefix])
 
 
 class Vlan(models.Model):
@@ -1542,30 +1559,39 @@ class Vlan(models.Model):
         # Put metainformation in the alias so that Rickshaw can pick it up and
         # know how to draw the series.
         series = [
-            "alias({}, 'renderer=area;;{}')".format(
+            aliased_series(
                 metric_path_for_prefix(prefix.net_address, 'ip_count'),
-                prefix.net_address,
+                name=prefix.net_address,
+                renderer="area",
             )
             for prefix in prefixes
         ]
-        if series:
-            if family == 4:
-                series.append(
-                    "alias(sumSeries(%s), 'Max addresses')"
-                    % ",".join(
-                        [
-                            metric_path_for_prefix(prefix.net_address, 'ip_range')
-                            for prefix in prefixes
-                        ]
-                    )
-                )
-            return get_simple_graph_url(
-                series,
-                title="Total IPv{} addresses on vlan {} - stacked".format(
-                    family, str(self)
-                ),
-                format='json',
+
+        if not series:
+            return
+
+        if family == 4:
+            ip_ranges = [
+                metric_path_for_prefix(prefix.net_address, 'ip_range')
+                for prefix in prefixes
+            ]
+            series.append(
+                aliased_series(summed_series(*ip_ranges), name="Max addresses"),
             )
+
+        title = f"Total IPv{family} addresses on vlan {self} - stacked"
+
+        return json_graph_url(*series, title=title)
+
+    def get_dhcp_graph_urls(self):
+        """
+        Creates urls to graphs showing range/pool/subnet utilization, with one
+        url (and one graph) per set of ranges/pools/subnets in graphite with the
+        same ip_version, server_name and group where at least one
+        range/pool/subnet intersects this vlan.
+        """
+        prefixes = [IPy.IP(prefix.net_address) for prefix in self.prefixes.all()]
+        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes(prefixes)
 
 
 class NetType(models.Model):
