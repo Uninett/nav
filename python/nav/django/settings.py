@@ -17,10 +17,13 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
+import distro
+import platform
 import os
 import sys
 import copy
 import warnings
+
 
 from django.utils.log import DEFAULT_LOGGING
 
@@ -315,3 +318,12 @@ OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+# Add NAV and OS-versions so they are added to exception views.
+NAV_VERSION = nav.buildconf.VERSION
+if platform.system() == "Linux":
+    OS_VERSION = f"{distro.name(pretty=True)} {distro.version()}"
+elif platform.system() == "Darwin":
+    OS_VERSION = f"macOS {platform.mac_ver()[0]}"
+else:
+    OS_VERSION = f"{platform.system()} {platform.release()} ({platform.version()})"
