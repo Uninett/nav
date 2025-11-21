@@ -105,9 +105,10 @@ def authenticate(username: str, password: str) -> Optional[Account]:
         return None
 
 
-def get_login_url(request: HttpRequest) -> str:
+def get_login_url(request: HttpRequest, path=None) -> str:
     """Calculate which login_url to use"""
-    path = parse.quote(request.get_full_path())
+    if path is None:
+        path = parse.quote(request.get_full_path())
     if path == "/":
         default_new_url = LOGIN_URL
     else:
