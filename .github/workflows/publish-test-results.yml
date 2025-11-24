@@ -17,7 +17,7 @@ jobs:
       # Codecov requires source code to process the coverage file and generate coverage
       # reports
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
       - name: Download and Extract Artifacts
