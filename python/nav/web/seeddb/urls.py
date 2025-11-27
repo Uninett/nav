@@ -122,8 +122,10 @@ urlpatterns = [
     path('service/bulk/', service.service_bulk, name='seeddb-service-bulk'),
     # Room
     path('room/', room.room, name='seeddb-room'),
-    path('room/edit/<str:room_id>/', room.room_edit, name='seeddb-room-edit'),
-    path('room/delete/<str:object_id>/', room.room_delete, name='seeddb-room-delete'),
+    re_path(r'^room/edit/(?P<room_id>.+)/$', room.room_edit, name='seeddb-room-edit'),
+    re_path(
+        r'^room/delete/(?P<object_id>.+)/$', room.room_delete, name='seeddb-room-delete'
+    ),
     re_path(
         r'^room/(?P<action>copy)/(?P<room_id>.+)/$',
         room.room_edit,
