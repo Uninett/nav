@@ -65,6 +65,16 @@ def search(request):
     else:
         searchform = LocationSearchForm()
 
+    if request.htmx:
+        return render(
+            request,
+            "info/location/_search_results.html",
+            {
+                "searchform": searchform,
+                "locations": locations,
+            },
+        )
+
     return render(
         request,
         "info/location/base.html",

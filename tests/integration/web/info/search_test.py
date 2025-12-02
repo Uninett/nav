@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pytest
 from django.db import models
 from django.urls import reverse
 
@@ -102,6 +103,109 @@ class TestProcessFormDescriptionSearch:
         assert provider is not None
         assert len(provider.results) == 1
         assert provider.results[0].inst.id == instance.id
+
+
+class TestInfoSearchViews:
+    """Tests for the info search views."""
+
+    def test_info_search_general_query_should_return_base_template(self, client):
+        """Should render base template for general query."""
+        url = reverse('info-search') + '?query=a'
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'info/base.html' in [t.name for t in response.templates]
+
+    def test_info_search_query_matching_single_resource_should_redirect(
+        self, client, localhost
+    ):
+        """Should redirect when query matches a single resource."""
+        url = reverse('info-search') + f'?query={localhost.sysname}'
+        response = client.get(url)
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'ipdevinfo-details-by-name', kwargs={'name': localhost.sysname}
+        )
+
+    def test_info_search_general_query_using_htmx_should_return_search_results(
+        self, client
+    ):
+        """Should return search results partial for HTMX request."""
+        url = reverse('info-search') + '?query=a'
+        response = client.get(url, HTTP_HX_REQUEST='true')
+        assert response.status_code == 200
+        assert 'info/_search_results.html' in [t.name for t in response.templates]
+
+    def test_info_search_query_matching_single_resource_using_htmx_should_redirect(
+        self, client, localhost
+    ):
+        """
+        Should return HX-Redirect header for HTMX request matching single resource.
+        """
+        url = reverse('info-search') + f'?query={localhost.sysname}'
+        response = client.get(url, HTTP_HX_REQUEST='true')
+        assert response.status_code == 200
+        assert 'HX-Redirect' in response.headers
+
+    def test_ipdevinfo_search_query_that_matches_single_netbox_should_redirect(
+        self, client, localhost
+    ):
+        """Should redirect for ipdevinfo search matching single netbox."""
+        url = reverse('ipdevinfo-search') + f'?query={localhost.sysname}'
+        response = client.get(url)
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'ipdevinfo-details-by-name', kwargs={'name': localhost.sysname}
+        )
+
+    def test_ipdevinfo_single_netbox_query_should_redirect_with_htmx(
+        self, client, localhost
+    ):
+        """
+        Should return HX-Redirect for HTMX ipdevinfo search matching single netbox.
+        """
+        url = reverse('ipdevinfo-search') + f'?query={localhost.sysname}'
+        response = client.get(url, HTTP_HX_REQUEST='true')
+        assert response.status_code == 200
+        assert 'HX-Redirect' in response.headers
+
+    @pytest.mark.parametrize(
+        'url_name,template',
+        [
+            ('ipdevinfo-search', 'info/base.html'),
+            ('room-search', 'info/room/base.html'),
+            ('location-search', 'info/location/base.html'),
+            ('vlan-index', 'info/vlan/base.html'),
+            ('prefix-index', 'info/prefix/base.html'),
+            ('netbox-group', 'info/netboxgroup/list_groups.html'),
+        ],
+    )
+    def test_search_views_should_render_base_template_on_initial_load(
+        self, client, url_name, template
+    ):
+        """Should render correct base template for each search view."""
+        url = reverse(url_name) + '?query=unmatched'
+        response = client.get(url)
+        assert response.status_code == 200
+        assert template in [t.name for t in response.templates]
+
+    @pytest.mark.parametrize(
+        'url_name,template',
+        [
+            ('ipdevinfo-search', 'ipdevinfo/_search_results.html'),
+            ('room-search', 'info/room/_search_results.html'),
+            ('location-search', 'info/location/_search_results.html'),
+            ('vlan-index', 'info/vlan/_search_results.html'),
+            ('prefix-index', 'info/prefix/_search_results.html'),
+            ('netbox-group', 'info/netboxgroup/_search_results.html'),
+        ],
+    )
+    def test_search_views_should_render_results_with_htmx(
+        self, client, url_name, template
+    ):
+        url = reverse(url_name) + '?query=unmatched'
+        response = client.get(url, HTTP_HX_REQUEST='true')
+        assert response.status_code == 200
+        assert template in [t.name for t in response.templates]
 
 
 class TestIndexSearchPreviewView:

@@ -30,48 +30,12 @@
 
     <h3>VLAN search</h3>
 
-    {% include 'custom_crispy_templates/flat_form.html' %}
-
+    {% include 'info/_search_form.html' with form=form %}
+    <div id="search-results">
     {% if form.is_bound %}
-      {% if vlans %}
-        <table class="listtable searchresults">
-          <caption>{{ vlans|length }} result{{ vlans|pluralize:",s" }}
-            for "{{ form.data.query }}"
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Vlan</th>
-              <th>Type</th>
-              <th>Netident</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for vlan in vlans %}
-              <tr>
-                <td>
-                  <a href="{% url 'vlan-details' vlan.id %}">{{ vlan.vlan }}</a>
-                </td>
-                <td>
-                  {{ vlan.net_type }}
-                </td>
-                <td>
-                  {{ vlan.net_ident }}
-                </td>
-                <td>
-                  {{ vlan.description }}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="messages">No vlans found</p>
-      {% endif %}
-
+        {% include 'info/vlan/_search_results.html' with form=form vlans=vlans %}
     {% endif %}
+    </div>
 
   {% endblock %}
 

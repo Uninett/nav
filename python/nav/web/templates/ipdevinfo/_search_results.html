@@ -1,0 +1,32 @@
+{% if netboxes %}
+    <table class="listtable">
+        <caption>
+            {{ netboxes|length }} result{{ netboxes|pluralize:",s" }}
+            for "{{ query }}"
+        </caption>
+
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Sysname</th>
+            <th>IP</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for netbox in netboxes %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
+                </td>
+                <td>{{ netbox.ip }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    {% if query %}
+        <div class="alert-box">No IP device(s) found</div>
+    {% endif %}
+{% endif %}

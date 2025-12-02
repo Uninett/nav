@@ -2,45 +2,11 @@
 
 {% block content %}
 
-<h4>IP Device search</h4>
+<h3>IP Device search</h3>
+{% include 'info/_search_form.html' with form=search_form %}
 
-<div class="row">
-    <div class="column medium-6">
-        {% include 'custom_crispy_templates/flat_form.html' with form=search_form %}
-    </div>
+<div id="search-results">
+{% include "ipdevinfo/_search_results.html" with netboxes=netboxes query=query %}
 </div>
-
-{% if netboxes %}
-    <table class="listtable">
-        <caption>
-            {{ netboxes|length }} result{{ netboxes|pluralize:",s" }}
-            for "{{ query }}"
-        </caption>
-
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>Sysname</th>
-            <th>IP</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        {% for netbox in netboxes %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>
-                    <a href="{{ netbox.get_absolute_url }}">{{ netbox }}</a>
-                </td>
-                <td>{{ netbox.ip }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    {% if query %}
-        <div class='alert-box'>No IP devices found</div>
-    {% endif %}
-{% endif %}
 
 {% endblock %}

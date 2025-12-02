@@ -93,6 +93,13 @@ def search(request):
     else:
         searchform = RoomSearchForm()
 
+    if request.htmx:
+        return render(
+            request,
+            'info/room/_search_results.html',
+            {"rooms": rooms, "searchform": searchform},
+        )
+
     return render(
         request,
         "info/room/base.html",

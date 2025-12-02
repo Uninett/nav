@@ -1,0 +1,67 @@
+{% load info %}
+<div id="searchtabs" class="ui-helper-hidden">
+  {% if searchproviders and searchproviders|length > 0 %}
+    <ul>
+      {% for searchprovider in searchproviders %}
+        {% if searchprovider.results %}
+          <li><a href="#{{ searchprovider.name|cut:" " }}">{{ searchprovider.name }} ({{ searchprovider.results|length }})</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    {% for searchprovider in searchproviders %}
+      {% if searchprovider.results %}
+        <div id="{{ searchprovider.name|cut:" " }}">
+          <table class="listtable full-width table-hover">
+            <caption>
+              {{ searchprovider.name }}
+              <span class="subtitle right">
+                {{ searchprovider.results|length }} result{{ searchprovider.results|pluralize:'s' }}
+              </span>
+            </caption>
+
+            <thead>
+              <tr>
+                {% for header, getter in searchprovider.headers %}
+                  <th>{{ header }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for result in searchprovider.results %}
+                <tr>
+                  {% for header, getter in searchprovider.headers %}
+                    <td>
+                      {% if header == searchprovider.link %}
+                        <a href="{{ result.href }}">
+                          {{ result.inst|get_attr:getter }}
+                        </a>
+                      {% else %}
+                        {{ result.inst|get_attr:getter }}
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <div class="alert-box secondary">No results for "{{ form.data.query }}"</div>
+  {% endif %}
+</div>
+
+{% if failed_providers %}
+  <div class="alert-box alert">
+    <p>Additionally, these search providers crashed:</p>
+    <ul>
+      {% for provider, error in failed_providers %}
+        <li><var>{{ provider }}</var>:<br/><blockquote>{{ error|stringformat:'r' }}</blockquote></li>
+      {% endfor %}
+    </ul>
+    <p>Error details have been logged.</p>
+  </div>
+{% endif %}
