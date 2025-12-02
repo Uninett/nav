@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: kenchan0130/actions-system-info@59699597e84e80085a750998045983daa49274c4
         id: system-info
 
@@ -128,7 +128,7 @@ jobs:
     name: "Test Javascript code"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: browser-actions/setup-chrome@latest
       - uses: browser-actions/setup-firefox@latest
       - run: chrome --version
