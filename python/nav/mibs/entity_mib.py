@@ -27,6 +27,7 @@ from twisted.internet import defer
 from nav.oids import OID
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever
+from nav.mibs.types import LogicalMibInstance
 from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
 
 _logger = logging.getLogger(__name__)
@@ -37,13 +38,10 @@ class EntityMib(mibretriever.MibRetriever):
 
     mib = get_mib('ENTITY-MIB')
 
-    async def retrieve_alternate_bridge_mibs(self):
+    async def retrieve_alternate_bridge_mibs(self) -> list[LogicalMibInstance]:
         """Retrieves a list of alternate bridge mib instances.
 
-        This is accomplished by looking at entLogicalTable.  Returns a
-        list of tuples::
-
-          (entity_description, community)
+        This is accomplished by looking at entLogicalTable.
 
         :NOTE: Some devices will return entities with the same community.
                These should effectively be filtered out for polling purposes.
@@ -66,7 +64,9 @@ class EntityMib(mibretriever.MibRetriever):
             ['entLogicalDescr', 'entLogicalType', 'entLogicalCommunity']
         )
         return [
-            (r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8"))
+            LogicalMibInstance(
+                r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8")
+            )
             for r in result.values()
             if _is_bridge_mib_instance_with_valid_community(r)
         ]
