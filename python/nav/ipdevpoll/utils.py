@@ -17,6 +17,8 @@
 #
 """Utility functions for ipdevpoll."""
 
+from __future__ import annotations
+
 import logging
 import re
 from typing import TYPE_CHECKING
@@ -33,6 +35,7 @@ from nav.enterprise.ids import VENDOR_ID_ARUBA_NETWORKS_INC
 
 if TYPE_CHECKING:
     from nav.mibs.bridge_mib import MultiBridgeMib
+    from nav.mibs.types import LogicalMibInstance
 
 _logger = logging.getLogger(__name__)
 MAX_MAC_ADDRESS_LENGTH = 6
@@ -144,15 +147,12 @@ async def get_multibridgemib(agentproxy) -> "MultiBridgeMib":
     return MultiBridgeMib(agentproxy, instances)
 
 
-async def get_dot1d_instances(agentproxy):
+async def get_dot1d_instances(agentproxy) -> "list[LogicalMibInstance]":
     """
     Gets a list of alternative BRIDGE-MIB instances from a Cisco or Aruba
     agent.
 
-    First
-
-    :returns: A list of [(description, community), ...] for each alternate
-              BRIDGE-MIB instance.
+    :returns: A list of LogicalMibInstance for each alternate BRIDGE-MIB instance.
 
     """
     from nav.mibs.snmpv2_mib import Snmpv2Mib
