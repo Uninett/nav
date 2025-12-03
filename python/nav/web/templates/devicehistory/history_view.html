@@ -5,7 +5,11 @@
 
   <div class="row">
     <div class="medium-9 columns">
-      <form action="{% url 'devicehistory-view' %}" method="get">
+      <form
+              hx-get="{% url 'devicehistory-view' %}"
+              hx-target="#device-history-search-results"
+              hx-swap="innerHTML"
+      >
         {% for type, elements in selection.items %}
           {% for id in elements %}
             <input type="hidden" name="{{ type }}" value="{{ id }}" />
@@ -33,82 +37,6 @@
   </div>
 
   <div id="device-history-search-results">
-    {% for group_name, group in history.items %}
-      <table class="listtable full-width align-top">
-        <caption>
-          {{ group_name }}
-          <span class="subtitle right">{{ group|length }} items.</span>
-        </caption>
-
-        <thead>
-          <tr>
-            <th>Netbox</th>
-            <th>Serial</th>
-            <th>Start time</th>
-            <th>End time</th>
-            <th>Event type</th>
-            <th>Alert type</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-
-        <tfoot>
-          <tr>
-            <th colspan="10">
-              {{ group|length }} items.
-            </th>
-          </tr>
-        </tfoot>
-
-        <tbody>
-          {% for h in group %}
-            <tr>
-              <td>
-                <a href="{{ h.netbox.get_absolute_url }}">
-                    <div id="sysname-tooltip-{{ h.id }}" class="nav-tooltip medium">
-                        <span class="unstyled-tooltip" aria-describedby="sysname-tooltip-{{ h.id }}">
-                                {{ h.netbox.sysname }}
-                        </span>
-                        <div class="medium" role="tooltip">
-                            <span><strong>Location: </strong> {{ h.netbox.room.location }}</span><br/>
-                            <span><strong>Room: </strong> {{ h.netbox.room }}</span>
-                        </div>
-                    </div>
-                </a>
-              </td>
-
-              <td>{{ h.device.serial|default_if_none:"" }}</td>
-              <td>{{ h.start_time }}</td>
-              <td>
-                {% if h.is_open %}
-                  Unresolved
-                {% else %}
-                  {{ h.end_time }}
-                {% endif %}
-              </td>
-              <td>{{ h.event_type.id }}</td>
-              <td>{{ h.alert_type.name }}</td>
-              <td>
-                {% if h.extra_messages %}
-                  <ul class="no-bullet">
-                    {% for state,m in h.extra_messages.items %}
-                      <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
-                        <i class="fa fa-envelope" title="{{ m.email|linebreaks }}"></i>
-                        <span>
-                          <a href="{% url 'event-details' h.pk %}" title="See event details">
-                            {{ m.sms }}
-                          </a>
-                        </span>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                {% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% endfor %}
+    {% include "./_history_view_results.html" %}
   </div>
-
 {% endblock %}
