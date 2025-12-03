@@ -164,6 +164,9 @@ def devicehistory_view(request, **_):
         ],
         'form': form,
     }
+    if request.htmx:
+        return render(request, 'devicehistory/_history_view_results.html', info_dict)
+
     return render(request, 'devicehistory/history_view.html', info_dict)
 
 
