@@ -15,7 +15,7 @@
 #
 """Type definitions for nav.mibs package."""
 
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 
 class LogicalMibInstance(NamedTuple):
@@ -27,4 +27,6 @@ class LogicalMibInstance(NamedTuple):
     """
 
     description: str
-    community: str
+    community: Optional[str]
+    context: Optional[str] = None
+    context_engine_id: Optional[bytes] = None
