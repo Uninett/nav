@@ -15,29 +15,26 @@
 #
 
 import datetime
-
-import pytest_twisted
-from IPy import IP
-
-from twisted.internet import defer
-from twisted.python import failure
-
-import pytest
 from unittest.mock import Mock, patch
 
-from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
+import pytest
+import pytest_twisted
+from IPy import IP
+from nav.ipdevpoll.shadows import Device, PowerSupplyOrFan
+from nav.mibs import itw_mib, itw_mibv3, itw_mibv4
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
-from nav.models.manage import NetboxEntity
-from nav.oids import OID
-from nav.mibs.ip_mib import IpMib, IndexToIpException
-from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.entity_mib import (
     EntityMib,
-    parse_dateandtime_tc,
     _entity_to_powersupply_or_fan,
+    parse_dateandtime_tc,
 )
+from nav.mibs.ip_mib import IndexToIpException, IpMib
+from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
-from nav.mibs import itw_mib, itw_mibv3, itw_mibv4
+from nav.models.manage import NetboxEntity
+from nav.oids import OID
+from twisted.internet import defer
+from twisted.python import failure
 
 
 class TestIpMib(object):
