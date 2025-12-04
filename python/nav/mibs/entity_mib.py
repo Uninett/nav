@@ -61,11 +61,20 @@ class EntityMib(mibretriever.MibRetriever):
             )
 
         result = await self.retrieve_columns(
-            ['entLogicalDescr', 'entLogicalType', 'entLogicalCommunity']
+            [
+                'entLogicalDescr',
+                'entLogicalType',
+                'entLogicalCommunity',
+                'entLogicalContextEngineID',
+                'entLogicalContextName',
+            ]
         )
         return [
             LogicalMibInstance(
-                r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8")
+                r["entLogicalDescr"],
+                r["entLogicalCommunity"].decode("utf-8"),
+                r["entLogicalContextName"],
+                r["entLogicalContextEngineID"],
             )
             for r in result.values()
             if _is_bridge_mib_instance_with_valid_community(r)
