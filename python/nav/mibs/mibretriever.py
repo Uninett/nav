@@ -32,7 +32,7 @@ this to allow asynchronous data retrieval.
 """
 
 import logging
-from typing import Awaitable
+from typing import Awaitable, Iterator
 
 from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import defer, reactor
@@ -43,6 +43,7 @@ from nav.Snmp import safestring
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.utils import fire_eventually
 from nav.errors import GeneralException
+from nav.mibs.types import LogicalMibInstance
 from nav.oids import OID
 from nav.smidumps import get_mib
 
@@ -577,12 +578,11 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
 
 
 class MultiMibMixIn(MibRetriever):
-    """Queries and chains the results of multiple MIB instances using
-    community indexing.
+    """Queries and chains the results of multiple logical MIB instances, using
+    either community indexing or SNMPv3 contexts.
 
     Useful for Cisco devices, whose SNMP agents employ multiple BRIDGE-MIB
-    instances, one for each active VLAN, each indexable via a modified SNMP
-    community.
+    instances, one for each active VLAN.
 
     Add the mixin to the list of base classes of a MibRetriever descendant
     class, and override any querying method that should work across multiple
@@ -590,25 +590,22 @@ class MultiMibMixIn(MibRetriever):
 
     """
 
-    def __init__(self, agent_proxy, instances):
+    def __init__(self, agent_proxy, instances: list[LogicalMibInstance]):
         """Initializes a MultiBridgeQuery to perform SNMP requests on multiple
-        BRIDGE-MIB instances on the same host/IP.
+        logical MIB instances on the same host/IP.
 
         :param agent_proxy: The base AgentProxy to use for communication. An
-                            AgentProxy for each additional BRIDGE-MIB instance
+                            AgentProxy for each additional MIB instance
                             will be created based on the properties of this
                             one.
 
-        :param instances: A sequence of tuples describing the MIB instances to
-                          query, like [(description, community), ...], where
-                          description is any object that can be used to
-                          identify an instance, and community is the alternate
-                          MIB instance's SNMP read-community.
+        :param instances: A list of LogicalMibInstance objects that describe the
+                          logical instances to query.
 
         """
         super(MultiMibMixIn, self).__init__(agent_proxy)
         self._base_agent = agent_proxy
-        self.instances = instances
+        self.instances: list[LogicalMibInstance] = instances
 
     @defer.inlineCallbacks
     def _multiquery(self, method, *args, **kwargs):
@@ -687,44 +684,45 @@ class MultiMibMixIn(MibRetriever):
         return merged_dict
 
     def _make_agents(self):
-        "Generates a series of alternate AgentProxy instances"
+        """Generates a series of alternate AgentProxy instances"""
         instances = list(self._prune_instances())
         if not instances:
             # The un-indexed BRIDGE-MIB instance represents the default
             # VLAN. We only check this un-indexed instance if no alternate
             # instances were found, otherwise some results will be duplicated.
-            yield (self._base_agent, None)
-        for descr, community in instances:
-            agent = self._get_alternate_agent(community)
-            yield (agent, descr)
+            yield self._base_agent, None
+        for instance in instances:
+            agent = self._get_alternate_agent(instance)
+            yield agent, instance.description
 
-    def _prune_instances(self):
-        """ "Prunes instances with duplicate community strings from the
+    def _prune_instances(self) -> Iterator[LogicalMibInstance]:
+        """Prunes instances with duplicate community strings from the
         instance list, as these cannot possibly represent individual MIB
         instances in the queried devices.
 
         """
         seen_communities = set(self._base_agent.community)
 
-        for descr, community in self.instances:
-            if community not in seen_communities:
-                seen_communities.add(community)
-                yield (descr, community)
+        for instance in self.instances:
+            if not instance.community:
+                continue
+            if instance.community not in seen_communities:
+                seen_communities.add(instance.community)
+                yield instance
 
-    def _get_alternate_agent(self, community):
-        """Create an alternate AgentProxy using a different community.
+    def _get_alternate_agent(self, instance: LogicalMibInstance):
+        """Create an alternate AgentProxy using the settings for a logical MIB instance.
 
         :returns: An instance of the same class as the AgentProxy object given
                   to __init__().  Every main attribute will be copied from the
-                  original AgentProxy, except for the community string, which
-                  will be taken from the MIB instance list..
-
+                  original AgentProxy, except for the alternative attributes
+                  described by a LogicalMibInstance object.
         """
         agent = self._base_agent
         alt_agent = agent.__class__(
             agent.ip,
             agent.port,
-            community=community,
+            community=instance.community,
             snmpVersion=agent.snmpVersion,
             snmp_parameters=agent.snmp_parameters,
         )
