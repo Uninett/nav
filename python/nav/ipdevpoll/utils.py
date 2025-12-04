@@ -201,8 +201,12 @@ def get_arista_vrf_instances(agentproxy) -> Deferred:
 
     vrf_mib = AristaVrfMib(agentproxy)
     states = yield vrf_mib.get_vrf_states(only='active')
-    vrfs = [('', agentproxy.community)]
-    vrfs.extend((vrf, f"{agentproxy.community}@{vrf}") for vrf in states)
+    # XXX: This part does not currently support SNMPv3, as we have no known way to
+    #      derive the correct SNMPv3 context name for each VRF.
+    vrfs = [LogicalMibInstance('', agentproxy.community)]
+    vrfs.extend(
+        LogicalMibInstance(vrf, f"{agentproxy.community}@{vrf}") for vrf in states
+    )
     return vrfs
 
 
