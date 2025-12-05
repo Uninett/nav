@@ -2,7 +2,7 @@
  * Adds custom parsers to the global $.tablesorter object
  * See https://mottie.github.io/tablesorter/docs/example-parsers.html
  */
-define(["libs/jquery.tablesorter.min"], function() {
+define(["jquery-tablesorter"], function() {
   /**
    * Returns data-sort-value attribute of a DOM node if the attribute is
    * defined.  If not, returns fallback

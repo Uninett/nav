@@ -1,4 +1,4 @@
-define(["libs/jquery"], function () {
+define(["jquery"], function () {
     function CounterDisplay(template, parentId, value, unit) {
         this.template = template;
         this.unit = unit;

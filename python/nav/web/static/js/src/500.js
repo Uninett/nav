@@ -1,4 +1,4 @@
-require(["libs/jquery"], function () { 
+require(["jquery"], function () {
 
 	$(function () {
 

@@ -1,6 +1,6 @@
 define(function (require) {
     var Vue = require('vue');
-    var sparkline = require('libs/jquery.sparkline');
+    var sparkline = require('jquery-sparkline');
     var LinearGauge = require('plugins/linear_gauge');
     var rackTemplate = require('libs-amd/text!resources/vue/environment_rack.html');
     var rackItemTemplate = require('libs-amd/text!resources/vue/environment_rack_item.html');

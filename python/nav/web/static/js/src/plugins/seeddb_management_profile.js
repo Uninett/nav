@@ -30,7 +30,7 @@ function () {
     if (document.readyState === 'complete') {
         executeOnLoad();
     } else {
-        $(window).load(executeOnLoad);
+        $(window).on('load', executeOnLoad);
     }
 
 });

@@ -1,7 +1,7 @@
 require([
     'plugins/linear_gauge',
     'plugins/symbols',
-    'libs/jquery.sparkline'
+    'jquery-sparkline'
 ], function (LinearGauge, symbol) {
 
     /**
