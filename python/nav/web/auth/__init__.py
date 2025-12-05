@@ -118,9 +118,10 @@ def _handle_ldap_admin_status(ldap_user: "LDAPUser", nav_account: Account) -> No
             nav_account.groups.remove(admin_group)
 
 
-def get_login_url(request: HttpRequest) -> str:
+def get_login_url(request: HttpRequest, path=None) -> str:
     """Calculate which login_url to use"""
-    path = parse.quote(request.get_full_path())
+    if path is None:
+        path = parse.quote(request.get_full_path())
     if path == "/":
         default_new_url = LOGIN_URL
     else:
