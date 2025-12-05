@@ -31,6 +31,7 @@ this to allow asynchronous data retrieval.
 
 """
 
+import dataclasses
 import logging
 from typing import Awaitable, Iterator
 
@@ -719,12 +720,18 @@ class MultiMibMixIn(MibRetriever):
                   described by a LogicalMibInstance object.
         """
         agent = self._base_agent
+        if agent.snmp_parameters.version == 3:
+            changes = {"context_name": instance.context}
+            if instance.context_engine_id:
+                changes["context_engine_id"] = instance.context_engine_id.hex()
+        else:
+            changes = {"community": instance.community}
+        new_parameters = dataclasses.replace(agent.snmp_parameters, **changes)
+
         alt_agent = agent.__class__(
             agent.ip,
             agent.port,
-            community=instance.community,
-            snmpVersion=agent.snmpVersion,
-            snmp_parameters=agent.snmp_parameters,
+            snmp_parameters=new_parameters,
         )
         if hasattr(agent, 'protocol'):
             alt_agent.protocol = agent.protocol
