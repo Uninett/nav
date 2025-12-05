@@ -117,10 +117,6 @@ class AuthorizationMiddleware(MiddlewareMixin):
         if is_ajax(request):
             return HttpResponse(status=401)
 
-        # TODO: The best way to deal with auth errors for HTMX requests would be
-        # to return a HTMX-ified login form fragment so that you can login again
-        # without leaving the original page (since it is possible to return
-        # cleanly to a page altered by HTMX).
         if htmx := HtmxDetails(request):
             if orig_path := htmx.current_url_abs_path:
                 new_url = get_login_url(request, path=orig_path)
