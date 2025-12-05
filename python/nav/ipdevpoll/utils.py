@@ -19,6 +19,7 @@
 
 import logging
 import re
+from typing import TYPE_CHECKING
 
 from IPy import IP
 
@@ -30,6 +31,8 @@ from nav.oids import get_enterprise_id
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from nav.enterprise.ids import VENDOR_ID_ARUBA_NETWORKS_INC
 
+if TYPE_CHECKING:
+    from nav.mibs.bridge_mib import MultiBridgeMib
 
 _logger = logging.getLogger(__name__)
 MAX_MAC_ADDRESS_LENGTH = 6
@@ -130,20 +133,18 @@ def log_unhandled_failure(logger, failure, msg, *args, **kwargs):
     logger.error(msg + "\n%s", *args, **kwargs)
 
 
-@defer.inlineCallbacks
-def get_multibridgemib(agentproxy):
+async def get_multibridgemib(agentproxy) -> "MultiBridgeMib":
     """Returns a MultiBridgeMib retriever pre-populated with instances from
     get_dot1d_instances()
 
     """
     from nav.mibs.bridge_mib import MultiBridgeMib
 
-    instances = yield get_dot1d_instances(agentproxy)
+    instances = await get_dot1d_instances(agentproxy)
     return MultiBridgeMib(agentproxy, instances)
 
 
-@defer.inlineCallbacks
-def get_dot1d_instances(agentproxy):
+async def get_dot1d_instances(agentproxy):
     """
     Gets a list of alternative BRIDGE-MIB instances from a Cisco or Aruba
     agent.
@@ -158,7 +159,7 @@ def get_dot1d_instances(agentproxy):
     from nav.mibs.cisco_vtp_mib import CiscoVTPMib
     from nav.mibs.entity_mib import EntityMib
 
-    enterprise_id = yield (
+    enterprise_id = await (
         Snmpv2Mib(agentproxy).get_sysObjectID().addCallback(get_enterprise_id)
     )
     if enterprise_id == VENDOR_ID_CISCOSYSTEMS:
@@ -172,7 +173,7 @@ def get_dot1d_instances(agentproxy):
 
     for mibclass in mibclasses:
         mib = mibclass(agentproxy)
-        instances = yield mib.retrieve_alternate_bridge_mibs()
+        instances = await mib.retrieve_alternate_bridge_mibs()
         if instances:
             result = modifier(instances)
             modified_by = modifier if instances != result else None

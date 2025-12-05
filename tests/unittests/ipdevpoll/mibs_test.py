@@ -15,27 +15,26 @@
 #
 
 import datetime
-from IPy import IP
+from unittest.mock import Mock, patch
 
-from twisted.internet import defer
-from twisted.python import failure
-
-from mock import Mock
 import pytest
-
-from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
+import pytest_twisted
+from IPy import IP
+from nav.ipdevpoll.shadows import Device, PowerSupplyOrFan
+from nav.mibs import itw_mib, itw_mibv3, itw_mibv4
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
-from nav.models.manage import NetboxEntity
-from nav.oids import OID
-from nav.mibs.ip_mib import IpMib, IndexToIpException
-from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.entity_mib import (
     EntityMib,
-    parse_dateandtime_tc,
     _entity_to_powersupply_or_fan,
+    parse_dateandtime_tc,
 )
+from nav.mibs.ip_mib import IndexToIpException, IpMib
+from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.snmpv2_mib import Snmpv2Mib
-from nav.mibs import itw_mib, itw_mibv3, itw_mibv4
+from nav.models.manage import NetboxEntity
+from nav.oids import OID
+from twisted.internet import defer
+from twisted.python import failure
 
 
 class TestIpMib(object):
@@ -161,11 +160,12 @@ class TestIpv6Mib(object):
 
 
 class TestEntityMib(object):
-    def test_empty_logical_type_should_not_raise(self):
+    @pytest_twisted.ensureDeferred
+    async def test_empty_logical_type_should_not_raise(self):
         mib = EntityMib(Mock('AgentProxy'))
 
-        def mock_retrieve(columns):
-            return defer.succeed(
+        with patch.object(mib, 'retrieve_columns') as mock_retrieve:
+            mock_retrieve.return_value = defer.succeed(
                 {
                     1: {
                         'entLogicalDescr': None,
@@ -174,12 +174,8 @@ class TestEntityMib(object):
                     }
                 }
             )
-
-        mib.retrieve_columns = mock_retrieve
-        df = mib.retrieve_alternate_bridge_mibs()
-        assert df.called
-        if isinstance(df.result, failure.Failure):
-            df.result.raiseException()
+            result = await mib.retrieve_alternate_bridge_mibs()
+            assert isinstance(result, list)
 
     def test_entity_to_powersupply_or_fan(self):
         entity = {
