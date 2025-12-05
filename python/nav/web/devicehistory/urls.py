@@ -29,7 +29,7 @@ urlpatterns = [
     ),
     path('history/', views.devicehistory_view, name='devicehistory-view'),
     path(
-        'history/room/<str:room_id>/',
+        'history/room/<path:room_id>/',
         views.devicehistory_view_room,
         name='devicehistory-view-room',
     ),
