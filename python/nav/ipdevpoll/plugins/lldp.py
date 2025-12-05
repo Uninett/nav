@@ -228,7 +228,9 @@ class LLDPNeighbor(Neighbor):
                 lookup = self._netbox_from_local
 
             if lookup:
-                netbox = lookup(str(chassid))
+                chassid_str = str(chassid).strip('\x00')
+                if chassid_str:
+                    netbox = lookup(chassid_str)
 
         if not netbox and self.record.sysname:
             netbox = self._netbox_from_sysname(self.record.sysname)
