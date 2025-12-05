@@ -24,7 +24,7 @@ define([
     };
 
     const SELECTORS = {
-        NAVLET: '.' + CSS_CLASSES.NAVLET,
+        NAVLET: '.navlet',
         SORTER: '.navletColumn',
         DRAG_HANDLE: '.navlet-drag-button',
         CSRF_TOKEN: '#navlets-action-form input[name="csrfmiddlewaretoken"]',
@@ -45,6 +45,7 @@ define([
         }
         this.save_ordering_url = this.container.attr('data-save-order-url');
         this.initSortable();
+        this.initializeExistingNavlets();
     }
 
     NavletsHtmxController.prototype = {
@@ -133,7 +134,6 @@ define([
         },
 
         handleNavletAdded: function (event) {
-            this.reinitializeSortable();
             this.updateOrder();
 
             const navlet = document.querySelector(`[data-id="${event.detail.navlet_id}"]`);
@@ -151,8 +151,15 @@ define([
 
         handleNavletRemoved: function () {
             this.updateOrder();
+        },
+
+        initializeExistingNavlets: function () {
+            const existingNavlets = document.querySelectorAll(`#${NAVLETS_CONTAINER_ID} ${SELECTORS.NAVLET}`);
+            existingNavlets.forEach(navlet => NavletHandlers.handle(navlet));
         }
     };
+
+
 
     function initialize() {
         const controller = new NavletsHtmxController();
