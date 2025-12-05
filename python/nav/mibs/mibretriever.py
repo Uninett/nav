@@ -649,6 +649,8 @@ class MultiMibMixIn(MibRetriever):
                 if agent is not self._base_agent:
                     agent.close()
                 self.agent_proxy = self._base_agent
+            if agent is not self._base_agent:
+                self._logger.debug("got result from %r: %r", descr, one_result)
             results.append((descr, one_result))
             yield lambda thing: fire_eventually(thing)
         return integrator(results)
