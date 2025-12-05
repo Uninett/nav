@@ -21,26 +21,34 @@ define([
         NAVLET: 'navlet',
         OUTLINE: 'outline',
         MARK_NEW: 'mark-new',
-    }
+    };
+
     const SELECTORS = {
-        NAVLET: '.' + CSS_CLASSES.NAVLET,
+        NAVLET: '.navlet',
         SORTER: '.navletColumn',
         DRAG_HANDLE: '.navlet-drag-button',
-        CSRF_TOKEN: '#navlets-action-form input[name="csrfmiddlewaretoken"]'
-    }
+        CSRF_TOKEN: '#navlets-action-form input[name="csrfmiddlewaretoken"]',
+        NO_WIDGETS_MESSAGE: '#no-widgets-message'
+    };
+
+    const EVENTS = {
+        HTMX_AFTER_SWAP: 'htmx:afterSwap',
+        NAVLET_ADDED: 'nav.navlet.added',
+        NAVLET_REMOVED: 'nav.navlet.removed'
+    };
 
     function NavletsHtmxController() {
         this.container = $('#' + NAVLETS_CONTAINER_ID);
+        if (this.container.length === 0) {
+            console.warn(`Container with ID '${NAVLETS_CONTAINER_ID}' not found`);
+            return;
+        }
         this.save_ordering_url = this.container.attr('data-save-order-url');
-
-        this.addListeners();
+        this.initSortable();
+        this.initializeExistingNavlets();
     }
 
     NavletsHtmxController.prototype = {
-        addListeners: function () {
-            this.initSortable();
-        },
-
         initSortable: function () {
             const $sorterSelectors = this.container.find(SELECTORS.SORTER);
             if ($sorterSelectors.length === 0) {
@@ -59,11 +67,12 @@ define([
         },
 
         toggleNavletOutline: function (show) {
-          this.getNavlets().toggleClass(CSS_CLASSES.OUTLINE, show);
+            this.getNavlets().toggleClass(CSS_CLASSES.OUTLINE, show);
         },
 
         updateOrder: function () {
-            this.saveOrder(this.findOrder());
+            const ordering = this.findOrder();
+            this.saveOrder(ordering);
         },
 
         findOrder: function () {
@@ -80,71 +89,92 @@ define([
         },
 
         saveOrder: function (ordering) {
-            // Get csrf token from #navlets-action-form
             const csrfToken = $(SELECTORS.CSRF_TOKEN).val();
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+
             $.ajax({
-               url: this.save_ordering_url,
-               type: 'POST',
-               data: JSON.stringify(ordering),
-               contentType: 'application/json',
-               headers: {
-                   'X-CSRFToken': csrfToken
-               }
-            }).fail(function() {
-               console.error('Failed to save widget order');
+                url: this.save_ordering_url,
+                type: 'POST',
+                data: JSON.stringify(ordering),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            }).fail(function (xhr, status, error) {
+                console.error('Failed to save widget order:', error);
             });
         },
 
         getNavlets: function (column) {
-            if (column) {
-                return $(column).find(SELECTORS.NAVLET);
-            } else {
-                return this.container.find(SELECTORS.NAVLET);
+            return column ? $(column).find(SELECTORS.NAVLET) : this.container.find(SELECTORS.NAVLET);
+        },
+
+        isNavlet: function (node) {
+            return node?.dataset?.id && node.classList.contains(CSS_CLASSES.NAVLET);
+        },
+
+        reinitializeSortable: function () {
+            const $sorterSelectors = this.container.find(SELECTORS.SORTER);
+            $sorterSelectors.sortable('destroy');
+            this.initSortable();
+        },
+
+        handleHtmxAfterSwap: function (event) {
+            const swappedNode = event.detail.elt;
+
+            if (swappedNode.id === NAVLETS_CONTAINER_ID) {
+                this.reinitializeSortable();
+            }
+            if (this.isNavlet(swappedNode)) {
+                NavletHandlers.handle(swappedNode);
             }
         },
 
-        isNavlet: function(node) {
-            return node?.dataset?.id && node.classList.contains(CSS_CLASSES.NAVLET);
+        handleNavletAdded: function (event) {
+            this.updateOrder();
+
+            const navlet = document.querySelector(`[data-id="${event.detail.navlet_id}"]`);
+            if (navlet) {
+                navlet.classList.add(CSS_CLASSES.MARK_NEW);
+                navlet.addEventListener("mouseenter", function removeMarkNew() {
+                    navlet.classList.remove(CSS_CLASSES.MARK_NEW);
+                    navlet.removeEventListener("mouseenter", removeMarkNew);
+                });
+            }
+
+            const noWidgetsMessage = document.querySelector(SELECTORS.NO_WIDGETS_MESSAGE);
+            noWidgetsMessage?.remove();
         },
+
+        handleNavletRemoved: function () {
+            this.updateOrder();
+        },
+
+        initializeExistingNavlets: function () {
+            const existingNavlets = document.querySelectorAll(`#${NAVLETS_CONTAINER_ID} ${SELECTORS.NAVLET}`);
+            existingNavlets.forEach(navlet => NavletHandlers.handle(navlet));
+        }
     };
+
+
 
     function initialize() {
         const controller = new NavletsHtmxController();
 
-        // HTMX afterSwap listener
-        document.body.addEventListener('htmx:afterSwap', function (event) {
-            const swappedNode = event.detail.elt;
-
-            const isNavletContainer = swappedNode.id === NAVLETS_CONTAINER_ID;
-            if (isNavletContainer) {
-                controller.addListeners();
-            }
-            if (controller.isNavlet(swappedNode)) {
-                NavletHandlers.handle(swappedNode);
-            }
-        });
-
-        // Navlet added listener
-        document.body.addEventListener('nav.navlet.added', function (event) {
-            controller.updateOrder();
-            const navlet = document.querySelector(`[data-id="${event.detail.navlet_id}"]`);
-            if (navlet) {
-                navlet.classList.add('mark-new');
-                navlet.addEventListener("mouseenter", function () {
-                    navlet.classList.remove('mark-new');
-                })
-            }
-
-            const node = document.getElementById('no-widgets-message');
-            if (node) {
-                node.remove();
-            }
-        })
-
-        // Navlet removed listener
-        document.body.addEventListener('nav.navlet.removed', function (event) {
-            controller.updateOrder();
-        });
+        document.body.addEventListener(
+            EVENTS.HTMX_AFTER_SWAP,
+            (event) => controller.handleHtmxAfterSwap(event)
+        );
+        document.body.addEventListener(
+            EVENTS.NAVLET_ADDED,
+            (event) => controller.handleNavletAdded(event)
+        );
+        document.body.addEventListener(
+            EVENTS.NAVLET_REMOVED, () => controller.handleNavletRemoved()
+        );
     }
 
     return {
