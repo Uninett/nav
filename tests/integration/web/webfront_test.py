@@ -1121,7 +1121,7 @@ class TestSaveDashboardColumns:
 
         assert response.status_code == 200
         assert dashboard.num_columns == new_columns
-        assert f'Dashboard columns updated to {new_columns}' in smart_str(
+        assert f'Dashboard updated to {new_columns} columns' in smart_str(
             response.content
         )
 
