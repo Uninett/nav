@@ -69,6 +69,9 @@ define([
             serie.key = name;
             serie.name = RickshawUtils.filterFunctionCalls(name);
             serie.renderer = meta.renderer ? meta.renderer : 'line';
+            if (meta.color !== undefined) {
+                serie.color = meta.color;
+            }
 
             // If this is a nav-metric, typically very long, display only the last two "parts"
             if (serie.name.substr(0, 4) === 'nav.') {
