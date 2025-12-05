@@ -1,0 +1,25 @@
+name: Ensure no fixup! or amend! commits are present
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-forbidden-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Fetch PR base and head
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
+
+      - name: Check for fixup! or amend! commits
+        run: |
+          COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }} --pretty=format:"%s")
+          if echo "$COMMITS" | grep -E '^(fixup!|amend!)'; then
+            echo "Error: PR contains fixup! or amend! commits. Please squash or rebase before merging."
+            exit 1
+          fi
