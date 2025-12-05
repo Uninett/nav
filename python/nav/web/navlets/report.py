@@ -16,7 +16,7 @@
 #
 """Report widget"""
 
-from django.http import HttpResponse, JsonResponse, QueryDict
+from django.http import HttpResponse, QueryDict
 from nav.models.profiles import AccountNavlet
 from nav.web.auth.utils import get_account
 from nav.web.report.views import CONFIG_DIR, make_report
@@ -76,7 +76,7 @@ class ReportWidget(Navlet):
             navlet.preferences['report_id'] = request.POST.get('report_id')
             navlet.preferences['query_string'] = request.POST.get('query_string')
             navlet.save()
-            return JsonResponse(navlet.preferences)
+            return self.get(request)
 
 
 def get_report_names():

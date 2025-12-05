@@ -2,7 +2,12 @@
 
 {% block navlet-content %}
 
-    <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post" class="custom">
+    <form
+        hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+        hx-target="[data-id='{{ navlet.navlet_id }}']"
+        hx-swap="innerHTML"
+        class="custom"
+    >
         {% csrf_token %}
         <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
         <select name="vlanid">
