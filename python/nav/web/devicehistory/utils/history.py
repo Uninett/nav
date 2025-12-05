@@ -127,6 +127,12 @@ def fetch_history(selection, form):
     #   - selected devices
     device = Device.objects.filter(modules__in=selection['modules'])
 
+    if selection.get("inactive_device"):
+        history_filter = Q(device_id__in=selection['inactive_device'])
+    else:
+        history_filter = Q(netbox__in=[n.id for n in netbox]) | Q(
+            device__in=[d.id for d in device]
+        )
     # Find alert history that belongs to the netbox and device ids we found in
     # the previous two queries.
     #
@@ -143,7 +149,7 @@ def fetch_history(selection, form):
             'netbox__category',
         )
         .filter(
-            Q(netbox__in=[n.id for n in netbox]) | Q(device__in=[d.id for d in device]),
+            history_filter,
             *type_filter,
         )
         .extra(
