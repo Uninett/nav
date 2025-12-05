@@ -34,7 +34,7 @@ urlpatterns = [
     # Dashboard
     path('index/dashboard/<int:did>/', views.index, name='dashboard-index-id'),
     path(
-        'index_dashboard/<int:dashboard_id>/load',
+        'index/dashboard/<int:dashboard_id>/load',
         views.load_dashboard,
         name='dashboard-load',
     ),
