@@ -3,9 +3,17 @@ from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
-from nav.models.manage import Sensor
+from nav.models.manage import Room, Sensor
 from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
+
+
+class TestRoomInfoView:
+    def test_room_info_url_should_allow_slashes(self, client, room_with_slash):
+        url = reverse('room-info', args=[room_with_slash.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert room_with_slash.id in smart_str(response.content)
 
 
 class TestRoomNetboxInterfacesView:
@@ -78,6 +86,12 @@ class TestAddRoomRackViews:
                 'rackname': 'Test Rack',
             },
         )
+        assert response.status_code == 200
+        assert 'room.rack.added' in response.headers['HX-Trigger']
+
+    def test_should_add_rack_for_room_id_with_slash(self, client, room_with_slash):
+        url = reverse('room-info-racks-add-rack', args=[room_with_slash.id])
+        response = client.get(url)
         assert response.status_code == 200
         assert 'room.rack.added' in response.headers['HX-Trigger']
 
@@ -263,3 +277,10 @@ def non_admin_client(client, non_admin_account):
     url = reverse('webfront-login')
     client_.post(url, {'username': non_admin_account.login, 'password': 'password'})
     return client_
+
+
+@pytest.fixture
+def room_with_slash(db):
+    room = Room.objects.create(id='TEST/SLASH', location_id='mylocation')
+    yield room
+    room.delete()
