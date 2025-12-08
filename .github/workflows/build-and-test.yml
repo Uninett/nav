@@ -80,6 +80,11 @@ jobs:
           postgresql user: $PGUSER
           postgresql password: $PGPASSWORD
 
+      - name: "Check for Django warnings"
+        run: |
+          cd python/nav/django
+          python3 manage.py check --fail-level=ERROR
+
       - name: "Run tests"
         run: |
           export DISPLAY=:99
