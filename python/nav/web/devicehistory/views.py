@@ -56,6 +56,11 @@ def devicehistory_search(request):
     if 'from_date' in request.GET:
         form = DeviceHistoryViewFilter(request.GET)
         if form.is_valid():
+            # If request has 'inactive_device' parameter,
+            # we need to make sure the view is grouped by device
+            if 'inactive_device' in request.GET:
+                return __handle_redirect_for_inactive_device(request)
+
             return devicehistory_view(request)
     else:
         form = DeviceHistoryViewFilter()
@@ -67,6 +72,17 @@ def devicehistory_search(request):
         'form': form,
     }
     return render(request, 'devicehistory/history_search.html', info_dict)
+
+
+def __handle_redirect_for_inactive_device(request):
+    """
+    Redirects to the device history view, ensuring 'group_by' is set to 'device'
+    when handling a shelved device.
+    """
+    query_params = request.GET.copy()
+    query_params['group_by'] = 'device'
+    url = f"{reverse('devicehistory-view')}?{query_params.urlencode()}"
+    return HttpResponseRedirect(url)
 
 
 @require_http_methods(["POST"])
@@ -112,6 +128,7 @@ def devicehistory_view(request, **_):
         'groups': request.GET.getlist('netboxgroup'),
         'modules': request.GET.getlist('module'),
         'mode': request.GET.getlist('mode'),
+        'inactive_device': request.GET.getlist('inactive_device'),
     }
 
     grouped_history = None

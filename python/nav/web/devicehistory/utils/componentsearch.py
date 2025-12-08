@@ -1,7 +1,7 @@
 from typing import Union
 
 from django.db.models import Model, Q, QuerySet
-from nav.models.manage import Netbox, Module, Location, NetboxGroup, Room
+from nav.models.manage import Netbox, Module, Location, NetboxGroup, Room, Device
 
 
 def get_component_search_results(
@@ -37,8 +37,8 @@ def get_component_search_results(
         )
 
         if component_results:
-            component_name = component_type._meta.db_table
-            component_label = component_type._meta.verbose_name.title()
+            component_name = _get_component_name(component_type)
+            component_label = _get_component_label(component_type)
             results[component_name] = {
                 'label': component_label,
                 'values': component_results,
@@ -68,6 +68,16 @@ def _get_search_queries(search: str, exclude: list[Model] = []):
             Module,
             Q(name__icontains=search) | Q(device__serial__icontains=search),
             Netbox,
+        ),
+        (
+            Device,
+            Q(
+                serial__icontains=search,
+                entities__isnull=True,
+                power_supplies_or_fans__isnull=True,
+                modules__isnull=True,
+            ),
+            None,
         ),
     ]
     if exclude:
@@ -125,3 +135,21 @@ def _get_option_label(component: Model):
     if component._meta.db_table == 'netbox':
         return '%(sysname)s [%(ip)s - %(chassis_serial)s]' % component.__dict__
     return str(component)
+
+
+def _get_component_name(component_type: Model):
+    """
+    Returns the name of a component based on its type.
+    """
+    if component_type._meta.db_table == 'device':
+        return 'inactive_device'
+    return component_type._meta.db_table
+
+
+def _get_component_label(component_type: Model):
+    """
+    Returns the label for a component based on its type.
+    """
+    if component_type._meta.db_table == 'device':
+        return 'Inactive Device'
+    return component_type._meta.verbose_name.title()

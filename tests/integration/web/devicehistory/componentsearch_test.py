@@ -1,7 +1,7 @@
 import pytest
 
 from nav.web.devicehistory.utils.componentsearch import get_component_search_results
-from nav.models.manage import Room, Location
+from nav.models.manage import Device, Location, Room
 
 BUTTON_TEXT_PATTERN = 'Submit %s components'
 
@@ -49,6 +49,26 @@ class TestGetComponentSearchResults:
         )
         assert results == {}
 
+    def test_when_given_inactive_device_serial_return_results(self, inactive_device):
+        results = get_component_search_results(
+            inactive_device.serial, BUTTON_TEXT_PATTERN
+        )
+        inactive_result = results['inactive_device']
+        assert inactive_result is not None
+
+        search_values = inactive_result['values']
+        device_ids = [result[0] for result in search_values]
+        assert inactive_device.id in device_ids
+
+    def test_when_given_inactive_device_serial_return_correct_select_label(
+        self, inactive_device
+    ):
+        results = get_component_search_results(
+            inactive_device.serial, BUTTON_TEXT_PATTERN
+        )
+        inactive_result = results['inactive_device']
+        assert inactive_result['label'] == 'Inactive Device'
+
 
 @pytest.fixture
 def new_room(db):
@@ -59,3 +79,11 @@ def new_room(db):
     yield room
     room.delete()
     location.delete()
+
+
+@pytest.fixture
+def inactive_device(db):
+    device = Device(serial="inactivedevice")
+    device.save()
+    yield device
+    device.delete()
