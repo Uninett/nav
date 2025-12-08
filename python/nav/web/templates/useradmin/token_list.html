@@ -6,7 +6,7 @@
     #token-list-table .label { cursor: help; margin-bottom: 1px; }
   </style>
   <script>
-    require(['libs/jquery.tablesorter.min', 'src/tablesorter_custom_sorters'], function() {
+    require(['jquery-tablesorter', 'src/tablesorter_custom_sorters'], function() {
       $(function() {
         var $table = $('#token-list-table');
         if ($table.length && $table.find('tbody tr').length > 0) {

@@ -1,4 +1,4 @@
-require(['libs/jquery.tablesorter.min'], function () {
+require(['jquery-tablesorter'], function () {
     $(function () {
         if ($('form.profileDetentionForm').length > 0) {
             addVlanToggler($('#id_detention_type'));

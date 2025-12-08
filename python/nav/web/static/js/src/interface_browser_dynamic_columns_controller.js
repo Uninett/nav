@@ -2,7 +2,7 @@ define(function(require) {
 
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
-    require('libs/jquery.sparkline');
+    require('jquery-sparkline');
 
     var storedMetricsRequests = {};
     var storedDataRequests = {};

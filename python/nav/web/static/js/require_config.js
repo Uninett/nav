@@ -25,6 +25,11 @@ var require = {
         "driver": "libs/driver-1.3.6.min",
         "tinysort": "libs/tinysort-3.1.4.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
+        "jquery": "libs/jquery-3.7.1.min",
+        "jquery-ui": "libs/jquery-ui-1.14.0.min",
+        "jquery-tablesorter": "libs/jquery.tablesorter-2.32.0.min",
+        "jquery-sparkline": "libs/jquery.sparkline-2.4.0.min",
+        "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
     },
     shim: {
         'libs/underscore': {
@@ -42,7 +47,7 @@ var require = {
             deps: ["libs/underscore"],
             exports: 'Backbone'
         },
-        'libs/backbone-eventbroker': ['libs/backbone']
+        'libs/backbone-eventbroker': ['libs/backbone'],
     },
-    deps: ['libs/jquery']
+    deps: ['jquery']
 };

@@ -3,7 +3,7 @@
 
 {% block footer_scripts %}
   <script>
-    require(['libs/jquery.tablesorter.min', 'src/tablesorter_custom_sorters'], function () {
+    require(['jquery-tablesorter', 'src/tablesorter_custom_sorters'], function () {
       $('#thresholdrules').tablesorter({
         headers: {
           6: {sorter: "custom-iso-datetime"},

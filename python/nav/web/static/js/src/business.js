@@ -1,4 +1,4 @@
-require(['libs/jquery'], function() {
+require(['jquery'], function() {
 
     var subscriptionReloadEvent = "nav.events.reload-subscription-list";
     var storageKey = 'nav-business-deleted-subscription';

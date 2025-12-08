@@ -37,7 +37,7 @@
 
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/jquery-ui.css">
     <script>
-      require(['libs/jquery-ui.min'], function () {
+      require(['jquery-ui'], function () {
         var $navlet = $('[data-id={{ navlet.navlet_id }}]');
 
         $navlet.find('.accordion').accordion({
