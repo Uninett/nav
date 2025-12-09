@@ -828,7 +828,7 @@ def jwt_recreate(request, pk):
     account = get_account(request)
     LogEntry.add_log_entry(
         account,
-        'edit-jwttoken-expiry',
+        'edit-jwttoken-recreated',
         '{actor} recreated {object}',
         object=token,
     )
