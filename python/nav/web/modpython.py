@@ -36,22 +36,38 @@ with a suggested WSGI-based configuration.
 import warnings
 import logging
 from http import cookies
+from typing import Optional
 
 from nav.bootstrap import bootstrap_django
 
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from nav.web.auth.middleware import NAVAuthenticationMiddleware, AuthorizationMiddleware
-from nav.web import loginit
 from django.db import connection
+from django.http import HttpRequest, HttpResponse
+from django.utils.deprecation import MiddlewareMixin
+
+from nav.web.auth.middleware import (
+    NAVAuthenticationMiddleware,
+    authorize_request,
+    redirect_to_login,
+)
+from nav.web import loginit
 
 
-MODPYTHON_MIDDLEWARE = (
+MODPYTHON_MIDDLEWARE = [
     SessionMiddleware,
     AuthenticationMiddleware,
     NAVAuthenticationMiddleware,
-    AuthorizationMiddleware,
-)
+]
+
+
+class ModPythonAuthorizationMiddleware(MiddlewareMixin):
+    """Authorization Middleware for non-Django views"""
+
+    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
+        authorized = authorize_request(request)
+        if not authorized:
+            return redirect_to_login(request)
 
 
 def headerparserhandler(req):
@@ -69,7 +85,7 @@ def headerparserhandler(req):
     req.is_ajax = lambda: is_ajax
     req.COOKIES = _get_cookie_dict(req)
 
-    for mware in MODPYTHON_MIDDLEWARE:
+    for mware in MODPYTHON_MIDDLEWARE + [ModPythonAuthorizationMiddleware]:
         response = mware().process_request(req)
 
     try:
