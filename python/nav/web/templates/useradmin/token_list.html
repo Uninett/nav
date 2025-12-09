@@ -37,6 +37,12 @@
         Create new token
       </a>
 
+      {% if request.account.is_admin %}
+        <div>
+          {% include 'useradmin/frag-auditlog.html' %}
+        </div>
+      {% endif %}
+
       {# Show table with tokens if there are any #}
       {% if object_list %}
 

@@ -565,6 +565,7 @@ class TokenList(NavPathMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         context = super(TokenList, self).get_context_data(**kwargs)
         context['active'] = {'token_list': True}
+        context['auditlog_api_parameters'] = {'object_model': 'apitoken'}
         return context
 
 
