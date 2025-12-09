@@ -720,7 +720,9 @@ class JWTCreate(NavPathMixin, generic.View):
             token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
             token.hash = hash_token(encoded_token)
             token.save()
-            messages.success(self.request, 'New token created')
+            messages.success(request, 'New token created')
+            account = get_account(request)
+            LogEntry.add_create_entry(account, token)
             return render(
                 request,
                 'useradmin/jwt_created.html',
@@ -745,10 +747,18 @@ class JWTEdit(NavPathMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         token = get_object_or_404(JWTRefreshToken, pk=kwargs['pk'])
+        old_object = copy.deepcopy(token)
         form = self.form_class(request.POST, instance=token)
         if form.is_valid():
             form.save()
-            messages.success(self.request, 'Token saved')
+            messages.success(request, 'Token saved')
+            account = get_account(request)
+            LogEntry.compare_objects(
+                account,
+                old_object,
+                token,
+                ['name', 'description'],
+            )
             return redirect('useradmin-jwt_detail', pk=token.pk)
         return render(request, self.template_name, {"form": form, "object": token})
 
