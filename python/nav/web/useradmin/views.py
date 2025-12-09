@@ -694,6 +694,7 @@ class JWTList(NavPathMixin, generic.ListView):
         context = super(JWTList, self).get_context_data(**kwargs)
         context['is_configured'] = LOCAL_JWT_IS_CONFIGURED
         context['active'] = {'jwt_list': True}
+        context['auditlog_api_parameters'] = {'object_model': 'jwtrefreshtoken'}
         return context
 
 
