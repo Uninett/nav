@@ -41,49 +41,75 @@ from nav.web.utils import is_ajax
 _logger = logging.getLogger(__name__)
 
 
+def authorize_request(request: HttpRequest) -> bool:
+    """Check whether request.user is authorized to visit the request's path
+
+    The paths are checked against python regular expressions stored in
+    a NAV-specific table, nav.models.profiles.Privilege.
+    """
+    if not hasattr(request, "user"):
+        raise ImproperlyConfigured(
+            "The NAV Django authentication middlewares requires Django's "
+            "auth middleware to be installed. Edit your MIDDLEWARE setting "
+            "to insert "
+            "'django.contrib.auth.middleware.AuthenticationMiddleware' "
+            "before 'nav.web.auth.middleware.AuthorizationMiddleware'."
+        )
+    account = get_account(request)
+
+    authorized = authorization_not_required(
+        request.get_full_path()
+    ) or account.has_perm('web_access', request.get_full_path())
+
+    if not authorized:
+        _logger.warning(
+            "User %s denied access to %s",
+            account.get_username(),
+            request.get_full_path(),
+        )
+        return False
+
+    _logger.debug(
+        "User %s granted access to %s",
+        account.get_username(),
+        request.get_full_path(),
+    )
+    return True
+
+
+def redirect_to_login(request: HttpRequest) -> HttpResponse:
+    """Redirects a request to the NAV login page, unless it was detected
+    to be an AJAX request, in which case return a 401 Not Authorized
+    response.
+
+    """
+    if is_ajax(request):
+        return HttpResponse(status=401)
+
+    if request.htmx:
+        if orig_path := request.htmx.current_url_abs_path:
+            new_url = get_login_url(request, path=orig_path)
+            return HttpResponseClientRedirect(new_url)
+        else:
+            return HttpResponse(status=401)
+
+    new_url = get_login_url(request)
+    return HttpResponseRedirect(new_url)
+
+
 class AuthorizationMiddleware(MiddlewareMixin):
     "Authorize user the NAV way"
 
-    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
-        if not hasattr(request, "user"):
-            raise ImproperlyConfigured(
-                "The NAV Django authentication middlewares requires Django's "
-                "auth middleware to be installed. Edit your MIDDLEWARE setting "
-                "to insert "
-                "'django.contrib.auth.middleware.AuthenticationMiddleware' "
-                "before 'nav.web.auth.middleware.AuthorizationMiddleware'."
-            )
-        account = get_account(request)
-
-        authorized = authorization_not_required(
-            request.get_full_path()
-        ) or account.has_perm('web_access', request.get_full_path())
-        if not authorized:
-            _logger.warning(
-                "User %s denied access to %s",
-                account.get_username(),
-                request.get_full_path(),
-            )
-            return self.redirect_to_login(request)
-
-    def redirect_to_login(self, request: HttpRequest) -> HttpResponse:
-        """Redirects a request to the NAV login page, unless it was detected
-        to be an AJAX request, in which case return a 401 Not Authorized
-        response.
-
-        """
-        if is_ajax(request):
-            return HttpResponse(status=401)
-
-        if request.htmx:
-            if orig_path := request.htmx.current_url_abs_path:
-                new_url = get_login_url(request, path=orig_path)
-                return HttpResponseClientRedirect(new_url)
-            else:
-                return HttpResponse(status=401)
-
-        new_url = get_login_url(request)
-        return HttpResponseRedirect(new_url)
+    def process_view(
+        self, request: HttpRequest, view_func, view_args, view_kwargs
+    ) -> Optional[HttpResponse]:
+        # support the LoginRequiredMiddleware defined in Django 5.1
+        explicit_login_required = getattr(view_func, "login_required", True)
+        if explicit_login_required:
+            authorized = authorize_request(request)
+            if not authorized:
+                return redirect_to_login(request)
+        return None
 
 
 class NAVRemoteUserMiddleware(RemoteUserMiddleware):
