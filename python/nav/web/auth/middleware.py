@@ -89,7 +89,17 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
-    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
+    def process_view(
+        self, request: HttpRequest, view_func, view_args, view_kwargs
+    ) -> Optional[HttpResponse]:
+        # support the LoginRequiredMiddleware defined in Django 5.1
+        explicit_login_required = getattr(view_func, "login_required", True)
+        if explicit_login_required:
+            return self._process_request(request)
+
+        return None
+
+    def _process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         account = get_account(request)
 
         authorized = authorization_not_required(
