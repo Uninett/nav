@@ -1,0 +1,84 @@
+{% for group_name, group in history.items %}
+<table class="listtable full-width align-top">
+    <caption>
+      {{ group_name }}
+      <span class="subtitle right">{{ group|length }} items.</span>
+    </caption>
+
+    <thead>
+      <tr>
+        <th scope="col">Netbox</th>
+        <th scope="col">Serial</th>
+        <th scope="col">Start time</th>
+        <th scope="col">End time</th>
+        <th scope="col">Event type</th>
+        <th scope="col">Alert type</th>
+        <th scope="col">Message</th>
+      </tr>
+    </thead>
+
+    <tfoot>
+      <tr>
+        <th scope="row" colspan="10">
+          {{ group|length }} items.
+        </th>
+      </tr>
+    </tfoot>
+
+    <tbody>
+      {% for h in group %}
+        <tr>
+            <td>
+                {% if h.netbox %}
+                    <a href="{{ h.netbox.get_absolute_url }}">
+                        <div id="sysname-tooltip-{{ h.id }}" class="nav-tooltip medium">
+                        <span class="unstyled-tooltip" aria-describedby="sysname-tooltip-{{ h.id }}">
+                                {{ h.netbox.sysname }}
+                        </span>
+                            <div class="medium" role="tooltip">
+                                <span><strong>Location: </strong> {{ h.netbox.room.location }}</span><br/>
+                                <span><strong>Room: </strong> {{ h.netbox.room }}</span>
+                            </div>
+                        </div>
+                    </a>
+                {% else %}
+                    <div>None</div>
+                {% endif %}
+            </td>
+
+          <td>{{ h.device.serial|default_if_none:"" }}</td>
+          <td>{{ h.start_time }}</td>
+          <td>
+            {% if h.is_open %}
+              Unresolved
+            {% else %}
+              {{ h.end_time }}
+            {% endif %}
+          </td>
+          <td>{{ h.event_type.id }}</td>
+          <td>{{ h.alert_type.name }}</td>
+          <td>
+            {% if h.extra_messages %}
+              <ul class="no-bullet">
+                {% for state,m in h.extra_messages.items %}
+                  <li class="sms_message" id="sms_{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                    <i class="fa fa-envelope" title="{{ m.email|linebreaks }}"></i>
+                    <span>
+                      <a href="{% url 'event-details' h.pk %}" title="See event details">
+                        {{ m.sms }}
+                      </a>
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>
+{% empty %}
+    <div class="alert-box info with-icon">
+        No history entries found for the selected parameters.
+    </div>
+{% endfor %}
