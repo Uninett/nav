@@ -612,12 +612,18 @@ class TokenDelete(generic.DeleteView):
     def get_success_url(self):
         return reverse_lazy('useradmin-token_list')
 
-    def delete(self, request, *args, **kwargs):
-        old_object = copy.deepcopy(self.get_object())
-        response = super(TokenDelete, self).delete(self, request, *args, **kwargs)
-        messages.success(request, 'Token deleted')
-        account = get_account(request)
-        LogEntry.add_delete_entry(account, old_object)
+    def form_valid(self, form):
+        # Add custom logic before deletion
+        token = self.get_object()
+
+        # Call the parent's form_valid() method to perform the actual deletion
+        response = super().form_valid(form)
+
+        # Add custom logic after deletion
+        messages.success(self.request, 'Token deleted')
+        account = get_account(self.request)
+        LogEntry.add_delete_entry(account, token)
+
         return response
 
 
@@ -784,12 +790,18 @@ class JWTDelete(generic.DeleteView):
     def get_success_url(self):
         return reverse_lazy('useradmin-jwt_list')
 
-    def delete(self, request, *args, **kwargs):
-        old_object = copy.deepcopy(self.get_object())
-        response = super(JWTDelete, self).delete(self, request, *args, **kwargs)
-        messages.success(request, 'Token deleted')
-        account = get_account(request)
-        LogEntry.add_delete_entry(account, old_object)
+    def form_valid(self, form):
+        # Add custom logic before deletion
+        token = self.get_object()
+
+        # Call the parent's form_valid() method to perform the actual deletion
+        response = super().form_valid(form)
+
+        # Add custom logic after deletion
+        messages.success(self.request, 'Token deleted')
+        account = get_account(self.request)
+        LogEntry.add_delete_entry(account, token)
+
         return response
 
 
