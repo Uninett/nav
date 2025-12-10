@@ -1,0 +1,39 @@
+{% load i18n string_manipulation socialaccount %}
+{% if request.user.is_authenticated %}
+    <ul>
+        {% url 'webfront-preferences' as my_account_url_ %}
+        {% if my_account_url_ %}
+            <li class="{% if request.path == my_account_url_  %}tabactive{% endif %}">
+                <a href="{{ my_account_url_ }}">Account</a>
+            </li>
+        {% endif %}
+        {% url 'account_change_password' as change_password_url_ %}
+        {% if change_password_url_ %}
+            <li class="{% if request.path|starts_with:change_password_url_ %}tabactive{% endif %}">
+                <a href="{{ change_password_url_ }}">{% trans "Change Password" %}</a>
+            </li>
+        {% endif %}
+        {% get_providers as socialaccount_providers %}
+        {% if socialaccount_providers %}
+            {% url 'socialaccount_connections' as connections_url_ %}
+            {% if connections_url_ %}
+                <li class="{% if request.path|starts_with:connections_url_ %}tabactive{% endif %}">
+                    <a href="{{ connections_url_ }}">{% trans "Account Connections" %}</a>
+                </li>
+            {% endif %}
+        {% endif %}
+        {% url 'mfa_index' as mfa_url_ %}
+        {% if mfa_url_ %}
+            <li class="{% if request.path|starts_with:mfa_url_ %}tabactive{% endif %}">
+                <a href="{{ mfa_url_ }}">{% trans "Two-Factor Authentication" %}</a>
+            </li>
+        {% endif %}
+        {% url 'usersessions_list' as usersessions_list_url_ %}
+        {% if usersessions_list_url_ %}
+            <li class="{% if request.path|starts_with:usersessions_list_url_ %}tabactive{% endif %}">
+                <a href="{{ usersessions_list_url_ }}">{% trans "Sessions" %}</a>
+            </li>
+        {% endif %}
+        {% url 'account_logout' as logout_url_ %}
+    </ul>
+{% endif %}
