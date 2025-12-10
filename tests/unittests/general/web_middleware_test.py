@@ -8,17 +8,19 @@ from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.web.auth.middleware import AuthorizationMiddleware
 from nav.web.auth import logout
-from nav.web import auth
+from nav.models import profiles
 
 
-PLAIN_ACCOUNT = auth.Account(id=101, login='tim', password='wizard', locked=False)
-ANOTHER_PLAIN_ACCOUNT = auth.Account(
+PLAIN_ACCOUNT = profiles.Account(id=101, login='tim', password='wizard', locked=False)
+ANOTHER_PLAIN_ACCOUNT = profiles.Account(
     id=102, login='tom', password='pa$$w0rd', locked=False
 )
-SUDO_ACCOUNT = auth.Account(id=1337, login='bofh', password='alakazam', locked=False)
-LOCKED_ACCOUNT = auth.Account(id=42, login='evil', password='haxxor', locked=True)
-DEFAULT_ACCOUNT = auth.Account(
-    id=auth.Account.DEFAULT_ACCOUNT, login='anonymous', password='bah', locked=False
+SUDO_ACCOUNT = profiles.Account(
+    id=1337, login='bofh', password='alakazam', locked=False
+)
+LOCKED_ACCOUNT = profiles.Account(id=42, login='evil', password='haxxor', locked=True)
+DEFAULT_ACCOUNT = profiles.Account(
+    id=profiles.Account.DEFAULT_ACCOUNT, login='anonymous', password='bah', locked=False
 )
 
 
@@ -167,7 +169,7 @@ class TestAuthorizationMiddleware(object):
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=False
         ):
-            with patch('nav.web.auth.Account.has_perm', return_value=False):
+            with patch('nav.models.profiles.Account.has_perm', return_value=False):
                 with patch(
                     'nav.web.auth.middleware.AuthorizationMiddleware.redirect_to_login',
                     return_value='here',
@@ -183,7 +185,7 @@ class TestLogout(object):
     def test_logout_before_login(self):
         r = RequestFactory()
         fake_request = r.get('/anyurl')
-        with patch('nav.web.auth.LogEntry.add_log_entry'):
+        with patch('nav.auditlog.models.LogEntry.add_log_entry'):
             result = logout(fake_request)
             assert result is None
 
