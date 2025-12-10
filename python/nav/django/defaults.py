@@ -5,7 +5,7 @@ PUBLIC_URLS = [
     '/index/login/',
     '/index/audit-logging-modal/',
     '/refresh_session',
-    '/accounts/',
+    '/accounts/login/',
     '/accounts/2fa/authenticate/',
 ]
 NAV_LOGIN_URL = '/index/login/'
