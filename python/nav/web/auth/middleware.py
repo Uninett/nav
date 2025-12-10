@@ -22,6 +22,7 @@ import os
 from typing import Optional
 
 from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
@@ -30,9 +31,11 @@ from django_htmx.http import HttpResponseClientRedirect
 from nav.models.profiles import Account
 from nav.web.auth import remote_user, get_login_url, logout
 from nav.web.auth.utils import (
-    ensure_account,
     authorization_not_required,
+    default_account,
+    ensure_account,
     get_account,
+    set_account,
 )
 from nav.web.auth.sudo import get_sudoer
 from nav.web.utils import is_ajax
@@ -41,6 +44,7 @@ from nav.web.utils import is_ajax
 _logger = logging.getLogger(__name__)
 
 
+# deprecated
 class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request: HttpRequest) -> None:
         _logger.debug(
@@ -91,7 +95,8 @@ class AuthenticationMiddleware(MiddlewareMixin):
         )
 
 
-class AuthorizationMiddleware(MiddlewareMixin):
+# deprecated
+class OldAuthorizationMiddleware(MiddlewareMixin):
     def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         account = get_account(request)
 
@@ -127,6 +132,28 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
+
+
+class AuthorizationMiddleware(OldAuthorizationMiddleware):
+    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
+        if not hasattr(request, "user"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middlewares requires Django's "
+                "auth middleware to be installed. Edit your MIDDLEWARE setting "
+                "to insert "
+                "'django.contrib.auth.middleware.AuthenticationMiddleware' "
+                "before 'nav.web.auth.middleware.AuthorizationMiddleware'."
+            )
+        account = get_account(request)
+
+        authorized = authorization_not_required(
+            request.get_full_path()
+        ) or account.has_perm('web_access', request.get_full_path())
+        if not authorized:
+            _logger.warning(
+                "User %s denied access to %s", account.login, request.get_full_path()
+            )
+            return self.redirect_to_login(request)
 
 
 class NAVRemoteUserMiddleware(RemoteUserMiddleware):
@@ -182,3 +209,67 @@ class NAVRemoteUserMiddleware(RemoteUserMiddleware):
             path,
         )
         return next
+
+
+class NAVAuthenticationMiddleware(MiddlewareMixin):
+    """Use NAV's AnonymousUser and handle sudo
+
+    Designed to run after AuthenticationMiddleware and NAVRemoteUserMiddleware
+    """
+
+    def process_request(self, request: HttpRequest) -> None:
+        if not hasattr(request, "user"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middlewares requires Django's "
+                "auth middleware to be installed. Edit your MIDDLEWARE setting "
+                "to insert "
+                "'django.contrib.auth.middleware.AuthenticationMiddleware' "
+                "before 'nav.web.auth.middleware.NAVAuthenticationMiddleware'."
+            )
+
+        _logger.debug(
+            'NavAuthenticationMiddleware ENTER (session: %s, account: %s) from "%s"',
+            dict(request.session),
+            getattr(request, 'user', 'NOT SET'),
+            request.get_full_path(),
+        )
+        account = get_account(request)
+
+        # Translate from Django anon user to NAV anon user
+        if isinstance(account, AnonymousUser):
+            account = default_account()
+
+        # Ensure user is set correctly
+        set_account(request, account)
+
+        # Set sudo
+        sudo_operator = get_sudoer(request)  # Account or None
+        logged_in = sudo_operator or account
+        _logger.debug(
+            ('NavAuthenticationMiddleware (logged_in: "%s" acting as "%s") from "%s"'),
+            logged_in.login,
+            account.login,
+            request.get_full_path(),
+        )
+
+        if sudo_operator is not None:
+            # XXX: sudo: Account.sudo_operator should be set by function!
+            if isinstance(request.user, AnonymousUser):
+                account = default_account()
+                request.user = account
+            request.user.sudo_operator = sudo_operator
+            request.account = request.user
+            self._logger.debug(
+                'SUDO! "%s" acting as "%s"',
+                sudo_operator.login,
+                account.get_username(),
+            )
+        else:
+            self._logger.debug('No sudo')
+
+        _logger.debug(
+            'NavAuthenticationMiddleware EXIT (session: %s, account: %s) from "%s"',
+            dict(request.session),
+            getattr(request, 'user', 'NOT SET'),
+            request.get_full_path(),
+        )
