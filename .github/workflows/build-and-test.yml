@@ -79,12 +79,8 @@ jobs:
           postgresql version: '13'  # minimum NAV requirement
           postgresql user: $PGUSER
           postgresql password: $PGPASSWORD
-
       - name: "Check for Django warnings"
-        run: |
-          cd python/nav/django
-          python3 manage.py check --fail-level=ERROR
-
+        run: python3 -m tox -e django-warnings
       - name: "Run tests"
         run: |
           export DISPLAY=:99
