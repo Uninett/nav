@@ -21,6 +21,8 @@ import logging
 import os
 from typing import Optional
 
+from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
 from django_htmx.http import HttpResponseClientRedirect
@@ -125,3 +127,58 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
+
+
+class NAVRemoteUserMiddleware(RemoteUserMiddleware):
+    "Adapt Django's RemoteUserMiddleware to NAV's settings"
+    _logger = logging.getLogger(f'{__name__}.NAVRemoteUserMiddleware')
+
+    def __init__(self, get_response):
+        self.header = remote_user.get_remote_user_varname()
+        self.force_logout_if_no_header = remote_user.will_force_logout_if_no_header()
+        super().__init__(get_response)
+
+    def process_request(self, request):
+        if not hasattr(request, "user"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middlewares requires Django's "
+                "auth middleware to be installed. Edit your MIDDLEWARE setting "
+                "to insert "
+                "'django.contrib.auth.middleware.AuthenticationMiddleware' "
+                "before 'nav.web.auth.middleware.NAVRemoteUserMiddleware'."
+            )
+
+        if not remote_user.is_remote_user_enabled():
+            self._logger.debug(
+                'NAVRemoteUserMiddleware is skipped, turned off in NAV settings',
+            )
+            return None
+
+        path = request.get_full_path()
+        existing_user = request.user
+        self._logger.debug(
+            'ENTER (session: %s, account: %s) from "%s"',
+            dict(request.session),
+            existing_user,
+            path,
+        )
+
+        self._logger.debug(
+            'request.META["REMOTE_USER"]: "%s"',
+            request.META.get("REMOTE_USER", "NOT SET")
+        )
+        next = super().process_request(request)
+        remote_userobj = get_account(request)
+        self._logger.debug(
+            'REMOTE_USER: "%s" from "%s"',
+            remote_userobj.get_username(),
+            path,
+        )
+        self._logger.debug('NEXT %s', next)
+        self._logger.debug(
+            'EXIT (session: %s, account: %s) from "%s"',
+            dict(request.session),
+            remote_userobj.get_username(),
+            path,
+        )
+        return next
