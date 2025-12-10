@@ -54,7 +54,7 @@
 
 
     {# AUDITLOG #}
-    {% if account and request.account.is_admin %}
+    {% if account and request.user.is_admin %}
       {% include 'useradmin/frag-auditlog.html' %}
     {% endif %}
 

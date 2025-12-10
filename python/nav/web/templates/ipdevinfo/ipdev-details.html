@@ -35,7 +35,7 @@
         </li>
       {% endif %}
 
-      {% if request.account.is_admin %}
+      {% if request.user.is_admin %}
         <li>
           <a href="{% url 'auditlog-netbox-detail' netbox.pk %}"
              class="button small secondary">

@@ -45,7 +45,7 @@
             </div>
 
             <div class="column medium-4">
-                {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
+                {% if request.user.account_dashboards.count > 1 and not dashboard.is_default %}
                     <form
                         hx-post="{% url 'delete-dashboard' dashboard.pk %}"
                             hx-target="body"
