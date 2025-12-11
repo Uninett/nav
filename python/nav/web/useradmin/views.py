@@ -746,34 +746,31 @@ class JWTCreate(NavPathMixin, generic.View):
         return render(request, self.template_name, context)
 
 
-class JWTEdit(NavPathMixin, generic.View):
+class JWTEdit(NavPathMixin, generic.UpdateView):
     """Class based view for creating a new token"""
 
     model = JWTRefreshToken
     form_class = forms.JWTRefreshTokenEditForm
     template_name = 'useradmin/jwt_edit.html'
 
-    def post(self, request, *args, **kwargs):
-        token = get_object_or_404(JWTRefreshToken, pk=kwargs['pk'])
-        old_object = copy.deepcopy(token)
-        form = self.form_class(request.POST, instance=token)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Token saved')
-            account = get_account(request)
-            LogEntry.compare_objects(
-                account,
-                old_object,
-                token,
-                ['name', 'description'],
-            )
-            return redirect('useradmin-jwt_detail', pk=token.pk)
-        return render(request, self.template_name, {"form": form, "object": token})
+    def form_valid(self, form):
+        # Add custom logic before editing
+        old_object = copy.deepcopy(self.get_object())
 
-    def get(self, request, *args, **kwargs):
-        token = JWTRefreshToken.objects.get(pk=kwargs['pk'])
-        form = self.form_class(instance=token)
-        return render(request, self.template_name, {"form": form, "object": token})
+        # Call the parent's form_valid() method to perform the actual editing
+        response = super().form_valid(form)
+
+        # Add custom logic after editing
+        messages.success(self.request, 'Token saved')
+        account = get_account(self.request)
+        LogEntry.compare_objects(
+            account,
+            old_object,
+            self.get_object(),
+            ['name', 'description'],
+        )
+
+        return response
 
 
 class JWTDetail(NavPathMixin, generic.DetailView):
