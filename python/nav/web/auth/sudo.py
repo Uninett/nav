@@ -20,6 +20,7 @@ Sudo functionality for web authentication in NAV.
 import logging
 from typing import Optional
 
+from django.contrib.auth import update_session_auth_hash
 from django.http import HttpRequest
 
 from nav.auditlog.models import LogEntry
@@ -43,12 +44,13 @@ def sudo(request: HttpRequest, other_user: Account) -> None:
     if not account.is_admin():
         # Check if sudoer is acctually admin
         raise SudoNotAdminError()
-    original_user = request.account
+    original_user = request.user
     request.session[SUDOER_ID_VAR] = original_user.id
     set_account(request, other_user)
+    update_session_auth_hash(request, other_user)
     _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
     _logger.debug(
-        'Sudo: (session: %s, account: %s)', dict(request.session), request.account
+        'Sudo: (session: %s, account: %s)', dict(request.session), request.user
     )
     LogEntry.add_log_entry(
         original_user,
@@ -68,17 +70,16 @@ def desudo(request: HttpRequest) -> None:
         # We are not sudoing
         return
 
-    other_user = request.account
+    other_user = request.user
     original_user_id = request.session[SUDOER_ID_VAR]
     original_user = Account.objects.get(id=original_user_id)
 
     clear_session(request)
     set_account(request, original_user)
-    _logger.info(
-        'DeSudo: "%s" no longer acting as "%s"', original_user, request.account
-    )
+    update_session_auth_hash(request, original_user)
+    _logger.info('DeSudo: "%s" no longer acting as "%s"', original_user, request.user)
     _logger.debug(
-        'DeSudo: (session: %s, account: %s)', dict(request.session), request.account
+        'DeSudo: (session: %s, account: %s)', dict(request.session), request.user
     )
     LogEntry.add_log_entry(
         original_user,
