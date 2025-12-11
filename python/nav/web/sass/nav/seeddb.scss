@@ -132,3 +132,31 @@ give this class  */
     margin-top: 1.25rem;
   }
 }
+
+/* Style profile dropdown options with links */
+.select2-results {
+  .profile-option-container {
+    position: relative;
+    padding-right: 35px;
+  }
+
+  .select2-highlighted .profile-link {
+    color: #fff;
+  }
+
+  .profile-link {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 1px 4px;
+    text-decoration: none;
+    font-size: 0.875rem;
+
+    &:hover {
+      color: #008CBA;
+      background-color: #fff;
+      text-decoration: none;
+    }
+  }
+}
