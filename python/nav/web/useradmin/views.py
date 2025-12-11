@@ -705,45 +705,39 @@ class JWTList(NavPathMixin, generic.ListView):
         return context
 
 
-class JWTCreate(NavPathMixin, generic.View):
+class JWTCreate(NavPathMixin, generic.CreateView):
     """Class based view for creating a new token"""
 
     model = JWTRefreshToken
     form_class = forms.JWTRefreshTokenCreateForm
     template_name = 'useradmin/jwt_edit.html'
 
-    def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            token = form.save(commit=False)
-            try:
-                encoded_token = generate_refresh_token_from_model(token)
-            except ConfigurationError:
-                return render(
-                    request,
-                    'useradmin/jwt_not_enabled.html',
-                )
-            claims = decode_token(encoded_token)
-            token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
-            token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
-            token.hash = hash_token(encoded_token)
-            token.save()
-            messages.success(request, 'New token created')
-            account = get_account(request)
-            LogEntry.add_create_entry(account, token)
-            return render(
-                request,
-                'useradmin/jwt_created.html',
-                {"object": token, "token": encoded_token},
-            )
-        return render(request, self.template_name, {"form": form})
+    def form_valid(self, form):
+        # Raises error if form is not valid
+        token = form.save(commit=False)
 
-    def get(self, request):
-        form = self.form_class()
-        context = {
-            'form': form,
-        }
-        return render(request, self.template_name, context)
+        try:
+            encoded_token = generate_refresh_token_from_model(token)
+        except ConfigurationError:
+            return render(
+                self.request,
+                'useradmin/jwt_not_enabled.html',
+            )
+        claims = decode_token(encoded_token)
+        token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
+        token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
+        token.hash = hash_token(encoded_token)
+        self.object = token.save()
+
+        messages.success(self.request, 'New token created')
+        account = get_account(self.request)
+        LogEntry.add_create_entry(account, token)
+        # Render manually to add encoded token to context
+        return render(
+            self.request,
+            'useradmin/jwt_created.html',
+            {"object": token, "token": encoded_token},
+        )
 
 
 class JWTEdit(NavPathMixin, generic.UpdateView):
