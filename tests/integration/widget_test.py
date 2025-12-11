@@ -130,7 +130,7 @@ def test_given_navlet_id_when_navlet_type_is_invalid_then_return_error_widget(
     assert navlet.title == "Error"
 
 
-def test_given_htmx_request_with_non_existent_navlet_id_then_return_htmx_error_response(
+def test_given_htmx_request_with_non_existent_navlet_id_then_it_should_return_htmx_error_response(  # noqa: E501
     client, admin_account
 ):
     """
@@ -144,7 +144,7 @@ def test_given_htmx_request_with_non_existent_navlet_id_then_return_htmx_error_r
     assert response.context['error_message'] == 'This widget does not exist'
 
 
-def test_given_htmx_request_with_unauthorized_navlet_then_return_htmx_error_response(
+def test_given_htmx_request_with_unauthorized_navlet_then_it_should_return_htmx_error_response(  # noqa: E501
     client, admin_account, non_admin_account
 ):
     """
