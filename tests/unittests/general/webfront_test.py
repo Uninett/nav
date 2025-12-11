@@ -66,7 +66,7 @@ class TestRemoteUserAuthenticate(object):
         request.META['REMOTE_USER'] = 'knight'
         with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
             with patch(
-                "nav.web.auth.Account.objects.get",
+                "nav.models.profiles.Account.objects.get",
                 new=MagicMock(return_value=REMOTE_USER_ACCOUNT),
             ):
                 assert remote_user.authenticate(request) == REMOTE_USER_ACCOUNT
@@ -83,10 +83,11 @@ class TestRemoteUserAuthenticate(object):
         request.META['REMOTE_USER'] = 'knight'
         with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
             with patch(
-                "nav.web.auth.Account.objects.get", return_value=REMOTE_USER_ACCOUNT
+                "nav.models.profiles.Account.objects.get",
+                return_value=REMOTE_USER_ACCOUNT,
             ):
-                with patch("nav.web.auth.LogEntry.add_log_entry"):
-                    with patch("nav.web.auth.Account.locked", return_value=True):
+                with patch("nav.auditlog.models.LogEntry.add_log_entry"):
+                    with patch("nav.models.profiles.Account.locked", return_value=True):
                         assert remote_user.authenticate(request) is False
 
 
