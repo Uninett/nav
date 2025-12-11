@@ -1,0 +1,7 @@
+{% load breadcrumbs %}
+
+{% if navpath %}
+    {% include "_breadcrumbs_list.html" with breadcrumbs=navpath %}
+{% else %}
+    {% include "_breadcrumbs_list.html" with breadcrumbs=request.path|to_breadcrumbs %}
+{% endif %}
