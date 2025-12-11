@@ -1191,7 +1191,7 @@ class TestDashboardSearchViews:
 
 
 class TestSaveDashboardColumns:
-    def test_given_valid_column_count_then_update_dashboard(
+    def test_given_valid_column_count_then_it_should_update_dashboard(
         self, db, client, admin_account
     ):
         """Tests that valid column count updates the dashboard"""
@@ -1207,14 +1207,14 @@ class TestSaveDashboardColumns:
             response.content
         )
 
-    def test_given_dashboard_that_does_not_exist_then_return_404(self, client):
+    def test_given_dashboard_that_does_not_exist_then_it_should_return_404(self, client):
         """Tests that updating a non-existing dashboard returns 404"""
         url = reverse('save-dashboard-columns', args=(9999,))
         response = client.post(url, data={'num_columns': 3})
 
         assert response.status_code == 404
 
-    def test_given_dashboard_of_other_account_then_return_404(
+    def test_given_dashboard_of_other_account_then_it_should_return_404(
         self, db, client, non_admin_account
     ):
         """Tests that updating another account's dashboard returns 404"""
@@ -1224,7 +1224,7 @@ class TestSaveDashboardColumns:
 
         assert response.status_code == 404
 
-    def test_given_missing_num_columns_parameter_then_return_400(
+    def test_given_missing_num_columns_parameter_then_it_should_return_400(
         self, db, client, admin_account
     ):
         """Tests that missing num_columns parameter returns 400"""
@@ -1234,7 +1234,7 @@ class TestSaveDashboardColumns:
 
         assert response.status_code == 400
 
-    def test_given_non_digit_num_columns_then_return_400(
+    def test_given_non_digit_num_columns_then_it_should_return_400(
         self, db, client, admin_account
     ):
         """Tests that 400 is returned when num_columns is not a digit"""
@@ -1245,7 +1245,7 @@ class TestSaveDashboardColumns:
 
         assert response.status_code == 400
 
-    def test_response_contains_nav_dashboard_reload_event(
+    def test_response_should_contain_nav_dashboard_reload_event(
         self, db, client, admin_account
     ):
         """Tests that response triggers client event for dashboard reload"""
