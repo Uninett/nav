@@ -1332,7 +1332,7 @@ class TestLoadDashboardView:
         assert response.context['has_navlets'] is False
         assert "no-widgets-message" in smart_str(response.content)
 
-    def test_dashboard_load_contains_correct_number_of_columns(
+    def test_dashboard_load_should_contain_correct_number_of_columns(
         self, db, client, admin_account
     ):
         """Tests that the loaded dashboard contains the correct number of columns"""
