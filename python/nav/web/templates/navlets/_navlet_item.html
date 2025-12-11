@@ -18,9 +18,11 @@
             const spinner = new Spinner({zIndex: 10});
             node.addEventListener('htmx:beforeRequest', function () {
                 spinner.spin(node);
+                node.classList.add('loading');
             });
             node.addEventListener('htmx:afterRequest', function () {
                 spinner.stop();
+                node.classList.remove('loading');
             });
         })
     </script>
