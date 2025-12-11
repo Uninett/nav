@@ -119,14 +119,13 @@ class Navlet(TemplateView):
         """
         raise NotImplementedError
 
-    def get_template_names(self, override_mode=None):
+    def get_template_names(self, override_mode: Optional[str] = None):
         """
         Get template name based on navlet mode.
 
         :param override_mode: Optional\; if provided, overrides the mode (VIEW or EDIT)
             sent in the request. If None, uses self.mode. Used to enable the navlet to
             return the correct template in error situations.
-        :type override_mode: str or None
         :return: The template name for the specified mode.
         """
         template_mode = override_mode or self.mode
