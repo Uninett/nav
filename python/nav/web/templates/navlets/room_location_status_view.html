@@ -45,25 +45,24 @@
           collapsible: true,
           heightStyle: 'content',
           activate: function (event, ui) {
-            if (ui.newHeader.length) {
-              $navlet.data('active-header', ui.newHeader.data('itemid'));
+            if (ui.newHeader.data('itemid')) {
+                $navlet.attr('data-active-header', ui.newHeader.data('itemid'));
             } else {
-              $navlet.data('active-header', null);
+                $navlet.removeAttr('data-active-header');
             }
           }
         });
 
         function getActiveHeaderIndex() {
-          var activeHeader = $navlet.data('active-header');
-          var active = false;
-          if (activeHeader) {
-            $navlet.find('.accordion h3').each(function (index, element) {
-              if ($(element).data('itemid') === activeHeader) {
-                active = index;
-              }
-            });
-          }
-          return active;
+            const activeHeader = $navlet.attr('data-active-header');
+            if (activeHeader) {
+                const headers = $navlet.find('.accordion h3').toArray();
+                const index = headers.findIndex(
+                    el => String($(el).data('itemid')) === String(activeHeader)
+                );
+                return index >= 0 ? index : false;
+            }
+            return false;
         }
 
       });
