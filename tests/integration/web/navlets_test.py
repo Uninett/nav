@@ -10,7 +10,7 @@ from nav.web.navlets import Navlet, add_navlet, get_navlet_from_name, modify_nav
 
 
 class TestAddUserNavletView:
-    def test_when_using_get_method_then_return_405(self, client, dashboard):
+    def test_when_using_get_method_then_it_should_return_405(self, client, dashboard):
         response = client.get(_get_dashboard_url(dashboard))
         assert response.status_code == 405
 
