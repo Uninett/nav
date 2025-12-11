@@ -20,6 +20,7 @@ from socket import error as SocketError
 
 from django import forms
 from django.db.models import Q
+from django.urls import reverse
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import (
@@ -50,6 +51,21 @@ class MyModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
         super(MyModelMultipleChoiceField, self).__init__(*args, **kwargs)
         self.help_text = kwargs.get('help_text', '')
+
+
+class ProfileSelectWithLinks(forms.SelectMultiple):
+    """
+    Custom widget that renders management profiles as a Select2 multi-select dropdown
+    with links to profile detail pages via JavaScript.
+    """
+
+    def __init__(self, attrs=None, choices=()):
+        # Only use profile-select-with-links class, not select2
+        # (we initialize Select2 manually in JS with custom options)
+        default_attrs = {'class': 'profile-select-with-links', 'style': 'width: 100%;'}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs, choices=choices)
 
 
 class NetboxModelForm(forms.ModelForm):
@@ -110,8 +126,8 @@ class NetboxModelForm(forms.ModelForm):
             # Set the inital value of the function field
             self.fields['function'].initial = self.instance.get_function()
 
-        self.fields['profiles'].widget.attrs.update({'class': 'select2'})
         self.fields['groups'].widget.attrs.update({'class': 'select2'})
+        self._initialize_profiles_field()
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""
@@ -135,6 +151,19 @@ class NetboxModelForm(forms.ModelForm):
             queryset = queryset.exclude(pk=self.instance.pk)
 
         return queryset
+
+    def _initialize_profiles_field(self):
+        """Initialize the profiles field with custom widget and URL pattern."""
+        profile_url_pattern = reverse(
+            'seeddb-management-profile-edit', kwargs={'management_profile_id': 0}
+        ).replace('/0/', '/{id}/')
+        # Set widget first, then queryset (setting queryset updates widget.choices)
+        self.fields['profiles'].widget = ProfileSelectWithLinks(
+            attrs={'data-profile-url-pattern': profile_url_pattern}
+        )
+        self.fields['profiles'].queryset = ManagementProfile.objects.all()
+        # Sync choices to the new widget
+        self.fields['profiles'].widget.choices = self.fields['profiles'].choices
 
     def clean_ip(self):
         """Make sure IP-address is valid"""
