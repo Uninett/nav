@@ -715,6 +715,8 @@ class JWTCreate(NavPathMixin, generic.CreateView):
     def form_valid(self, form):
         # Raises error if form is not valid
         token = form.save(commit=False)
+        # Use get_context_data so breadcrumbs work correctly
+        context = self.get_context_data()
 
         try:
             encoded_token = generate_refresh_token_from_model(token)
@@ -722,6 +724,7 @@ class JWTCreate(NavPathMixin, generic.CreateView):
             return render(
                 self.request,
                 'useradmin/jwt_not_enabled.html',
+                context,
             )
         claims = decode_token(encoded_token)
         token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
@@ -732,11 +735,13 @@ class JWTCreate(NavPathMixin, generic.CreateView):
         messages.success(self.request, 'New token created')
         account = get_account(self.request)
         LogEntry.add_create_entry(account, token)
+        context["object"] = token
+        context["token"] = encoded_token
         # Render manually to add encoded token to context
         return render(
             self.request,
             'useradmin/jwt_created.html',
-            {"object": token, "token": encoded_token},
+            context,
         )
 
 
