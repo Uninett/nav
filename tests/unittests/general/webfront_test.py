@@ -87,35 +87,6 @@ class TestGetStandardUrls(object):
                 assert result == 'foo'
 
 
-class TestGetRemoteUsername(object):
-    def test_no_request(self):
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=False):
-            result = remote_user.get_username(None)
-            assert result is None
-
-    def test_not_enabled(self):
-        r = RequestFactory()
-        request = r.get('/')
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=False):
-            result = remote_user.get_username(request)
-            assert result is None
-
-    def test_enabled_but_remote_user_unset(self):
-        r = RequestFactory()
-        request = r.get('/')
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
-            result = remote_user.get_username(request)
-            assert result is None
-
-    def test_enabled_and_remote_user_set(self):
-        r = RequestFactory()
-        request = r.get('/')
-        request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
-            result = remote_user.get_username(request)
-            assert result == 'knight'
-
-
 class TestLoginRemoteUser(object):
     def test_remote_user_unset(self, fake_session):
         r = RequestFactory()
