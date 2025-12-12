@@ -565,6 +565,7 @@ class TokenList(NavPathMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         context = super(TokenList, self).get_context_data(**kwargs)
         context['active'] = {'token_list': True}
+        context['auditlog_api_parameters'] = {'object_model': 'apitoken'}
         return context
 
 
@@ -612,12 +613,18 @@ class TokenDelete(generic.DeleteView):
     def get_success_url(self):
         return reverse_lazy('useradmin-token_list')
 
-    def delete(self, request, *args, **kwargs):
-        old_object = copy.deepcopy(self.get_object())
-        response = super(TokenDelete, self).delete(self, request, *args, **kwargs)
-        messages.success(request, 'Token deleted')
-        account = get_account(request)
-        LogEntry.add_delete_entry(account, old_object)
+    def form_valid(self, form):
+        # Add custom logic before deletion
+        token = self.get_object()
+
+        # Call the parent's form_valid() method to perform the actual deletion
+        response = super().form_valid(form)
+
+        # Add custom logic after deletion
+        messages.success(self.request, 'Token deleted')
+        account = get_account(self.request)
+        LogEntry.add_delete_entry(account, token)
+
         return response
 
 
@@ -694,6 +701,7 @@ class JWTList(NavPathMixin, generic.ListView):
         context = super(JWTList, self).get_context_data(**kwargs)
         context['is_configured'] = LOCAL_JWT_IS_CONFIGURED
         context['active'] = {'jwt_list': True}
+        context['auditlog_api_parameters'] = {'object_model': 'jwtrefreshtoken'}
         return context
 
 
@@ -720,7 +728,9 @@ class JWTCreate(NavPathMixin, generic.View):
             token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
             token.hash = hash_token(encoded_token)
             token.save()
-            messages.success(self.request, 'New token created')
+            messages.success(request, 'New token created')
+            account = get_account(request)
+            LogEntry.add_create_entry(account, token)
             return render(
                 request,
                 'useradmin/jwt_created.html',
@@ -745,10 +755,18 @@ class JWTEdit(NavPathMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         token = get_object_or_404(JWTRefreshToken, pk=kwargs['pk'])
+        old_object = copy.deepcopy(token)
         form = self.form_class(request.POST, instance=token)
         if form.is_valid():
             form.save()
-            messages.success(self.request, 'Token saved')
+            messages.success(request, 'Token saved')
+            account = get_account(request)
+            LogEntry.compare_objects(
+                account,
+                old_object,
+                token,
+                ['name', 'description'],
+            )
             return redirect('useradmin-jwt_detail', pk=token.pk)
         return render(request, self.template_name, {"form": form, "object": token})
 
@@ -773,12 +791,18 @@ class JWTDelete(generic.DeleteView):
     def get_success_url(self):
         return reverse_lazy('useradmin-jwt_list')
 
-    def delete(self, request, *args, **kwargs):
-        old_object = copy.deepcopy(self.get_object())
-        response = super(JWTDelete, self).delete(self, request, *args, **kwargs)
-        messages.success(request, 'Token deleted')
-        account = get_account(request)
-        LogEntry.add_delete_entry(account, old_object)
+    def form_valid(self, form):
+        # Add custom logic before deletion
+        token = self.get_object()
+
+        # Call the parent's form_valid() method to perform the actual deletion
+        response = super().form_valid(form)
+
+        # Add custom logic after deletion
+        messages.success(self.request, 'Token deleted')
+        account = get_account(self.request)
+        LogEntry.add_delete_entry(account, token)
+
         return response
 
 
@@ -828,7 +852,7 @@ def jwt_recreate(request, pk):
     account = get_account(request)
     LogEntry.add_log_entry(
         account,
-        'edit-jwttoken-expiry',
+        'edit-jwttoken-recreated',
         '{actor} recreated {object}',
         object=token,
     )

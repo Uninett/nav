@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from django.urls import reverse
 
 from nav.models.api import JWTRefreshToken
+from nav.auditlog.models import LogEntry
 
 
 def test_posting_valid_data_to_create_endpoint_should_create_token(db, client):
@@ -72,6 +73,74 @@ def test_posting_valid_data_to_edit_endpoint_should_edit_token(db, client, token
     assert response.status_code == 200
     token.refresh_from_db()
     assert token.description == new_desc
+
+
+def test_creating_token_should_add_auditlog_entry(db, client):
+    url = reverse("useradmin-jwt_create")
+    response = client.post(
+        url,
+        data={
+            'name': 'mytesttoken',
+            'permission': 'read',
+        },
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    token = JWTRefreshToken.objects.get(name='mytesttoken')
+    assert LogEntry.objects.filter(
+        object_pk=token.pk, verb='create-jwtrefreshtoken'
+    ).exists()
+
+
+def test_deleting_token_should_add_auditlog_entry(db, client, token):
+    url = reverse("useradmin-jwt_delete", args=[token.id])
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert LogEntry.objects.filter(
+        object_pk=token.id, verb='delete-jwtrefreshtoken'
+    ).exists()
+
+
+def test_revoking_token_should_add_auditlog_entry(db, client, token):
+    url = reverse("useradmin-jwt_revoke", args=[token.id])
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert LogEntry.objects.filter(
+        object_pk=token.id, verb='edit-jwttoken-revoked'
+    ).exists()
+
+
+def test_recreating_token_should_add_auditlog_entry(db, client, token):
+    token.revoked = True
+    token.save()
+    url = reverse("useradmin-jwt_recreate", args=[token.id])
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert LogEntry.objects.filter(
+        object_pk=token.id, verb='edit-jwttoken-recreated'
+    ).exists()
+
+
+def test_editing_token_should_add_auditlog_entry(db, client, token):
+    url = reverse("useradmin-jwt_edit", args=[token.id])
+    new_desc = "newdesc"
+    response = client.post(
+        url,
+        data={
+            'name': token.name,
+            'description': new_desc,
+        },
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert LogEntry.objects.filter(
+        object_pk=token.id, verb='edit-jwtrefreshtoken-description'
+    ).exists()
 
 
 @pytest.fixture()
