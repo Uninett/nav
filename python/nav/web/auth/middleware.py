@@ -22,6 +22,7 @@ import os
 from typing import Optional
 
 from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
@@ -30,6 +31,7 @@ from nav.models.profiles import Account
 from nav.web.auth import remote_user, get_login_url, logout
 from nav.web.auth.utils import (
     authorization_not_required,
+    default_account,
     ensure_account,
     get_account,
 )
@@ -235,12 +237,15 @@ class NAVAuthenticationMiddleware(MiddlewareMixin):
 
         if sudo_operator is not None:
             # XXX: sudo: Account.sudo_operator should be set by function!
+            if isinstance(request.user, AnonymousUser):
+                account = default_account()
+                request.user = account
             request.user.sudo_operator = sudo_operator
             request.account = request.user
             self._logger.debug(
                 'SUDO! "%s" acting as "%s"',
                 sudo_operator.login,
-                account.login,
+                account.get_username(),
             )
         else:
             self._logger.debug('No sudo')

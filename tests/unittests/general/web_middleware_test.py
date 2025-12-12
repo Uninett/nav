@@ -146,26 +146,29 @@ class TestAuthorizationMiddleware(object):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = DEFAULT_ACCOUNT
+        fake_request.user = DEFAULT_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert 'REMOTE_USER' not in os.environ
+            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+            assert result is None
 
     def test_process_request_authorized(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
+        fake_request.user = PLAIN_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert os.environ.get('REMOTE_USER', None) == PLAIN_ACCOUNT.login
+            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+            assert result is None
 
     def test_process_request_not_authorized(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
+        fake_request.user = PLAIN_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=False
         ):
@@ -178,7 +181,6 @@ class TestAuthorizationMiddleware(object):
                         fake_request
                     )
                     assert result == 'here'
-                    assert os.environ.get('REMOTE_USER', None) != PLAIN_ACCOUNT.login
 
 
 class TestLogout(object):
