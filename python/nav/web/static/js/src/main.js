@@ -4,7 +4,7 @@ define('jquery', [], function() {
 
 require([
     'plugins/accordion_maker',
-    'libs/select2.min',
+    'select2',
     'plugins/megadrop',
     'plugins/alert',
     'plugins/popover',
@@ -102,6 +102,7 @@ require([
                 window.location = '/index/login/?origin=' + encodeURIComponent(window.location.href);
             }
         });
+
 
         accordionMaker($('.tabs')); // Apply accordionmaker for tabs
         $('select.select2').select2();
