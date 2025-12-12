@@ -69,6 +69,7 @@ define(function(require, exports, module) {
       // Set up remote fetching of prefixes for form auto-completion
       var prefixSelect = this.$el.find("#prefix-search-box");
       prefixSelect.select2({
+        placeholder: 'Search for prefix...',
         minimumInputLength: 1,
         allowClear: true,
         ajax: {

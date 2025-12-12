@@ -14,13 +14,14 @@
 
   <label>
     Prefix
-    <input id="prefix-search-box" type="text" class="search-param" id="prefix-prefix"
-           name="within" value="<%= queryParams.prefix %>">
+    <select id="prefix-search-box" class="search-param" name="within" style="width: 100%;">
+      <option></option>
+    </select>
   </label>
 
   <label>
     Organization (optional)
-    <select class="select2 search-param" name="organization" multiple="multiple">
+    <select class="select2 search-param" name="organization" multiple="multiple" style="width: 100%;">
     {% for organization in organizations %}
       <option value="{{ organization.id }}" <%= _.contains(queryParams.organization, '{{ organization.id }}') ? "selected" : null %>>
         {{ organization }}
@@ -31,7 +32,7 @@
 
   <label>
     Usage (optional)
-    <select class="select2 search-param" name="usage" multiple="multiple">
+    <select class="select2 search-param" name="usage" multiple="multiple" style="width: 100%;">
       {% for usage in usages %}
       <option value="{{ usage.id }}" <%= _.contains(queryParams.usage, '{{ usage.id }}') ? "selected" : null %>>
         {{ usage }}
@@ -67,7 +68,7 @@
     of all net types registered in NAV, except scope and reserved, which are
     given special treatment.
     {% endcomment %}
-    <select class="select2 search-param" name="net_type" multiple="multiple">
+    <select class="select2 search-param" name="net_type" multiple="multiple" style="width: 100%;">
       <option value="scope">scope</option>
       <option value="reserved" <%= _.contains(queryParams.net_type, 'reserved') ? "selected" : null %>>
         reserved
