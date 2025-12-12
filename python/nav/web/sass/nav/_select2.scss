@@ -13,11 +13,9 @@
     margin: 0 0 1rem 0;
     font-family: inherit;
     font-size: 0.875rem;
-
-    // Ensure full width by default (fixes width issues)
-    width: 100% !important;
-
     box-sizing: border-box;
+    // Let Select2 manage width based on element or configuration
+    // Use .select2-fullwidth class or style="width: 100%" on the select element for full width
 }
 
 // =============================================================================
