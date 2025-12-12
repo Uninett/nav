@@ -46,7 +46,8 @@ class VlanGraphNavlet(Navlet):
         vlanid = self.preferences['vlanid'] if 'vlanid' in self.preferences else None
         if self.mode == NAVLET_MODE_VIEW and vlanid:
             url = get_vlan_graph_url(vlanid)
-            context['graph_url'] = url
+            if url:
+                context['graph_url'] = self.add_bust_param_to_url(url)
         elif self.mode == NAVLET_MODE_EDIT:
             context['vlans'] = Vlan.objects.filter(vlan__isnull=False).order_by('vlan')
             context['vlanid'] = vlanid
@@ -71,4 +72,6 @@ class VlanGraphNavlet(Navlet):
                 account_navlet.preferences['vlanid'] = vlanid
             account_navlet.save()
 
-        return HttpResponse()
+            self.preferences = account_navlet.preferences
+
+        return self.get(request)
