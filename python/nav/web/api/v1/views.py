@@ -1148,7 +1148,7 @@ def get_or_create_token(request):
             expires__gte=datetime.now(),
             defaults={'token': auth_token(), 'expires': datetime.now() + EXPIRE_DELTA},
         )
-        return HttpResponse(str(token))
+        return HttpResponse(token.token)
     else:
         return HttpResponse(
             'You must log in to get a token', status=status.HTTP_403_FORBIDDEN
