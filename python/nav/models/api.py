@@ -59,7 +59,7 @@ class APIToken(models.Model):
     )
 
     def __str__(self):
-        return self.token
+        return f"token no. {self.id}"
 
     def is_expired(self):
         """Check is I am expired"""
