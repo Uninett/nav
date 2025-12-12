@@ -720,6 +720,7 @@ class JWTCreate(NavPathMixin, generic.View):
             token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
             token.hash = hash_token(encoded_token)
             token.save()
+            messages.success(self.request, 'New token created')
             return render(
                 request,
                 'useradmin/jwt_created.html',
@@ -747,6 +748,7 @@ class JWTEdit(NavPathMixin, generic.View):
         form = self.form_class(request.POST, instance=token)
         if form.is_valid():
             form.save()
+            messages.success(self.request, 'Token saved')
             return redirect('useradmin-jwt_detail', pk=token.pk)
         return render(request, self.template_name, {"form": form, "object": token})
 

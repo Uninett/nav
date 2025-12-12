@@ -57,6 +57,23 @@ def test_recreating_token_should_unrevoke_it(db, client, token):
     assert not token.revoked
 
 
+def test_posting_valid_data_to_edit_endpoint_should_edit_token(db, client, token):
+    url = reverse("useradmin-jwt_edit", args=[token.id])
+    new_desc = "newdesc"
+    response = client.post(
+        url,
+        data={
+            'name': token.name,
+            'description': new_desc,
+        },
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    token.refresh_from_db()
+    assert token.description == new_desc
+
+
 @pytest.fixture()
 def token(db) -> Generator[JWTRefreshToken, None, None]:
     """Fixture to create a JWTRefreshToken instance for testing"""
