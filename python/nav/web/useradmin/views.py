@@ -718,14 +718,13 @@ class JWTCreate(NavPathMixin, generic.CreateView):
         # Use get_context_data so breadcrumbs work correctly
         context = self.get_context_data()
 
-        try:
-            encoded_token = generate_refresh_token_from_model(token)
-        except ConfigurationError:
+        if not LOCAL_JWT_IS_CONFIGURED:
             return render(
                 self.request,
                 'useradmin/jwt_not_enabled.html',
                 context,
             )
+        encoded_token = generate_refresh_token_from_model(token)
         claims = decode_token(encoded_token)
         token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
         token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
