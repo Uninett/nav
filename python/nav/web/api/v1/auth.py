@@ -104,8 +104,8 @@ class TokenPermission(BasePermission):
             token.save()
         else:
             _logger.warning(
-                'Token no. %s not permitted to access endpoint %s',
-                token.pk,
+                '%s not permitted to access endpoint %s',
+                str(token).capitalize(),
                 request.path,
             )
         return permissions_ok
