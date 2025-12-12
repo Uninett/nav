@@ -110,6 +110,10 @@ class JWTRefreshToken(models.Model):
         """
         return is_active(self.expires.timestamp(), self.activates.timestamp())
 
+    def get_absolute_url(self):
+        """Special method that Django uses as default url for an object"""
+        return reverse('useradmin-jwt_detail', args=[self.pk])
+
     class Meta(object):
         """Meta class"""
 
