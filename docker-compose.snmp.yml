@@ -17,7 +17,9 @@ x-forwarder:
   build:
     context: tools/forward
     args:
-      - USER
+      - USER=<YOUR-USERNAME-HERE>
+      - UID=<YOUR-UID-HERE>
+  user: <YOUR-USERNAME-HERE>
   volumes:
     - ${SSH_AUTH_SOCK}:/auth_sock
     - /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts
