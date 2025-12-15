@@ -1,4 +1,4 @@
-require(['libs/select2.min'], function() {
+require(['select2'], function() {
     $(function() {
         var toggleTrigger = $('.advanced-toggle'),
             fa = toggleTrigger.find('.fa'),
@@ -38,24 +38,34 @@ require(['libs/select2.min'], function() {
         var $masterField = $('#id_master').select2();
         var $instanceField = $('#id_virtual_instance').select2();
 
+        function hasValue($field) {
+            const val = $field.val();
+            // Check for actual value - empty options have "", null, undefined, or [] for multi-select
+            if (val == null || val === '') {
+                return false;
+            }
+            // Handle multi-select which returns an array
+            if (Array.isArray(val)) {
+                return val.length > 0;
+            }
+            return true;
+        }
+
         function checkFields() {
-            if ($masterField.val()) {
-                $instanceField.select2('enable', false);
-            } else {
-                $instanceField.select2('enable', true);
-            }
+            const masterHasValue = hasValue($masterField);
+            const instanceHasValue = hasValue($instanceField);
 
-            if ($instanceField.val() && !$masterField[0].disabled) {
-                $masterField.select2('enable', false);
-            } else {
-                $masterField.select2('enable', true);
-            }
-
-
+            // If master has a value, disable instance field
+            // If instance has a value, disable master field
+            // If neither has a value, enable both
+            $instanceField.prop('disabled', masterHasValue);
+            $masterField.prop('disabled', instanceHasValue);
         }
 
         $masterField.on('change', checkFields);
         $instanceField.on('change', checkFields);
 
+        // Run on page load to set initial state (after Select2 finishes initializing)
+        setTimeout(checkFields, 0);
     });
 });

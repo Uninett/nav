@@ -1,7 +1,7 @@
 define(function(require) {
 
     var URI = require('libs/urijs/URI');
-    require('libs/select2.min');
+    require('select2');
 
     var selectors = {
         ifclassfilter: '#ifclassfilter',
@@ -52,29 +52,18 @@ define(function(require) {
             ajax: {
                 url: url,
                 dataType: 'json',
-                quietMillis: 500,
-                data: function(term, page) {
-                    return { search: term }
+                delay: 500,
+                data: function(params) {
+                    return { search: params.term }
                 },
-                results: function(data, page) {
+                processResults: function(data, params) {
                     return {results: data.results.map(function(d) {
                         return {text: d.sysname, id: d.id}
                     })};
                 }
             },
-            initSelection: function(element, callback) {
-                var id = $(element).val();
-                if (id) {
-                    $.ajax(url + id, {
-                        dataType: "json"
-                    }).done(function(data) {
-                        callback({text: data.sysname, id: data.id});
-                    });
-                }
-            },
             multiple: true,
-            minimumInputLength: 2,
-            width: 'off'
+            minimumInputLength: 2
         });
     }
 

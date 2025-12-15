@@ -72,43 +72,49 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, seedDBRoomM
      * AJAX-requests.
      */
     function initDeviceGroupSelectMultiple($formElement, $searchField) {
+        // Pre-populate with existing selections from the form element
+        const initialData = [];
+        $formElement.find(':selected').each(function (index, option) {
+            initialData.push({
+                id: option.value,
+                text: option.innerHTML
+            });
+        });
+
         $searchField.select2({
             multiple: true,
             ajax: {
                 url: NAV.urls.api_netbox_list,
                 dataType: 'json',
-                quietMillis: 250,
+                delay: 250,
                 data: function(params) {
                     return {
-                        search: params
+                        search: params.term
                     };
                 },
-                results: netboxListSelect2
-            },
-            /**
-             * Populates the selection with options from the form element.
-             * NB: The search field needs a value for this function to be run
-             * (this is set directly in the html).
-             */
-            initSelection: function (element, callback) {
-                var data = [];
-                $formElement.find(':selected').each(function (index, option) {
-                    data.push({
-                        id: option.value,
-                        text: option.innerHTML
-                    });
-                });
-                return callback(data);
+                processResults: netboxListSelect2
             },
             minimumInputLength: 3
         });
+
+        // Set initial selection if there are pre-selected values
+        if (initialData.length > 0) {
+            // For Select2 v4, we need to add option elements and trigger change
+            initialData.forEach(function(item) {
+                if ($searchField.find('option[value="' + item.id + '"]').length === 0) {
+                    const option = new Option(item.text, item.id, true, true);
+                    $searchField.append(option);
+                }
+            });
+            $searchField.trigger('change');
+        }
 
         /**
          * Sets the selected values in the form element to be the same as in
          * the select2 element when the form is submitted.
          */
         $('form.seeddb-edit').submit(function () {
-            $formElement.val($searchField.select2('val'));
+            $formElement.val($searchField.val());
         });
     }
 
@@ -156,9 +162,9 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, seedDBRoomM
         });
     }
 
-    function netboxListSelect2(data, page, query) {
-        var results = data.results;
-        data.results.sort(function(a, b) {
+    function netboxListSelect2(data, _params) {
+        const results = data.results;
+        results.sort(function(a, b) {
             if (a.sysname.toLowerCase() < b.sysname.toLowerCase()) {
                 return -1;
             } else {
@@ -179,13 +185,13 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, seedDBRoomM
             ajax: {
                 url: NAV.urls.api_netbox_list,
                 dataType: 'json',
-                quietMillis: 250,
+                delay: 250,
                 data: function(params) {
                     return {
-                        search: params
+                        search: params.term
                     };
                 },
-                results: netboxListSelect2
+                processResults: netboxListSelect2
             }
         });
     }

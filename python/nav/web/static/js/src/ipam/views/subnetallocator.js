@@ -245,7 +245,7 @@ define(function(require, exports, module) {
       "change .size-of-network": "onNetworkSizeChange",
       "keypress .size-of-network": "onNetworkSizeKeypress",
       "click .cancel-reservation:first": "cancelReservation",
-      "select2-selecting .prefix-list": "onSelectPrefix",
+      "select2:select .prefix-list": "onSelectPrefix",
       "click .choose-network-size": "chooseNetworkSize"
     },
 
@@ -291,15 +291,17 @@ define(function(require, exports, module) {
 
     onSelectPrefix: function(evt) {
       // Don't handle empty values from user
-      if (!evt.val) {
+      // In Select2 v4, the selected data is in evt.params.data
+      const selectedData = evt.params?.data;
+      if (!selectedData?.id) {
         return;
       }
-      var params = {
-        "net_address": evt.val,
+      const params = {
+        "net_address": selectedData.id,
         "net_type": "reserved"
       };
       this.model.set("creation_url", this.baseUrl + decodeURIComponent($.param(params, true)));
-      this.model.set("selected_prefix", evt.val);
+      this.model.set("selected_prefix", selectedData.id);
       this.fsm.step("CHOOSE_SUBNET");
     },
 
@@ -325,10 +327,11 @@ define(function(require, exports, module) {
       var pageSize = 10;
       selectElem.select2({
         placeholder: self.model.get("selected_prefix") || "Select a subnet",
-        dataType: 'json',
         ajax: {
           url: "/ipam/api/suggest/",
-          data: function(term, page) {
+          dataType: 'json',
+          data: function(params) {
+            const page = params.page || 1;
             return {
               n: pageSize,
               prefixlen: sizeOfNetwork,
@@ -336,15 +339,16 @@ define(function(require, exports, module) {
               offset: pageSize * (page - 1)
             };
           },
-          results: function(data) {
+          processResults: function(data, params) {
             console.log(data);
-            var transformed = _.map(data.candidates, function(prefixMap) {
+            const transformed = _.map(data.candidates, function (prefixMap) {
               return {
                 text: optionTemplate(prefixMap),
                 id: prefixMap.prefix
               };
             });
-            return { results: transformed, more: data.more };
+            params.page = params.page || 1;
+            return { results: transformed, pagination: { more: data.more } };
           }
         }
       });

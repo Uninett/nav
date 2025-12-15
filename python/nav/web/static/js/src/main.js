@@ -4,7 +4,7 @@ define('jquery', [], function() {
 
 require([
     'plugins/accordion_maker',
-    'libs/select2.min',
+    'select2',
     'plugins/megadrop',
     'plugins/alert',
     'plugins/popover',
