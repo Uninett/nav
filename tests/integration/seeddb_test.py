@@ -20,6 +20,14 @@ def test_usage_edit_url_should_allow_slashes():
     assert reverse('seeddb-usage-edit', args=('TEST/SLASH',))
 
 
+def test_room_edit_url_should_allow_slashes():
+    assert reverse('seeddb-room-edit', args=('TEST/SLASH',))
+
+
+def test_room_deleteq_url_should_allow_slashes():
+    assert reverse('seeddb-room-edit', args=('TEST/SLASH',))
+
+
 def test_editing_deleted_netboxes_should_raise_404(admin_account):
     netboxid = 666  # Assuming no such netbox exists in test data set!
     factory = RequestFactory()
