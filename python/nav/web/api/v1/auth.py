@@ -45,9 +45,7 @@ class APIAuthentication(TokenAuthentication):
             raise AuthenticationFailed
         else:
             if token.is_expired():
-                _logger.warning(
-                    'API authentication attempted with expired token "%s"', key
-                )
+                _logger.warning('API authentication attempted with expired %s', token)
                 raise AuthenticationFailed
             return None, token
 
@@ -106,7 +104,9 @@ class TokenPermission(BasePermission):
             token.save()
         else:
             _logger.warning(
-                'Token %s not permitted to access endpoint %s', token, request.path
+                '%s not permitted to access endpoint %s',
+                str(token).capitalize(),
+                request.path,
             )
         return permissions_ok
 

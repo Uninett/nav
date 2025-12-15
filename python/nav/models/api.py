@@ -20,6 +20,7 @@ from datetime import datetime
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.urls import reverse
+from django.utils.text import Truncator
 
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
@@ -59,7 +60,8 @@ class APIToken(models.Model):
     )
 
     def __str__(self):
-        return self.token
+        descr = f" ({Truncator(self.comment).chars(25)})" if self.comment else ""
+        return f"token #{self.id}{descr}"
 
     def is_expired(self):
         """Check is I am expired"""
