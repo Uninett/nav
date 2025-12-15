@@ -49,6 +49,13 @@ To install NAV's Python requirements::
   pip install .
   nav config install /etc/nav
 
+.. tip::
+
+   You can override the default configuration search path by setting the
+   :envvar:`NAV_CONFIG_DIR` environment variable to point to a directory
+   containing your NAV configuration files. When set, this directory will be
+   searched with highest priority, before any of the default locations.
+
 The configuration files are now found in :file:`/etc/nav/`. Verify that NAV can
 actually find :file:`nav.conf`::
 

@@ -124,6 +124,13 @@ system. These locations can be listed by running::
 
   nav config path
 
+.. tip::
+
+   You can override the default configuration search path by setting the
+   :envvar:`NAV_CONFIG_DIR` environment variable to point to a directory
+   containing your NAV configuration files. When set, this directory will be
+   searched with highest priority, before any of the default locations.
+
 To install a set of pristine NAV configuration files into one of these locations,
 e.g. in :file:`/etc/nav`, run::
 
