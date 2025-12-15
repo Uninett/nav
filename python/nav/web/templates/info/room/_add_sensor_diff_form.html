@@ -6,7 +6,7 @@
   {% csrf_token %}
   <label>
     Primary {{ sensortype }}
-    <select class="sensordropdown" name="minuendid">
+    <select class="sensordropdown" name="minuendid" style="width: 100%">
       <option value="">----------</option>
       {% for sensor in sensors %}
         <option value="{{ sensor.pk }}">{{ sensor }}</option>
@@ -15,7 +15,7 @@
   </label>
   <label>
       Subtract {{ sensortype }}
-      <select class="sensordropdown" name="subtrahendid">
+      <select class="sensordropdown" name="subtrahendid" style="width: 100%">
           <option value="">----------</option>
           {% for sensor in sensors %}
           <option value="{{ sensor.pk }}">{{ sensor }}</option>

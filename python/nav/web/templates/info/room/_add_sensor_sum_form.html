@@ -8,7 +8,7 @@
   <label>Title<input type="text" name="title" placeholder="Sum of sensors"></label>
   <label>
     {{ sensortype }}
-    <select class="sensordropdown sumsensors" name="sensors[]">
+    <select class="sensordropdown sumsensors" name="sensors[]" style="width: 100%">
       <option value="">----------</option>
       {% for sensor in sensors %}
         <option value="{{ sensor.pk }}">{{ sensor }}</option>
