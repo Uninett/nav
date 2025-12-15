@@ -11,13 +11,42 @@ define(function(require, exports, module) {
   var _ = require("libs/underscore");
   var Backbone = require("backbone");
   var Marionette = require("marionette");
+  var Radio = require("backbone.radio");
   var debug = require("src/ipam/util").ipam_debug.new("views:available_subnets");
 
+  var Behaviors = require("src/ipam/views/behaviors");
   var Models = require("src/ipam/models");
   var PrefixMap = require("src/ipam/views/prefixmap");
 
   // Event broker
-  var globalCh = Backbone.Wreqr.radio.channel("global");
+  var globalCh = Radio.channel("global");
+
+  var InfoView = Marionette.View.extend({
+    template: "#prefix-allocate-info",
+
+    events: {
+      "click .reserve-subnet": "reserveSubnet"
+    },
+
+    initialize: function(opts) {
+      this.fsm = opts.fsm;
+      this.node = opts.node;
+      this.model = new Backbone.Model(this.node);
+    },
+
+    serializeData: function(opts) {
+      return {
+        node: this.model.toJSON(),
+        state: this.fsm.state
+      };
+    },
+
+    reserveSubnet: function() {
+      this.fsm.step("RESERVE", this.node);
+      this.render();
+    }
+
+  });
 
   // For simplicity reasons, use a state singleton
   var viewStates = {
@@ -50,12 +79,13 @@ define(function(require, exports, module) {
   };
 
   // Main container for subnet allocator.
-  var AvailableSubnetsView = Marionette.LayoutView.extend({
+  var AvailableSubnetsView = Marionette.View.extend({
     debug: debug,
     template: "#prefix-available-subnets",
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: viewStates,
         modelField: "state",
         handlers: {
@@ -102,23 +132,7 @@ define(function(require, exports, module) {
         node: node,
         fsm: self.fsm
       };
-      /*
-        TODO: Upgrade Marionette version to latest stable - 3.x or 4.x.
-        The codebase was updated to use jQuery 3.x, which has compatibility issues with Marionette regions.
-        Therefore, we bypass Marionette regions here and directly manipulate the DOM using jQuery.
-
-        Upgrading Marionette requires a significant refactoring effort and thorough testing to ensure
-        compatibility with the existing codebase. Once upgraded, we can revert to using Marionette regions for better
-        view management and lifecycle handling.
-      */
-      const infoContainer = self.$el.find(".allocation-tree-info:first");
-      if (infoContainer.length === 0) {
-        console.warn("nodeInfo container not found in DOM");
-        return;
-      }
-      const infoView = new InfoView(payload);
-      infoView.render();
-      infoContainer.html(infoView.$el);
+      self.showChildView("nodeInfo", new InfoView(payload));
     },
 
     // Initial state. The tree has the data it needs to draw itself.
@@ -130,7 +144,7 @@ define(function(require, exports, module) {
       var data = self.model.get("raw_data");
       var notify = function(__node) {
         if (__node.net_type == "scope") {
-          globalCh.vent.trigger("scrollto", __node);
+          globalCh.trigger("scrollto", __node);
         }
         self.fsm.step("FOCUS_NODE", __node);
       };
@@ -231,12 +245,13 @@ define(function(require, exports, module) {
     }
   };
 
-  var ReservationView = Marionette.LayoutView.extend({
+  var ReservationView = Marionette.View.extend({
     template: "#prefix-allocate-reservation",
     baseUrl: "/seeddb/prefix/add/?",
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: reservationStates
       }
     },
@@ -255,7 +270,7 @@ define(function(require, exports, module) {
       this.model = new Backbone.Model(this.node);
       this.model.set("creation_url", null);
       // Since template uses states, rerender on new state
-      this.fsm.onChange(this.render);
+      this.fsm.onChange(this.render.bind(this));
       this.fsm.onChange(function (state) {
         console.log("RESERVATION went into state", state);
       });
@@ -367,34 +382,6 @@ define(function(require, exports, module) {
     }
 
   });
-
-  var InfoView = Marionette.LayoutView.extend({
-    template: "#prefix-allocate-info",
-
-    events: {
-      "click .reserve-subnet": "reserveSubnet"
-    },
-
-    initialize: function(opts) {
-      this.fsm = opts.fsm;
-      this.node = opts.node;
-      this.model = new Backbone.Model(this.node);
-    },
-
-    serializeData: function(opts) {
-      return {
-        node: this.model.toJSON(),
-        state: this.fsm.state
-      };
-    },
-
-    reserveSubnet: function() {
-      this.fsm.step("RESERVE", this.node);
-      this.render();
-    }
-
-  });
-
 
   // This is where the hard part starts: The viz of the network layout. TODO:
   // Consider moving this into a separate file.
