@@ -48,7 +48,8 @@ define(function(require) {
     /** Adds select2 component to netboxfilter */
     function addNetboxFilter() {
         var url = NAV.urls.api_netbox_list;
-        var netboxFilter = $(selectors.netboxfilter).select2({
+        $(selectors.netboxfilter).select2({
+            placeholder: 'Search for device...',
             ajax: {
                 url: url,
                 dataType: 'json',
@@ -62,7 +63,6 @@ define(function(require) {
                     })};
                 }
             },
-            multiple: true,
             minimumInputLength: 2
         });
     }
