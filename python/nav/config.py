@@ -27,6 +27,7 @@ import pwd
 import stat
 import configparser
 from pathlib import Path
+from typing import Iterator
 
 from nav.errors import GeneralException
 from nav.util import resource_files, resource_bytes
@@ -54,6 +55,19 @@ if _venv:
         os.path.join(_venv, 'etc/nav'),
         os.path.join(_venv, buildconf.datadir, 'conf'),
     ] + CONFIG_LOCATIONS
+
+
+def get_config_locations() -> Iterator[Path]:
+    """Generator that yields config file search locations in priority order.
+
+    Dynamically evaluates the NAV_CONFIG_DIR environment variable first,
+    allowing it to be changed at runtime for testing purposes.
+    """
+    if "NAV_CONFIG_DIR" in os.environ:
+        yield Path(os.environ["NAV_CONFIG_DIR"])
+
+    for location in CONFIG_LOCATIONS:
+        yield Path(location)
 
 
 def list_config_files_from_dir(dirname):
@@ -206,10 +220,10 @@ def find_config_file(filename):
     """
     if filename.startswith(os.sep):
         return filename  # IDGAF, you gave me a fully qualified path
-    candidates = (os.path.join(directory, filename) for directory in CONFIG_LOCATIONS)
-    for name in candidates:
-        if os.path.exists(name):
-            return name
+    candidates = (directory / filename for directory in get_config_locations())
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
 
 
 def open_configfile(filename):

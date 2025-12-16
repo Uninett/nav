@@ -22,7 +22,7 @@ import logging
 
 from django.db.models import Q
 
-from nav.config import CONFIG_LOCATIONS
+from nav.config import get_config_locations
 from nav.web import webfrontConfig
 from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
@@ -109,7 +109,7 @@ def tool_list(account):
         attrs = {key.strip(): value.strip() for key, value in attrs}
         return Tool(**attrs)
 
-    paths = [os.path.join(path, 'toolbox') for path in CONFIG_LOCATIONS]
+    paths = [str(path / 'toolbox') for path in get_config_locations()]
     if webfrontConfig.has_option('toolbox', 'path'):
         paths = webfrontConfig.get('toolbox', 'path').split(os.pathsep)
 
