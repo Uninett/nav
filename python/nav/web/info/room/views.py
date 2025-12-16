@@ -415,7 +415,7 @@ def render_add_sensor_modal(request, roomid):
         {
             'room': room,
             'rack': rack,
-            'sensortype': 'pdu sensor' if is_pdu else 'sensor',
+            'sensortype': 'PDU Sensor' if is_pdu else 'Sensor',
             'sensors': filteredsensors,
             'column': column,
             'hx_target': f'#rack_{rack.pk} [data-column="{column}"]',

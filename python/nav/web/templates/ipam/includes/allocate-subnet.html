@@ -36,7 +36,7 @@
       <input type="number" class="size-of-network" value="<%= network_size %>" min="2" />
       <button class="button small choose-network-size">Suggest subnets of this size</button>
       <% if (state === "CHOSEN_RESERVATION_SIZE" || state === "CHOSEN_SUBNET") { %>
-      <input type="text" class="prefix-list" />
+      <select class="prefix-list" style="width: 100%;"><option></option></select>
       <% } %>
     </form>
     <button class="button small cancel-reservation">Cancel</button>

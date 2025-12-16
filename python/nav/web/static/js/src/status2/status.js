@@ -15,7 +15,7 @@ require([
     function clearFilterForm() {
         var $form = $('#' + selectors.filterFormId);
         $form.find('.select2').each(function() {
-            $(this).select2('data', null);
+            $(this).val(null).trigger('change');
         });
         $form.find('input:checkbox').removeAttr('checked');
         $form.find('#' + selectors.statelessDaysId).val('24');
@@ -27,7 +27,7 @@ require([
     $(function() {
         console.log('Initializing app');
         var statusView = new StatusView();
-        
+
         $('#' + selectors.filterClearId).click(clearFilterForm);
     });
 

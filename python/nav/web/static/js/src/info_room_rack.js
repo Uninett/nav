@@ -36,15 +36,22 @@ require([
 
     /**
      * Matches all search terms when searching in Select2
+     * Updated for Select2 v4 - matcher signature changed from (term, text) to (params, data)
      */
-    function select2MultipleMatcher(term, text) {
-        var has = true;
-        var words = term.toUpperCase().split(" ");
-        for (var i =0; i < words.length; i++){
-            var word = words[i];
-            has = has && (text.toUpperCase().indexOf(word) >= 0);
+    function select2MultipleMatcher(params, data) {
+        // If there are no search terms, return all data
+        if ($.trim(params.term) === '') {
+            return data;
         }
-        return has;
+        // Check if text matches all search terms
+        let has = true;
+        const words = params.term.toUpperCase().split(" ");
+        const text = data.text || '';
+        words.forEach((word, idx) => {
+            has = has && (text.toUpperCase().indexOf(word) >= 0);
+        })
+        // Return null if no match, or the data object if it matches
+        return has ? data : null;
     }
 
 

@@ -93,7 +93,8 @@ class NetboxModelForm(forms.ModelForm):
         masters = [n.master.pk for n in Netbox.objects.filter(master__isnull=False)]
         self.fields['master'].queryset = self.create_master_query(masters)
         self.fields['virtual_instance'].queryset = self.create_instance_query(masters)
-
+        self.fields['master'].widget.attrs.update({'style': 'width: 100%;'})
+        self.fields['virtual_instance'].widget.attrs.update({'style': 'width: 100%;'})
         if self.instance.pk:
             # Set instances that we are master to as initial values
             self.initial['virtual_instance'] = Netbox.objects.filter(

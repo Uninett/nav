@@ -8,10 +8,6 @@
    }
   </script>
   <style>
-   #choose-netbox-form .select2-container {
-       width: 25em;
-       display: inline-block;
-   }
    #choose-netbox-form input { vertical-align: top; }
   </style>
 {% endblock %}
@@ -21,7 +17,7 @@
   <p><a href="{{ back_url }}">Back to list</a></p>
 
   <form id="choose-netbox-form" method="get" action="">
-    <select name="netboxid" class="select2">
+    <select name="netboxid" class="select2" style="width: 25em;">
       <option value="">--- Choose IP Device ---</option>
       {% for n in netboxes %}
         <option value="{{ n.pk }}"

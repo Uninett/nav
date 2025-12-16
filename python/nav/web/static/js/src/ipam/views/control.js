@@ -69,6 +69,7 @@ define(function(require, exports, module) {
       // Set up remote fetching of prefixes for form auto-completion
       var prefixSelect = this.$el.find("#prefix-search-box");
       prefixSelect.select2({
+        placeholder: 'Search for prefix...',
         minimumInputLength: 1,
         allowClear: true,
         ajax: {
@@ -76,13 +77,13 @@ define(function(require, exports, module) {
           dataType: 'json',
           type: "GET",
           delay: 250,
-          data: function (term, page) {
+          data: function (params) {
             return {
-              net_address: term, // search term
-              page: page
+              net_address: params.term, // search term
+              page: params.page || 1
             };
           },
-          results: function (data, page) {
+          processResults: function (data, params) {
             return {
               results: $.map(data, function (item) {
                 return {
@@ -98,7 +99,7 @@ define(function(require, exports, module) {
       prefixSelect.on('change', this.forceSearch.bind(this));
       // Make sure net_type select always reflects default value. This is mostly
       // needed for the initial rendering.
-      this.$el.find("#prefix-net-type").select2("val", this.model.get("queryParams").net_type);
+      this.$el.find("#prefix-net-type").val(this.model.get("queryParams").net_type).trigger('change');
     },
 
     // If the user triggers a search by hitting enter

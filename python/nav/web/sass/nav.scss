@@ -17,7 +17,6 @@
 @import "nav/dialog";
 @import "nav/tabs";
 @import "nav/table";
-@import "nav/select2";
 @import "nav/footer";
 @import "nav/rickshaw";
 @import "nav/lightbox";
@@ -28,6 +27,10 @@
 // Custom css for libraries
 @import "libs/driver";
 @import "libs/flatpickr";
+@import "libs/select2.min";
+
+// NAV customizations for Select2 v4
+@import "nav/select2";
 
 // Overriding classes and mixins
 @import "overrides";

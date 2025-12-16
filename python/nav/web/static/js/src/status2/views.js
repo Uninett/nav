@@ -116,7 +116,8 @@ define([
         },
 
         events: {
-            'change #id_status_filters': 'toggleFilters',
+            'select2:select #id_status_filters': 'toggleFilters',
+            'select2:unselect #id_status_filters': 'toggleFilters',
             'change form': 'fetchData',
             'submit form': 'preventSubmit'
         },
@@ -132,7 +133,7 @@ define([
             var filtersWithValue = $.map(selectedOptions.closest('select'), function (element) {
                 return element.name;
             });
-            $('#id_status_filters').select2('val', filtersWithValue);
+            $('#id_status_filters').val(filtersWithValue).trigger('change');
         },
 
         /* Event driven methods */
@@ -143,13 +144,15 @@ define([
          */
         toggleFilters: function (event) {
             event.stopPropagation();
-            if ('added' in event) {
-                this.$el.find('#id_' + event.added.id).closest('.ctrlHolder').show();
+            // In Select2 v4, added/removed data is in event.params.data
+            const params = event.params || {};
+            if (params.data && event.type === 'select2:select') {
+                this.$el.find('#id_' + params.data.id).closest('.ctrlHolder').show();
             }
-            if ('removed' in event) {
-                var removed = this.$el.find('#id_' + event.removed.id);
+            if (params.data && event.type === 'select2:unselect') {
+                const removed = this.$el.find('#id_' + params.data.id);
                 removed.closest('.ctrlHolder').hide();
-                removed.select2('val', '');  // Unselect all options
+                removed.val(null).trigger('change');  // Unselect all options
                 // Unselecting does not trigger the change-event that again
                 // triggers fetching data, so we have to do it ourself
                 this.fetchData();
