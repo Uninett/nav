@@ -37,9 +37,9 @@ class LGFKRelatedField(serializers.RelatedField):
 
 
 class LogEntrySerializer(serializers.ModelSerializer):
-    actor = LGFKRelatedField(read_only=True)
-    object = LGFKRelatedField(read_only=True)
-    target = LGFKRelatedField(read_only=True)
+    actor = serializers.SerializerMethodField()
+    object = serializers.SerializerMethodField()
+    target = serializers.SerializerMethodField()
 
     class Meta:
         model = LogEntry
@@ -55,6 +55,27 @@ class LogEntrySerializer(serializers.ModelSerializer):
             'after',
         ]
         read_only_fields = ['timestamp']
+
+    def get_actor(self, instance):
+        if instance.actor:
+            return str(instance.actor)
+        if instance.actor_model and instance.actor_pk:
+            return f"{instance.actor_model} #{instance.actor_pk} has been deleted"
+        return None
+
+    def get_object(self, instance):
+        if instance.object:
+            return str(instance.object)
+        if instance.object_model and instance.object_pk:
+            return f"{instance.object_model} #{instance.object_pk} has been deleted"
+        return None
+
+    def get_target(self, instance):
+        if instance.target:
+            return str(instance.target)
+        if instance.target_model and instance.target_pk:
+            return f"{instance.target_model} #{instance.target_pk} has been deleted"
+        return None
 
 
 class MultipleFilter(filters.BaseFilterBackend):
