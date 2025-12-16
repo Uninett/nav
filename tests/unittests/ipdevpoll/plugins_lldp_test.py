@@ -34,3 +34,10 @@ def test_given_local_id_with_nullbytes_then_netbox_from_local_should_not_crash()
                 info_set__value="somedevice",
             )
             assert repr(first_call_q) == repr(expected_q)
+
+
+def test_given_local_id_with_only_nullbytes_then_netbox_from_local_should_not_crash():
+    with patch.object(LLDPNeighbor, 'identify'):
+        with patch.object(LLDPNeighbor, '_netbox_query', return_value=None):
+            neighbor = LLDPNeighbor(Mock())
+            assert not neighbor._netbox_from_local("\x00\x00\x00")
