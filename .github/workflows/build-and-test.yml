@@ -24,7 +24,7 @@ jobs:
         id: system-info
 
       - name: "Cache pip packages"
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: pip-cache
         with:
           path: ~/.cache/pip
@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-${{ steps.system-info.outputs.release }}-pip-
 
       - name: "Cache tox environments"
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: tox-cache
         with:
           path: .tox
