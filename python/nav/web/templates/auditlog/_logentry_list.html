@@ -32,7 +32,7 @@
 </style>
 
 <script type="text/javascript">
- require(['libs/urijs/URI', 'moment', 'libs/datatables.min'], function(Uri, moment) {
+ require(['libs/urijs/URI', 'moment', 'libs/datatables.min'], function(Uri, moment, DataTable) {
      var api_parameters = {{ auditlog_api_parameters|safe|default:'{}' }};
      var columns = {
          0: 'timestamp',
@@ -42,6 +42,16 @@
          4: 'target',
          5: 'summary'
      };
+
+     /* Utility function to escape HTML special characters to prevent XSS */
+     function escapeHtml(text) {
+         if (!text) return text;
+
+         const div = document.createElement('div');
+         div.textContent = text; // The browser automatically escapes special characters
+         return div.innerHTML;
+     }
+
      var dt_config = {
          serverSide: true,  // Everything is done serverside - sorting, filtering, etc.
          ajax: {
@@ -75,19 +85,25 @@
                      return moment(data).format('YYYY-MM-DD HH:mm:ss');
                  }
              },
-             { data: columns[1] },
+             {
+                 data: columns[1],
+                 render: escapeHtml
+             },
              { data: columns[2] },
              {
                  data: columns[3],
-                 orderable: false
+                 orderable: false,
+                 render: escapeHtml
              },
              {
                  data: columns[4],
-                 orderable: false
+                 orderable: false,
+                 render: escapeHtml
              },
              {
                  data: columns[5],
-                 orderable: false
+                 orderable: false,
+                 render: escapeHtml
              }
          ],
          autowidth: false,
