@@ -48,7 +48,7 @@ Course of action - with docker
 6. In SeedDB: Add an SNMP management profile with the community for the device.
 
 7. In SeedDB: Add an IP device with the IP "mydevice.mydomain" and the
-   management profile created in step 5. Click on "check connectivity", which should
+   management profile created in step 6. Click on "check connectivity", which should
    be answering "ok".
 
 Troubleshooting - with docker
