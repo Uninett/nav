@@ -121,6 +121,14 @@ def test_ordering_should_not_crash(db, api_client, token):
     assert response.status_code == 200
 
 
+class TestLogEntryViewSet:
+    def test_order_by_actor_should_not_fail(
+        self, auditlog_endpoint, api_client, serializer_models
+    ):
+        response = api_client.get(f"{ENDPOINTS[auditlog_endpoint]}?ordering=actor")
+        assert response.status_code == 200
+
+
 # Account specific tests
 
 
@@ -609,3 +617,10 @@ def netboxentity(db, localhost):
     netbox_entity.save()
     yield netbox_entity
     netbox_entity.delete()
+
+
+@pytest.fixture()
+def auditlog_endpoint(db, token):
+    endpoint = 'auditlog'
+    create_token_endpoint(token, endpoint)
+    return endpoint

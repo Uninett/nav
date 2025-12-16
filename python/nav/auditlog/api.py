@@ -20,9 +20,8 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework import viewsets, filters
 
-from nav.web.api.v1.views import NAVAPIMixin
-
 from nav.models.manage import Interface
+from nav.web.api.v1.views import NAVAPIMixin, RelatedOrderingFilter
 
 from .models import LogEntry
 
@@ -125,12 +124,24 @@ class NAVDefaultsMixin(object):
     filter_backends = NAVAPIMixin.filter_backends
 
 
+class LogEntryRelatedOrderingFilter(RelatedOrderingFilter):
+    def is_valid_field(self, model, field):
+        if field == 'actor':
+            return False
+        return super().is_valid_field(model, field)
+
+
 class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
     """Read only api endpoint for logentries.
 
     Logentries are created behind the scenes by the subsystems themselves."""
 
-    filter_backends = NAVDefaultsMixin.filter_backends + (
+    # Bypass the default ordering handler so it doesn't try ordering the actor field
+    base_backends = tuple(
+        f for f in NAVDefaultsMixin.filter_backends if f is not RelatedOrderingFilter
+    )
+    filter_backends = base_backends + (
+        LogEntryRelatedOrderingFilter,
         MultipleFilter,
         CustomOrderingFilter,
         NetboxFilter,
