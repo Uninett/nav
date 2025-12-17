@@ -73,30 +73,26 @@ require(['select2'], function() {
         if ($profilesField.length && $profilesField.hasClass('profile-select-with-links')) {
             const urlPattern = $profilesField.data('profile-url-pattern');
 
-            // Format dropdown items with "View" links
+            // Format dropdown items with "Open" links
             function formatProfileResult(item) {
                 if (!item.id) {
                     return item.text;
                 }
 
                 const profileUrl = urlPattern.replace('{id}', item.id);
-                return `
-                    <div class="profile-option-container">
-                        <span class="profile-name">${item.text}</span>
-                        <a href="${profileUrl}"
-                           target="_blank"
-                           class="profile-link"
-                           title="Open profile in new tab"
-                           data-profile-url="${profileUrl}">
-                            Open
-                        </a>
-                    </div>
-                `;
+                const $container = $('<div class="profile-option-container"></div>');
+                $container.append($('<span class="profile-name"></span>').text(item.text));
+                $container.append(
+                    $('<a class="profile-link" target="_blank" title="Open profile in new tab">Open</a>')
+                        .attr('href', profileUrl)
+                        .attr('data-profile-url', profileUrl)
+                );
+                return $container;
             }
 
-            // Initialize Select2 with custom formatters
+            // Initialize Select2 with custom template
             $profilesField.select2({
-                formatResult: formatProfileResult,
+                templateResult: formatProfileResult,
             });
 
             // Helper function to find closest profile link element

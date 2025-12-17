@@ -157,10 +157,13 @@ class NetboxModelForm(forms.ModelForm):
         profile_url_pattern = reverse(
             'seeddb-management-profile-edit', kwargs={'management_profile_id': 0}
         ).replace('/0/', '/{id}/')
+        # Set widget first, then queryset (setting queryset updates widget.choices)
         self.fields['profiles'].widget = ProfileSelectWithLinks(
             attrs={'data-profile-url-pattern': profile_url_pattern}
         )
         self.fields['profiles'].queryset = ManagementProfile.objects.all()
+        # Sync choices to the new widget
+        self.fields['profiles'].widget.choices = self.fields['profiles'].choices
 
     def clean_ip(self):
         """Make sure IP-address is valid"""
