@@ -81,11 +81,6 @@ class NetboxModelForm(forms.ModelForm):
         label='Virtual instances',
         help_text='The list of virtual instances inside this master device',
     )
-    profiles = forms.ModelMultipleChoiceField(
-        widget=ProfileSelectWithLinks,
-        required=False,
-        queryset=ManagementProfile.objects.none(),
-    )
 
     class Meta(object):
         model = Netbox
@@ -158,13 +153,12 @@ class NetboxModelForm(forms.ModelForm):
         return queryset
 
     def _initialize_profiles_field(self):
-        """Initialize the profiles field with choices and URL pattern."""
-        # Add URL pattern for profile links (using a placeholder ID that JS can replace)
+        """Initialize the profiles field with custom widget and URL pattern."""
         profile_url_pattern = reverse(
             'seeddb-management-profile-edit', kwargs={'management_profile_id': 0}
         ).replace('/0/', '/{id}/')
-        self.fields['profiles'].widget.attrs['data-profile-url-pattern'] = (
-            profile_url_pattern
+        self.fields['profiles'].widget = ProfileSelectWithLinks(
+            attrs={'data-profile-url-pattern': profile_url_pattern}
         )
         self.fields['profiles'].queryset = ManagementProfile.objects.all()
 
