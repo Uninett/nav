@@ -177,6 +177,37 @@ def test_given_a_P8652_then_T3611_MIB_should_not_crash(snmp_agent_proxy):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
+def test_T3611(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'T3611'
+    snmp_agent_proxy.open()
+    mib = comet_t3611.CometT3611(snmp_agent_proxy)
+    res = yield mib.get_all_sensors()
+    assert res == [
+        {
+            'oid': '.1.3.6.1.4.1.22626.1.2.1.1.0',
+            'unit_of_measurement': 'celsius',
+            'precision': 0,
+            'scale': None,
+            'description': 'temperature',
+            'name': 'temperature',
+            'internal_name': 'temperature sensor.example.com',
+            'mib': 'T3611-MIB',
+        },
+        {
+            'oid': '.1.3.6.1.4.1.22626.1.2.1.2.0',
+            'unit_of_measurement': 'percentRH',
+            'precision': 0,
+            'scale': None,
+            'description': 'humidity',
+            'name': 'humidity',
+            'internal_name': 'humidity sensor.example.com',
+            'mib': 'T3611-MIB',
+        },
+    ]
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
 def test_raritan_pdu(snmp_agent_proxy):
     snmp_agent_proxy.community = 'raritan'
     snmp_agent_proxy.open()
