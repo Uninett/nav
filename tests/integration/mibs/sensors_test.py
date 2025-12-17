@@ -1,7 +1,7 @@
 import pytest
 import pytest_twisted
 
-from nav.mibs import comet, pdu2_mib, powernet_mib
+from nav.mibs import comet, comet_t3611, pdu2_mib, powernet_mib
 
 
 @pytest.mark.twisted
@@ -163,6 +163,16 @@ def test_P8652(snmp_agent_proxy):
             'on_state': 1,
         },
     ]
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
+def test_given_a_P8652_then_T3611_MIB_should_not_crash(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'P8652'
+    snmp_agent_proxy.open()
+    mib = comet_t3611.CometT3611(snmp_agent_proxy)
+    res = yield mib.get_all_sensors()
+    assert res == []
 
 
 @pytest.mark.twisted
