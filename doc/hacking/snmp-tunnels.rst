@@ -20,28 +20,35 @@ docker and one without.
 Course of action - with docker
 ==============================
 
-1. Copy the content of :file:`docker-compose.snmp.yml` into
-   :file:`docker-compose.override.yml` or later run docker compose like this:
-   ``docker compose -f docker-compose.yml -f docker-compose.snmp.yml up``.
+1. Replace the build arguments ``USER`` and ``UID`` in
+   :file:`docker-compose.snmp.yml` with your own username and user ID (the
+   latter is mostly important on Linux, as this ensures bind-mounted files are
+   readable with *your* permissions.  Also, replace the runtime ``user``
+   argument with your username.
 
-2. Change the line ``command: 192.168.0.1 user@my-hop-host 10000`` to the ip
+2. Copy the contents of :file:`docker-compose.snmp.yml` into
+   :file:`docker-compose.override.yml` (or explicitly specify this file to
+   ``docker compose up`` later, like this: ``docker compose -f
+   docker-compose.yml -f docker-compose.snmp.yml up``).
+
+3. Change the line ``command: 192.168.0.1 user@my-hop-host 10000`` to the ip
    address or name of the device you want to reach, the relevant hop host and
    whatever port you want to tunnel through.  This port should be free to use
    on the hop-host.
 
-3. Make sure that ssh key to the hop host is saved (you can test this by doing
+4. Make sure that ssh key to the hop host is saved (you can test this by doing
    ``ssh user@my-hop-host``, it is saved if you're not prompted for a password).
    If you haven't generated an SSH key yet you can run `ssh-keygen` and follow
    the prompts. Afterwards you can use
    ``ssh-copy-id -i ~/.ssh/mykey user@my-hop-host`` to copy that key to the
    server.
 
-4. Now you can start nav.
+5. Now you can start nav.
 
-5. In SeedDB: Add an SNMP management profile with the community for the device.
+6. In SeedDB: Add an SNMP management profile with the community for the device.
 
-6. In SeedDB: Add an IP device with the IP "mydevice.mydomain" and the
-   management profile created in step 5. Click on "check connectivity", which should
+7. In SeedDB: Add an IP device with the IP "mydevice.mydomain" and the
+   management profile created in step 6. Click on "check connectivity", which should
    be answering "ok".
 
 Troubleshooting - with docker
