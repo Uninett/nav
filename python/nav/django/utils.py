@@ -17,6 +17,9 @@
 
 """Utility methods for django used in NAV"""
 
+import distro
+import platform
+
 from django.core.exceptions import FieldDoesNotExist
 from django.http import HttpRequest
 from django.urls import reverse
@@ -117,3 +120,12 @@ def get_all_related_many_to_many_objects(model):
         for f in model._meta.get_fields(include_hidden=True)
         if f.many_to_many and f.auto_created
     ]
+
+
+def get_os_version():
+    if platform.system() == "Linux":
+        return f"Linux {distro.name(pretty=True)}"
+    elif platform.system() == "Darwin":
+        return f"macOS {platform.mac_ver()[0]}"
+    else:
+        return f"{platform.system()} {platform.release()} ({platform.version()})"
