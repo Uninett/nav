@@ -1,14 +1,16 @@
+import os
 from shutil import which
 import subprocess
 import sys
 
 import pytest
 
+# Use absolute path relative to this test file
+_test_dir = os.path.dirname(os.path.abspath(__file__))
+BINDIR = os.path.join(_test_dir, '..', '..', 'python', 'nav', 'bin')
 
-BINDIR = './python/nav/bin'
 
-
-def test_script_runs(script):
+def test_script_runs(postgresql, script):
     """Verifies that a script defined in pyproject.toml runs with a zero exit code"""
     if "netbiostracker" in script[0] and not which("nbtscan"):
         pytest.skip("nbtscan is not installed")

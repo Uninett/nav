@@ -187,6 +187,18 @@ class EventEngine(object):
     def load_new_events(self):
         "Loads and processes new events on the queue, if any"
         self._logger.debug("checking for new events on queue")
+
+        # Debug log database config at this point
+        from django.conf import settings
+
+        db_config = settings.DATABASES['default']
+        self._logger.debug(
+            "Database config: host=%s, name=%s, user=%s",
+            db_config.get('HOST'),
+            db_config.get('NAME'),
+            db_config.get('USER'),
+        )
+        self._logger.debug("Events on queue: %r", Event.objects.all())
         events = Event.objects.filter(target=self.target).order_by('id')
         if events:
             old_events = [event for event in events if event.id in self._unfinished]

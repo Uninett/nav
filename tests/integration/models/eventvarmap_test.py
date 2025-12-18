@@ -40,7 +40,7 @@ def test_event_varmap_single_key_can_be_updated_after_reload(simple_event):
 
 
 @pytest.fixture
-def simple_event():
+def simple_event(postgresql):
     event = EventQueue(
         source_id='ipdevpoll', target_id='eventEngine', event_type_id='info'
     )

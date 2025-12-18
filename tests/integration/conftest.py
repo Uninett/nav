@@ -6,12 +6,14 @@ import shlex
 from itertools import cycle
 from shutil import which
 import subprocess
-import time
 
 import toml
 import pytest
+from retry import retry
 from django.test import Client
 
+
+SNMP_TEST_PORT = 1024
 
 ########################################################################
 #                                                                      #
@@ -21,16 +23,6 @@ from django.test import Client
 # tests/docker/Dockerfile.                                             #
 #                                                                      #
 ########################################################################
-
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
-
-
-def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
 
 
 ########################################################################
@@ -51,11 +43,6 @@ def pytest_generate_tests(metafunc):
         scripts = _nav_script_tests()
         ids = [s[0] for s in scripts]
         metafunc.parametrize("script", _nav_script_tests(), ids=ids)
-    elif 'admin_navlet' in metafunc.fixturenames:
-        from nav.models.profiles import AccountNavlet
-
-        navlets = AccountNavlet.objects.filter(account__login='admin')
-        metafunc.parametrize("admin_navlet", navlets)
 
 
 def _nav_script_tests():
@@ -78,7 +65,10 @@ def _nav_scripts_map() -> dict[str, str]:
     """Returns a map of installable script names to NAV module names from
     pyproject.toml.
     """
-    data = toml.load('pyproject.toml')
+    # Use absolute path relative to this conftest.py file
+    conftest_dir = os.path.dirname(os.path.abspath(__file__))
+    pyproject_path = os.path.join(conftest_dir, '..', '..', 'pyproject.toml')
+    data = toml.load(pyproject_path)
     scripts: dict[str, str] = data.get('project', {}).get('scripts', {})
     return {
         script: module.split(':', maxsplit=1)[0]
@@ -117,7 +107,7 @@ def _scan_testargs(filename):
 
 
 @pytest.fixture()
-def management_profile():
+def management_profile(postgresql):
     from nav.models.manage import ManagementProfile
 
     profile = ManagementProfile(
@@ -170,7 +160,7 @@ def netbox_type(localhost):
 
 
 @pytest.fixture()
-def localhost_using_legacy_db():
+def localhost_using_legacy_db(postgresql):
     """Alternative to the Django-based localhost fixture, for tests that operate on
     code that uses legacy database connections.
     """
@@ -199,7 +189,7 @@ def localhost_using_legacy_db():
 
 
 @pytest.fixture(scope='function')
-def client(admin_username, admin_password):
+def client(postgresql, admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
     from django.urls import reverse
@@ -211,7 +201,7 @@ def client(admin_username, admin_password):
 
 
 @pytest.fixture(scope='function')
-def db(request):
+def db(request, postgresql):
     """Ensures db modifications are rolled back after the test ends.
 
     This is done by disabling transaction management, running everything
@@ -286,21 +276,28 @@ def snmpsim():
     """
     snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    # Get top-level source directory relative to this conftest.py file
+    conftest_dir = os.path.dirname(os.path.abspath(__file__))
+    workspace = os.path.join(conftest_dir, '..', '..')
     proc = subprocess.Popen(
         [
             snmpsimd,
             '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
             '--log-level=error',
-            '--agent-udpv4-endpoint=127.0.0.1:1024',
+            '--agent-udpv4-endpoint=127.0.0.1:{}'.format(SNMP_TEST_PORT),
         ],
         env={'HOME': workspace},
     )
 
-    while not _lookfor('0100007F:0400', '/proc/net/udp'):
-        print("Still waiting for snmpsimd to listen for queries")
-        proc.poll()
-        time.sleep(0.1)
+    @retry(Exception, tries=3, delay=0.5, backoff=2)
+    def _wait_for_snmpsimd():
+        if _verify_localhost_snmp_response():
+            return True
+        else:
+            proc.poll()
+            raise TimeoutError("Still waiting for snmpsimd to listen for queries")
+
+    _wait_for_snmpsimd()
 
     yield
     proc.kill()
@@ -317,7 +314,7 @@ def snmp_agent_proxy(snmpsim, snmp_ports):
     port = next(snmp_ports)
     agent = AgentProxy(
         '127.0.0.1',
-        1024,
+        SNMP_TEST_PORT,
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
@@ -341,12 +338,6 @@ def snmp_ports():
     return _ports
 
 
-def _lookfor(string, filename):
-    """Very simple grep-like function"""
-    data = io.open(filename, 'r', encoding='utf-8').read()
-    return string in data
-
-
 @pytest.fixture
 def admin_account(db):
     from nav.models.profiles import Account
@@ -363,3 +354,14 @@ def non_admin_account(db):
     account.save()
     yield account
     account.delete()
+
+
+def _verify_localhost_snmp_response(port=SNMP_TEST_PORT):
+    """Verifies that the snmpsimd fixture process is responding, by using NAV's own
+    SNMP framework to query it.
+    """
+    from nav.Snmp import Snmp
+
+    session = Snmp(host="127.0.0.1", community="public", version="2c", port=port)
+    resp = session.jog("1.3.6.1.2.1.47.1.1.1.1.2")
+    return resp

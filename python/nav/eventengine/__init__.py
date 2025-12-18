@@ -15,6 +15,7 @@
 #
 """NAV eventengine"""
 
+import os
 from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
 
 
@@ -26,7 +27,8 @@ def get_eventengine_output(timeout=10):
     """
     cmd = ["eventengine", "-f"]
     try:
-        output = check_output(cmd, stderr=STDOUT, timeout=timeout)
+        output = check_output(cmd, stderr=STDOUT, timeout=timeout, env=os.environ)
+        print(output)
     except TimeoutExpired as error:
         # this is the normal case, since we need to kill eventengine after the timeout
         print(error.output.decode("utf-8"))

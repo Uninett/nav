@@ -1,16 +1,20 @@
-from nav.models.manage import Netbox, Room
-from nav.web.maintenance.utils import prefetch_and_group_components
-
-
 class TestPrefetchAndGroupComponents:
-    def test_should_return_list_of_tuples(self):
+    def test_should_return_list_of_tuples(self, postgresql):
+        # Import Django-dependent modules after database is available
+        from nav.models.manage import Netbox, Room
+        from nav.web.maintenance.utils import prefetch_and_group_components
+
         netbox_query = Netbox.objects.all()
         results = prefetch_and_group_components(Netbox, netbox_query, Room)
         assert results and all(isinstance(item, tuple) for item in results), (
             "Results should be tuples."
         )
 
-    def test_should_group_by_room(self):
+    def test_should_group_by_room(self, postgresql):
+        # Import Django-dependent modules after database is available
+        from nav.models.manage import Netbox, Room
+        from nav.web.maintenance.utils import prefetch_and_group_components
+
         netbox = Netbox.objects.first()
         netbox_query = Netbox.objects.filter(id=netbox.id)
         results = prefetch_and_group_components(Netbox, netbox_query, Room)
@@ -19,7 +23,11 @@ class TestPrefetchAndGroupComponents:
             "Room name and Netbox ID do not match expected values."
         )
 
-    def test_when_group_by_is_none_it_should_return_flat_list(self):
+    def test_when_group_by_is_none_it_should_return_flat_list(self, postgresql):
+        # Import Django-dependent modules after database is available
+        from nav.models.manage import Netbox
+        from nav.web.maintenance.utils import prefetch_and_group_components
+
         netbox_query = Netbox.objects.all()
         results = prefetch_and_group_components(Netbox, netbox_query, None)
         assert all(isinstance(item, Netbox) for item in results), (
