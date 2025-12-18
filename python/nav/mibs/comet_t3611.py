@@ -41,6 +41,9 @@ class CometT3611(mibretriever.MibRetriever):
             .addCallback(reduce_index)
         )
 
+        if not result:
+            return []
+
         return self._data_to_sensor(result)
 
     def _data_to_sensor(self, result):

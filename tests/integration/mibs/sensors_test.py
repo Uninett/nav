@@ -1,7 +1,7 @@
 import pytest
 import pytest_twisted
 
-from nav.mibs import comet, pdu2_mib, powernet_mib
+from nav.mibs import comet, comet_t3611, pdu2_mib, powernet_mib
 
 
 @pytest.mark.twisted
@@ -161,6 +161,47 @@ def test_P8652(snmp_agent_proxy):
             'on_message': 'vann-lagerrom alarm triggered',
             'off_message': 'vann-lagerrom alarm not triggered',
             'on_state': 1,
+        },
+    ]
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
+def test_given_a_P8652_then_T3611_MIB_should_not_crash(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'P8652'
+    snmp_agent_proxy.open()
+    mib = comet_t3611.CometT3611(snmp_agent_proxy)
+    res = yield mib.get_all_sensors()
+    assert res == []
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
+def test_T3611(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'T3611'
+    snmp_agent_proxy.open()
+    mib = comet_t3611.CometT3611(snmp_agent_proxy)
+    res = yield mib.get_all_sensors()
+    assert res == [
+        {
+            'oid': '.1.3.6.1.4.1.22626.1.2.1.1.0',
+            'unit_of_measurement': 'celsius',
+            'precision': 0,
+            'scale': None,
+            'description': 'temperature',
+            'name': 'temperature',
+            'internal_name': 'temperature sensor.example.com',
+            'mib': 'T3611-MIB',
+        },
+        {
+            'oid': '.1.3.6.1.4.1.22626.1.2.1.2.0',
+            'unit_of_measurement': 'percentRH',
+            'precision': 0,
+            'scale': None,
+            'description': 'humidity',
+            'name': 'humidity',
+            'internal_name': 'humidity sensor.example.com',
+            'mib': 'T3611-MIB',
         },
     ]
 
