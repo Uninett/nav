@@ -21,6 +21,8 @@ import pytest
     [
         'seeddb-room-edit',
         'seeddb-room-delete',
+        'seeddb-location-edit',
+        'seeddb-location-delete',
         'seeddb-usage-edit',
         'seeddb-usage-delete',
     ],

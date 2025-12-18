@@ -135,12 +135,12 @@ urlpatterns = [
     # Location
     path('location/', location.location, name='seeddb-location'),
     path(
-        'location/edit/<str:location_id>/',
+        'location/edit/<path:location_id>/',
         location.location_edit,
         name='seeddb-location-edit',
     ),
     path(
-        'location/delete/<object_id>/',
+        'location/delete/<path:object_id>/',
         location.location_delete,
         name='seeddb-location-delete',
     ),
