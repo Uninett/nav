@@ -154,12 +154,12 @@ urlpatterns = [
     # Organization
     path('organization/', organization.organization, name='seeddb-organization'),
     path(
-        'organization/edit/<str:organization_id>/',
+        'organization/edit/<path:organization_id>/',
         organization.organization_edit,
         name='seeddb-organization-edit',
     ),
     path(
-        'organization/delete/<str:object_id>/',
+        'organization/delete/<path:object_id>/',
         organization.organization_delete,
         name='seeddb-organization-delete',
     ),
