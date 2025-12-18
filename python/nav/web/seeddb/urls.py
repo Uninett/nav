@@ -175,14 +175,9 @@ urlpatterns = [
     ),
     # Usage category
     path('usage/', usage.usage, name='seeddb-usage'),
-    # This can't use path because it must allow slashes
-    re_path(
-        r'^usage/edit/(?P<usage_id>.+)/$',
-        usage.usage_edit,
-        name='seeddb-usage-edit',
-    ),
+    path('usage/edit/<path:usage_id>/', usage.usage_edit, name='seeddb-usage-edit'),
     path(
-        'usage/delete/<str:object_id>/',
+        'usage/delete/<path:object_id>/',
         usage.usage_delete,
         name='seeddb-usage-delete',
     ),
