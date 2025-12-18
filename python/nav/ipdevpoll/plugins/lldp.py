@@ -236,11 +236,17 @@ class LLDPNeighbor(Neighbor):
         return netbox
 
     def _netbox_from_local(self, chassid):
+        # Some devices tend to put null bytes in local IDs, which make no sense and
+        # will also not work in database queries. We cross our fingers and strip them
+        # to avoid db issues:
+        chassid = str(chassid).strip("\x00")
+        if not chassid:
+            return None  # stripped input was all garbage?
         netbox = self._netbox_query(
             Q(
                 info_set__key=INFO_KEY_LLDP_INFO,
                 info_set__variable=INFO_VAR_CHASSIS_ID,
-                info_set__value=str(chassid),
+                info_set__value=chassid,
             )
         )
         if netbox:
