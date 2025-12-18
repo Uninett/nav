@@ -204,12 +204,12 @@ urlpatterns = [
     # Netbox Group
     path('netboxgroup/', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
     path(
-        'netboxgroup/edit/<str:netboxgroup_id>/',
+        'netboxgroup/edit/<path:netboxgroup_id>/',
         netboxgroup.netboxgroup_edit,
         name='seeddb-netboxgroup-edit',
     ),
     path(
-        'netboxgroup/delete/<str:object_id>/',
+        'netboxgroup/delete/<path:object_id>/',
         netboxgroup.netboxgroup_delete,
         name='seeddb-netboxgroup-delete',
     ),

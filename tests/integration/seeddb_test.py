@@ -27,6 +27,8 @@ import pytest
         'seeddb-organization-delete',
         'seeddb-usage-edit',
         'seeddb-usage-delete',
+        'seeddb-netboxgroup-edit',
+        'seeddb-netboxgroup-delete',
     ],
 )
 def test_urls_should_allow_name_with_slashes(db, endpoint):
