@@ -1,41 +1,49 @@
 // Main point of entry for the IPAM application itself.
 
 define(function(require, exports, module) {
-  var _ = require("libs/underscore");
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
+  const _ = require("libs/underscore");
+  require("backbone");
+  const Marionette = require("marionette");
+  const Radio = require("backbone.radio");
 
-  // Import and mount behaviors, so they are available to the views.
-  require("src/ipam/views/behaviors")();
+  // Configure Marionette v4 to handle template selectors like "#template-id"
+  // (Marionette v2 did this automatically, v4 requires explicit configuration)
+  Marionette.setRenderer(function(template, data) {
+    if (typeof template === 'function') {
+      return template(data);
+    }
+    if (typeof template === 'string' && template.startsWith('#')) {
+      const templateHtml = $(template).html();
+      return _.template(templateHtml)(data);
+    }
+    return template;
+  });
 
-  var Models = require("src/ipam/models");
-  var Views = require("src/ipam/views/index");
+  const Models = require("src/ipam/models");
+  const Views = require("src/ipam/views/index");
 
-  var util = require("src/ipam/util");
+  const util = require("src/ipam/util");
 
   // == APP SINGLETON
-  var App = new Marionette.Application();
-  var debug = util.ipam_debug.new("app");
+  const App = new Marionette.Application();
+  const debug = util.ipam_debug.new("app");
 
-  // == APP LIFECYCLE MANAGEMENT
+  // Global radio channel for app-wide events (replaces App.vent from Wreqr)
+  const globalCh = Radio.channel("global");
 
-  // Dynamically mount regions
-  App.on("before:start", function() {
-    App.addRegions({
-      main: "#prefix-tree",
-      controls: "#ipam-controls"
-    });
-  });
+  // Create regions (v4 style - regions are created separately)
+  const mainRegion = new Marionette.Region({ el: "#prefix-tree" });
+  const controlsRegion = new Marionette.Region({ el: "#ipam-controls" });
 
   // Instantiate application by fetching a tree and drawing stuff
   App.on("start", function() {
     debug("Trying to render prefix tree...");
-    this.main.show(new Views.RootView({
+    mainRegion.show(new Views.RootView({
       collection: new Models.PrefixNodes(),
       childView: Views.NodeView
     }));
 
-    this.controls.show(new Views.ControlView({
+    controlsRegion.show(new Views.ControlView({
       model: new Models.Control()
     }));
 
@@ -43,25 +51,25 @@ define(function(require, exports, module) {
   });
 
   // Handle flash messages
-  var flash_debug = util.ipam_debug.new("flash");
-  App.vent.on("flash", function(klass, msg) {
+  const flash_debug = util.ipam_debug.new("flash");
+  globalCh.on("flash", function(klass, msg) {
     flash_debug("Flashed a message");
-    var template = _.template("<div class='<%= klass %>'><%= content %></div>");
-    var content = template({
+    const template = _.template("<div class='<%= klass %>'><%= content %></div>");
+    const content = template({
       klass: klass,
       content: msg
     });
     $("#ipam-flash").html(content);
   });
 
-  App.vent.on("flash:reset", function() {
+  globalCh.on("flash:reset", function() {
     flash_debug("Reset flash");
     $("#ipam-flash").html(null);
   });
 
   // Debug button
   $("#mybtn").on("click", function() {
-    App.vent.trigger("fetch:all");
+    globalCh.trigger("fetch:all");
   });
 
   //util.debugListen("available_subnets");

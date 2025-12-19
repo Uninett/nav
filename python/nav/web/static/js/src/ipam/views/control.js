@@ -1,15 +1,17 @@
 define(function(require, exports, module) {
-  var _ = require("libs/underscore");
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
+  const _ = require("libs/underscore");
+  require("backbone");
+  const Marionette = require("marionette");
+  const Radio = require("backbone.radio");
 
-  var Models = require("src/ipam/models");
-  var Viz = require("src/ipam/viz");
+  const Behaviors = require("src/ipam/views/behaviors");
+  require("src/ipam/models");
+  require("src/ipam/viz");
 
-  var debug = require("src/ipam/util").ipam_debug;
-  var globalCh = Backbone.Wreqr.radio.channel("global");
+  const debug = require("src/ipam/util").ipam_debug;
+  const globalCh = Radio.channel("global");
 
-  var viewStates = {
+  const viewStates = {
     "SEARCH": {
       "RESET": "SEARCH"
     }
@@ -17,12 +19,13 @@ define(function(require, exports, module) {
 
 
   // Control form for tree
-  module.exports = Marionette.LayoutView.extend({
+  module.exports = Marionette.View.extend({
     debug: debug.new("views:control"),
     template: "#prefix-control-form",
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: viewStates,
         modelField: "state",
         handlers: {
@@ -67,7 +70,7 @@ define(function(require, exports, module) {
       // Detect select2 inputs
       this.$el.find(".select2").select2();
       // Set up remote fetching of prefixes for form auto-completion
-      var prefixSelect = this.$el.find("#prefix-search-box");
+      const prefixSelect = this.$el.find("#prefix-search-box");
       prefixSelect.select2({
         placeholder: 'Search for prefix...',
         minimumInputLength: 1,
@@ -122,7 +125,7 @@ define(function(require, exports, module) {
     },
 
     doSearch: function() {
-      globalCh.vent.trigger("search:update", this.model.get('queryParams'));
+      globalCh.trigger("search:update", this.model.get('queryParams'));
     },
 
     initialize: function() {
