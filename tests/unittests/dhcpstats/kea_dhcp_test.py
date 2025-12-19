@@ -574,6 +574,29 @@ def valid_dhcp4():
                     ],
                     "valid-lifetime": 4000,
                 },
+                {
+                    "name": "shared-network-3",
+                    "subnet4": [
+                        {
+                            "id": 6,
+                            "option-data": [],
+                            "pools": [
+                                {
+                                    "option-data": [],
+                                    "pool": "42.0.6.1-42.0.6.5",
+                                    "pool-id": 1,
+                                    # This is a Kea pool with 'user-context' but
+                                    # without 'group' in 'user-context'
+                                    "user-context": {
+                                        "name": "bob",
+                                    },
+                                },
+                            ],
+                            "subnet": "42.0.6.0/24",
+                        },
+                    ],
+                    "valid-lifetime": 4000,
+                },
             ],
             "subnet4": [
                 {
@@ -675,6 +698,9 @@ def valid_dhcp4():
         "subnet[5].pool[1].assigned-addresses": [[0, "2025-05-30 05:49:49.468085"]],
         "subnet[5].pool[1].declined-addresses": [[0, "2025-05-30 05:49:49.468087"]],
         "subnet[5].pool[1].total-addresses": [[5, "2025-05-30 05:49:49.467976"]],
+        "subnet[6].pool[1].assigned-addresses": [[0, "2025-05-30 05:49:49.468085"]],
+        "subnet[6].pool[1].declined-addresses": [[0, "2025-05-30 05:49:49.468087"]],
+        "subnet[6].pool[1].total-addresses": [[5, "2025-05-30 05:49:49.467976"]],
         # Some irrelevant values that won't be used by the client:
         "subnet[1].cumulative-assigned-addresses": [[0, "2022-02-11 17:54:17.487528"]],
         "subnet[1].declined-addresses": [[0, "2022-02-11 17:54:17.487585"]],
@@ -750,27 +776,48 @@ def valid_dhcp4():
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
+            # From Kea pool with 'group': 'oslo-staff' in 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
+            # From Kea pool with 'group': 'oslo-staff' in 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
+            # From Kea pool with 'group': 'oslo-staff' in 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
         (
+            # From Kea pool without 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
+            # From Kea pool without 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
+            # From Kea pool without 'user-context'
             f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.total",
+            ("2025-05-30 05:49:49.467993", 5),
+        ),
+        (
+            # From Kea pool with 'user-context' but without 'group' in 'user-context'
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.assigned",
+            ("2025-05-30 05:49:49.467993", 0),
+        ),
+        (
+            # From Kea pool with 'user-context' but without 'group' in 'user-context'
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.declined",
+            ("2025-05-30 05:49:49.467993", 0),
+        ),
+        (
+            # From Kea pool with 'user-context' but without 'group' in 'user-context'
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
     ]
