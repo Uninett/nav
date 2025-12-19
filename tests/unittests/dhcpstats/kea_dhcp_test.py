@@ -530,7 +530,7 @@ def valid_dhcp4():
                                     "pool": "42.0.3.1-42.0.3.10",
                                     "pool-id": 1,
                                     "user-context": {
-                                        "name": "oslo-student",
+                                        "group": "oslo-student",
                                     },
                                 },
                             ],
@@ -544,9 +544,9 @@ def valid_dhcp4():
                                     "option-data": [],
                                     "pool": "42.0.4.1-42.0.4.5",
                                     "pool-id": 1,
-                                    # Pool with 'user-context'
+                                    # This is a Kea pool with 'group' in 'user-context'
                                     "user-context": {
-                                        "name": "oslo-staff",
+                                        "group": "oslo-staff",
                                     },
                                 },
                             ],
@@ -566,7 +566,7 @@ def valid_dhcp4():
                                     "option-data": [],
                                     "pool": "42.0.5.1-42.0.5.5",
                                     "pool-id": 1,
-                                    # Pool without 'user-context'
+                                    # This is a Kea pool without 'user-context'
                                 },
                             ],
                             "subnet": "42.0.5.0/24",
@@ -585,7 +585,7 @@ def valid_dhcp4():
                             "pool": "42.0.1.1-42.0.1.10",
                             "pool-id": 1,
                             "user-context": {
-                                "name": "bergen-staff",
+                                "group": "bergen-staff",
                             },
                         },
                     ],
@@ -601,7 +601,7 @@ def valid_dhcp4():
                             "pool": "42.0.2.1-42.0.2.10",
                             "pool-id": 1,
                             "user-context": {
-                                "name": "bergen-student",
+                                "group": "bergen-student",
                             },
                         },
                         {
@@ -610,7 +610,7 @@ def valid_dhcp4():
                             "pool": "42.0.2.32/28",
                             "pool-id": 3,
                             "user-context": {
-                                "name": "bergen-student",
+                                "group": "bergen-student",
                             },
                         },
                         {
@@ -618,7 +618,7 @@ def valid_dhcp4():
                             "pool": "42.0.2.128/25",
                             "pool-id": 2,
                             "user-context": {
-                                "name": "bergen-student",
+                                "group": "bergen-student",
                             },
                         },
                     ],
@@ -690,87 +690,87 @@ def valid_dhcp4():
     # the api response.
     expected_stats = [
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-staff.42_0_1_1.42_0_1_10.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.assigned",
             ("2025-05-30 05:49:49.467993", 2),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-staff.42_0_1_1.42_0_1_10.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.declined",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-staff.42_0_1_1.42_0_1_10.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_1.42_0_2_10.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_1.42_0_2_10.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.declined",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_1.42_0_2_10.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_128.42_0_2_255.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.assigned",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_128.42_0_2_255.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_128.42_0_2_255.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.total",
             ("2025-05-30 05:49:49.467993", 128),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_32.42_0_2_47.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_32.42_0_2_47.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.bergen-student.42_0_2_32.42_0_2_47.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.total",
             ("2025-05-30 05:49:49.467993", 16),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-student.42_0_3_1.42_0_3_10.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-student.42_0_3_1.42_0_3_10.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-student.42_0_3_1.42_0_3_10.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-staff.42_0_4_1.42_0_4_5.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-staff.42_0_4_1.42_0_4_5.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.oslo-staff.42_0_4_1.42_0_4_5.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.pool-42_0_5_1-42_0_5_5.42_0_5_1.42_0_5_5.assigned",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.pool-42_0_5_1-42_0_5_5.42_0_5_1.42_0_5_5.declined",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.4.pool.{ENDPOINT_NAME}.pool-42_0_5_1-42_0_5_5.42_0_5_1.42_0_5_5.total",
+            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
     ]
