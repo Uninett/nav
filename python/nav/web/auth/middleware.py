@@ -23,6 +23,7 @@ from typing import Optional
 
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
+from django_htmx.http import HttpResponseClientRedirect
 
 from nav.models.profiles import Account
 from nav.web.auth import remote_user, get_login_url, logout
@@ -114,6 +115,13 @@ class AuthorizationMiddleware(MiddlewareMixin):
         """
         if is_ajax(request):
             return HttpResponse(status=401)
+
+        if request.htmx:
+            if orig_path := request.htmx.current_url_abs_path:
+                new_url = get_login_url(request, path=orig_path)
+                return HttpResponseClientRedirect(new_url)
+            else:
+                return HttpResponse(status=401)
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
