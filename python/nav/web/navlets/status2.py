@@ -18,7 +18,7 @@
 from datetime import datetime
 from operator import itemgetter
 
-from django.http import QueryDict, JsonResponse
+from django.http import QueryDict
 from django.test.client import RequestFactory
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
@@ -113,7 +113,7 @@ class Status2Widget(Navlet):
             date_format = '%H:%M:%S'
         return timestamp.strftime(date_format)
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         """Save navlet options on post"""
         navlet = self.account_navlet
         form = StatusWidgetForm(request.POST)
@@ -126,6 +126,6 @@ class Status2Widget(Navlet):
             except (TypeError, ValueError, MultiValueDictKeyError):
                 pass
             navlet.save()
-            return JsonResponse(self.preferences)
+            return self.get(request)
         else:
-            return JsonResponse(form.errors, status=400)
+            return self.handle_error_response(request, form, **kwargs)
