@@ -77,6 +77,23 @@ def get_all_leaves_below(top, ignored=None):
     return list(itertools.chain(*paths))
 
 
+def get_expanded_nodes(path):
+    """
+    Expands any wildcard in path and returns a list of all matching paths.
+
+    :param path: A search string, e.g. "nav.{a,b}.*.*"
+    :returns: A list of expanded metric paths,
+              e.g. ["nav.a.1.1", "nav.a.2.1", "nav.b.1.1", "nav.b.1.2"]
+    """
+    data = raw_metric_query(path, operation="expand")
+    if not isinstance(data, dict):
+        return []
+    result = data.get("results", [])
+    if not isinstance(result, list):
+        return []
+    return result
+
+
 def get_metric_leaf_children(path):
     """Returns a list of available graphite leaf nodes just below path.
 
@@ -132,15 +149,18 @@ def nodewalk(top, ignored=None):
             yield x
 
 
-def raw_metric_query(query):
+def raw_metric_query(query, operation="find"):
     """Runs a query for metric information against Graphite's REST API.
 
     :param query: A search string, e.g. "nav.devices.some-gw_example_org.*"
-    :returns: A list of matching metrics, each represented by a dict.
+    :param operation: One of "find" or "expand",
+                      see https://graphite.readthedocs.io/en/1.1.10/metrics_api.html
+    :returns: The JSON response from Graphite, or an empty list if response
+              could not be decoded.
 
     """
     base = CONFIG.get("graphiteweb", "base")
-    url = urljoin(base, "/metrics/find")
+    url = urljoin(base, "/metrics/" + operation)
     query = urlencode({'query': query})
     url = "%s?%s" % (url, query)
 
