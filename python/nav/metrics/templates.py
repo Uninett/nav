@@ -20,7 +20,6 @@ Graphite.
 """
 
 from nav.metrics.names import escape_metric_name
-import IPy
 
 
 def metric_prefix_for_ipdevpoll_job(sysname, job_name):
@@ -186,20 +185,27 @@ def metric_path_for_multicast_usage(group, sysname):
     )
 
 
-def metric_path_for_dhcp_pool(
-    ip_version, server_name, pool_name, range_start, range_end, metric_name
+def metric_path_for_dhcp(
+    ip_version,
+    server_name,
+    allocation_type,
+    group_name_source,
+    group_name,
+    first_ip,
+    last_ip,
+    metric_name,
 ):
     tmpl = (
-        "nav.dhcp.{ip_version}.pool.{server_name}.{pool_name}."
-        "{range_start}.{range_end}.{metric_name}"
+        "nav.dhcp.servers.{server_name}.{allocation_type}.{group_name_source}"
+        ".{group_name}.{ip_version}.{first_ip}.{last_ip}.{metric_name}"
     )
-    range_start = IPy.IP(range_start).strNormal()
-    range_end = IPy.IP(range_end).strNormal()
     return tmpl.format(
         ip_version=escape_metric_name(str(ip_version)),
         server_name=escape_metric_name(server_name),
-        pool_name=escape_metric_name(pool_name),
-        range_start=escape_metric_name(range_start),
-        range_end=escape_metric_name(range_end),
+        allocation_type=escape_metric_name(allocation_type),
+        group_name_source=escape_metric_name(group_name_source),
+        group_name=escape_metric_name(group_name),
+        first_ip=escape_metric_name(str(first_ip)),
+        last_ip=escape_metric_name(str(last_ip)),
         metric_name=escape_metric_name(metric_name),
     )
