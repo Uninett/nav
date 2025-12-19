@@ -16,7 +16,7 @@ from nav.dhcpstats.kea_dhcp import _KeaStatus
 from nav.errors import ConfigurationError
 
 
-ENDPOINT_NAME = "dhcp-server-foo"
+SERVER_NICKNAME = "dhcp-server-foo"
 
 
 class TestExpectedAPIResponses:
@@ -33,7 +33,7 @@ class TestExpectedAPIResponses:
 
         config, statistics, expected_stats = valid_dhcp4
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
 
         actual_stats = client.fetch_stats()
 
@@ -61,7 +61,7 @@ class TestExpectedAPIResponses:
 
         config, statistics, expected_stats = valid_dhcp4
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
 
         actual_stats = client.fetch_stats()
         assert len(actual_stats) > 0
@@ -85,7 +85,7 @@ class TestExpectedAPIResponses:
             "config-get",
             lambda kea_arguments, kea_service: make_api_response({"Dhcp4": {}}),
         )
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         assert list(client.fetch_stats()) == []
 
     def test_fetch_stats_should_handle_empty_statistic_in_statistics_api_response(
@@ -100,7 +100,7 @@ class TestExpectedAPIResponses:
         config, statistics, expected_stats = valid_dhcp4
         statistics = {key: [] for key, value in statistics.items()}
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         assert list(client.fetch_stats()) == []
 
     def test_fetch_stats_should_handle_empty_statistics_api_response(
@@ -119,7 +119,7 @@ class TestExpectedAPIResponses:
             "statistic-get-all",
             lambda kea_arguments, kea_service: make_api_response({}),
         )
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         assert list(client.fetch_stats()) == []
 
     @pytest.mark.parametrize("http_status", chain(range(400, 430), range(500, 530)))
@@ -139,7 +139,7 @@ class TestExpectedAPIResponses:
             attrs={"status_code": http_status},
         )
 
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
 
         with pytest.raises(CommunicationError):
             client.fetch_stats()
@@ -162,7 +162,7 @@ class TestExpectedAPIResponses:
                 config, status=kea_status
             ),
         )
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         with pytest.raises(CommunicationError):
             client.fetch_stats()
 
@@ -189,7 +189,7 @@ class TestExpectedAPIResponses:
                 statistics, status=status
             ),
         )
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         with pytest.raises(CommunicationError):
             client.fetch_stats()
 
@@ -211,7 +211,7 @@ class TestExpectedAPIResponses:
         """
         foohash = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         config["Dhcp4"]["hash"] = foohash
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
         api_mock.add(
@@ -236,7 +236,7 @@ class TestExpectedAPIResponses:
         a bad mapping from configuration to statistics.
         """
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         api_mock.autofill("dhcp4", config=None, statistics=statistics)
         api_mock.add("config-get", make_api_response(config))
         updated_config = deepcopy(config)
@@ -265,7 +265,7 @@ class TestUnexpectedAPIResponses:
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
 
         api_mock.autofill("dhcp4", config=None, statistics=statistics)
         api_mock.add("config-get", invalid_response)
@@ -276,7 +276,7 @@ class TestUnexpectedAPIResponses:
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
 
         api_mock.autofill("dhcp4", config=config, statistics=None)
         api_mock.add("statistic-get-all", invalid_response)
@@ -287,7 +287,7 @@ class TestUnexpectedAPIResponses:
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         config["Dhcp4"]["hash"] = "foo"
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
         api_mock.add("config-hash-get", invalid_response)
@@ -315,7 +315,7 @@ class TestConfigCaching:
             lambda kea_arguments, kea_service: make_api_response({"hash": "1"}),
         )
 
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         client._fetch_kea_config()
         client._fetch_kea_config()
 
@@ -335,7 +335,7 @@ class TestConfigCaching:
             lambda kea_arguments, kea_service: make_api_response({"hash": "2"}),
         )
 
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         client._fetch_kea_config()
         client._fetch_kea_config()
 
@@ -353,7 +353,7 @@ class TestConfigCaching:
             lambda kea_arguments, kea_service: make_api_response({"hash": "1"}),
         )
 
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         client._fetch_kea_config()
         client._fetch_kea_config()
 
@@ -369,7 +369,7 @@ class TestConfigCaching:
             ),
         )
 
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         client._fetch_kea_config()
         client._fetch_kea_config()
 
@@ -387,7 +387,7 @@ class TestHTTPSession:
         from the Kea API may contain sensitive data such as passwords in plaintext.
         """
         config, statistics, expected_stats = valid_dhcp4
-        client = Client(ENDPOINT_NAME, "http://example.org/")
+        client = Client(SERVER_NICKNAME, "http://example.org/")
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
 
         with caplog.at_level(logging.WARNING):
@@ -408,7 +408,7 @@ class TestHTTPSession:
         """
         config, statistics, expected_stats = valid_dhcp4
         client = Client(
-            ENDPOINT_NAME,
+            SERVER_NICKNAME,
             "http://example.org/",
             http_basic_username="nav",
             http_basic_password="nav",
@@ -431,7 +431,7 @@ class TestHTTPSession:
         """
         config, statistics, expected_stats = valid_dhcp4
         client = Client(
-            ENDPOINT_NAME, "http://example.org/", client_cert_path="/bar/baz.pem"
+            SERVER_NICKNAME, "http://example.org/", client_cert_path="/bar/baz.pem"
         )
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
 
@@ -449,7 +449,7 @@ class TestHTTPSession:
         """
         config, statistics, expected_stats = valid_dhcp4
         client = Client(
-            ENDPOINT_NAME,
+            SERVER_NICKNAME,
             "http://example.org/",
             http_basic_username="bar",
             http_basic_password="baz",
@@ -480,7 +480,7 @@ class TestHTTPSession:
         """
         config, statistics, expected_stats = valid_dhcp4
         client = Client(
-            ENDPOINT_NAME,
+            SERVER_NICKNAME,
             "https://example.org/",
             client_cert_path="/bar/baz.pem",
         )
@@ -716,108 +716,108 @@ def valid_dhcp4():
     # the api response.
     expected_stats = [
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.assigned",
             ("2025-05-30 05:49:49.467993", 2),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.declined",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-staff.4.42_0_1_1.42_0_1_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.declined",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_1.42_0_2_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.assigned",
             ("2025-05-30 05:49:49.467993", 1),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_128.42_0_2_255.total",
             ("2025-05-30 05:49:49.467993", 128),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.bergen-student.4.42_0_2_32.42_0_2_47.total",
             ("2025-05-30 05:49:49.467993", 16),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-student.4.42_0_3_1.42_0_3_10.total",
             ("2025-05-30 05:49:49.467993", 10),
         ),
         (
             # From Kea pool with 'group': 'oslo-staff' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool with 'group': 'oslo-staff' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool with 'group': 'oslo-staff' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.custom_groups.oslo-staff.4.42_0_4_1.42_0_4_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
         (
             # From Kea pool without 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool without 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool without 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_5_1.42_0_5_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
         (
             # From Kea pool with 'user-context' but without 'group' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.assigned",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.assigned",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool with 'user-context' but without 'group' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.declined",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.declined",
             ("2025-05-30 05:49:49.467993", 0),
         ),
         (
             # From Kea pool with 'user-context' but without 'group' in 'user-context'
-            f"nav.dhcp.servers.{ENDPOINT_NAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.total",
+            f"nav.dhcp.servers.{SERVER_NICKNAME}.range.special_groups.standalone.4.42_0_6_1.42_0_6_5.total",
             ("2025-05-30 05:49:49.467993", 5),
         ),
     ]
