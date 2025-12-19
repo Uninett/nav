@@ -16,16 +16,23 @@ from nav.web.seeddb.utils.delete import dependencies
 import pytest
 
 
-def test_usage_edit_url_should_allow_slashes():
-    assert reverse('seeddb-usage-edit', args=('TEST/SLASH',))
-
-
-def test_room_edit_url_should_allow_slashes():
-    assert reverse('seeddb-room-edit', args=('TEST/SLASH',))
-
-
-def test_room_deleteq_url_should_allow_slashes():
-    assert reverse('seeddb-room-edit', args=('TEST/SLASH',))
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        'seeddb-room-edit',
+        'seeddb-room-delete',
+        'seeddb-location-edit',
+        'seeddb-location-delete',
+        'seeddb-organization-edit',
+        'seeddb-organization-delete',
+        'seeddb-usage-edit',
+        'seeddb-usage-delete',
+        'seeddb-netboxgroup-edit',
+        'seeddb-netboxgroup-delete',
+    ],
+)
+def test_urls_should_allow_name_with_slashes(db, endpoint):
+    assert reverse(endpoint, args=("TEST/SLASH",))
 
 
 def test_editing_deleted_netboxes_should_raise_404(admin_account):

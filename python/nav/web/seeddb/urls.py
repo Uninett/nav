@@ -135,12 +135,12 @@ urlpatterns = [
     # Location
     path('location/', location.location, name='seeddb-location'),
     path(
-        'location/edit/<str:location_id>/',
+        'location/edit/<path:location_id>/',
         location.location_edit,
         name='seeddb-location-edit',
     ),
     path(
-        'location/delete/<object_id>/',
+        'location/delete/<path:object_id>/',
         location.location_delete,
         name='seeddb-location-delete',
     ),
@@ -154,12 +154,12 @@ urlpatterns = [
     # Organization
     path('organization/', organization.organization, name='seeddb-organization'),
     path(
-        'organization/edit/<str:organization_id>/',
+        'organization/edit/<path:organization_id>/',
         organization.organization_edit,
         name='seeddb-organization-edit',
     ),
     path(
-        'organization/delete/<str:object_id>/',
+        'organization/delete/<path:object_id>/',
         organization.organization_delete,
         name='seeddb-organization-delete',
     ),
@@ -175,14 +175,9 @@ urlpatterns = [
     ),
     # Usage category
     path('usage/', usage.usage, name='seeddb-usage'),
-    # This can't use path because it must allow slashes
-    re_path(
-        r'^usage/edit/(?P<usage_id>.+)/$',
-        usage.usage_edit,
-        name='seeddb-usage-edit',
-    ),
+    path('usage/edit/<path:usage_id>/', usage.usage_edit, name='seeddb-usage-edit'),
     path(
-        'usage/delete/<str:object_id>/',
+        'usage/delete/<path:object_id>/',
         usage.usage_delete,
         name='seeddb-usage-delete',
     ),
@@ -209,12 +204,12 @@ urlpatterns = [
     # Netbox Group
     path('netboxgroup/', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
     path(
-        'netboxgroup/edit/<str:netboxgroup_id>/',
+        'netboxgroup/edit/<path:netboxgroup_id>/',
         netboxgroup.netboxgroup_edit,
         name='seeddb-netboxgroup-edit',
     ),
     path(
-        'netboxgroup/delete/<str:object_id>/',
+        'netboxgroup/delete/<path:object_id>/',
         netboxgroup.netboxgroup_delete,
         name='seeddb-netboxgroup-delete',
     ),
