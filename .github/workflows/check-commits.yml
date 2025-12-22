@@ -1,3 +1,5 @@
+# blabla
+# blabla fixup
 name: Ensure no fixup! or amend! commits are present
 
 on:
@@ -10,16 +12,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Needed for history
 
-      - name: Fetch PR base and head
+      - name: Determine base and head
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
-          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
+          echo "BASE_BRANCH=${GITHUB_BASE_REF}" >> $GITHUB_ENV
+          echo "HEAD_BRANCH=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
 
       - name: Check for fixup! or amend! commits
         run: |
-          COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }} --pretty=format:"%s")
+          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
+          COMMITS=$(git log "${BASE_BRANCH}..HEAD" --pretty=format:"%s")
+
           if echo "$COMMITS" | grep -E '^(fixup!|amend!)'; then
             echo "Error: PR contains fixup! or amend! commits. Please squash or rebase before merging."
             exit 1
           fi
+        env:
+          BASE_BRANCH: ${{ env.BASE_BRANCH }}
+          HEAD_BRANCH: ${{ env.HEAD_BRANCH }}
