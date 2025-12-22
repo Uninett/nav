@@ -7,26 +7,31 @@ on:
 jobs:
   check-forbidden-commits:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Needed for history
-
-      - name: Determine base and head
-        run: |
-          echo "BASE_BRANCH=${GITHUB_BASE_REF}" >> $GITHUB_ENV
-          echo "HEAD_BRANCH=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
+          fetch-depth: 0  # Get full history
 
       - name: Check for fixup! or amend! commits
         run: |
-          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}"
-          COMMITS=$(git log "${BASE_BRANCH}..HEAD" --pretty=format:"%s")
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          echo "Base SHA: $BASE_SHA"
+          echo "Head SHA: $HEAD_SHA"
+
+          # Make sure the SHAs are present locally
+          git fetch --no-tags --prune --depth=0 origin || true
+          git fetch origin "$BASE_SHA" "$HEAD_SHA" || true
+
+          COMMITS=$(git log "${BASE_SHA}..${HEAD_SHA}" --pretty=format:"%s" || true)
+
+          echo "Commits between $BASE_SHA and $HEAD_SHA:"
+          echo "$COMMITS"
 
           if echo "$COMMITS" | grep -E '^(fixup!|amend!)'; then
             echo "Error: PR contains fixup! or amend! commits. Please squash or rebase before merging."
             exit 1
           fi
-        env:
-          BASE_BRANCH: ${{ env.BASE_BRANCH }}
-          HEAD_BRANCH: ${{ env.HEAD_BRANCH }}
