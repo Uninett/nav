@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Integration Tests" type="tests" factoryName="py.test">
+    <module name="nav" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="DJANGO_SETTINGS_MODULE" value="nav.django.settings" />
+      <env name="WORKSPACE" value="/workspaces/nav" />
+      <env name="PYTHONPATH" value="/workspaces/nav/tests" />
+      <env name="PGHOST" value="db" />
+      <env name="PGUSER" value="nav" />
+      <env name="PGPASSWORD" value="nav" />
+      <env name="PGDATABASE" value="nav_test" />
+      <env name="ADMINPASSWORD" value="admin" />
+      <env name="NAV_CONFIG_DIR" value="/tmp/nav_test_config" />
+    </envs>
+    <option name="SDK_HOME" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="IS_MODULE_SDK" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <option name="_new_additionalArguments" value="" />
+    <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/integration&quot;" />
+    <option name="_new_targetType" value="PATH" />
+    <method v="2" />
+  </configuration>
+</component>

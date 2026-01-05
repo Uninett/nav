@@ -22,11 +22,27 @@ from django.test import Client
 #                                                                      #
 ########################################################################
 
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
+
+def _find_create_db_script():
+    """Finds the appropriate database creation script.
+
+    Returns the devcontainer script if running in a devcontainer environment,
+    otherwise returns the standard test docker script.
+    """
+    # Check for devcontainer environment
+    devcontainer_script = '/workspaces/nav/.devcontainer/scripts/create-test-db.sh'
+    if os.path.exists(devcontainer_script):
+        return devcontainer_script
+
+    # Fall back to standard test docker script
+    if os.environ.get('WORKSPACE'):
+        script_path = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
+    else:
+        script_path = '/'
+    return os.path.join(script_path, 'create-db.sh')
+
+
+SCRIPT_CREATE_DB = _find_create_db_script()
 
 
 def pytest_configure(config):
