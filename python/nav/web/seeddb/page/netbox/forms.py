@@ -62,7 +62,7 @@ class ProfileSelectWithLinks(forms.SelectMultiple):
     def __init__(self, attrs=None, choices=()):
         # Only use profile-select-with-links class, not select2
         # (we initialize Select2 manually in JS with custom options)
-        default_attrs = {'class': 'profile-select-with-links'}
+        default_attrs = {'class': 'profile-select-with-links', 'style': 'width: 100%;'}
         if attrs:
             default_attrs.update(attrs)
         super().__init__(attrs=default_attrs, choices=choices)
