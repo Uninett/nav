@@ -39,7 +39,7 @@ urlpatterns = [
         name='devicehistory-view-netbox',
     ),
     path(
-        'history/location/<str:location_id>/',
+        'history/location/<path:location_id>/',
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),
