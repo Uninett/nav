@@ -135,6 +135,10 @@ _not_so_typical_match_re = re.compile(
 
 _type_match_re = re.compile(r"\w+-\d+-?\S*:")
 
+# Patterns for parse_timestamp()
+_tz_suffix_re = re.compile(r'\s+[A-Z]{2,5}$')
+_space_padded_day_re = re.compile(r'^([A-Z][a-z]{2})\s+(\d)\s')
+
 
 def create_message(line, database=None):
     typicalmatch = _typical_match_re.search(line)
@@ -226,6 +230,49 @@ def find_month(textual):
         return months.index(textual.lower()) + 1
     except ValueError:
         pass
+
+
+def parse_timestamp(timestamp_str: str) -> datetime.datetime:
+    """Parse a timestamp string, trying RFC 3339 first, then traditional formats.
+
+    :param timestamp_str: A timestamp string in either RFC 3339 format
+                          (e.g. "2026-01-05T13:54:43.262668+01:00") or traditional
+                          Cisco/BSD syslog format (e.g. "Oct 28 13:15:05.310 CEST")
+    :returns: A datetime.datetime object (without timezone info)
+    :raises ValueError: If the timestamp cannot be parsed
+    """
+    # Try RFC 3339 / ISO 8601 first
+    try:
+        dt = datetime.datetime.fromisoformat(timestamp_str)
+        # Return without timezone info for consistency with existing behavior
+        return dt.replace(tzinfo=None)
+    except ValueError:
+        pass
+
+    # Try traditional syslog/Cisco formats
+    ts = timestamp_str.lstrip('*')  # Some Cisco timestamps have leading *
+
+    # Strip timezone abbreviation at end (strptime %Z is unreliable)
+    ts = _tz_suffix_re.sub('', ts)
+
+    # Normalize space-padded single-digit days (e.g., "Jan  5" -> "Jan 05")
+    ts = _space_padded_day_re.sub(r'\1 0\2 ', ts)
+
+    for fmt in [
+        "%b %d %H:%M:%S.%f",  # Oct 28 13:15:05.310
+        "%b %d %H:%M:%S",  # Oct 28 13:15:05
+        "%b %d %Y %H:%M:%S.%f",  # Oct 28 2010 12:08:49.123
+        "%b %d %Y %H:%M:%S",  # Oct 28 2010 12:08:49
+    ]:
+        try:
+            dt = datetime.datetime.strptime(ts, fmt)
+            if dt.year == 1900:  # strptime default when no year in format
+                dt = dt.replace(year=find_year(dt.month))
+            return dt
+        except ValueError:
+            continue
+
+    raise ValueError(f"Cannot parse timestamp: {timestamp_str}")
 
 
 def delete_old_messages(config):

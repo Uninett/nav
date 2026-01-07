@@ -155,6 +155,53 @@ class TestParseMessageWithNoOriginTimestamp(TestParsing):
     )
 
 
+class TestParseTimestamp:
+    """Tests for the parse_timestamp() function."""
+
+    @pytest.mark.parametrize(
+        "timestamp_str,expected",
+        [
+            # RFC 3339 formats
+            ("2026-01-05T13:54:43.262668+01:00", (2026, 1, 5, 13, 54, 43, 262668)),
+            ("2024-12-25T08:30:15.123456-05:00", (2024, 12, 25, 8, 30, 15, 123456)),
+            ("2025-06-15T12:00:00Z", (2025, 6, 15, 12, 0, 0, 0)),
+            ("2025-03-10T09:45:30+02:00", (2025, 3, 10, 9, 45, 30, 0)),
+            # Traditional formats with timezone
+            ("Oct 28 13:15:57.560 CEST", (now.year, 10, 28, 13, 15, 57, 560000)),
+            ("Nov 13 11:21:02 MET", (now.year, 11, 13, 11, 21, 2, 0)),
+            # Traditional formats without timezone
+            ("Mar 25 10:15:51.666", (now.year, 3, 25, 10, 15, 51, 666000)),
+            # December uses find_year() which returns previous year if current month is January
+            ("Dec 20 15:16:04", (logengine.find_year(12), 12, 20, 15, 16, 4, 0)),
+            # With explicit year
+            ("Oct 28 2010 12:08:49 CET", (2010, 10, 28, 12, 8, 49, 0)),
+            # Cisco format with leading asterisk
+            ("*Mar 25 10:15:51.666", (now.year, 3, 25, 10, 15, 51, 666000)),
+            # Space-padded single-digit day
+            ("Jan  5 13:54:42 MET", (now.year, 1, 5, 13, 54, 42, 0)),
+            ("Feb  3 08:00:00", (now.year, 2, 3, 8, 0, 0, 0)),
+        ],
+    )
+    def test_parse_timestamp_valid(self, timestamp_str, expected):
+        """Test that valid timestamps are parsed correctly."""
+        result = logengine.parse_timestamp(timestamp_str)
+        assert result == datetime.datetime(*expected)
+
+    @pytest.mark.parametrize(
+        "timestamp_str",
+        [
+            "not a timestamp",
+            "",
+            "Oct 28",
+            "13:15:57",
+        ],
+    )
+    def test_parse_timestamp_invalid(self, timestamp_str):
+        """Test that invalid timestamps raise ValueError."""
+        with pytest.raises(ValueError):
+            logengine.parse_timestamp(timestamp_str)
+
+
 non_conforming_lines = [
     "Dec 20 15:16:04 10.0.101.179 SNTP[141365768]: sntp_client.c(1917) 2945474 %% SNTP: system clock synchronized on THU DEC 20 15:16:04 2012 UTC. Indicates that SNTP has successfully synchronized the time of the box with the server.",
     "Dec 20 16:23:37 10.0.3.15 2605010: CPU utilization for five seconds: 86%/14%; one minute: 33%; five minutes: 31%",
