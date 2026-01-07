@@ -89,7 +89,7 @@ def test_non_failing_function_should_run_fine():
 
 class TestParsing(object):
     message = "Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up"
-    timestamp = datetime.datetime(now.year, 10, 28, 13, 15, 57)
+    timestamp = datetime.datetime(now.year, 10, 28, 13, 15, 57, 560000)
     facility = 'LINEPROTO'
     priority = 5
     mnemonic = 'UPDOWN'
@@ -124,7 +124,7 @@ class TestParsing(object):
 class TestParseMessageWithStrangeGarbage(TestParsing):
     message = "Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up"
 
-    timestamp = datetime.datetime(now.year, 3, 25, 10, 15, 51)
+    timestamp = datetime.datetime(now.year, 3, 25, 10, 15, 51, 666000)
     facility = 'LINK'
     priority = 3
     mnemonic = 'UPDOWN'
@@ -136,7 +136,7 @@ class TestParseMessageEndingWithColon(TestParsing):
 
     message = "Feb 16 11:55:08 10.0.1.15 22877425: Feb 16 11:55:09.436 MET: %HA_EM-6-LOG: on_high_cpu: CPU utilization is over 80%:"
 
-    timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9)
+    timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9, 436000)
     facility = 'HA_EM'
     priority = 6
     mnemonic = 'LOG'
