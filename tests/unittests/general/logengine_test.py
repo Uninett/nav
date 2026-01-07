@@ -32,6 +32,7 @@ Oct 28 13:15:46 10.0.42.103 1041: Oct 28 13:15:46.379 CEST: %LINEPROTO-5-UPDOWN:
 Oct 28 13:15:52 10.0.42.103 1042: Oct 28 13:15:51.915 CEST: %LINK-3-UPDOWN: Interface GigabitEthernet1/0/30, changed state to up
 Oct 28 13:15:52 10.0.128.13 71781: *Oct 28 2010 12:08:49 CET: %MV64340_ETHERNET-5-LATECOLLISION: GigabitEthernet0/1, late collision error
 Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up
+2026-01-05T13:54:43.262668+01:00 example-sw.example.org 441412: 441407: Jan  5 13:54:42 MET: %SISF-4-PAK_DROP: Message dropped A=FE80::BAAD:C0FF:EE15:BAAD G=- V=3 I=Gi1/0/1 P=NDP::NS Reason=Advertise while TENTATIVE
 """.strip().split("\n")
 
 
