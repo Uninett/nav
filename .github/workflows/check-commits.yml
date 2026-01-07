@@ -7,18 +7,24 @@ on:
 jobs:
   check-forbidden-commits:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
-      - name: Fetch PR base and head
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
-          git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
+        with:
+          fetch-depth: 0  # Get full history
 
       - name: Check for fixup! or amend! commits
         run: |
-          COMMITS=$(git log origin/${{ github.event.pull_request.base.ref }}..origin/${{ github.event.pull_request.head.ref }} --pretty=format:"%s")
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Make sure the SHAs are present
+          git fetch --no-tags --prune origin
+          git fetch origin "$BASE_SHA" "$HEAD_SHA"
+
+          COMMITS=$(git log "${BASE_SHA}..${HEAD_SHA}" --pretty=format:"%s")
+
           if echo "$COMMITS" | grep -E '^(fixup!|amend!)'; then
             echo "Error: PR contains fixup! or amend! commits. Please squash or rebase before merging."
             exit 1
