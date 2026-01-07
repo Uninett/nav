@@ -244,7 +244,13 @@ def parse_timestamp(timestamp_str: str) -> datetime.datetime:
     """
     # Try RFC 3339 / ISO 8601 first
     try:
-        dt = datetime.datetime.fromisoformat(timestamp_str)
+        # Replace trailing Z with +00:00 for Python 3.9 compatibility
+        iso_str = (
+            timestamp_str.removesuffix('Z') + '+00:00'
+            if timestamp_str.endswith('Z')
+            else timestamp_str
+        )
+        dt = datetime.datetime.fromisoformat(iso_str)
         # Convert to local time before stripping timezone info (since NAV legacy code
         # unfortunately still uses timezone-naive timestamps)
         if dt.tzinfo is not None:
