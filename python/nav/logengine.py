@@ -98,19 +98,31 @@ def get_exception_dicts(config):
     return exceptionorigin, exceptiontype, exceptiontypeorigin
 
 
+# Timestamp patterns for syslog server timestamps
+# RFC 3339 format (used by rsyslog on Debian Bookworm+ with RFC 5424)
+_RFC3339_TS = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})"
+# Traditional BSD syslog format (spaces escaped for re.VERBOSE compatibility)
+_BSD_TS = r"[A-Z][a-z]{2}\ [ \d]\d\ \d{2}:\d{2}:\d{2}"
+_SERVER_TS = rf"(?:{_RFC3339_TS}|{_BSD_TS})"
+
+# Cisco/source timestamp: [*]Mon D[D] [YYYY] HH:MM:SS[.fff] [TZ]
+_SOURCE_TS = (
+    r"\*?[A-Z][a-z]{2}\s+\d{1,2}(?:\s+\d{4})?\s+"
+    r"\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:\s+[A-Z]{2,5})?"
+)
+
+# Matches log lines where the origin included its own timestamp
 _typical_match_re = re.compile(
-    r"""
+    rf"""
     ^
-    (?P<servmonth>\w+) \s+ (?P<servday>\d+) \s+      # server month and date
-    (?P<servhour>\d+) \: (?P<servmin>\d+) : \d+ \W+  # server hour/min/second
+    {_SERVER_TS}                                     # server timestamp (not captured)
+    \s+
     (?P<origin>\S+)                                  # origin
-    \W+ (?:(\d{4}) | .*?) \s+ \W*                    # year/msg counter/garbage
-    (?P<month>\w+) \s+ (?P<day>\d+) \s+              # origin month and date
-    ((?P<year>\d{4}) \s+ )?                          # origin year, if present
-    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)   # origin hour/minute/second
-    .* %                                             # eat chars until % appears
-    (?P<type>[^:]+) :                                # message type
-    \s* (?P<description>.*)                          # message (lstripped)
+    .+?                                              # garbage (non-greedy)
+    (?P<timestamp>{_SOURCE_TS})                      # source timestamp
+    \s* : \s*
+    %(?P<type>[^:]+):                                # message type
+    \s*(?P<description>.*)                           # description
     $
     """,
     re.VERBOSE,
@@ -118,16 +130,14 @@ _typical_match_re = re.compile(
 
 # Matches log lines where there is no timestamp from the origin
 _not_so_typical_match_re = re.compile(
-    r"""
+    rf"""
     ^
-    (?P<month>\w+) \s+ (?P<day>\d+) \s+              # server month and date
-    ((?P<year>\d{4}) \s+ )?                          # server year, if present
-    (?P<hour>\d+) : (?P<min>\d+) : (?P<second>\d+)   # server time
-    \s*
+    (?P<timestamp>{_SERVER_TS})                      # server timestamp (captured)
+    \s+
     (?P<origin>\S+)                                  # origin
-    .* %                                             # eat chars until % appears
-    (?P<type>[a-zA-Z0-9\-_]+) :                      # message type
-    \s* (?P<description>.*)                          # message (lstripped)
+    .*                                               # everything until %
+    %(?P<type>[a-zA-Z0-9\-_]+):                      # message type
+    \s*(?P<description>.*)                           # description
     $
     """,
     re.VERBOSE,
@@ -141,27 +151,18 @@ _space_padded_day_re = re.compile(r'^([A-Z][a-z]{2})\s+(\d)\s')
 
 
 def create_message(line, database=None):
-    typicalmatch = _typical_match_re.search(line)
-    match = typicalmatch or _not_so_typical_match_re.search(line)
+    match = _typical_match_re.search(line) or _not_so_typical_match_re.search(line)
 
     if match:
-        origin = match.group('origin')
-        month = find_month(match.group('month'))
-        if 'year' in match.groupdict() and match.group('year'):
-            year = int(match.group('year'))
-        else:
-            year = find_year(month)
-        day = int(match.group('day'))
-        hour = int(match.group('hour'))
-        minute = int(match.group('min'))
-        second = int(match.group('second'))
-        msgtype = match.group('type')
-        description = match.group('description')
-
         try:
-            timestamp = datetime.datetime(year, month, day, hour, minute, second)
-            return Message(timestamp, origin, msgtype, description)
-        except (ValueError, TypeError):
+            timestamp = parse_timestamp(match.group('timestamp'))
+            return Message(
+                timestamp,
+                match.group('origin'),
+                match.group('type'),
+                match.group('description'),
+            )
+        except ValueError:
             _logger.debug("syslog line parse error: %s", line, exc_info=True)
 
     # if this message shows sign of cisco format, put it in the error log
