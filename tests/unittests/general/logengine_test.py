@@ -2,13 +2,32 @@
 
 import datetime
 import pytest
-from mock import Mock
+from mock import Mock, patch
 import random
 import logging
 
 logging.raiseExceptions = False
 
 from nav import logengine
+
+
+class _MockDatetime(datetime.datetime):
+    """A datetime subclass that converts to UTC when astimezone() is called without
+    args.
+    """
+
+    def astimezone(self, tz=None):
+        if tz is None:
+            tz = datetime.timezone.utc
+        return super().astimezone(tz)
+
+
+@pytest.fixture
+def utc_timezone():
+    """Mock datetime to convert to UTC for predictable timestamp conversion tests."""
+    with patch.object(logengine.datetime, "datetime", _MockDatetime):
+        yield
+
 
 now = datetime.datetime.now()
 
@@ -155,17 +174,18 @@ class TestParseMessageWithNoOriginTimestamp(TestParsing):
     )
 
 
+@pytest.mark.usefixtures("utc_timezone")
 class TestParseTimestamp:
     """Tests for the parse_timestamp() function."""
 
     @pytest.mark.parametrize(
         "timestamp_str,expected",
         [
-            # RFC 3339 formats
-            ("2026-01-05T13:54:43.262668+01:00", (2026, 1, 5, 13, 54, 43, 262668)),
-            ("2024-12-25T08:30:15.123456-05:00", (2024, 12, 25, 8, 30, 15, 123456)),
+            # RFC 3339 formats (converted to local time, which is UTC in these tests)
+            ("2026-01-05T13:54:43.262668+01:00", (2026, 1, 5, 12, 54, 43, 262668)),
+            ("2024-12-25T08:30:15.123456-05:00", (2024, 12, 25, 13, 30, 15, 123456)),
             ("2025-06-15T12:00:00Z", (2025, 6, 15, 12, 0, 0, 0)),
-            ("2025-03-10T09:45:30+02:00", (2025, 3, 10, 9, 45, 30, 0)),
+            ("2025-03-10T09:45:30+02:00", (2025, 3, 10, 7, 45, 30, 0)),
             # Traditional formats with timezone
             ("Oct 28 13:15:57.560 CEST", (now.year, 10, 28, 13, 15, 57, 560000)),
             ("Nov 13 11:21:02 MET", (now.year, 11, 13, 11, 21, 2, 0)),

@@ -245,8 +245,11 @@ def parse_timestamp(timestamp_str: str) -> datetime.datetime:
     # Try RFC 3339 / ISO 8601 first
     try:
         dt = datetime.datetime.fromisoformat(timestamp_str)
-        # Return without timezone info for consistency with existing behavior
-        return dt.replace(tzinfo=None)
+        # Convert to local time before stripping timezone info (since NAV legacy code
+        # unfortunately still uses timezone-naive timestamps)
+        if dt.tzinfo is not None:
+            dt = dt.astimezone().replace(tzinfo=None)
+        return dt
     except ValueError:
         pass
 
