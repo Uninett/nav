@@ -74,7 +74,7 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
   ([#3677](https://github.com/Uninett/nav/issues/3677))
 - Fixed accessing SeedDB urls for locations, usages, organizations and device
   groups with '/' in names
-  ([#3687](https://github.com/Uninett/nav/issues/3687))
+  ([#3712](https://github.com/Uninett/nav/pull/3712))
 - Fixed bug where subnets were not selectable in the IPAM subnet allocator
   ([#3692](https://github.com/Uninett/nav/issues/3692))
 - Fixed bug in SeedDB IP Device form where enter in a text field triggered an
