@@ -191,7 +191,8 @@ class TestParseTimestamp:
             ("Nov 13 11:21:02 MET", (now.year, 11, 13, 11, 21, 2, 0)),
             # Traditional formats without timezone
             ("Mar 25 10:15:51.666", (now.year, 3, 25, 10, 15, 51, 666000)),
-            # December uses find_year() which returns previous year if current month is January
+            # Year is not included in this timestamp, find_year() is used to guesstimate
+            # the correct year based on the current time.
             ("Dec 20 15:16:04", (logengine.find_year(12), 12, 20, 15, 16, 4, 0)),
             # With explicit year
             ("Oct 28 2010 12:08:49 CET", (2010, 10, 28, 12, 8, 49, 0)),
