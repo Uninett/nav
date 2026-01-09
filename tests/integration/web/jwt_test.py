@@ -11,14 +11,15 @@ from nav.auditlog.models import LogEntry
 def test_posting_valid_data_to_create_endpoint_should_create_token(db, client):
     """Tests that a token can be created"""
     url = reverse("useradmin-jwt_create")
-    response = client.post(
-        url,
-        data={
-            'name': 'mytesttoken',
-            'permission': 'read',
-        },
-        follow=True,
-    )
+    with patch("nav.web.useradmin.views.LOCAL_JWT_IS_CONFIGURED", True):
+        response = client.post(
+            url,
+            data={
+                'name': 'mytesttoken',
+                'permission': 'read',
+            },
+            follow=True,
+        )
 
     assert response.status_code == 200
     assert JWTRefreshToken.objects.filter(name='mytesttoken').exists()
@@ -77,14 +78,15 @@ def test_posting_valid_data_to_edit_endpoint_should_edit_token(db, client, token
 
 def test_creating_token_should_add_auditlog_entry(db, client):
     url = reverse("useradmin-jwt_create")
-    response = client.post(
-        url,
-        data={
-            'name': 'mytesttoken',
-            'permission': 'read',
-        },
-        follow=True,
-    )
+    with patch("nav.web.useradmin.views.LOCAL_JWT_IS_CONFIGURED", True):
+        response = client.post(
+            url,
+            data={
+                'name': 'mytesttoken',
+                'permission': 'read',
+            },
+            follow=True,
+        )
 
     assert response.status_code == 200
     token = JWTRefreshToken.objects.get(name='mytesttoken')
