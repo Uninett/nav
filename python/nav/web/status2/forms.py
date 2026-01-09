@@ -192,6 +192,13 @@ class StatusWidgetForm(StatusPanelForm):
         ),
     )
 
+    interval = forms.IntegerField(
+        required=True,
+        min_value=1,
+        label='Refresh interval (seconds)',
+        widget=forms.NumberInput(attrs={'min': 1, 'step': 1}),
+    )
+
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
 
@@ -217,6 +224,7 @@ class StatusWidgetForm(StatusPanelForm):
 
         self.attrs = set_flat_form_attributes(
             form_fields=[
+                FormRow(fields=[FormColumn(fields=[self["interval"]])]),
                 FormRow(
                     fields=[
                         FormColumn(
