@@ -2,13 +2,32 @@
 
 import datetime
 import pytest
-from mock import Mock
+from mock import Mock, patch
 import random
 import logging
 
 logging.raiseExceptions = False
 
 from nav import logengine
+
+
+class _MockDatetime(datetime.datetime):
+    """A datetime subclass that converts to UTC when astimezone() is called without
+    args.
+    """
+
+    def astimezone(self, tz=None):
+        if tz is None:
+            tz = datetime.timezone.utc
+        return super().astimezone(tz)
+
+
+@pytest.fixture
+def utc_timezone():
+    """Mock datetime to convert to UTC for predictable timestamp conversion tests."""
+    with patch.object(logengine.datetime, "datetime", _MockDatetime):
+        yield
+
 
 now = datetime.datetime.now()
 
@@ -32,6 +51,7 @@ Oct 28 13:15:46 10.0.42.103 1041: Oct 28 13:15:46.379 CEST: %LINEPROTO-5-UPDOWN:
 Oct 28 13:15:52 10.0.42.103 1042: Oct 28 13:15:51.915 CEST: %LINK-3-UPDOWN: Interface GigabitEthernet1/0/30, changed state to up
 Oct 28 13:15:52 10.0.128.13 71781: *Oct 28 2010 12:08:49 CET: %MV64340_ETHERNET-5-LATECOLLISION: GigabitEthernet0/1, late collision error
 Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up
+2026-01-05T13:54:43.262668+01:00 example-sw.example.org 441412: 441407: Jan  5 13:54:42 MET: %SISF-4-PAK_DROP: Message dropped A=FE80::BAAD:C0FF:EE15:BAAD G=- V=3 I=Gi1/0/1 P=NDP::NS Reason=Advertise while TENTATIVE
 """.strip().split("\n")
 
 
@@ -88,7 +108,7 @@ def test_non_failing_function_should_run_fine():
 
 class TestParsing(object):
     message = "Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up"
-    timestamp = datetime.datetime(now.year, 10, 28, 13, 15, 57)
+    timestamp = datetime.datetime(now.year, 10, 28, 13, 15, 57, 560000)
     facility = 'LINEPROTO'
     priority = 5
     mnemonic = 'UPDOWN'
@@ -123,7 +143,7 @@ class TestParsing(object):
 class TestParseMessageWithStrangeGarbage(TestParsing):
     message = "Mar 25 10:54:25 somedevice 72: AP:000b.adc0.ffee: *Mar 25 10:15:51.666: %LINK-3-UPDOWN: Interface Dot11Radio0, changed state to up"
 
-    timestamp = datetime.datetime(now.year, 3, 25, 10, 15, 51)
+    timestamp = datetime.datetime(now.year, 3, 25, 10, 15, 51, 666000)
     facility = 'LINK'
     priority = 3
     mnemonic = 'UPDOWN'
@@ -135,7 +155,7 @@ class TestParseMessageEndingWithColon(TestParsing):
 
     message = "Feb 16 11:55:08 10.0.1.15 22877425: Feb 16 11:55:09.436 MET: %HA_EM-6-LOG: on_high_cpu: CPU utilization is over 80%:"
 
-    timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9)
+    timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9, 436000)
     facility = 'HA_EM'
     priority = 6
     mnemonic = 'LOG'
@@ -152,6 +172,55 @@ class TestParseMessageWithNoOriginTimestamp(TestParsing):
     description = (
         "System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)"
     )
+
+
+@pytest.mark.usefixtures("utc_timezone")
+class TestParseTimestamp:
+    """Tests for the parse_timestamp() function."""
+
+    @pytest.mark.parametrize(
+        "timestamp_str,expected",
+        [
+            # RFC 3339 formats (converted to local time, which is UTC in these tests)
+            ("2026-01-05T13:54:43.262668+01:00", (2026, 1, 5, 12, 54, 43, 262668)),
+            ("2024-12-25T08:30:15.123456-05:00", (2024, 12, 25, 13, 30, 15, 123456)),
+            ("2025-06-15T12:00:00Z", (2025, 6, 15, 12, 0, 0, 0)),
+            ("2025-03-10T09:45:30+02:00", (2025, 3, 10, 7, 45, 30, 0)),
+            # Traditional formats with timezone
+            ("Oct 28 13:15:57.560 CEST", (now.year, 10, 28, 13, 15, 57, 560000)),
+            ("Nov 13 11:21:02 MET", (now.year, 11, 13, 11, 21, 2, 0)),
+            # Traditional formats without timezone
+            ("Mar 25 10:15:51.666", (now.year, 3, 25, 10, 15, 51, 666000)),
+            # Year is not included in this timestamp, find_year() is used to guesstimate
+            # the correct year based on the current time.
+            ("Dec 20 15:16:04", (logengine.find_year(12), 12, 20, 15, 16, 4, 0)),
+            # With explicit year
+            ("Oct 28 2010 12:08:49 CET", (2010, 10, 28, 12, 8, 49, 0)),
+            # Cisco format with leading asterisk
+            ("*Mar 25 10:15:51.666", (now.year, 3, 25, 10, 15, 51, 666000)),
+            # Space-padded single-digit day
+            ("Jan  5 13:54:42 MET", (now.year, 1, 5, 13, 54, 42, 0)),
+            ("Feb  3 08:00:00", (now.year, 2, 3, 8, 0, 0, 0)),
+        ],
+    )
+    def test_parse_timestamp_valid(self, timestamp_str, expected):
+        """Test that valid timestamps are parsed correctly."""
+        result = logengine.parse_timestamp(timestamp_str)
+        assert result == datetime.datetime(*expected)
+
+    @pytest.mark.parametrize(
+        "timestamp_str",
+        [
+            "not a timestamp",
+            "",
+            "Oct 28",
+            "13:15:57",
+        ],
+    )
+    def test_parse_timestamp_invalid(self, timestamp_str):
+        """Test that invalid timestamps raise ValueError."""
+        with pytest.raises(ValueError):
+            logengine.parse_timestamp(timestamp_str)
 
 
 non_conforming_lines = [

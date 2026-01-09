@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2008, 2009, 2013, 2017, 2018 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2022, 2026 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -222,8 +222,11 @@ def find_config_file(filename):
         return filename  # IDGAF, you gave me a fully qualified path
     candidates = (directory / filename for directory in get_config_locations())
     for candidate in candidates:
-        if candidate.exists():
-            return str(candidate)
+        try:
+            if candidate.exists():
+                return str(candidate)
+        except PermissionError:
+            pass
 
 
 def open_configfile(filename):

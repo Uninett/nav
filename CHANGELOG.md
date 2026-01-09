@@ -11,6 +11,21 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.16.1] - 2026-01-09
+
+### Fixed
+
+- Fixed location search for locations with slashes in names
+  ([#3717](https://github.com/Uninett/nav/issues/3717))
+- Fixed `pping` and `snmptrapd` crashes when attempting to look for config files
+  in inaccessible directories
+  ([#3720](https://github.com/Uninett/nav/issues/3720))
+- Support RFC3339/ISO8601-formatted timestamps when parsing syslog messages in
+  `logengine` ([#3722](https://github.com/Uninett/nav/issues/3722))
+- Fixed GeoMap display of rooms/locations with slashes in their IDs
+  ([#3724](https://github.com/Uninett/nav/issues/3724))
+
+
 ## [5.16.0] - 2025-12-19
 
 ### Security
