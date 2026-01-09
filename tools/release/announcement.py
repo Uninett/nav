@@ -34,9 +34,12 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
+import tempfile
 import textwrap
 import tomllib
+import webbrowser
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -113,6 +116,11 @@ def main() -> int:
             args.output_dir, entry, github_md, blog_output, email_subject, email_body
         )
 
+    if args.enact:
+        enact_announcements(
+            entry, config, github_md, blog_output, email_subject, email_body
+        )
+
     return 0
 
 
@@ -169,6 +177,11 @@ def create_argument_parser() -> argparse.ArgumentParser:
         "--email",
         action="store_true",
         help="Generate email announcement",
+    )
+    parser.add_argument(
+        "--enact",
+        action="store_true",
+        help="Enact announcements (copy blog, create GitHub draft, open email)",
     )
     return parser
 
@@ -571,6 +584,156 @@ def write_outputs(
         email_file.write_text(email_body)
         print(f"  Wrote: {email_file}")
         print(f"  Email subject: {email_subject}")
+
+
+# -----------------------------------------------------------------------------
+# Enactment functions
+# -----------------------------------------------------------------------------
+
+
+def enact_announcements(
+    entry: ChangelogEntry,
+    config: dict,
+    github_md: str | None,
+    blog_md: str | None,
+    email_subject: str | None,
+    email_body: str | None,
+) -> None:
+    """Enact the announcements (copy blog, create GitHub draft, open email)."""
+    print("\nEnacting announcements...")
+
+    if blog_md is not None:
+        enact_blog(entry, config, blog_md)
+
+    if github_md is not None:
+        enact_github(entry, github_md)
+
+    if email_body is not None:
+        enact_email(config, email_subject, email_body)
+
+
+def enact_blog(entry: ChangelogEntry, config: dict, blog_md: str) -> None:
+    """Copy blog post to landing page repository and stage it."""
+    blog_config = config.get("blog", {})
+    landing_page_path = blog_config.get("landing_page_blog_path")
+
+    if not landing_page_path:
+        print("  Blog: Skipped (no landing_page_blog_path configured)")
+        return
+
+    dest_dir = Path(landing_page_path).expanduser()
+    if not dest_dir.exists():
+        print(f"  Blog: Error - directory not found: {dest_dir}")
+        return
+
+    blog_version = entry.version.replace(".", "-")
+    dest_file = dest_dir / f"nav-{blog_version}-released.md"
+
+    dest_file.write_text(blog_md)
+    print(f"  Blog: Wrote {dest_file}")
+
+    # Add to git and show status
+    repo_dir = dest_dir.parent.parent  # Go up from content/blog to repo root
+    subprocess.run(["git", "add", str(dest_file)], cwd=repo_dir)
+    print("  Blog: Added to git staging area")
+    print()
+    result = subprocess.run(
+        ["git", "status", "--short"], cwd=repo_dir, capture_output=True, text=True
+    )
+    print(f"  Git status in {repo_dir}:")
+    for line in result.stdout.strip().split("\n"):
+        print(f"    {line}")
+
+
+def enact_github(entry: ChangelogEntry, github_md: str) -> None:
+    """Create GitHub draft release and open in browser."""
+    tag = entry.version
+    title = f"NAV {entry.version}"
+
+    # Write release notes to temp file for gh CLI
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False
+    ) as notes_file:
+        notes_file.write(github_md)
+        notes_path = notes_file.name
+
+    try:
+        # Create draft release using gh CLI
+        result = subprocess.run(
+            [
+                "gh",
+                "release",
+                "create",
+                tag,
+                "--draft",
+                "--title",
+                title,
+                "--notes-file",
+                notes_path,
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            print(f"  GitHub: Error creating release: {result.stderr}")
+            return
+
+        # Extract URL from output (gh outputs the release URL)
+        release_url = result.stdout.strip()
+        if release_url:
+            print(f"  GitHub: Created draft release at {release_url}")
+            # Open edit page in browser
+            edit_url = release_url.replace("/releases/tag/", "/releases/edit/")
+            webbrowser.open(edit_url)
+            print(f"  GitHub: Opened {edit_url} in browser")
+        else:
+            print("  GitHub: Draft release created (no URL returned)")
+
+    finally:
+        Path(notes_path).unlink()
+
+
+def enact_email(config: dict, subject: str, body: str) -> None:
+    """Open email client with announcement ready to send."""
+    email_config = config.get("email", {})
+    compose_command = email_config.get("compose_command")
+    to_addresses = email_config.get("to", [])
+
+    if not compose_command:
+        print("  Email: Skipped (no compose_command configured)")
+        return
+
+    # Write subject and body to temp files
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".txt", delete=False
+    ) as subject_file:
+        subject_file.write(subject)
+        subject_path = subject_file.name
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".txt", delete=False
+    ) as body_file:
+        body_file.write(body)
+        body_path = body_file.name
+
+    try:
+        # Substitute placeholders in command
+        to_str = ", ".join(to_addresses) if to_addresses else ""
+        cmd = compose_command.format(
+            subject=subject,
+            subject_file=subject_path,
+            body_file=body_path,
+            to=to_str,
+        )
+
+        print("  Email: Running compose command...")
+        subprocess.run(cmd, shell=True)
+        print("  Email: Compose command executed")
+
+    finally:
+        Path(subject_path).unlink()
+        Path(body_path).unlink()
 
 
 # -----------------------------------------------------------------------------
