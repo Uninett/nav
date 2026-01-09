@@ -1,0 +1,11 @@
+[debian]
+releases = ["12 (Bookworm)", "11 (Bullseye)", "13 (Trixie)"]
+
+[urls]
+github_releases = "https://github.com/Uninett/nav/releases"
+apt_repo = "https://nav.uninett.no/install-instructions/#debian"
+release_notes_base = "https://nav.readthedocs.io/en/latest/release-notes.html"
+
+[email]
+subject_template = "Announcement: NAV {version} released"
+security_subject_template = "Security announcement: NAV {version} released"

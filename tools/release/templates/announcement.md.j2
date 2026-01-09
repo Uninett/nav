@@ -1,0 +1,35 @@
+---
+title: 'NAV {{ version }} released'
+date: {{ date }}
+draft: false
+tags:
+- release
+---
+
+{% if is_security -%}
+A security release for the {{ series }} series of NAV is now out!
+{% elif patch == 0 -%}
+The first feature release of the {{ series }} series of NAV is now out!
+{% else -%}
+The {{ patch | ordinal }} maintenance release of the {{ series }} series of NAV is now out!
+{% endif %}
+
+The source code is available for download at [GitHub]({{ urls.github_releases }}).
+
+New packages for Debian {{ debian_releases | join_and }} are available in our [APT repository]({{ urls.apt_repo }}).
+
+{% if patch == 0 -%}
+Please be sure to check the [release notes]({{ urls.release_notes_base }}#nav-{{ major }}-{{ minor }}) before upgrading, as there may be recommended changes to your config files.
+
+{% endif -%}
+{% for section, content in sections.items() %}
+## {{ section }}
+
+{{ content }}
+
+{% endfor %}
+## Release notes
+
+We always advise you to have a look at [NAV's accompanying release notes]({{ urls.release_notes_base }}#nav-{{ major }}-{{ minor }}) before upgrading.
+
+Happy NAVing everyone!
