@@ -2,3 +2,6 @@
 omit =
     */nav/enterprise/ids.py
     */nav/smidumps/*
+
+parallel = true
+patch = subprocess
