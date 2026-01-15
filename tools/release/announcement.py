@@ -284,18 +284,21 @@ def build_changelog_entry(
     doc, renderer, entries: list[tuple[int, str, str]], target_idx: int
 ) -> ChangelogEntry:
     """Build a ChangelogEntry from the document at the given index."""
-    start_idx, version, date = entries[target_idx]
+    heading_idx, version, date = entries[target_idx]
 
+    # Find where this version's content ends in the document
     if target_idx + 1 < len(entries):
-        end_idx = entries[target_idx + 1][0]
+        # Content ends at the next version's heading
+        content_end_idx = entries[target_idx + 1][0]
     else:
-        end_idx = len(doc.children)
+        # This is the last version, content goes to end of document
+        content_end_idx = len(doc.children)
 
     entry = ChangelogEntry(version=version, date=date)
     current_section: str | None = None
     section_content: list[str] = []
 
-    for child in doc.children[start_idx + 1 : end_idx]:
+    for child in doc.children[heading_idx + 1 : content_end_idx]:
         if isinstance(child, Heading) and child.level == 3:
             if current_section and section_content:
                 content = "\n".join(section_content).strip()
