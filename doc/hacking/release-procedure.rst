@@ -74,7 +74,7 @@ To preview what the addition to the changelog file would look like add the flag
 A few other helpful flags are:
 * `date DATE` - set the date of the release, default is today
 * `keep` - keep all news fragments
-  
+
 Commit the changes using
 
 .. code-block:: console
@@ -93,8 +93,40 @@ push the changes back to the official repository:
 Announcing the release
 ----------------------
 
-* Draft a new release for the new tag at GitHub.
-* Add a new release entry in the NAV homepage at
-  https://github.com/Uninett/nav-landing-page/tree/master/content/releases
-* Send email announcement to the ``nav-users`` mailing list. Use previous
-  release announcements as your template.
+Use the announcement script to generate release artifacts from the changelog:
+
+.. code-block:: console
+
+  $ ./tools/release/announcement.py --dry-run
+
+This parses :file:`CHANGELOG.md` and generates three outputs:
+
+* **GitHub release notes** - Markdown for the GitHub release page
+* **Blog post** - Hugo markdown for the NAV landing page
+* **Email** - Plain text announcement with numbered link references
+
+To preview without writing files, use ``--dry-run``. To generate specific
+outputs only, use ``--github``, ``--blog``, or ``--email``.
+
+For security releases, add ``--security`` to adjust the email subject and
+introductory text.
+
+The ``--enact`` option automates the release announcement process:
+
+* Copies the blog post to the landing page repo and stages it in git
+* Creates a draft GitHub release and opens the edit page in a browser
+* Opens your email client with the announcement ready to send
+
+.. note::
+
+   The ``--enact`` option requires the `GitHub CLI <https://cli.github.com/>`_
+   (``gh``) to be installed and authenticated in order to create GitHub releases.
+
+Configuration (Debian versions, URLs, email settings) is in
+:file:`tools/release/announcement.toml`.
+
+After running with ``--enact``:
+
+1. Review and publish the draft GitHub release
+2. Review, commit and push the blog post in the landing page repo
+3. Review and send the email announcement to ``nav-users``
