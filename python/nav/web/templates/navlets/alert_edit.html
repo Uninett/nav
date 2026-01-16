@@ -11,10 +11,16 @@
     <strong>Choose either a sensor or write a metric name.</strong>
   </p>
 
-  <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+  <form
+      hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+      method="post"
+      hx-vals='{"mode": "VIEW"}'
+      hx-target="[data-id='{{ navlet.navlet_id }}']"
+      hx-swap="innerHTML"
+  >
     {% include 'custom_crispy_templates/_form_content.html' %}
-    <input type="submit" class="button tiny" value="Save">
-    <a class="button tiny secondary cancel-button">Cancel</a>
+    <button class="tiny" type="submit">Save</button>
+    <button class="tiny secondary cancel-button" type="button">Cancel</button>
   </form>
 
   <script>

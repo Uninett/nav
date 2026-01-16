@@ -46,7 +46,9 @@ Templates
 
 import logging
 import json
+from datetime import datetime
 from operator import attrgetter
+from typing import Optional
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -54,6 +56,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.base import TemplateView
+from django_htmx.http import trigger_client_event
 
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
@@ -116,21 +119,30 @@ class Navlet(TemplateView):
         """
         raise NotImplementedError
 
-    def get_template_names(self):
-        """Get template name based on navlet mode"""
-        if self.mode == NAVLET_MODE_VIEW:
+    def get_template_names(self, override_mode: Optional[str] = None):
+        """
+        Get template name based on navlet mode.
+
+        :param override_mode: Optional\; if provided, overrides the mode (VIEW or EDIT)
+            sent in the request. If None, uses self.mode. Used to enable the navlet to
+            return the correct template in error situations.
+        :return: The template name for the specified mode.
+        """
+        template_mode = override_mode or self.mode
+        if template_mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             return 'navlets/%s_edit.html' % self.get_template_basename()
         else:
             return 'navlets/%s_view.html' % self.get_template_basename()
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, override_mode=None, **kwargs):
+        template_mode = override_mode or self.mode
         context = super(Navlet, self).get_context_data(**kwargs)
         context['navlet'] = self
-        if self.mode == NAVLET_MODE_VIEW:
+        if template_mode == NAVLET_MODE_VIEW:
             context = self.get_context_data_view(context)
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             context = self.get_context_data_edit(context)
         return context
 
@@ -142,26 +154,48 @@ class Navlet(TemplateView):
         """Get context for the edit mode"""
         return context
 
-    def post(self, _request, **kwargs):
+    def post(self, request, *_, **kwargs):
         """Save preferences
 
         Make sure you're not overriding stuff with the form
         """
-        form = kwargs.get('form')
+        form = kwargs.pop('form', None)
         if not form:
             return HttpResponse('No form supplied', status=400)
 
         if form.is_valid():
             self.account_navlet.preferences.update(form.cleaned_data)
             self.account_navlet.save()
-            return HttpResponse()
+            return self.get(request=request)
         else:
-            return JsonResponse(form.errors, status=400)
+            return self.handle_error_response(request, form=form, **kwargs)
+
+    def handle_error_response(self, request, form, **kwargs):
+        """Render error response for invalid form submissions"""
+        context = self.get_context_data(
+            override_mode=NAVLET_MODE_EDIT, form=form, **kwargs
+        )
+        return render(
+            request, self.get_template_names(override_mode=NAVLET_MODE_EDIT), context
+        )
 
     @classmethod
     def get_class(cls):
         """This string is used to identify the Widget"""
         return "%s.%s" % (cls.__module__, cls.__name__)
+
+    @staticmethod
+    def add_bust_param_to_url(url: str) -> str:
+        """
+        Add a cache-busting parameter to a URL
+
+        Used to ensure that images are not cached by the browser
+
+        :param url: The URL to add the parameter to
+        :return: The URL with the cache-busting parameter added
+        """
+        timestamp = int(datetime.now().timestamp())
+        return f'{url}&bust={timestamp}'
 
 
 def list_navlets():
@@ -253,6 +287,10 @@ def dispatcher(request, navlet_id):
         _logger.error(
             '%s tried to fetch widget with id %s: %s', current_account, navlet_id, error
         )
+        if request.htmx:
+            return _handle_htmx_error_response(
+                request, None, 'This widget does not exist'
+            )
         return HttpResponse(status=404)
 
     dashboard = account_navlet.dashboard
@@ -266,6 +304,10 @@ def dispatcher(request, navlet_id):
             navlet_id,
             owner,
         )
+        if request.htmx:
+            return _handle_htmx_error_response(
+                request, account_navlet, 'Not authorized to view this widget'
+            )
         return HttpResponse(status=403)
 
     cls = get_navlet_from_name(account_navlet.navlet)
@@ -282,18 +324,50 @@ def dispatcher(request, navlet_id):
     return view(request)
 
 
+def _handle_htmx_error_response(
+    request, navlet: Optional[AccountNavlet], error_message: str
+):
+    """Render error response for htmx dispatcher requests"""
+    if navlet:
+        cls = get_navlet_from_name(navlet.navlet)
+        navlet = cls(request=request)
+
+    return render(
+        request,
+        'navlets/base.html',
+        {
+            'navlet': navlet,
+            'error_message': error_message,
+        },
+    )
+
+
+@require_POST
 def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
-    if request.method == 'POST' and 'navlet' in request.POST:
-        account = get_account(request)
-        dashboard = find_dashboard(account, dashboard_id=dashboard_id)
+    navlet_class = request.POST.get('navlet')
+    if not navlet_class:
+        return HttpResponse(status=400)
 
-        if can_modify_navlet(account, request):
-            navlet_class = request.POST.get('navlet')
-            navlet = add_navlet(account, navlet_class, dashboard=dashboard)
-            return JsonResponse(create_navlet_object(navlet))
+    account = get_account(request)
+    dashboard = find_dashboard(account, dashboard_id=dashboard_id)
 
-    return HttpResponse(status=400)
+    if not can_modify_navlet(account, request):
+        return HttpResponse(status=403)
+
+    navlet = add_navlet(account, navlet_class, dashboard=dashboard)
+    navlet_object = create_navlet_object(navlet)
+    response = render(
+        request,
+        'navlets/_add_navlet_response.html',
+        context={'navlet': navlet_object},
+    )
+    return trigger_client_event(
+        response,
+        name="nav.navlet.added",
+        params={"navlet_id": navlet.id},
+        after='settle',
+    )
 
 
 def add_navlet_modal(request, dashboard_id):
@@ -398,8 +472,23 @@ def remove_user_navlet(request):
 
     try:
         account_navlet = AccountNavlet.objects.get(pk=navlet_id, account=account)
+        dashboard = account_navlet.dashboard
         account_navlet.delete()
-        return resolve_modal(request, modal_id=modal_id)
+
+        navlet_count = AccountNavlet.objects.filter(dashboard=dashboard).count()
+        response = resolve_modal(
+            request,
+            'navlets/_remove_navlet_response.html',
+            context={'navlet_count': navlet_count},
+            modal_id=modal_id,
+        )
+
+        return trigger_client_event(
+            response,
+            name="nav.navlet.removed",
+            params={"navlet_id": navlet_id},
+            after='settle',
+        )
     except AccountNavlet.DoesNotExist:
         return render_modal_alert(
             request, 'This widget no longer exists. Try refreshing the page.', modal_id
@@ -436,28 +525,6 @@ def update_navlet(account, key, value, column):
     navlet.order = value
     navlet.column = column
     navlet.save()
-
-
-def render_base_template(request):
-    """Render only base template with navlet info
-
-    This is used to render only buttons and title of the navlet,
-    and is used when an error occured rendering the whole navlet. See
-    doc in navlet_controller.js for more info
-
-    """
-    try:
-        navlet_id = int(request.GET.get('id'))
-    except (ValueError, TypeError):
-        # We're fucked
-        return HttpResponse(status=400)
-    else:
-        account = get_account(request)
-        accountnavlet = get_object_or_404(AccountNavlet, account=account, pk=navlet_id)
-        _logger.error(accountnavlet)
-        cls = get_navlet_from_name(accountnavlet.navlet)
-        navlet = cls(request=request)
-        return render(request, 'navlets/base.html', {'navlet': navlet})
 
 
 def add_user_navlet_graph(request):
