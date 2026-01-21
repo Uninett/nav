@@ -4,22 +4,24 @@
 
 define(function(require, exports, module) {
   var _ = require("libs/underscore");
-  var Backbone = require("backbone");
+  require("backbone");
   var Marionette = require("marionette");
+  const Radio = require("backbone.radio");
 
+  const Behaviors = require("src/ipam/views/behaviors");
   var Models = require("src/ipam/models");
   var Views = require("src/ipam/views/index");
-  var Viz = require("src/ipam/viz");
+  require("src/ipam/viz");
 
   var debug = require("src/ipam/util").ipam_debug;
-  var globalCh = Backbone.Wreqr.radio.channel("global");
+  const globalCh = Radio.channel("global");
 
 
   // Simple utility object to flash messages. Might be moved into utils.js at
   // some point.
   var flash = {
     call: function(klass, msg) {
-      globalCh.vent.trigger("flash", klass, msg);
+      globalCh.trigger("flash", klass, msg);
     },
 
     noResult: function(searchParams) {
@@ -33,12 +35,12 @@ define(function(require, exports, module) {
     },
 
     reset: function() {
-      globalCh.vent.trigger("flash:reset");
+      globalCh.trigger("flash:reset");
     }
   };
 
   // Base of tree (e.g. only top nodes of our prefix tree)
-  var RootView = Marionette.LayoutView.extend({
+  const RootView = Marionette.View.extend({
     debug: debug.new("views:rootview"),
     regions: {
       "tree": ".prefix-tree-root"
@@ -64,11 +66,17 @@ define(function(require, exports, module) {
       // Keep a pointer to the fetch object, for tracking all fetches
       this.xhr = this.collection.fetch({reset: true});
       // Hide children while fetching
-      this.tree.$el.hide();
-      var self = this;
-      this.xhr.done(function (){
-        self.tree.$el.show();
-      });
+      const treeRegion = this.getRegion('tree');
+      if (treeRegion?.$el) {
+        treeRegion.$el.hide();
+        const self = this;
+        this.xhr.done(function (){
+          const region = self.getRegion('tree');
+          if (region?.$el) {
+            region.$el.show();
+          }
+        });
+      }
       flash.fetch();
     },
 
@@ -83,8 +91,8 @@ define(function(require, exports, module) {
       this.collection.bind("fetch", this.onRender, this);
       // Set up global handlers for requests etc
       var self = this;
-      globalCh.vent.on("fetch:all", function() { self.refetch(); });
-      globalCh.vent.on("search:update", function(params) {
+      globalCh.on("fetch:all", function() { self.refetch(); });
+      globalCh.on("search:update", function(params) {
         self.debug("Got new search params", params);
         self.collection.queryParams = params;
         self.refetch();
@@ -94,20 +102,20 @@ define(function(require, exports, module) {
         var elem = $("#prefix-" + node.pk);
         // Element not found in DOM
         if (!elem.length && node.parent_pk) {
-          globalCh.vent.trigger("open_node", node.parent_pk);
+          globalCh.trigger("open_node", node.parent_pk);
           setTimeout(function(){
             scrolltoHandler(node);
           }, 1000);
           return;
         }
         // Calculate offset and move to the desired node
-        globalCh.vent.trigger("open_node", node.pk);
+        globalCh.trigger("open_node", node.pk);
         self.debug("Scrolling to", node.pk);
         $("html, body").animate({
           scrollTop: elem.offset().top
         }, "slow");
       };
-      globalCh.vent.on("scrollto", scrolltoHandler);
+      globalCh.on("scrollto", scrolltoHandler);
     },
 
     /* Whether or not we're currently fetching some data */
@@ -125,20 +133,14 @@ define(function(require, exports, module) {
       }
     },
 
-    // Defer drawing until we need to show something. This is done to do all our
-    // drawing in a single operation, which speeds up rendering and allows us to
-    // show the user all the results at once. At some point, it might make sense
-    // to consider implementing lazy-loading/pagination as the user scrolls down
-    // the tree, but this is overkill for relatively narrow prefix trees.
-    onBeforeShow: function() {
+    // Flash some messages depending on the state of our tree.
+    onRender: function() {
+      // Show tree child view after render (moved from onBeforeShow for v4 compatibility)
       this.showChildView("tree", new TreeView({
         model: new Models.Tree(),
         collection: this.collection
       }));
-    },
 
-    // Flash some messages depending on the state of our tree.
-    onRender: function() {
       if (this.isFetching()) {
         return flash.fetch();
       }
@@ -189,7 +191,7 @@ define(function(require, exports, module) {
 
   // Main view of our tree nodes, e.g. prefixes. Handles all main concerns like
   // toggling them open/closed and so on.
-  var NodeView = Marionette.LayoutView.extend({
+  const NodeView = Marionette.View.extend({
     tagName: "li",
     className: "prefix-tree-item prefix-tree-item-closed",
     template: "#prefix-tree-node",
@@ -207,6 +209,7 @@ define(function(require, exports, module) {
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: nodeViewStates,
         handlers: {
           "LOADING_STATS": "loadingStats",
@@ -223,7 +226,7 @@ define(function(require, exports, module) {
       // searching/filtering) aren't blurred.
       this.$el.parent().removeClass("prefix-tree-open");
       if (this.ch) {
-        this.ch.vent.off("open_node");
+        this.ch.off("open_node");
       }
     },
 
@@ -237,9 +240,8 @@ define(function(require, exports, module) {
       this.fsm.onChange(function(nextState) {
         self.debug("Moving into state", nextState);
       });
-      var self = this;
-      this.ch = Backbone.Wreqr.radio.channel("global");
-      this.ch.vent.on("open_node", function(__pk) {
+      this.ch = Radio.channel("global");
+      this.ch.on("open_node", function(__pk) {
         if (__pk !== pk) {
           return;
         }
@@ -345,14 +347,14 @@ define(function(require, exports, module) {
   });
 
   // Container for prefix nodes, nested or otherwise
-  var TreeView = Marionette.CompositeView.extend({
+  const TreeView = Marionette.CollectionView.extend({
     debug: debug.new("views:treeview"),
     template: "#prefix-children",
     childView: NodeView,
     childViewContainer: ".prefix-tree-children",
     reorderOnSort: true,
 
-    childEvents: {
+    childViewEvents: {
       "open_node": "incrementOpenNodes",
       "close_node": "decrementOpenNodes"
     },
@@ -363,17 +365,26 @@ define(function(require, exports, module) {
     },
 
     // Functions used to determine the sorting order of the tree's children.
+    // In Marionette v4, viewComparator receives child views, not models
     comparators: {
       prefix: null,
-      vlan: function(model) {
-        return -1.0 * model.get("vlan_number", 0);
+      vlan: function(view) {
+        return -1 * view.model.get("vlan_number", 0);
       },
-      usage: function(model) {
-        return -1.0 * model.get("usage", 0);
+      usage: function(view) {
+        return -1 * view.model.get("usage", 0);
       },
-      allocated: function(model) {
-        return -1.0 * model.get("allocated", 0);
+      allocated: function(view) {
+        return -1 * view.model.get("allocated", 0);
       }
+    },
+
+    // Provide data for the wrapper template
+    serializeData: function() {
+      return {
+        parent: this.model ? this.model.get('parent') : null,
+        currentComparator: this.model ? this.model.get('currentComparator') : null
+      };
     },
 
     initialize: function() {
@@ -430,7 +441,8 @@ define(function(require, exports, module) {
       var currentComparator = self.model.get("currentComparator");
       var comparatorFn = self.comparators[currentComparator] || null;
       self.viewComparator = comparatorFn;
-      self.render();
+      // In Marionette v4, call sort() to apply the new viewComparator
+      self.sort();
     },
 
     // Utility function to show any children of the prefix node in a different
