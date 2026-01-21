@@ -348,3 +348,60 @@ def translate_serieslist_to_regex(series):
 
     pat = "".join(_convert_char(c) for c in series)
     return re.compile(pat)
+
+
+def aliased_series(series_list: str, name: str, **meta: str) -> str:
+    """
+    Add a name to the supplied series_list.
+    https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.alias
+
+    Supported keyword arguments:
+    :param color: the css color of the graph
+    :param renderer: Rickshaw graph renderer to use; one of "area", "stack", "bar", "line", or "scatterplot"
+    """
+    tmpl = "alias({series_list}, '{name}')"
+    if len(meta) > 0:
+        # note how key-value pairs from the meta-dict is added in a quite
+        # special way to the resulting name; NAV's custom JavaScript Rickshaw
+        # graph constructor reconstructs the meta-dict and strips it away from
+        # the resulting name before it is displayed. It then uses the meta-dict
+        # to customize the graph, such as adding a specific color attribute
+        name = ";;".join(f"{key}={val}" for key, val in meta.items()) + ";;" + name
+    return tmpl.format(series_list=series_list, name=name)
+
+
+def summed_series(*series_list: str) -> str:
+    """
+    Sum each series in all supplied series_lists and return as a single series_list.
+    https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.sumSeries
+    """
+    tmpl = "sumSeries({series_lists})"
+    return tmpl.format(series_lists=",".join(series_list))
+
+
+def diffed_series(*series_list: str) -> str:
+    """
+    Subtract from the first series in the first seriesList the rest of the
+    supplied series from the first and following seriesLists.
+    https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.diffSeries
+    """
+    tmpl = "diffSeries({series_lists})"
+    return tmpl.format(series_lists=",".join(series_list))
+
+
+def nonempty_series(series_list: str, x_files_factor: float = 0.0) -> str:
+    """
+    Out of all metrics in series_list, draw only the metrics with not
+    empty data.
+    https://graphite.readthedocs.io/en/latest/functions.html#graphite.render.functions.removeEmptySeries
+    """
+    tmpl = "removeEmptySeries({series_list}, {x_files_factor})"
+    return tmpl.format(series_list=series_list, x_files_factor=x_files_factor)
+
+
+def json_graph_url(*series_list: str, title: str) -> str:
+    """
+    Create a url for fetching the JSON data necessary to graph the supplied
+    series_lists.
+    """
+    return get_simple_graph_url(series_list, format="json", title=title)
