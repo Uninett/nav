@@ -6,8 +6,8 @@ define(['libs/datatables.min'], function () {
                 return 2;
             } else if (/title="(.*?)"/.test(a)) {
                 var timestamp = a.match(/title="(.*?)"/)[1];
-                if ($.trim(timestamp) != '') {
-                    var splits = $.trim(timestamp).split(' ');
+                if (timestamp.trim() !== '') {
+                    var splits = timestamp.trim().split(' ');
                     var dates = splits[0].split('-');
                     var times = splits[1].split(':');
                     return (dates[0] + dates[1] + dates[2] + times[0] + times[1]) * 1;
@@ -25,4 +25,3 @@ define(['libs/datatables.min'], function () {
         }
     });
 });
-
