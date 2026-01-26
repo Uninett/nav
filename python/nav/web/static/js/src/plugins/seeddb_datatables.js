@@ -138,7 +138,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = jQuery.parseJSON( data );
+                    var json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
@@ -227,7 +227,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = jQuery.parseJSON( data );
+                    var json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
