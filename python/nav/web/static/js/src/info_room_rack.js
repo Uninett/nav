@@ -43,7 +43,7 @@ require([
      */
     function select2MultipleMatcher(params, data) {
         // If there are no search terms, return all data
-        if ($.trim(params.term) === '') {
+        if (!params.term || params.term.trim() === '') {
             return data;
         }
         // Check if text matches all search terms

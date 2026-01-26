@@ -410,7 +410,7 @@ require(['libs/spin.min', 'jquery-ui'], function (Spinner) {
                     console.log(jqXhr.responseText);
                     var messages;
                     try {
-                        messages = $.parseJSON(jqXhr.responseText).messages;
+                        messages = JSON.parse(jqXhr.responseText).messages;
                     } catch (error) {
                         messages = [{'message': 'Error saving changes'}];
                     }

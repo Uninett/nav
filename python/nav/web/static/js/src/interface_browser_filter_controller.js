@@ -33,7 +33,17 @@ define(function(require) {
 
     function netboxFilter() {
         var value = $(selectors.netboxfilter).val();
-        return value ? { netbox: value.split(',') } : {};
+        if (!value) {
+            return {};
+        }
+        // Handle both string (legacy) and array/number (Select2 v4) formats
+        if (Array.isArray(value)) {
+            return { netbox: value };
+        }
+        if (typeof value === 'string') {
+            return { netbox: value.split(',') };
+        }
+        return { netbox: [value] };
     }
 
     function ifClassFilter() {

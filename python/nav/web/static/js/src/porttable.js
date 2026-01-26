@@ -310,7 +310,7 @@ define(function(require) {
      * Translate data keys from response to something datatables understand
      */
     function translateData(data) {
-        var json = jQuery.parseJSON( data );
+        var json = JSON.parse( data );
         json.recordsTotal = json.count;
         json.data = json.results;
         return JSON.stringify( json );
