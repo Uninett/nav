@@ -1,4 +1,4 @@
-require(["jquery-tablesorter", "jquery"], function (tablesorter) {
+require(["src/libs/tablesort_extensions", "jquery"], function (tablesort) {
 
     var ns = "nav.machinetracker",
         elementIds = ['id_netbios', 'id_dns'],
@@ -67,28 +67,35 @@ require(["jquery-tablesorter", "jquery"], function (tablesorter) {
         // Data parameters for tablesorter
         var headerData = {},
             textExtractionData = {},
-            $trackerTable = $('#tracker-table'),
-            headings = $trackerTable.children('thead').children('tr').children('th');
+            trackerTable = document.getElementById('tracker-table');
 
-        // We don't sort the icon cell and sort IP as text from the span
-        $.each(headings, function(index, cell) {
-            if(cell.innerHTML === "") {
-                headerData[index] = {sorter : false};
-            }
+        if (!trackerTable) {
+            addLocalStateSettings();
+            return;
+        }
 
-            if (cell.innerHTML === "IP") {
-                textExtractionData[index] = function(node){
-                    return $(node).find('span').text();
+        var headings = trackerTable.querySelectorAll('thead tr th');
+
+        // Configure sorters based on column headers
+        headings.forEach(function(cell, index) {
+            const header = cell.innerHTML.trim();
+
+            if (header === "") {
+                headerData[index] = { sorter: false };
+            } else if (header === "IP") {
+                textExtractionData[index] = function(node) {
+                    var span = node.querySelector('span');
+                    return span ? span.textContent : node.textContent;
                 };
-                headerData[index] = {sorter: 'text', string: 'min'};
+                headerData[index] = { sorter: 'ip-address' };
+            } else if (header === "Start time" || header === "End time") {
+                headerData[index] = { sorter: 'iso-datetime' };
             }
         });
 
-        // Enable tablesorter
-        $trackerTable.tablesorter({
+        tablesort.init(trackerTable, {
             headers: headerData,
-            textExtraction: textExtractionData,
-            widgets: ['zebra']
+            textExtraction: textExtractionData
         });
 
         // If the form is reloaded, display correct data

@@ -1,48 +1,53 @@
-require(['jquery-tablesorter'], function () {
-    $(function () {
-        if ($('form.profileDetentionForm').length > 0) {
-            addVlanToggler($('#id_detention_type'));
-        }
-        if ($('form.manualDetentionForm').length > 0) {
-            addVlanToggler($('#id_method'));
-        }
+require(['src/libs/tablesort_extensions'], function (tablesort) {
+    const profileForm = document.querySelector('form.profileDetentionForm');
+    if (profileForm) {
+        addVlanToggler(document.getElementById('id_detention_type'));
+    }
 
-        // Add tablesorter to history table
-        if ($('.arnold-history tbody').length > 0) {
-            $('.arnold-history').tablesorter({
-                headers: {
-                    0: { sorter: 'ipAddress'},
-                    8: { sorter: false}
-                }
-            });
-        }
+    const manualForm = document.querySelector('form.manualDetentionForm');
+    if (manualForm) {
+        addVlanToggler(document.getElementById('id_method'));
+    }
 
-        // Add tablesorter to detained ports table
-        if ($('.arnold-detainedports tbody').length > 0) {
-            $('.arnold-detainedports').tablesorter({
-                headers: {
-                    0: { sorter: 'ipAddress'},
-                    7: { sorter: false},
-                    8: { sorter: false}
-                }
-            });
-        }
-
-    });
-
-    function addVlanToggler($selectNode) {
-        var $row = $('.qvlanrow');
-        if ($selectNode.val() !== 'quarantine') {
-            $row.addClass('hidetrick');
-        }
-        $selectNode.change(function () {
-            var $this = $(this);
-            if ($this.val() === 'quarantine') {
-                $row.removeClass('hidetrick');
-            } else {
-                $row.addClass('hidetrick');
+    // Add tablesorter to history table
+    const historyTable = document.querySelector('.arnold-history');
+    if (historyTable && historyTable.querySelector('tbody')) {
+        tablesort.init(historyTable, {
+            headers: {
+                0: { sorter: 'ip-address' },
+                7: { sorter: 'iso-datetime' },
+                8: { sorter: false }
             }
         });
     }
 
+    // Add tablesorter to detained ports table
+    const detainedTable = document.querySelector('.arnold-detainedports');
+    if (detainedTable && detainedTable.querySelector('tbody')) {
+        tablesort.init(detainedTable, {
+            headers: {
+                0: { sorter: 'ip-address' },
+                6: { sorter: 'iso-datetime' },
+                7: { sorter: false },
+                8: { sorter: false }
+            }
+        });
+    }
+
+    function addVlanToggler(selectNode) {
+        const row = document.querySelector('.qvlanrow');
+        if (!row || !selectNode) return;
+
+        if (selectNode.value !== 'quarantine') {
+            row.classList.add('hidetrick');
+        }
+
+        selectNode.addEventListener('change', function () {
+            if (this.value === 'quarantine') {
+                row.classList.remove('hidetrick');
+            } else {
+                row.classList.add('hidetrick');
+            }
+        });
+    }
 });
