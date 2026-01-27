@@ -1,6 +1,6 @@
 define(function (require) {
     var Vue = require('vue');
-    var sparkline = require('jquery-sparkline');
+    var d3Sparkline = require('plugins/d3_sparkline');
     var LinearGauge = require('plugins/linear_gauge');
     var rackTemplate = require('libs-amd/text!resources/vue/environment_rack.html');
     var rackItemTemplate = require('libs-amd/text!resources/vue/environment_rack_item.html');
@@ -68,14 +68,9 @@ define(function (require) {
         methods: {
             drawSparkline: function () {
                 var max = this.item.display_range[1];
-                $(this.$el).find('.sparkline').sparkline([null, this.item.value, max], {
-                    type: 'bullet',
+                d3Sparkline.bullet($(this.$el).find('.sparkline'), [null, this.item.value, max], {
                     performanceColor: 'lightsteelblue',
-                    rangeColors: ['#fff'],
-                    width: '100%',
-                    tooltipFormatter: function () {
-                        return "";
-                    }
+                    rangeColors: ['#fff']
                 });
             }
         },
