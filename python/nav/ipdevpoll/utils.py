@@ -198,6 +198,7 @@ def get_arista_vrf_instances(agentproxy) -> Deferred:
 
     """
     from nav.mibs.arista_vrf_mib import AristaVrfMib
+    from nav.mibs.types import LogicalMibInstance
 
     vrf_mib = AristaVrfMib(agentproxy)
     states = yield vrf_mib.get_vrf_states(only='active')
@@ -213,7 +214,9 @@ def get_arista_vrf_instances(agentproxy) -> Deferred:
 _VLAN_RE = re.compile('^vlan([0-9]+)', re.IGNORECASE)
 
 
-def _workaround_broken_aruba_alternate_communities(instances):
+def _workaround_broken_aruba_alternate_communities(
+    instances: "list[LogicalMibInstance]",
+) -> "list[LogicalMibInstance]":
     """
     Works around a b0rked alternate bridge mib instance list from Aruba
     switches.
@@ -223,13 +226,20 @@ def _workaround_broken_aruba_alternate_communities(instances):
     the given vlan.
 
     """
+    from nav.mibs.types import LogicalMibInstance
+
     output = []
-    for name, community in instances:
-        match = _VLAN_RE.match(name)
+    for instance in instances:
+        match = _VLAN_RE.match(instance.description)
         if match:
             vlan = match.group(1)
             index = '@' + vlan
-            if not community.endswith(index):
-                community = community + index
-        output.append((name, community))
+            if instance.community and not instance.community.endswith(index):
+                instance = LogicalMibInstance(
+                    instance.description,
+                    instance.community + index,
+                    instance.context,
+                    instance.context_engine_id,
+                )
+        output.append(instance)
     return output
