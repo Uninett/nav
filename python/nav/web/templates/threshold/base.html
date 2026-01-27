@@ -3,13 +3,18 @@
 
 {% block footer_scripts %}
   <script>
-    require(['jquery-tablesorter', 'src/tablesorter_custom_sorters'], function () {
-      $('#thresholdrules').tablesorter({
-        headers: {
-          6: {sorter: "custom-iso-datetime"},
-          7: {sorter: false},
-        }
-      });
+    require(['src/libs/tablesort_extensions'], function (tablesort) {
+      var table = document.getElementById('thresholdrules');
+      if (table) {
+        tablesort.init(table, {
+          headers: {
+            1: {sorter: "number"},
+            2: {sorter: "number"},
+            6: {sorter: "iso-datetime"},
+            7: {sorter: false}
+          }
+        });
+      }
     });
   </script>
 {% endblock %}
@@ -47,7 +52,7 @@
           <td class="hide-for-small">{{ rule.description }}</td>
           <td class="hide-for-medium-down">{{ rule.period|default_if_none:'' }}</td>
           <td class="hide-for-medium-down">{{ rule.creator.name }}</td>
-          <td class="hide-for-medium-down" data-sort-value="{{ rule.created|date:'c' }}">{{ rule.created }}</td>
+          <td class="hide-for-medium-down" data-sort="{{ rule.created|date:'c' }}">{{ rule.created }}</td>
           <td>
             <div id="delete-popover-{{ rule.id }}" class="popover with-arrow" data-align="end">
               <a
