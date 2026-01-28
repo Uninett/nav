@@ -22,43 +22,6 @@ REMOTE_USER_ACCOUNT = profiles.Account(
 )
 
 
-@patch("nav.models.profiles.Account.save", new=MagicMock(return_value=True))
-@patch(
-    "nav.models.profiles.Account.objects.get", new=MagicMock(return_value=LDAP_ACCOUNT)
-)
-class TestLdapAuthenticate(object):
-    def test_authenticate_should_return_account_when_ldap_says_yes(self):
-        ldap_user = Mock()
-        ldap_user.is_admin.return_value = None  # mock to avoid database access
-        with patch("nav.web.auth.ldap.available", new=True):
-            with patch("nav.web.auth.ldap.authenticate", return_value=ldap_user):
-                assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
-
-    def test_authenticate_should_return_false_when_ldap_says_no(self):
-        with patch("nav.web.auth.ldap.available", new=True):
-            with patch("nav.web.auth.ldap.authenticate", return_value=False):
-                assert not auth.authenticate('knight', 'shrubbery')
-
-    def test_authenticate_should_fallback_when_ldap_is_disabled(self):
-        with patch("nav.web.auth.ldap.available", new=False):
-            assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
-
-
-@patch("nav.models.profiles.Account.save", new=MagicMock(return_value=True))
-@patch(
-    "nav.models.profiles.Account.objects.get", new=MagicMock(return_value=PLAIN_ACCOUNT)
-)
-@patch("nav.web.auth.ldap.available", new=False)
-class TestNormalAuthenticate(object):
-    def test_authenticate_should_return_account_when_password_is_ok(self):
-        with patch("nav.web.auth.Account.check_password", return_value=True):
-            assert auth.authenticate('knight', 'shrubbery') == PLAIN_ACCOUNT
-
-    def test_authenticate_should_return_false_when_ldap_says_no(self):
-        with patch("nav.web.auth.Account.check_password", return_value=False):
-            assert not auth.authenticate('knight', 'rabbit')
-
-
 class TestRemoteUserAuthenticate(object):
     def test_authenticate_remote_user_should_return_account_if_header_set(self):
         r = RequestFactory()

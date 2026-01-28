@@ -141,6 +141,12 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = [
+    "nav.web.auth.ldap_auth_backend.LdapBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = int(_webfront_config.get('sessions', {}).get('timeout', 3600))
