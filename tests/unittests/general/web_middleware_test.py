@@ -1,7 +1,11 @@
 from mock import patch, Mock
 import os
 
+import pytest
+
 from django.http import HttpResponseRedirect
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django_htmx.http import HttpResponseClientRedirect
 
@@ -9,6 +13,8 @@ from nav.web.auth.utils import ACCOUNT_ID_VAR, get_account, set_account
 from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.web.auth.middleware import AuthorizationMiddleware
+from nav.web.auth.middleware import NAVAuthenticationMiddleware
+from nav.web.auth.middleware import NAVRemoteUserMiddleware
 from nav.web.auth import logout
 from nav.models import profiles
 
@@ -144,30 +150,40 @@ class TestAuthorizationMiddleware(object):
         if 'REMOTE_USER' in os.environ:
             del os.environ['REMOTE_USER']
 
+    def test_requires_request_user(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.session = fake_session
+        with pytest.raises(ImproperlyConfigured):
+            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+
     def test_process_request_anonymous(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = DEFAULT_ACCOUNT
+        fake_request.user = DEFAULT_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert 'REMOTE_USER' not in os.environ
+            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+            assert result is None
 
     def test_process_request_authorized(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
+        fake_request.user = PLAIN_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert os.environ.get('REMOTE_USER', None) == PLAIN_ACCOUNT.login
+            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+            assert result is None
 
     def test_process_request_not_authorized(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
+        fake_request.user = PLAIN_ACCOUNT
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=False
         ):
@@ -180,7 +196,21 @@ class TestAuthorizationMiddleware(object):
                         fake_request
                     )
                     assert result == 'here'
-                    assert os.environ.get('REMOTE_USER', None) != PLAIN_ACCOUNT.login
+
+    def test_redirect_to_login_returns_HttpResponseRedirect(self):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        response = AuthorizationMiddleware(lambda x: x).redirect_to_login(fake_request)
+        assert response.status_code == 302
+
+    def test_redirect_to_login_with_ajax_returns_401_response(self):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        with patch('nav.web.auth.middleware.is_ajax', return_value=True):
+            response = AuthorizationMiddleware(lambda x: x).redirect_to_login(
+                fake_request
+            )
+            assert response.status_code == 401
 
 
 class TestRedirectToLogin:
@@ -253,3 +283,124 @@ class TestLogout(object):
                 result = logout(fake_request)
                 assert result == 'parrot'
                 # Side effects of desudo() tested elsewhere
+
+
+def test_NAVRemoteUserMiddleware_init():
+    return_value = "fillifjong"
+    with patch(
+        'nav.web.auth.remote_user.get_remote_user_varname',
+        return_value=return_value,
+    ):
+        middleware = NAVRemoteUserMiddleware(lambda x: x)
+        assert middleware.header == return_value
+
+
+class TestNAVRemoteUserMiddlewareProcessRequest:
+    def test_fail_if_request_user_not_already_set(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.session = fake_session
+        with pytest.raises(ImproperlyConfigured):
+            NAVRemoteUserMiddleware(lambda x: x).process_request(fake_request)
+
+    def test_disabled_remote_user_changes_nothing(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.user = DEFAULT_ACCOUNT
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.remote_user.is_remote_user_enabled',
+            return_value=False,
+        ):
+            result = NAVRemoteUserMiddleware(lambda x: x).process_request(fake_request)
+            assert result is None
+            assert fake_request.user == DEFAULT_ACCOUNT
+
+    def test_enabled_remote_user_calls_djangos_remote_user_middleware(
+        self, fake_session
+    ):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.user = DEFAULT_ACCOUNT
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.remote_user.is_remote_user_enabled',
+            return_value=True,
+        ):
+            with patch(
+                'django.contrib.auth.middleware.RemoteUserMiddleware.process_request',
+                side_effect=lambda x: setattr(fake_request, "user", PLAIN_ACCOUNT),
+                return_value=None,
+            ) as middleware:
+                result = NAVRemoteUserMiddleware(lambda x: x).process_request(
+                    fake_request
+                )
+                assert fake_request.user == PLAIN_ACCOUNT
+                assert result is None
+                assert middleware.assert_called_once()
+
+
+class TestNAVAuthenticationMiddleware:
+    def test_requires_request_user(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.session = fake_session
+        with pytest.raises(ImproperlyConfigured):
+            NAVAuthenticationMiddleware(lambda x: x).process_request(fake_request)
+
+    def test_process_request_logged_in(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.middleware.ensure_account',
+            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
+        ):
+            NAVAuthenticationMiddleware(lambda x: x).process_request(fake_request)
+            assert fake_request.account == PLAIN_ACCOUNT
+            assert fake_request.user == PLAIN_ACCOUNT
+            assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
+
+    def test_process_request_set_sudoer(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_session[SUDOER_ID_VAR] = SUDO_ACCOUNT.id
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.middleware.ensure_account',
+            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
+        ):
+            with patch('nav.web.auth.middleware.get_sudoer', return_value=SUDO_ACCOUNT):
+                NAVAuthenticationMiddleware(lambda x: x).process_request(fake_request)
+                assert (
+                    getattr(fake_request.account, 'sudo_operator', None) == SUDO_ACCOUNT
+                )
+
+    def test_process_request_not_logged_in(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.middleware.ensure_account',
+            side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
+        ):
+            with patch('nav.web.auth.remote_user.get_username', return_value=None):
+                NAVAuthenticationMiddleware(lambda x: x).process_request(fake_request)
+                assert fake_request.account == DEFAULT_ACCOUNT
+                assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
+
+    def test_process_request_sudoed_to_anonymoususer(self, fake_session):
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_session[ACCOUNT_ID_VAR] = DEFAULT_ACCOUNT.id
+        fake_session[SUDOER_ID_VAR] = SUDO_ACCOUNT.id
+        fake_request.user = AnonymousUser
+        fake_request.account = fake_request.user
+        fake_request.session = fake_session
+        with patch(
+            'nav.web.auth.middleware.ensure_account',
+            side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
+        ):
+            assert fake_request.user == DEFAULT_ACCOUNT
