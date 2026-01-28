@@ -43,6 +43,26 @@ class TestSNMPParametersAsAgentProxyArgs:
         args = " ".join(kwargs["cmdLineArgs"])
         assert "-u foobar" in args
 
+    def test_should_contain_context_name_cmdline_argument(
+        self, snmpv3_params_with_context
+    ):
+        kwargs = snmpv3_params_with_context.as_agentproxy_args()
+        args = " ".join(kwargs["cmdLineArgs"])
+        assert "-n vlan100" in args
+
+    def test_should_contain_context_engine_id_cmdline_argument(
+        self, snmpv3_params_with_context
+    ):
+        kwargs = snmpv3_params_with_context.as_agentproxy_args()
+        args = " ".join(kwargs["cmdLineArgs"])
+        assert "-E 800000090300001234" in args
+
+    def test_should_not_contain_context_args_when_not_set(self, snmpv3_params):
+        kwargs = snmpv3_params.as_agentproxy_args()
+        args = " ".join(kwargs["cmdLineArgs"])
+        assert "-n" not in args
+        assert "-E" not in args
+
 
 class TestSNMPParametersFactory:
     @pytest.mark.parametrize("version_value", (2, "2", "2c"))
@@ -66,6 +86,22 @@ def snmpv3_params():
         auth_password="secret",
         priv_protocol=PrivacyProtocol.AES,
         priv_password="secret2",
+    )
+    yield param
+
+
+@pytest.fixture
+def snmpv3_params_with_context():
+    param = SNMPParameters(
+        version=3,
+        sec_level=SecurityLevel.AUTH_PRIV,
+        sec_name="foobar",
+        auth_protocol=AuthenticationProtocol.SHA,
+        auth_password="secret",
+        priv_protocol=PrivacyProtocol.AES,
+        priv_password="secret2",
+        context_name="vlan100",
+        context_engine_id="800000090300001234",
     )
     yield param
 
