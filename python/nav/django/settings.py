@@ -44,8 +44,7 @@ try:
 except (IOError, OSError):
     _webfront_config = {}
 
-DEBUG = NAV_CONFIG.get('DJANGO_DEBUG', 'False').upper() in (
-    'TRUE', 'YES', 'ON')
+DEBUG = NAV_CONFIG.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 
 # Copy Django's default logging config, but modify it to enable HTML e-mail
 # part for improved debugging:
@@ -98,16 +97,14 @@ STATICFILES_DIRS = [
     ('uploads', UPLOAD_DIR),
 ]
 # Mount the NAV docs if running under the Django development server
-_base_dir = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '../../..'))
+_base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 _doc_dir = os.path.join(_base_dir, 'build/sphinx/html')
 if os.path.isdir(_doc_dir):
     STATICFILES_DIRS.append(('doc', _doc_dir))
 
 
 # Templates
-_global_template_dir = [os.path.join(
-    _config_dir, 'templates')] if _config_dir else []
+_global_template_dir = [os.path.join(_config_dir, 'templates')] if _config_dir else []
 
 TEMPLATES = [
     {
@@ -157,8 +154,7 @@ LOGIN_URL = '/index/login/'
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = int(_webfront_config.get(
-    'sessions', {}).get('timeout', 3600))
+SESSION_COOKIE_AGE = int(_webfront_config.get('sessions', {}).get('timeout', 3600))
 SESSION_COOKIE_NAME = 'nav_sessionid'
 SESSION_SAVE_EVERY_REQUEST = False
 
