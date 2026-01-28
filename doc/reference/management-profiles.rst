@@ -46,6 +46,46 @@ is assigned to.
 Otherwise, the procedure for creating an SNMP profile is documented in the
 :doc:`Getting started guide </intro/getting-started>`.
 
+SNMPv3
+------
+
+SNMPv3 profiles are configured separately from SNMP v1/v2c profiles, as they
+require different authentication settings. Instead of a simple community string,
+SNMPv3 uses security names, authentication protocols, and privacy protocols.
+
+.. _snmpv3-cisco-context-access:
+
+SNMPv3 and Cisco switches
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using SNMPv3 with Cisco switches, additional switch configuration may be
+required to allow NAV to collect complete data.
+
+Cisco switches maintain separate BRIDGE-MIB instances for each active VLAN. NAV
+needs to query these instances to collect MAC address tables for machine
+tracking and to detect network topology. With SNMP v1/v2c, this is done using
+Cisco's *community string indexing* (e.g., ``public@20`` for VLAN 20). With
+SNMPv3, this is done using SNMP *contexts* (e.g., ``vlan-20``).
+
+By default, SNMPv3 users may not have access to these VLAN contexts. You must
+configure the switch to grant access. For example::
+
+  snmp-server group mygroup v3 auth context vlan- match prefix
+
+This grants the SNMPv3 group ``mygroup`` access to all contexts starting with
+``vlan-``, which covers all VLAN-specific BRIDGE-MIB instances.
+
+.. warning::
+
+   Without this configuration, NAV will be unable to collect per-VLAN switching
+   data from Cisco switches using SNMPv3. This results in:
+
+   * Incomplete or missing MAC address tracking (Machine Tracker)
+   * Potentially incomplete network topology detection
+
+   If you notice missing data after switching from SNMPv2c to SNMPv3, check your
+   switch's SNMPv3 context access configuration.
+
 NAPALM
 ------
 

@@ -8,6 +8,36 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+Unreleased
+==========
+
+
+SNMPv3 context support for Cisco switches
+-----------------------------------------
+
+NAV now supports SNMPv3 contexts when collecting per-VLAN BRIDGE-MIB data from
+Cisco switches. Previously, this data collection only worked with SNMP v1/v2c
+using Cisco's *community string indexing* feature.
+
+Cisco switches maintain separate BRIDGE-MIB instances for each active VLAN.
+With SNMPv3, these are accessed using SNMP contexts (named ``vlan-1``,
+``vlan-2``, etc.) rather than modified community strings.
+
+.. important::
+
+   For this to work, your Cisco switches must be configured to allow the SNMPv3
+   user to query these VLAN contexts. This typically requires a command like::
+
+     snmp-server group YOUR-GROUP-NAME v3 auth context vlan- match prefix
+
+   Without this configuration, NAV will be unable to collect MAC address tables
+   and switching information, resulting in incomplete machine tracker data and
+   potentially missing network topology information.
+
+See the :doc:`/reference/management-profiles` documentation for more details on
+configuring SNMPv3 profiles.
+
+
 NAV 5.16
 ========
 
