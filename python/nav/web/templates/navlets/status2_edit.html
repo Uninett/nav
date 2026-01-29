@@ -2,16 +2,14 @@
 
 {% block navlet-content %}
 
-  <form action="{% url 'get-user-navlet' navlet.navlet_id %}">
-    <label>
-      Refresh interval (seconds)
-      <input type="text" name="interval" value="{{ interval }}">
-    </label>
+  <form
+    id="navlet-form-{{ navlet.navlet_id }}"
+    hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+    hx-target="[data-id='{{ navlet.navlet_id }}']"
+    hx-swap="innerHTML"
+    hx-preserve="true"
+  >
     {% include 'custom_crispy_templates/_form_content.html' %}
   </form>
-
-  <script>
-  $('[data-id={{ navlet.navlet_id }}] select').select2();
-  </script>
 
 {% endblock %}
