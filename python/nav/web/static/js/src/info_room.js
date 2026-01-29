@@ -123,7 +123,7 @@ require(
 
         /* Add global filtering to the tables */
         function add_filters() {
-            var tables = $.fn.dataTable.fnTables();
+            var tables = $.fn.DataTable.tables();
             var primary_node = $('#netbox-global-search');
             var filters = ['last_seen', 'vlan'];
 
