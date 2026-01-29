@@ -3,10 +3,10 @@
  * This ensures existing CSS continues to work after upgrading from 1.x.
  */
 define(['libs/datatables.min'], function () {
-    var DataTable = $.fn.DataTable;
+    const DataTable = $.fn.DataTable;
 
     // Configure legacy class names for CSS compatibility
-    $.extend(DataTable.ext.classes, {
+    $.extend(true, DataTable.ext.classes, {
         container: 'dataTables_wrapper',
         search: {
             container: 'dataTables_filter',
@@ -23,10 +23,31 @@ define(['libs/datatables.min'], function () {
             container: 'dataTables_paginate',
             button: 'paginate_button',
             active: 'current',
-            disabled: 'disabled'
+            disabled: 'disabled',
+            nav: ''
         },
+        // Use legacy layout classes (empty to avoid new grid system)
+        layout: {
+            row: '',
+            cell: '',
+            tableRow: '',
+            tableCell: '',
+            start: '',
+            end: '',
+            full: ''
+        },
+        // Sorting classes - these go under 'order' in 2.x
+        order: {
+            canAsc: 'sorting',
+            canDesc: 'sorting',
+            isAsc: 'sorting_asc',
+            isDesc: 'sorting_desc',
+            none: 'sorting_disabled',
+            position: 'sorting_'
+        },
+        table: 'dataTable',
         thead: {
-            cell: 'sorting',
+            cell: '',
             row: ''
         },
         tbody: {
@@ -36,15 +57,6 @@ define(['libs/datatables.min'], function () {
         tfoot: {
             cell: '',
             row: ''
-        }
-    });
-
-    // Configure legacy ordering classes
-    $.extend(DataTable.ext.classes.thead, {
-        orderable: {
-            asc: 'sorting_asc',
-            desc: 'sorting_desc',
-            none: 'sorting'
         }
     });
 });
