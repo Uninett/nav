@@ -31,13 +31,21 @@
       </label>
     </div>
 
-    <div id="lastseenfilter" class="small-3 columns">
-      <label>
-        Last Seen (days ago)
-        <input type="text">
-      </label>
+<div id="lastseenfilter" class="small-3 columns">
+  <label>
+    Last Seen
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
 
+      <select id="lastseen-mode" name="lastseen_mode">
+        <option value="since">within&nbsp;&nbsp;&nbsp;</option>
+        <option value="ago">more than</option>
+      </select>
+
+      <input id="lastseen-input" type="number" min="0" style="width: 4rem;">
+      <span>days ago</span>
     </div>
+  </label>
+</div>
 
     <div class="small-3 columns">
       <label>

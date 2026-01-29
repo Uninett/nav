@@ -56,6 +56,8 @@ define(['libs/datatables.min'], function () {
 
             register_filter(filters[filter]);
         }
+
+        $('#lastseen-mode').on('change', do_primary_filter);
     }
 
     /* Attach keylistener and register filter to datatable plugin */
@@ -74,7 +76,9 @@ define(['libs/datatables.min'], function () {
         var days = get_keyword(/\$days:\w+/) || getInputValue(filters.last_seen.node);
         if (days) {
             var rowdate = extract_date(aData[4]);
-            return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
+            var inverted = ($('#lastseen-mode').val()) === 'since';
+            var diff = daysince(rowdate);
+            return !is_trunk(aData[3]) && (inverted ? diff <= days : diff >= days);
         }
         return true;
     }
@@ -156,4 +160,3 @@ define(['libs/datatables.min'], function () {
     };
 
 });
-
