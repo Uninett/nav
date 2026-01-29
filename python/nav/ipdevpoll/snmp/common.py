@@ -157,6 +157,8 @@ class SNMPParameters:
     auth_password: Optional[str] = None
     priv_protocol: Optional[PrivacyProtocol] = None
     priv_password: Optional[str] = None
+    context_name: Optional[str] = None
+    context_engine_id: Optional[str] = None
 
     # Specific to ipdevpoll-derived implementations
     throttle_delay: int = 0
@@ -254,6 +256,10 @@ class SNMPParameters:
                 params.extend(["-x", self.priv_protocol.value])
             if self.priv_password:
                 params.extend(["-X", self.priv_password])
+            if self.context_name:
+                params.extend(["-n", self.context_name])
+            if self.context_engine_id:
+                params.extend(["-E", self.context_engine_id])
             kwargs["cmdLineArgs"] = tuple(params)
 
         return kwargs
