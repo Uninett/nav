@@ -34,16 +34,17 @@ define(['libs/datatables.min'], function(DataTables){
         return 0;
     }
 
-    $.extend(DataTables.ext.oSort, {
-        "natural-asc": function (a, b) {
-            return naturalSort(a, b);
-        },
+    $.fn.DataTable.ext.type.order['natural-pre'] = function (data) {
+        return data;
+    };
 
-        "natural-desc": function (a, b) {
-            return naturalSort(a, b) * -1;
-        }
-    });
+    $.fn.DataTable.ext.type.order['natural-asc'] = function (a, b) {
+        return naturalSort(a, b);
+    };
+
+    $.fn.DataTable.ext.type.order['natural-desc'] = function (a, b) {
+        return naturalSort(a, b) * -1;
+    };
 
     return naturalSort;
 });
-
