@@ -1,5 +1,6 @@
 define([
     'libs/datatables.min',
+    'dt_config',
 ],
 
 function() {
@@ -142,7 +143,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = JSON.parse( data );
+                    const json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
@@ -191,7 +192,7 @@ function() {
 
 
         /* Apply DataTable */
-        var table = $(tableSelector).DataTable(config);
+        const table = $(tableSelector).DataTable(config);
 
         /*
          Add a dropdown to select room. The dropdown is prepopulated. Do a new
@@ -232,7 +233,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = JSON.parse( data );
+                    const json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
