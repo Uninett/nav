@@ -509,11 +509,11 @@ class Client:
         element is the last IP of a string used in the Kea DHCP configuration
         file for representing a range of IP addresses. Example:
 
-        > self._bounds_of_pool_range("10.0.0.0 - 10.0.0.10")
-        > IP(10.0.0.0), IP(10.0.0.10)
-
-        > self._bounds_of_pool_range("10.0.0.0/24")
-        > IP(10.0.0.0), IP(10.0.0.255)
+        >>> client = Client("foo", "https://example.org")
+        >>> client._bounds_of_pool_range("10.0.0.0 - 10.0.0.10")
+        (IP('10.0.0.0'), IP('10.0.0.10'))
+        >>> client._bounds_of_pool_range("10.0.0.0/24")
+        (IP('10.0.0.0'), IP('10.0.0.255'))
         """
         if "-" in pool_range:
             # x.x.x.x - x.x.x.x
