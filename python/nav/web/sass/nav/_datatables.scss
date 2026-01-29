@@ -51,19 +51,44 @@
             &.sorting_disabled {
                 background-color: #EEE;
             }
+            // sorting (sortable column) must come before sorting_asc/desc
+            // so that the active sort direction takes precedence
+            &.sorting {
+                background: url('#{$image-path-partials}/datatables/sort_both.png') no-repeat right center #EEEEEE;
+            }
             &.sorting_asc {
                 background: url('#{$image-path-partials}/datatables/sort_asc.png') no-repeat right center #EEEEEE;
             }
             &.sorting_desc {
                 background: url('#{$image-path-partials}/datatables/sort_desc.png') no-repeat right center #EEEEEE;
             }
-            &.sorting {
-                background: url('#{$image-path-partials}/datatables/sort_both.png') no-repeat right center #EEEEEE;
-            }
+        }
+    }
+    .filters {
+        @include common_header_styles;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.5em;
+
+        .dataTables_filter {
+            display: flex;
+            align-items: baseline;
+            padding: 0;
+            gap: 0.3em;
+        }
+
+        .select2-container {
+            min-width: 200px;
+            max-width: 350px;
         }
     }
     .dataTables_filter {
         @include common_header_styles;
+        // DataTables 2.x uses separate label and input elements
+        label {
+            margin-right: 0.3em;
+        }
         input {
             display: inline;
             margin: 0;
@@ -85,6 +110,10 @@
     .dataTables_paginate {
         @include common_header_styles;
         float: right;
+        // DataTables 2.x wraps buttons in a nav element
+        nav {
+            display: inline;
+        }
         .paginate_button {
             @include button($padding:$button-tny);
             &.disabled {
