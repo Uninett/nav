@@ -19,11 +19,12 @@ Fetch DHCP stats from Kea DHCP servers, using the Kea API
 
 from dataclasses import dataclass
 from enum import IntEnum
+from functools import partial
 from itertools import chain
 import json
 import logging
 import time
-from typing import Optional, Iterator
+from typing import Callable, Optional, Iterator
 
 from IPy import IP
 from requests import RequestException, JSONDecodeError, Session
@@ -117,12 +118,22 @@ class Client:
         self._start_time: float = time.time()
 
         if dhcp_version == 4:
-            # self._api_namings is a map between how stats are named in NAV and how
-            # stats are named in Kea.
-            self._api_namings = (
-                ("total", "total-addresses"),
-                ("assigned", "assigned-addresses"),
-                ("declined", "declined-addresses"),
+            # self._api_extractors is a map from the name of stats in NAV to
+            # functions that extract that stat from a dict previously returned
+            # by the Kea API containing all stats
+            self._api_extractors: tuple[
+                tuple[str, Callable[[dict, Pool], int]], ...
+            ] = (
+                ("total", partial(_extract_pool_stat, name="total-addresses")),
+                ("assigned", partial(_extract_pool_stat, name="assigned-addresses")),
+                ("declined", partial(_extract_pool_stat, name="declined-addresses")),
+                (
+                    "unassigned",
+                    lambda stats, pool: (
+                        _extract_pool_stat(stats, pool, name="total-addresses")
+                        - _extract_pool_stat(stats, pool, name="assigned-addresses")
+                    ),
+                ),
             )
         else:
             raise ConfigurationError(f"DHCPv{dhcp_version} is not supported")
@@ -150,6 +161,9 @@ class Client:
           not available for assignment. The set of declined addresses is a
           subset of the set of assigned addresses.
           (Named "declined" addresses in NAV.)
+
+        * The amount of currently unassigned addresses in that Kea pool.
+          (Named "unassigned" addresses in NAV.)
 
         If the Kea API responds with an empty response to one or more of the
         stats of interest for a Kea pool, these stats will be missing in the
@@ -467,22 +481,20 @@ class Client:
             )
             return
 
-        for nav_stat_name, api_stat_name in self._api_namings:
-            statistic = f"subnet[{pool.subnet_id}].pool[{pool.pool_id}].{api_stat_name}"
-            samples = raw_stats.get(statistic, [])
-            if len(samples) == 0:
-                _logger.info(
-                    "No stats found when querying for '%s' in Kea pool having range "
-                    "'%s-%s' and name '%s'",
-                    api_stat_name,
-                    pool.first_ip,
-                    pool.last_ip,
-                    pool.group_name,
+        for nav_stat_name, extractor in self._api_extractors:
+            try:
+                value = extractor(raw_stats, pool)
+            except ValueError as err:
+                _logger.warning(
+                    "%s could not infer any value for the stat named '%s' for %s (%s). "
+                    "Skipping this stat for this pool (which will cause gaps in any "
+                    "related graph for this pool)",
+                    self,
+                    nav_stat_name,
+                    pool,
+                    err,
                 )
             else:
-                # The reference API client assumes samples[0] is the most recent sample
-                # See https://gitlab.isc.org/isc-projects/stork/-/blob/4193375c01e3ec0b3d862166e2329d76e686d16d/backend/server/apps/kea/rps.go#L223-227
-                value, _timestring = samples[0]
                 path = path_prefix.to_graphite_path(nav_stat_name)
                 yield (path, (self._start_time, value))
 
@@ -564,6 +576,26 @@ class Client:
             end_time - start_time,
             self._url,
         )
+
+
+def _extract_pool_stat(raw_stats: dict, pool: Pool, name: str) -> int:
+    """
+    Returns the value of the most recent stat in raw_stats with the given name
+    for the given pool.
+
+    raw_stats is a dictionary representing the result of the Kea API command
+    'statistic-get-all'.
+    """
+    statistic = f"subnet[{pool.subnet_id}].pool[{pool.pool_id}].{name}"
+    samples = raw_stats.get(statistic, [])
+    if len(samples) == 0:
+        raise ValueError(
+            f"No values found when looking up '{statistic}' in API response"
+        )
+    # The reference API client assumes samples[0] is the most recent sample
+    # See https://gitlab.isc.org/isc-projects/stork/-/blob/4193375c01e3ec0b3d862166e2329d76e686d16d/backend/server/apps/kea/rps.go#L223-227
+    value, _timestring = samples[0]
+    return value
 
 
 class _KeaStatus(IntEnum):
