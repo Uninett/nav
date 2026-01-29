@@ -13,7 +13,7 @@
  */
 define(function (require) {
 
-    const d3 = require('d3v4');
+    const d3 = require('d3v7');
 
     const defaults = {
         line: {
@@ -253,8 +253,8 @@ define(function (require) {
             .attr('fill', opts.strokeColor)
             .style('display', 'none');
 
-        overlay.on('mousemove', function() {
-            const mouse = d3.mouse(this);
+        overlay.on('mousemove', function(event) {
+            const mouse = d3.pointer(event, this);
             const xValue = xScale.invert(mouse[0]);
 
             // Find closest data point
@@ -279,7 +279,7 @@ define(function (require) {
                     color: opts.strokeColor
                 };
                 const html = opts.tooltipFormatter(tooltipData);
-                showTooltip(tooltip, html, d3.event);
+                showTooltip(tooltip, html, event);
             }
         });
 
@@ -296,13 +296,13 @@ define(function (require) {
     function addBulletTooltip(svg, el, data, opts) {
         const tooltip = createTooltip();
 
-        svg.on('mouseover', () => {
+        svg.on('mouseover', (event) => {
             const tooltipData = {
                 $el: $(el),
                 values: data
             };
             const html = opts.tooltipFormatter(tooltipData);
-            showTooltip(tooltip, html, d3.event);
+            showTooltip(tooltip, html, event);
         });
 
         svg.on('mouseout', () => {
