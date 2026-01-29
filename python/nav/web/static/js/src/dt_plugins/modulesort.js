@@ -2,10 +2,10 @@
  This module is used for sorting based on module-name in NAV. It's highly
  targetted at sorting specifically Cisco modules based on module-number
  */
-define(['dt_plugins/natsort', 'libs/datatables.min'], function (naturalSort, DataTables) {
+define(['dt_plugins/natsort', 'libs/datatables.min'], function (naturalSort) {
     function moduleSort(a, b) {
-        a = strip_tags(a);
-        b = strip_tags(b);
+        a = stripTags(a);
+        b = stripTags(b);
         if (bothAreStrings(a, b) && bothAreCiscoInterfaceNames(a, b)) {
             return naturalSort(
                 a.slice(a.search(/\d/)),
@@ -25,22 +25,18 @@ define(['dt_plugins/natsort', 'libs/datatables.min'], function (naturalSort, Dat
     }
 
     function bothAreStrings(a, b) {
-        return typeof(a) === 'string' && typeof(b) === 'string';
+        return typeof a === 'string' && typeof b === 'string';
     }
 
-    function strip_tags(input) {
-        return $('<div>' + input + '</div>').text();
+    function stripTags(input) {
+        return $(`<div>${input}</div>`).text();
     }
 
-    $.extend(DataTables.ext.oSort, {
-        "module-asc": function (a, b) {
-            return moduleSort(a, b);
-        },
+    $.fn.DataTable.ext.type.order['module-pre'] = (data) => data;
 
-        "module-desc": function (a, b) {
-            return moduleSort(b, a);
-        }
-    });
+    $.fn.DataTable.ext.type.order['module-asc'] = (a, b) => moduleSort(a, b);
+
+    $.fn.DataTable.ext.type.order['module-desc'] = (a, b) => moduleSort(b, a);
 
     return moduleSort;
 
