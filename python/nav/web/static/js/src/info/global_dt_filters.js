@@ -1,4 +1,4 @@
-define(['libs/datatables.min'], function () {
+define(['libs/datatables.min', 'dt_config'], function () {
     /*
      * Primary filter is the main filter run on all tables
      * Secondary filters are run together with the primary filter

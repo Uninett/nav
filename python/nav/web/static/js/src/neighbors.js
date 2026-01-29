@@ -1,5 +1,5 @@
 /* Javascript forced and smeared on the Unrecognized Neighbors page. No tests, no fuzz :p */
-require(['libs/datatables.min'], function() {
+require(['libs/datatables.min', 'dt_config'], function() {
 
     console.log('Neighbors script loaded');
 

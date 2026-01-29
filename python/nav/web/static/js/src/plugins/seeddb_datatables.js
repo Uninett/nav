@@ -1,5 +1,6 @@
 define([
     'libs/datatables.min',
+    'dt_config',
 ],
 
 function() {
