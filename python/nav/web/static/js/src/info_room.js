@@ -127,6 +127,11 @@ require(
             var primary_node = $('#netbox-global-search');
             var filters = ['last_seen', 'vlan'];
 
+
+            $('#lastseen-mode').on('change', function () {
+                global_dt_filters.set_last_seen_mode(this.value);
+                global_dt_filters.refresh();
+            });
             try {
                 global_dt_filters.add_filters(primary_node, tables, filters);
             } catch (error) {

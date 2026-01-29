@@ -104,3 +104,19 @@ img.textbottom {
         padding-bottom: 0.5rem;
     }
 }
+
+/* Custom styling for netbox interfaces last seen */
+
+#lastseenfilter .form-inline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+/* Keep inputs no wider than is necessary */
+#lastseenfilter .form-inline select,
+#lastseenfilter .form-inline input[type="number"],
+#lastseenfilter .form-inline input[type="text"] {
+  max-width: 7rem;
+  flex: 0 0 auto;
+}
