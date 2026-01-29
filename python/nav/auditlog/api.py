@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-from django.db.models import F, IntegerField, OuterRef, Q, Subquery
+from django.db.models import Case, F, IntegerField, OuterRef, Q, Subquery, When
 from django.db.models.functions import Cast
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -87,12 +87,18 @@ class LogEntryOrderingFilter(filters.OrderingFilter):
     def filter_queryset(self, request, queryset, view):
         ordering = request.query_params.get('ordering')
         if ordering in ['-actor', 'actor']:
-            actor_login_subquery = Subquery(
-                Account.objects.filter(
-                    id=Cast(OuterRef('actor_pk'), IntegerField())
-                ).values('login')[:1]
+            actor_login = Case(
+                When(
+                    actor_pk__regex=r'^\d+$',
+                    then=Subquery(
+                        Account.objects.filter(
+                            id=Cast(OuterRef('actor_pk'), IntegerField())
+                        ).values('login')[:1]
+                    ),
+                ),
+                default=F('actor_pk'),
             )
-            queryset = queryset.annotate(actor_login=actor_login_subquery)
+            queryset = queryset.annotate(actor_login=actor_login)
             if ordering == '-actor':
                 return queryset.order_by(F('actor_login').desc(nulls_last=True))
             return queryset.order_by(F('actor_login').asc(nulls_last=True))
