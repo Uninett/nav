@@ -8,6 +8,7 @@ var require = {
         "libs-amd": "resources/libs",
         "plugins": "src/plugins",
         "dt_plugins": "src/dt_plugins",
+        "dt_config": "src/dt_config",
         "info": "src/info",
         "netmap": "src/netmap",
         "status": "src/status2",

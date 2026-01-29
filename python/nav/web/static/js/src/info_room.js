@@ -13,6 +13,7 @@ require(
         "jquery",
         "jquery-ui",
         "libs/datatables.min",
+        "dt_config",
         "plugins/lightbox"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController, JUIHelpers) {
