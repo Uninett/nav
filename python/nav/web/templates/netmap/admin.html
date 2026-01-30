@@ -43,7 +43,7 @@
     </table>
   </div>
   <script type="text/javascript">
-   require(['libs/datatables.min'], function(){
+   require(['libs/datatables.min', 'dt_config'], function(){
        var dt_config = {
            bAutoWidth: false,
            bFilter: false,
@@ -53,7 +53,7 @@
            bSort: true
        };
 
-       $('table#netmap_admin_list').dataTable(dt_config);
+       $('table#netmap-admin-list').DataTable(dt_config);
 
        $('.set-global-default').click(function (e) {
            e.preventDefault();
