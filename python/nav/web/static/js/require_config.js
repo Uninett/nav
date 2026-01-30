@@ -67,6 +67,9 @@ var require = {
         'libs/datatables.min': {
             deps: ['jquery-migrate']
         },
+        'select2': {
+            deps: ['jquery-migrate']
+        },
     },
     deps: ['jquery']
 };
