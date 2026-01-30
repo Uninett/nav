@@ -25,6 +25,7 @@ bootstrap_django()
 
 from nav.auditlog.models import LogEntry
 from nav.auditlog.utils import get_all_historical_actors, get_lurkers
+from nav.models.profiles import Account
 
 
 def main():
@@ -124,6 +125,17 @@ def list_available_fixes():
     print("delete-account: Attempts to set the pk of the object if it is missing")
 
 
+def _find_unused_ids():
+    # Assumes actors are accounts
+    account_ids = set(Account.objects.values_list('id', flat=True))
+    actor_ids = set([int(_id) for _, _id in get_all_historical_actors()])
+    used_ids = account_ids | actor_ids
+    max_id = max(used_ids)
+    all_ids = range(1, max_id + 1)
+    free_ids = sorted(all_ids - actor_ids)
+    return free_ids
+
+
 def repair_delete_account_entries(verbose: bool = True):
     """Add back missing pk to malformed delete-account entries
 
@@ -137,6 +149,7 @@ def repair_delete_account_entries(verbose: bool = True):
     deleted_count = deleted_account_logentries.count()
     if verbose and deleted_count:
         print(f"Will fix {deleted_count} entries")
+    leftovers = []
     for entry in deleted_account_logentries:
         objname = entry.summary.rsplit(' ', 1)[-1]  # final word in line
         if objname in actors:
@@ -145,9 +158,14 @@ def repair_delete_account_entries(verbose: bool = True):
             if verbose:
                 print(f'Fixed: {entry.id} "{entry.summary}"')
         else:
-            entry.object_pk = f"d{entry.id}"
-            if verbose:
-                print(f'Fixed: {entry.id} "{entry.summary}" (lurker)')
+            leftovers.append(entry)
+
+    free_ids = _find_unused_ids()
+    for entry in leftovers:
+        entry.object_pk = str(free_ids.pop(0))
+        entry.save()
+        if verbose:
+            print(f'Fixed: {entry.id} "{entry.summary}" (lurker)')
 
 
 if __name__ == '__main__':
