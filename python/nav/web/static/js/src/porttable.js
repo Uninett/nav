@@ -1,6 +1,7 @@
 define(function(require) {
 
     var DataTables = require('libs/datatables.min');
+    require('dt_config');
     var moduleSort = require('dt_plugins/modulesort');
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');

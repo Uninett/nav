@@ -32,15 +32,17 @@ define(['dt_plugins/natsort', 'libs/datatables.min'], function (naturalSort, Dat
         return $('<div>' + input + '</div>').text();
     }
 
-    $.extend(DataTables.ext.oSort, {
-        "module-asc": function (a, b) {
-            return moduleSort(a, b);
-        },
+    $.fn.DataTable.ext.type.order['module-pre'] = function (data) {
+        return data;
+    };
 
-        "module-desc": function (a, b) {
-            return moduleSort(b, a);
-        }
-    });
+    $.fn.DataTable.ext.type.order['module-asc'] = function (a, b) {
+        return moduleSort(a, b);
+    };
+
+    $.fn.DataTable.ext.type.order['module-desc'] = function (a, b) {
+        return moduleSort(b, a);
+    };
 
     return moduleSort;
 
