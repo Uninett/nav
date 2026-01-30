@@ -43,7 +43,7 @@ define([
             var j = [];
             var sorted = l.sort(modulesort);
             for (var i=0; i<sorted.length; i++) {
-                j.push($.trim(sorted[i]));
+                j.push(sorted[i].trim());
             }
             assert.deepEqual(j, ['bcm0', 'em0', 'fxp0', 'ge-0/0/0', 'ge-0/3/0', 'ge-1/0/9']);
         });
