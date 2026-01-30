@@ -3,13 +3,16 @@
 
 {% block footer_scripts %}
   <script>
-    require(['jquery-tablesorter', 'src/tablesorter_custom_sorters'], function () {
-      $('#thresholdrules').tablesorter({
-        headers: {
-          6: {sorter: "custom-iso-datetime"},
-          7: {sorter: false},
-        }
-      });
+    require(['src/libs/tablesort_extensions'], function (tablesort) {
+      var table = document.getElementById('thresholdrules');
+      if (table) {
+        tablesort.init(table, {
+          headers: {
+            6: {sorter: "iso-datetime"},
+            7: {sorter: false}
+          }
+        });
+      }
     });
   </script>
 {% endblock %}
