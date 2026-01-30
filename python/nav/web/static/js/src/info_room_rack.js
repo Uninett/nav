@@ -2,8 +2,8 @@ require([
     'plugins/csrf-utils',
     'plugins/linear_gauge',
     'plugins/symbols',
-    'jquery-sparkline'
-], function (CsrfUtils, LinearGauge, symbol) {
+    'plugins/d3_sparkline'
+], function (CsrfUtils, LinearGauge, symbol, d3Sparkline) {
 
     const csrfToken = CsrfUtils.getCsrfToken();
 
@@ -215,15 +215,9 @@ require([
 
         if (unitIsKnown) {
             // Create sparkline if unit is known only
-            $element.find('.sparkline').sparkline([null, value, max], {
-                type: 'bullet',
+            d3Sparkline.bullet($element.find('.sparkline'), [null, value, max], {
                 performanceColor: 'lightsteelblue',
-                rangeColors: ['#fff'],
-                width: '100%',
-                tooltipFormatter: function (data) {
-                    // return data.values[1].toFixed(2);
-                    return "";
-                }
+                rangeColors: ['#fff']
             });
         }
 

@@ -12,7 +12,7 @@ var require = {
         "netmap": "src/netmap",
         "status": "src/status2",
         "d3": "libs/d3.min",  // rickshaw needs the d3 target defined
-        "d3v4": "libs/d3.v4.min",
+        "d3v7": "libs/d3.v7.min",
         "d3tip": "libs/d3tip.min",
         "nav-url-utils": "src/plugins/nav-url-utils",
          "rickshaw-utils": "src/plugins/rickshaw-utils",
@@ -29,7 +29,6 @@ var require = {
         "jquery-migrate": "libs/jquery-migrate-4.0.2",
         "jquery-ui": "libs/jquery-ui-1.14.0.min",
         "jquery-tablesorter": "libs/jquery.tablesorter-2.32.0.min",
-        "jquery-sparkline": "libs/jquery.sparkline-2.4.0.min",
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
         "select2": "libs/select2-4.0.13.min",
     },
@@ -54,9 +53,6 @@ var require = {
             deps: ['jquery']
         },
         'jquery-tablesorter': {
-            deps: ['jquery-migrate']
-        },
-        'jquery-sparkline': {
             deps: ['jquery-migrate']
         },
         'libs/datatables.min': {
