@@ -1,5 +1,6 @@
-require(['jquery-ui'], function () {
+require(['plugins/csrf-utils', 'jquery-ui'], function (CsrfUtils) {
 
+    const csrfToken = CsrfUtils.getCsrfToken();
     var $container = $('#editimages');
 
     $(function () {
@@ -84,7 +85,12 @@ require(['jquery-ui'], function () {
             imageid = $card.attr('data-imageid'),
             $titlecell = $card.find('.heading'),
             title = $titlecell.find('input').val(),
-            jqxhr = $.post(NAV.urls['image-update-title'], {'id': imageid, 'title': title});
+            jqxhr = $.ajax({
+                url: NAV.urls['image-update-title'],
+                type: 'POST',
+                data: {'id': imageid, 'title': title},
+                headers: {'X-CSRFToken': csrfToken}
+            });
 
         jqxhr.done(function () {
             $titlecell.html(title);
@@ -100,10 +106,15 @@ require(['jquery-ui'], function () {
     function addDeleteHandler($element) {
         $element.on('click', '.actions .delete', function (event) {
             if (confirm('Do you want to delete this image?')) {
-                var $this = $(this),
+                const $this = $(this),
                     $row = $this.parents('.imagecard'),
                     $imageid = $row.attr('data-imageid'),
-                    jqxhr = $.post(NAV.urls['image-delete-image'], {'id': $imageid});
+                    jqxhr = $.ajax({
+                        url: NAV.urls['image-delete-image'],
+                        type: 'POST',
+                        data: {'id': $imageid},
+                        headers: {'X-CSRFToken': csrfToken}
+                    });
 
                 jqxhr.done(function () {
                     location.reload();
@@ -128,7 +139,12 @@ require(['jquery-ui'], function () {
     }
 
     function saveOrder() {
-        var jqxhr = $.post(NAV.urls['image-update-priority'], get_image_priorities());
+        const jqxhr = $.ajax({
+            url: NAV.urls['image-update-priority'],
+            type: 'POST',
+            data: get_image_priorities(),
+            headers: {'X-CSRFToken': csrfToken}
+        });
         jqxhr.done(function () {
             createFeedback('Image order has been saved', 'success');
         });
