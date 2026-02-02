@@ -8,7 +8,7 @@ class TestNAVRemoteUserBackend:
     def test_init_sets_create_unknown_user(self):
         expected = 6
         with patch(
-            'nav.web.auth.backends.remote_user.will_autocreate_user',
+            'nav.web.auth.backends.remote_user.CONFIG.will_autocreate_user',
             return_value=expected,
         ):
             backend = NAVRemoteUserBackend()
@@ -17,7 +17,7 @@ class TestNAVRemoteUserBackend:
     def test_authenticate_returns_None_if_backend_not_enabled(self):
         backend = NAVRemoteUserBackend()
         with patch(
-            'nav.web.auth.backends.remote_user.is_remote_user_enabled',
+            'nav.web.auth.backends.remote_user.CONFIG.is_remote_user_enabled',
             return_value=False,
         ):
             result = backend.authenticate(None, None)
@@ -29,7 +29,7 @@ class TestNAVRemoteUserBackend:
         mock_backend = Mock()
         mock_backend.authenticate.return_value = expected
         with patch(
-            'nav.web.auth.backends.remote_user.is_remote_user_enabled',
+            'nav.web.auth.backends.remote_user.CONFIG.is_remote_user_enabled',
             return_value=True,
         ):
             with patch('builtins.super', return_value=mock_backend):

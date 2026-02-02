@@ -45,48 +45,87 @@ post-logout-redirect-url=/
 force_logout_if_no_header=yes
 """
 
+    def get_remote_user_varname(self):
+        varname = 'REMOTE_USER'
+        try:
+            varname = self.get('remote-user', 'varname')
+        except ValueError:
+            pass
+        return varname
+
+    def will_autocreate_user(self):
+        return self.getboolean('remote-user', 'autocreate', fallback=False)
+
+    def is_remote_user_enabled(self):
+        return self.getboolean('remote-user', 'enabled', fallback=False)
+
+    def will_force_logout_if_no_header(self):
+        return self.getboolean(
+            'remote-user', 'force_logout_if_no_header', fallback=True
+        )
+
+    def get_loginurl(self, request):
+        """Return a url (if set) to log in to/via a remote service
+
+        :return: Either a string with an url, or None.
+        :rtype: str, None
+        """
+        return self.get_remote_url(request, 'login-url')
+
+    def get_logouturl(self, request):
+        """Return a url (if set) to log out to/via a remote service
+
+        :return: Either a string with an url, or None.
+        :rtype: str, None
+        """
+        return self.get_remote_url(request, 'logout-url')
+
+    def get_post_logout_redirect_url(self, request):
+        """Return a url (if set) to log out to/via a remote service
+
+        :return: Either a string with an url, or None.
+        :rtype: str, None
+        """
+        return self.get_remote_url(request, "post-logout-redirect-url")
+
+    def get_remote_url(self, request, urltype):
+        """Return a url (if set) to a remote service for REMOTE_USER purposes
+
+        :return: Either a string with an url, or None.
+        :rtype: str, None
+        """
+        remote_url = None
+        try:
+            if not self.is_remote_user_enabled():
+                return None
+            remote_url = self.get('remote-user', urltype)
+        except (NoOptionError, ValueError):
+            return None
+        if remote_url:
+            nexthop = request.build_absolute_uri(request.get_full_path())
+            remote_url = remote_url.format(nexthop)
+        return remote_url
+
+    def clean_username(self, username):
+        workaround = 'none'
+        try:
+            workaround_config = self.get('remote-user', 'workaround')
+        except ValueError:
+            pass
+        else:
+            if workaround_config in _REMOTE_USER_WORKAROUNDS:
+                workaround = workaround_config
+
+        username = _REMOTE_USER_WORKAROUNDS[workaround](username)
+        return username
+
 
 _logger = logging.getLogger(__name__)
-_config = RemoteUserConfigParser()
-
-
-def get_remote_user_varname():
-    varname = 'REMOTE_USER'
-    try:
-        varname = _config.get('remote-user', 'varname')
-    except ValueError:
-        pass
-    return varname
-
-
-def will_autocreate_user():
-    return _config.getboolean('remote-user', 'autocreate', fallback=False)
+CONFIG = RemoteUserConfigParser()
 
 
 def fake_password(length):
     return secrets.token_urlsafe(length)
-
-
-def is_remote_user_enabled():
-    return _config.getboolean('remote-user', 'enabled', fallback=False)
-
-
-def will_force_logout_if_no_header():
-    return _config.getboolean('remote-user', 'force_logout_if_no_header', fallback=True)
-
-
-def clean_username(username):
-    workaround = 'none'
-    try:
-        workaround_config = _config.get('remote-user', 'workaround')
-    except ValueError:
-        pass
-    else:
-        if workaround_config in _REMOTE_USER_WORKAROUNDS:
-            workaround = workaround_config
-
-    username = _REMOTE_USER_WORKAROUNDS[workaround](username)
-    return username
 
 
 def _workaround_default(username):
@@ -106,52 +145,6 @@ _REMOTE_USER_WORKAROUNDS = {
     'default': _workaround_default,
     'feide-oidc': _workaround_feide_oidc,
 }
-
-
-def get_loginurl(request):
-    """Return a url (if set) to log in to/via a remote service
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    return get_remote_url(request, 'login-url')
-
-
-def get_logouturl(request):
-    """Return a url (if set) to log out to/via a remote service
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    return get_remote_url(request, 'logout-url')
-
-
-def get_post_logout_redirect_url(request):
-    """Return a url (if set) to log out to/via a remote service
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    return get_remote_url(request, "post-logout-redirect-url")
-
-
-def get_remote_url(request, urltype):
-    """Return a url (if set) to a remote service for REMOTE_USER purposes
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    remote_url = None
-    try:
-        if not is_remote_user_enabled():
-            return None
-        remote_url = _config.get('remote-user', urltype)
-    except (NoOptionError, ValueError):
-        return None
-    if remote_url:
-        nexthop = request.build_absolute_uri(request.get_full_path())
-        remote_url = remote_url.format(nexthop)
-    return remote_url
 
 
 # XXX: delete everything below
@@ -177,7 +170,7 @@ def authenticate(request):
     try:
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
-        if will_autocreate_user():
+        if CONFIG.will_autocreate_user():
             return autocreate_remote_user(username)
         # Bail out!
         _logger.info('User creation turned off, did not create "%s"', username)
@@ -234,7 +227,7 @@ def get_username(request):
     :rtype: str, None
     """
     try:
-        if not _config.getboolean('remote-user', 'enabled'):
+        if not CONFIG.getboolean('remote-user', 'enabled'):
             return None
     except ValueError:
         return None
@@ -242,6 +235,6 @@ def get_username(request):
     if not request:
         return None
 
-    varname = get_remote_user_varname()
+    varname = CONFIG.get_remote_user_varname()
     username = request.META.get(varname, '')
-    return clean_username(username)
+    return CONFIG.clean_username(username)

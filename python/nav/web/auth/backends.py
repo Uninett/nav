@@ -11,17 +11,17 @@ _logger = logging.getLogger(__name__)
 
 class NAVRemoteUserBackend(RemoteUserBackend):
     def __init__(self):
-        self.create_unknown_user = remote_user.will_autocreate_user()
+        self.create_unknown_user = remote_user.CONFIG.will_autocreate_user()
 
     def authenticate(self, request, user):
-        if not remote_user.is_remote_user_enabled():
+        if not remote_user.CONFIG.is_remote_user_enabled():
             return None
 
         user = super().authenticate(request, user)
         return user
 
     def clean_username(self, username):
-        return remote_user.clean_username(username)
+        return remote_user.CONFIG.clean_username(username)
 
     def configure_user(self, request, user, created=True):
         if created:
@@ -30,7 +30,7 @@ class NAVRemoteUserBackend(RemoteUserBackend):
             user.ext_sync = 'REMOTE_USER'
             user.save()
 
-            remote_user_varname = remote_user.get_remote_user_varname()
+            remote_user_varname = remote_user.CONFIG.get_remote_user_varname()
             _logger.info(
                 "Created user %s from header %s",
                 user.get_username(),

@@ -196,7 +196,7 @@ class TestLogout(object):
 def test_NAVRemoteUserMiddleware_init():
     return_value = "fillifjong"
     with patch(
-        'nav.web.auth.remote_user.get_remote_user_varname',
+        'nav.web.auth.remote_user.CONFIG.get_remote_user_varname',
         return_value=return_value,
     ):
         middleware = NAVRemoteUserMiddleware(lambda x: x)
@@ -217,7 +217,7 @@ class TestNAVRemoteUserMiddlewareProcessRequest:
         fake_request.user = DEFAULT_ACCOUNT
         fake_request.session = fake_session
         with patch(
-            'nav.web.auth.remote_user.is_remote_user_enabled',
+            'nav.web.auth.remote_user.CONFIG.is_remote_user_enabled',
             return_value=False,
         ):
             result = NAVRemoteUserMiddleware(lambda x: x).process_request(fake_request)
@@ -232,7 +232,7 @@ class TestNAVRemoteUserMiddlewareProcessRequest:
         fake_request.user = DEFAULT_ACCOUNT
         fake_request.session = fake_session
         with patch(
-            'nav.web.auth.remote_user.is_remote_user_enabled',
+            'nav.web.auth.remote_user.CONFIG.is_remote_user_enabled',
             return_value=True,
         ):
             with patch(

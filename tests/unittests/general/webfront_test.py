@@ -27,7 +27,7 @@ class TestRemoteUserAuthenticate(object):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+        with patch("nav.web.auth.remote_user.CONFIG.getboolean", return_value=True):
             with patch(
                 "nav.models.profiles.Account.objects.get",
                 new=MagicMock(return_value=REMOTE_USER_ACCOUNT),
@@ -37,14 +37,14 @@ class TestRemoteUserAuthenticate(object):
     def test_authenticate_remote_user_should_return_none_if_header_not_set(self):
         r = RequestFactory()
         request = r.get('/')
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+        with patch("nav.web.auth.remote_user.CONFIG.getboolean", return_value=True):
             assert remote_user.authenticate(request) is None
 
     def test_authenticate_remote_user_should_return_false_if_account_locked(self):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+        with patch("nav.web.auth.remote_user.CONFIG.getboolean", return_value=True):
             with patch(
                 "nav.models.profiles.Account.objects.get",
                 return_value=REMOTE_USER_ACCOUNT,
@@ -66,8 +66,8 @@ class TestGetStandardUrls(object):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
-            with patch("nav.web.auth.remote_user._config.get", return_value='foo'):
+        with patch("nav.web.auth.remote_user.CONFIG.getboolean", return_value=True):
+            with patch("nav.web.auth.remote_user.CONFIG.get", return_value='foo'):
                 result = auth.get_login_url(request)
                 assert result == 'foo'
 
@@ -81,8 +81,8 @@ class TestGetStandardUrls(object):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
-            with patch("nav.web.auth.remote_user._config.get", return_value='foo'):
+        with patch("nav.web.auth.remote_user.CONFIG.getboolean", return_value=True):
+            with patch("nav.web.auth.remote_user.CONFIG.get", return_value='foo'):
                 result = auth.get_logout_url(request)
                 assert result == 'foo'
 

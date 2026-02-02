@@ -88,8 +88,10 @@ class NAVRemoteUserMiddleware(RemoteUserMiddleware):
     _logger = logging.getLogger(f'{__name__}.NAVRemoteUserMiddleware')
 
     def __init__(self, get_response):
-        self.header = remote_user.get_remote_user_varname()
-        self.force_logout_if_no_header = remote_user.will_force_logout_if_no_header()
+        self.header = remote_user.CONFIG.get_remote_user_varname()
+        self.force_logout_if_no_header = (
+            remote_user.CONFIG.will_force_logout_if_no_header()
+        )
         super().__init__(get_response)
 
     def process_request(self, request):
@@ -102,7 +104,7 @@ class NAVRemoteUserMiddleware(RemoteUserMiddleware):
                 "before 'nav.web.auth.middleware.NAVRemoteUserMiddleware'."
             )
 
-        if not remote_user.is_remote_user_enabled():
+        if not remote_user.CONFIG.is_remote_user_enabled():
             self._logger.debug(
                 'NAVRemoteUserMiddleware is skipped, turned off in NAV settings',
             )
