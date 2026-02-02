@@ -464,7 +464,7 @@
           <li><strong>Side:</strong> <code>data-side</code> Options: <code>bottom</code> (default), <code>left</code>, <code>right</code>, <code>top</code></li>
           <li><strong>Size:</strong> <code>tiny</code>, <code>small</code>, <code>medium</code>, or <code>large</code> classes on popover-content</li>
           <li><strong>Arrow:</strong> Add <code>with-arrow</code> class to display a pointing arrow</li>
-          <li><strong>Close button:</strong> Add <code>close-popover</code> attribute to any element to make it close the popover when clicked</li>
+          <li><strong>Close button:</strong> Add <code>data-close-popover</code> attribute to any element to make it close the popover when clicked</li>
         </ul>
         <div style="margin-bottom: 1rem;">
             <h4>Example popover</h4>
@@ -481,7 +481,7 @@
                 <h5>Confirm Action</h5>
                 <p>Are you sure you want to delete this item?</p>
                 <button type="button" class="button small alert left">Confirm</button>
-                <button type="button" class="button small secondary close-button left" close-popover>Cancel</button>
+                <button type="button" class="button small secondary close-button left" data-close-popover>Cancel</button>
               </div>
             </div>
         </div>
@@ -504,7 +504,7 @@
         &lt;button class="button small alert left"&gt;Confirm&lt;/button&gt;
         &lt;button
             class="button small secondary close-button left"
-            close-popover
+            data-close-popover
         &gt;
             Cancel
         &lt;/button&gt;
@@ -513,6 +513,61 @@
           </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="columns">
+        <h4>Template Tags</h4>
+        <p>Use Django template tags for cleaner, more maintainable popover markup with built-in ARIA attributes.</p>
+    </div>
+    <div class="columns large-6">
+        <h5>Confirmation Popover</h5>
+        <p>For delete/confirmation dialogs with a form action:</p>
+        {% load popover %}
+        {% confirm_popover popover_id="styleguide-demo" action_url="#" title="Delete this item?" trigger_text="Delete Action" confirm_text="Delete" cancel_text="Keep it" side="right" %}
+    </div>
+    <div class="columns large-6">
+        <div class="panel white">
+            <pre class="prettyprint">
+{&percnt; load popover &percnt;}
+{&percnt; confirm_popover popover_id="delete-item" action_url=delete_url title="Delete this item?" &percnt;}
+
+{# With all options: #}
+{&percnt; confirm_popover
+    popover_id="delete-rule"
+    action_url=rule.delete_url
+    title="Delete this rule?"
+    confirm_text="Yes"
+    cancel_text="No way!"
+    trigger_icon="fa-trash"
+    size="tiny"
+    side="bottom"
+    align="end"
+&percnt;}</pre>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="columns large-6">
+        <h5>Generic Popover Block</h5>
+        <p>For custom popover content:</p>
+        {% popover popover_id="styleguide-info" trigger_text="More Info" trigger_element="a" title="About This Feature" %}
+            <p>Custom HTML content goes here. You can include any markup needed.</p>
+            {% popover_close_button "Got it" classes="secondary" %}
+        {% endpopover %}
+    </div>
+    <div class="columns large-6">
+        <div class="panel white">
+            <pre class="prettyprint">
+{&percnt; load popover &percnt;}
+{&percnt; popover popover_id="info" trigger_text="About" trigger_element="a" title="About This" &percnt;}
+    &lt;p&gt;Custom content here...&lt;/p&gt;
+    {&percnt; popover_close_button "Close" classes="secondary" &percnt;}
+{&percnt; endpopover &percnt;}</pre>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="column">
         <h3 class="underline">Tooltips</h3>
