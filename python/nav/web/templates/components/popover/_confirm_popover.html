@@ -1,0 +1,29 @@
+{# Confirmation popover with form action #}
+<div id="{{ id }}" class="popover with-arrow"{% if side != "bottom" %} data-side="{{ side }}"{% endif %}{% if align != "start" %} data-align="{{ align }}"{% endif %}>
+  {% if trigger_text %}
+  <button
+      class="{{ trigger_classes }}"
+      data-popover-target="#{{ id }}"
+      aria-haspopup="true"
+      aria-expanded="false"
+  >
+      {% if trigger_icon %}<i class="fa {{ trigger_icon }} deleteicon"></i> {% endif %}{{ trigger_text }}
+  </button>
+  {% else %}
+  <a
+      data-popover-target="#{{ id }}"
+      aria-haspopup="true"
+      aria-expanded="false"
+  >
+      <i class="fa {{ trigger_icon }} deleteicon"></i>
+  </a>
+  {% endif %}
+  <div class="popover-content {{ size }}">
+    <h5>{{ title }}</h5>
+    <form action="{{ action_url }}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="button small alert left">{{ confirm_text }}</button>
+      <button type="button" class="button small secondary close-button left" data-close-popover>{{ cancel_text }}</button>
+    </form>
+  </div>
+</div>

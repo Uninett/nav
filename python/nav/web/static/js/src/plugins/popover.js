@@ -36,7 +36,7 @@ define([], function () {
     }
 
     // Handle close buttons
-    const closeButton = e.target.closest('[close-popover]');
+    const closeButton = e.target.closest('[data-close-popover]');
     if (closeButton) {
       closePopover(closeButton.closest('.popover'));
       return;
