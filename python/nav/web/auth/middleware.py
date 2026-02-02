@@ -42,6 +42,8 @@ _logger = logging.getLogger(__name__)
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
+    "Authorize user the NAV way"
+
     def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         if not hasattr(request, "user"):
             raise ImproperlyConfigured(

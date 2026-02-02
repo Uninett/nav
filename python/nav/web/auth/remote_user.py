@@ -129,11 +129,16 @@ def fake_password(length):
 
 
 def _workaround_default(username):
+    "Fallback REMOTE_USER username cleanup: strip whitespace"
     username = username.strip()
     return username
 
 
 def _workaround_feide_oidc(username):
+    """REMOTE_USER username cleanup for Feide OIDC
+
+    Extract username from key-value structure.
+    """
     username = username.strip()
     if ':' in username:
         username = username.split(':', 1)[1]

@@ -10,6 +10,8 @@ _logger = logging.getLogger(__name__)
 
 
 class NAVRemoteUserBackend(RemoteUserBackend):
+    "An adaptation of Django's RemoteUserBackend that is configurable the NAV way"
+
     def __init__(self):
         self.create_unknown_user = remote_user.CONFIG.will_autocreate_user()
 
