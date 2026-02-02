@@ -39,10 +39,11 @@ class ServiceChoiceForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
-        # NB: Setting the TextInput to hidden is done to display the label.
-        #     The HiddenInput widget will remove the label
+        # Use Select widget for Select2 v4 compatibility
+        # (v4 doesn't support input elements). Options are populated via AJAX.
         self.fields['netbox'] = forms.CharField(
-            label='IP Device', widget=forms.TextInput(attrs={'type': 'hidden'})
+            label='IP Device',
+            widget=forms.Select(choices=[('', '')]),
         )
         self.fields['service'] = forms.ChoiceField(
             choices=sorted(self._build_checker_choices()),
