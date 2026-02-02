@@ -196,7 +196,7 @@ function() {
             table.draw();
         });
 
-        $('#id_room').select2(); // Apply select2 to the room dropdown
+        $('#id_room').select2({ width: '350px' });
 
         return table;
     }
@@ -282,19 +282,26 @@ function() {
          prepopulated. Do a new query when using the dropdowns. They reset each
          other.
          */
-        var $roomdropdown = $('#id_room'),
-            $netboxdropdown = $('#id_netbox');
+        const $roomdropdown = $('#id_room'),
+              $netboxdropdown = $('#id_netbox');
+        let clearing = false;
         $roomdropdown.appendTo('.filters').change(function() {
-            $netboxdropdown.select2('val', '');
+            if (clearing) return;
+            clearing = true;
+            $netboxdropdown.val(null).trigger('change');
+            clearing = false;
             table.draw();
         });
-        $roomdropdown.select2(); // Apply select2 to the room dropdown
+        $roomdropdown.select2({ width: '350px' });
 
         $netboxdropdown.appendTo('.filters').change(function() {
-            $roomdropdown.select2('val', '');
+            if (clearing) return;
+            clearing = true;
+            $roomdropdown.val(null).trigger('change');
+            clearing = false;
             table.draw();
         });
-        $netboxdropdown.select2(); // Apply select2 to the room dropdown
+        $netboxdropdown.select2({ width: '350px' });
 
         return table;
     }
