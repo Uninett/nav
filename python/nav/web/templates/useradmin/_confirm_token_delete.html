@@ -1,26 +1,4 @@
 {# Display form for deleting a token #}
-<div id="confirm-token-delete" class="popover with-arrow" data-side="top">
-  <button
-          class="button small alert"
-          data-popover-target="#confirm-token-delete"
-          aria-haspopup="true"
-          style="margin-bottom: 0;"
-  >
-    Delete token
-  </button>
-  <div class="popover-content">
-    <form id="delete-token-form"
-          action="{% url delete_url token.pk %}"
-          method="post">
-      {% csrf_token %}
-      <button type="submit" class="button small alert expand">Yes, delete</button>
-      <button
-              class="button secondary small close-button expand"
-              type="button"
-              style="margin-bottom: 0;"
-              close-popover
-      >
-          No, don't delete
-      </button>
-    </form>
-  </div>
+{% load popover %}
+{% url delete_url token.pk as action_url %}
+{% confirm_popover popover_id="confirm-token-delete" action_url=action_url title="Delete this token?" confirm_text="Yes, delete" cancel_text="No, don't delete" trigger_text="Delete token" trigger_classes="button small alert" side="top" %}

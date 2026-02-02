@@ -5,6 +5,12 @@ from django.utils.html import conditional_escape, format_html, mark_safe
 
 register = template.Library()
 
+# Valid values for enum-like parameters
+VALID_TRIGGER_ELEMENTS = ('button', 'a', 'span')
+VALID_SIDES = ('top', 'bottom', 'left', 'right')
+VALID_ALIGNS = ('start', 'end')
+VALID_SIZES = ('tiny', 'small', 'medium', 'large')
+
 
 @register.inclusion_tag('components/popover/_confirm_popover.html', takes_context=True)
 def confirm_popover(
@@ -109,6 +115,7 @@ class PopoverNode(template.Node):
             self.trigger_classes.resolve(context) if self.trigger_classes else ""
         )
 
+        # Content is trusted template output, not user input
         content = self.nodelist.render(context)
 
         arrow_class = "with-arrow" if self.with_arrow else ""
@@ -157,20 +164,67 @@ def _build_trigger_html(element, id_value, text, classes):
     )
     text = conditional_escape(text)
 
-    if element == "button":
-        if classes:
-            return format_html(
-                '<button class="{}" {}>{}</button>', classes, attrs, text
+    tag = {"button": "button", "a": "a"}.get(element, "span")
+    if classes:
+        return format_html('<{} class="{}" {}>{}</{}>', tag, classes, attrs, text, tag)
+    return format_html('<{} {}>{}</{}>', tag, attrs, text, tag)
+
+
+def _parse_popover_kwargs(bits, tag_name):
+    """Parse keyword arguments from template tag tokens.
+
+    :param bits: Token contents split by whitespace
+    :param tag_name: Name of the tag (for error messages)
+    :returns: Dictionary of keyword arguments
+    :raises TemplateSyntaxError: If non-keyword arguments found or required args missing
+    """
+    kwargs = {}
+    for bit in bits[1:]:
+        if '=' in bit:
+            key, value = bit.split('=', 1)
+            kwargs[key] = value
+        else:
+            raise template.TemplateSyntaxError(
+                f"'{tag_name}' tag requires keyword arguments"
             )
-        return format_html('<button {}>{}</button>', attrs, text)
-    elif element == "a":
-        if classes:
-            return format_html('<a class="{}" {}>{}</a>', classes, attrs, text)
-        return format_html('<a {}>{}</a>', attrs, text)
-    else:
-        if classes:
-            return format_html('<span class="{}" {}>{}</span>', classes, attrs, text)
-        return format_html('<span {}>{}</span>', attrs, text)
+
+    if 'popover_id' not in kwargs:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' tag requires 'popover_id' argument"
+        )
+    if 'trigger_text' not in kwargs:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' tag requires 'trigger_text' argument"
+        )
+
+    return kwargs
+
+
+def _validate_popover_params(trigger_element, size, side, align, tag_name):
+    """Validate enum-like parameters for the popover tag.
+
+    :raises TemplateSyntaxError: If any parameter has an invalid value
+    """
+    if trigger_element not in VALID_TRIGGER_ELEMENTS:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' trigger_element must be one of {VALID_TRIGGER_ELEMENTS}, "
+            f"got '{trigger_element}'"
+        )
+
+    if size not in VALID_SIZES:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' size must be one of {VALID_SIZES}, got '{size}'"
+        )
+
+    if side not in VALID_SIDES:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' side must be one of {VALID_SIDES}, got '{side}'"
+        )
+
+    if align not in VALID_ALIGNS:
+        raise template.TemplateSyntaxError(
+            f"'{tag_name}' align must be one of {VALID_ALIGNS}, got '{align}'"
+        )
 
 
 @register.tag('popover')
@@ -197,26 +251,7 @@ def do_popover(parser, token):
     bits = token.split_contents()
     tag_name = bits[0]
 
-    # Parse keyword arguments
-    kwargs = {}
-    for bit in bits[1:]:
-        if '=' in bit:
-            key, value = bit.split('=', 1)
-            kwargs[key] = value
-        else:
-            raise template.TemplateSyntaxError(
-                f"'{tag_name}' tag requires keyword arguments"
-            )
-
-    # Required arguments
-    if 'popover_id' not in kwargs:
-        raise template.TemplateSyntaxError(
-            f"'{tag_name}' tag requires 'popover_id' argument"
-        )
-    if 'trigger_text' not in kwargs:
-        raise template.TemplateSyntaxError(
-            f"'{tag_name}' tag requires 'trigger_text' argument"
-        )
+    kwargs = _parse_popover_kwargs(bits, tag_name)
 
     nodelist = parser.parse(('endpopover',))
     parser.delete_first_token()
@@ -236,25 +271,7 @@ def do_popover(parser, token):
     align = _strip_quotes(kwargs.get('align', '"start"'))
     with_arrow = _parse_bool(kwargs.get('with_arrow', 'True'))
 
-    # Validate enum-like parameters
-    valid_trigger_elements = ('button', 'a', 'span')
-    if trigger_element not in valid_trigger_elements:
-        raise template.TemplateSyntaxError(
-            f"'{tag_name}' trigger_element must be one of {valid_trigger_elements}, "
-            f"got '{trigger_element}'"
-        )
-
-    valid_sides = ('top', 'bottom', 'left', 'right')
-    if side not in valid_sides:
-        raise template.TemplateSyntaxError(
-            f"'{tag_name}' side must be one of {valid_sides}, got '{side}'"
-        )
-
-    valid_aligns = ('start', 'end')
-    if align not in valid_aligns:
-        raise template.TemplateSyntaxError(
-            f"'{tag_name}' align must be one of {valid_aligns}, got '{align}'"
-        )
+    _validate_popover_params(trigger_element, size, side, align, tag_name)
 
     return PopoverNode(
         nodelist,
@@ -282,5 +299,9 @@ def _strip_quotes(value):
 
 def _parse_bool(value):
     """Parse a string value as boolean."""
-    value = _strip_quotes(value)
-    return value.lower() not in ('false', '0', 'no', '')
+    value = _strip_quotes(value).lower()
+    if value in ('true', '1', 'yes'):
+        return True
+    if value in ('false', '0', 'no', ''):
+        return False
+    raise ValueError(f"Cannot parse '{value}' as boolean")
