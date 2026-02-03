@@ -1,17 +1,18 @@
 define(function(require, exports, module) {
-  var _ = require("libs/underscore");
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
+  const _ = require("libs/underscore");
+  require("backbone");
+  const Marionette = require("marionette");
+  const Radio = require("backbone.radio");
 
-  var Models = require("src/ipam/models");
-  var Viz = require("src/ipam/viz");
+  require("src/ipam/models");
+  const Viz = require("src/ipam/viz");
 
-  var debug = require("src/ipam/util").ipam_debug;
-  var globalCh = Backbone.Wreqr.radio.channel("global");
+  const debug = require("src/ipam/util").ipam_debug;
+  Radio.channel("global");
 
   // Responsible for fetching and display usage/allocation stats. Also
   // propagates these values to the parent.
-  var SubnetAllocator = Marionette.ItemView.extend({
+  const SubnetAllocator = Marionette.View.extend({
     template: "#prefix-graphs",
     debug: debug.new("views:usagegraph"),
     // mock - for catching dhcp treshold change in parent?
@@ -38,8 +39,8 @@ define(function(require, exports, module) {
     // Handle a successful fetch
     onReceive: function() {
       this.debug("Received usage data");
-      var usage = this.model.get("usage");
-      var allocated = this.model.get("allocated");
+      const usage = this.model.get("usage");
+      const allocated = this.model.get("allocated");
       // Bubble up captured value to parent model
       this.fsm.step("DONE_FETCHING_STATS", {
         usage: usage,
@@ -52,8 +53,8 @@ define(function(require, exports, module) {
       // Don't show allocation stats for things that aren't scopes, as this
       // makes no sense
       if (this.model.get("net_type") === "scope") {
-        var allocationElem = this.$el.find(".allocation-graph:first");
-        var allocationTmpl = _.template("<span title='Ratio of the scope that has been allocated to subnets'>Allocated: <%= percent %> %</span>");
+        const allocationElem = this.$el.find(".allocation-graph:first");
+        const allocationTmpl = _.template("<span title='Ratio of the scope that has been allocated to subnets'>Allocated: <%= percent %> %</span>");
         allocationElem.append(allocationTmpl({percent: (allocated * 100).toFixed(2)}));
         Viz.usageChart({
           mountElem: allocationElem.get(0),
@@ -71,8 +72,8 @@ define(function(require, exports, module) {
         });
       }
 
-      var usageElem = this.$el.find(".usage-graph:first");
-      var usageTmpl = _.template("<span title='Based on current active IP addresses'>Current usage: <%= percent %> %</span>");
+      const usageElem = this.$el.find(".usage-graph:first");
+      const usageTmpl = _.template("<span title='Based on current active IP addresses'>Current usage: <%= percent %> %</span>");
       usageElem.append(usageTmpl({percent: (usage * 100).toFixed(2)}));
       Viz.usageChart({
         mountElem: usageElem.get(0),

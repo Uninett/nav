@@ -1,37 +1,28 @@
 define(function(require, exports, module) {
 
-  var _ = require("libs/underscore");
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
-  var FSM = require("libs/statist");
-
-  var Behaviors = {};
+  const _ = require("libs/underscore");
+  const Backbone = require("backbone");
+  const Marionette = require("marionette");
+  const FSM = require("libs/statist");
 
   // Simple mixin to add a state machine to a view. See 'subnetallocator.js' for
   // example usage.
-  Behaviors.StateMachine = Marionette.Behavior.extend({
-    defaults: {
-      // States of the FSM
-      "states": {},
-      // TODO: model field?
-      // Configure/handle the FSM after instantion
-      "init": function(fsm) {
-        return fsm;
-      },
-      // Field to update in model when state changed
-      "modelField": null,
-      // Handlers for each state
-      handlers: {}
-    },
-
+  //
+  // In Marionette v4, behaviors are referenced directly by class using
+  // `behaviorClass` in the view's behaviors hash.
+  const StateMachine = Marionette.Behavior.extend({
     initialize: function() {
-      var states = this.options.states;
-      var modelField = this.options.modelField;
-      var fsm = this.options.init(new FSM(states));
+      // In Marionette v4, use getOption() to access options with defaults
+      const states = this.getOption('states') || {};
+      const modelField = this.getOption('modelField');
+      const initFn = this.getOption('init') || function(fsm) { return fsm; };
+      const handlers = this.getOption('handlers') || {};
+
+      const fsm = initFn(new FSM(states));
       if (!_.isObject(fsm)) {
         throw new Error("FSM init error: Didn't (or forgot to) return FSM object in 'init' function");
       }
-      var self = this.view;
+      const self = this.view;
       // Update model with current state if modelField given
       if (modelField) {
         fsm.onChange(function (nextState) {
@@ -40,8 +31,8 @@ define(function(require, exports, module) {
       }
       // Mount handlers (if any). This is used to make a single function
       // responsible for any state in the state machine.
-      _.each(this.options.handlers, function(handler, state) {
-        var fn = self[handler];
+      _.each(handlers, function(handler, state) {
+        const fn = self[handler];
         if (!_.isFunction(fn)) {
           throw new Error("Handler " + handler + " is not a function (or undefined)");
         }
@@ -51,16 +42,9 @@ define(function(require, exports, module) {
     }
   });
 
-
-  // Marionette needs to be told where to find the behaviors. This utility
-  // function takes care of this.
-  function mount() {
-    window.Behaviors = Behaviors;
-    Marionette.Behaviors.behaviorsLookup = function() {
-      return window.Behaviors;
-    };
+  // Export behaviors directly for use with behaviorClass in Marionette v4
+  module.exports = {
+    StateMachine: StateMachine
   };
-
-  module.exports = mount;
 
 });

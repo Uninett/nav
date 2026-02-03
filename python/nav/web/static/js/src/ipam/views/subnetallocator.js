@@ -8,19 +8,48 @@
 
 define(function(require, exports, module) {
 
-  var _ = require("libs/underscore");
-  var Backbone = require("backbone");
-  var Marionette = require("marionette");
-  var debug = require("src/ipam/util").ipam_debug.new("views:available_subnets");
+  const _ = require("libs/underscore");
+  const Backbone = require("backbone");
+  const Marionette = require("marionette");
+  const Radio = require("backbone.radio");
+  const debug = require("src/ipam/util").ipam_debug.new("views:available_subnets");
 
-  var Models = require("src/ipam/models");
-  var PrefixMap = require("src/ipam/views/prefixmap");
+  const Behaviors = require("src/ipam/views/behaviors");
+  const Models = require("src/ipam/models");
+  const PrefixMap = require("src/ipam/views/prefixmap");
 
   // Event broker
-  var globalCh = Backbone.Wreqr.radio.channel("global");
+  const globalCh = Radio.channel("global");
+
+  const InfoView = Marionette.View.extend({
+    template: "#prefix-allocate-info",
+
+    events: {
+      "click .reserve-subnet": "reserveSubnet"
+    },
+
+    initialize: function(opts) {
+      this.fsm = opts.fsm;
+      this.node = opts.node;
+      this.model = new Backbone.Model(this.node);
+    },
+
+    serializeData: function(opts) {
+      return {
+        node: this.model.toJSON(),
+        state: this.fsm.state
+      };
+    },
+
+    reserveSubnet: function() {
+      this.fsm.step("RESERVE", this.node);
+      this.render();
+    }
+
+  });
 
   // For simplicity reasons, use a state singleton
-  var viewStates = {
+  const viewStates = {
     INIT: {
       FETCH_STATS: "FETCHING_STATS",
       SHOW_TREEMAP: "SHOWING_TREEMAP"
@@ -50,12 +79,13 @@ define(function(require, exports, module) {
   };
 
   // Main container for subnet allocator.
-  var AvailableSubnetsView = Marionette.LayoutView.extend({
+  const AvailableSubnetsView = Marionette.View.extend({
     debug: debug,
     template: "#prefix-available-subnets",
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: viewStates,
         modelField: "state",
         handlers: {
@@ -76,7 +106,7 @@ define(function(require, exports, module) {
     },
 
     initialize: function(opts) {
-      var self = this;
+      const self = this;
       this.model = new Models.AvailableSubnets({
         queryParams: {
           prefix: opts.prefix
@@ -98,39 +128,23 @@ define(function(require, exports, module) {
     focusedNode: function(self, node) {
       self.debug("Focused on", node);
       self.model.set("focused_node", node);
-      var payload = {
+      const payload = {
         node: node,
         fsm: self.fsm
       };
-      /*
-        TODO: Upgrade Marionette version to latest stable - 3.x or 4.x.
-        The codebase was updated to use jQuery 3.x, which has compatibility issues with Marionette regions.
-        Therefore, we bypass Marionette regions here and directly manipulate the DOM using jQuery.
-
-        Upgrading Marionette requires a significant refactoring effort and thorough testing to ensure
-        compatibility with the existing codebase. Once upgraded, we can revert to using Marionette regions for better
-        view management and lifecycle handling.
-      */
-      const infoContainer = self.$el.find(".allocation-tree-info:first");
-      if (infoContainer.length === 0) {
-        console.warn("nodeInfo container not found in DOM");
-        return;
-      }
-      const infoView = new InfoView(payload);
-      infoView.render();
-      infoContainer.html(infoView.$el);
+      self.showChildView("nodeInfo", new InfoView(payload));
     },
 
     // Initial state. The tree has the data it needs to draw itself.
     showingTreemap: function(self) {
       self.render();
       self.debug("Showing subnet treemap");
-      var target = self.$el.find(".allocation-tree:first");
-      var treeMap = target.find(".treemap").get(0);
-      var data = self.model.get("raw_data");
-      var notify = function(__node) {
+      const target = self.$el.find(".allocation-tree:first");
+      const treeMap = target.find(".treemap").get(0);
+      const data = self.model.get("raw_data");
+      const notify = function(__node) {
         if (__node.net_type == "scope") {
-          globalCh.vent.trigger("scrollto", __node);
+          globalCh.trigger("scrollto", __node);
         }
         self.fsm.step("FOCUS_NODE", __node);
       };
@@ -156,39 +170,26 @@ define(function(require, exports, module) {
     // The user is trying to reserve a new prefix for some particular purpose
     creatingReservation: function(self, node) {
       self.debug("Creating reservation for", node);
-      var payload = {
+      const payload = {
         node: node,
         fsm: self.fsm
       };
-      // Find the region element and render the ReservationView into it
-      // (bypassing Marionette regions due to jQuery 3.x compatibility issues)
-      const reservationContainer = self.$el.find(".allocation-tree-reservation:first");
-      if (reservationContainer.length === 0) {
-        console.warn("reservation container not found in DOM");
-        return;
-      }
-      const reservationView = new ReservationView(payload);
-      reservationView.render();
-      reservationContainer.html(reservationView.$el);
-      // Store reference for cleanup
-      self._reservationView = reservationView;
+      self.showChildView("reservation", new ReservationView(payload));
     },
 
     // When deleting reservation, just return to new or currently focused node
     hideReservation: function(self, node) {
       self.debug("Destroying reservation");
-      // Clean up reservation view manually
-      if (self._reservationView) {
-        self._reservationView.destroy();
-        self._reservationView = null;
+      const region = self.getRegion("reservation");
+      if (region) {
+        region.empty();
       }
-      self.$el.find(".allocation-tree-reservation:first").empty();
       self.fsm.step("DONE", node);
     },
 
     // Loading state, e.g. trying to get some data to display to the user
     fetchingStats: function(self) {
-      var prefix = self.model.get("queryParams").prefix;
+      const prefix = self.model.get("queryParams").prefix;
       self.debug("Trying to get subnets for " + prefix);
       // cache xhr object
       self.xhr = self.model.fetch({reset: true});
@@ -214,7 +215,7 @@ define(function(require, exports, module) {
   });
 
 
-  var reservationStates = {
+  const reservationStates = {
     INIT: {
       CHOOSE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE",
       STORE_RESERVATION_SIZE: "CHOSEN_RESERVATION_SIZE"
@@ -231,12 +232,13 @@ define(function(require, exports, module) {
     }
   };
 
-  var ReservationView = Marionette.LayoutView.extend({
+  const ReservationView = Marionette.View.extend({
     template: "#prefix-allocate-reservation",
     baseUrl: "/seeddb/prefix/add/?",
 
     behaviors: {
       StateMachine: {
+        behaviorClass: Behaviors.StateMachine,
         states: reservationStates
       }
     },
@@ -255,7 +257,7 @@ define(function(require, exports, module) {
       this.model = new Backbone.Model(this.node);
       this.model.set("creation_url", null);
       // Since template uses states, rerender on new state
-      this.fsm.onChange(this.render);
+      this.fsm.onChange(this.render.bind(this));
       this.fsm.onChange(function (state) {
         console.log("RESERVATION went into state", state);
       });
@@ -270,7 +272,7 @@ define(function(require, exports, module) {
     chooseNetworkSize: function(evt) {
       evt.preventDefault();
       this.getAndStoreNetworkSize();
-      var networkSize = this.model.get("network_size");
+      const networkSize = this.model.get("network_size");
       if (networkSize === '' || !networkSize) {
         return;
       }
@@ -284,7 +286,7 @@ define(function(require, exports, module) {
     },
 
     getAndStoreNetworkSize: function() {
-      var sizeOfNetwork = this.$el.find(".size-of-network").val();
+      const sizeOfNetwork = this.$el.find(".size-of-network").val();
       this.model.set("network_size", sizeOfNetwork);
       this.model.set("selected_prefix", null);
     },
@@ -317,14 +319,14 @@ define(function(require, exports, module) {
 
     onRender: function(self) {
       // Mount select2 if found
-      var selectElem = self.$el.find(".prefix-list:first");
-      var sizeOfNetwork = self.model.get("network_size");
-      var prefix = self.model.get("prefix");
+      const selectElem = self.$el.find(".prefix-list:first");
+      const sizeOfNetwork = self.model.get("network_size");
+      const prefix = self.model.get("prefix");
       if (!(sizeOfNetwork && prefix)) {
         return;
       }
-      var optionTemplate = _.template("<%= prefix %> (<%= start%>-<%= end %>)");
-      var pageSize = 10;
+      const optionTemplate = _.template("<%= prefix %> (<%= start%>-<%= end %>)");
+      const pageSize = 10;
       selectElem.select2({
         placeholder: self.model.get("selected_prefix") || "Select a subnet",
         ajax: {
@@ -367,34 +369,6 @@ define(function(require, exports, module) {
     }
 
   });
-
-  var InfoView = Marionette.LayoutView.extend({
-    template: "#prefix-allocate-info",
-
-    events: {
-      "click .reserve-subnet": "reserveSubnet"
-    },
-
-    initialize: function(opts) {
-      this.fsm = opts.fsm;
-      this.node = opts.node;
-      this.model = new Backbone.Model(this.node);
-    },
-
-    serializeData: function(opts) {
-      return {
-        node: this.model.toJSON(),
-        state: this.fsm.state
-      };
-    },
-
-    reserveSubnet: function() {
-      this.fsm.step("RESERVE", this.node);
-      this.render();
-    }
-
-  });
-
 
   // This is where the hard part starts: The viz of the network layout. TODO:
   // Consider moving this into a separate file.
