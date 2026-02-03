@@ -74,7 +74,7 @@ require(["src/libs/tablesort_extensions", "jquery"], function (tablesort) {
             return;
         }
 
-        var headings = trackerTable.querySelectorAll('thead tr th');
+        const headings = trackerTable.querySelectorAll('thead tr th');
 
         // Configure sorters based on column headers
         headings.forEach(function(cell, index) {
@@ -84,7 +84,7 @@ require(["src/libs/tablesort_extensions", "jquery"], function (tablesort) {
                 headerData[index] = { sorter: false };
             } else if (header === "IP") {
                 textExtractionData[index] = function(node) {
-                    var span = node.querySelector('span');
+                    const span = node.querySelector('span');
                     return span ? span.textContent : node.textContent;
                 };
                 headerData[index] = { sorter: 'ip-address' };

@@ -58,12 +58,6 @@ define(['tablesort'], function(Tablesort) {
         // Match strings containing IPv4 addresses
         return /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(item);
     }, function(a, b) {
-        function padOctets(ip) {
-            const extracted = extractIP(ip);
-            return extracted.split('.').map(function(octet) {
-                return ('00' + octet).slice(-3);
-            }).join('');
-        }
         const aPadded = padOctets(a);
         const bPadded = padOctets(b);
         return bPadded.localeCompare(aPadded);
@@ -125,9 +119,9 @@ define(['tablesort'], function(Tablesort) {
             const config = options.headers?.[index];
             if (config) {
                 if (config.sorter === false) {
-                    header.setAttribute('data-sort-method', 'none');
+                    header.dataset.sortMethod = 'none';
                 } else if (config.sorter) {
-                    header.setAttribute('data-sort-method', config.sorter);
+                    header.dataset.sortMethod = config.sorter;
                 }
             } else if (!header.dataset.sortMethod) {
                 header.dataset.sortMethod = 'alpha';
@@ -141,7 +135,7 @@ define(['tablesort'], function(Tablesort) {
                 const cells = row.querySelectorAll('td');
                 Object.keys(options.textExtraction).forEach(function(index) {
                     const extractFn = options.textExtraction[index];
-                    const cell = cells[parseInt(index, 10)];
+                    const cell = cells[Number.parseInt(index, 10)];
                     if (cell && typeof extractFn === 'function') {
                         const sortValue = extractFn(cell);
                         cell.dataset.sort = sortValue;
@@ -157,9 +151,9 @@ define(['tablesort'], function(Tablesort) {
             const sortDir = options.sortList[0][1];
             const sortHeader = headers[sortCol];
             if (sortHeader) {
-                sortHeader.setAttribute('data-sort-default', '');
+                sortHeader.dataset.sortDefault = '';
                 if (sortDir === 1) {
-                    sortHeader.setAttribute('data-sort-reverse', '');
+                    sortHeader.dataset.sortReverse = '';
                 }
             }
         }
