@@ -11,7 +11,7 @@ require(['src/libs/tablesort_extensions'], function (tablesort) {
 
     // Add tablesorter to history table
     const historyTable = document.querySelector('.arnold-history');
-    if (historyTable && historyTable.querySelector('tbody')) {
+    if (historyTable?.querySelector('tbody')) {
         tablesort.init(historyTable, {
             headers: {
                 0: { sorter: 'ip-address' },
@@ -23,7 +23,7 @@ require(['src/libs/tablesort_extensions'], function (tablesort) {
 
     // Add tablesorter to detained ports table
     const detainedTable = document.querySelector('.arnold-detainedports');
-    if (detainedTable && detainedTable.querySelector('tbody')) {
+    if (detainedTable?.querySelector('tbody')) {
         tablesort.init(detainedTable, {
             headers: {
                 0: { sorter: 'ip-address' },
