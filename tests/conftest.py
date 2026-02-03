@@ -9,7 +9,52 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 
 
+def _setup_devcontainer_test_config():
+    """Set up test config directory for devcontainer environment.
+
+    This must run before Django is bootstrapped so that NAV reads
+    from the test config (with test database) instead of dev config.
+    """
+    devcontainer_marker = '/workspaces/nav/.devcontainer'
+    if not os.path.exists(devcontainer_marker):
+        return  # Not in devcontainer
+
+    nav_config_dir = os.environ.get('NAV_CONFIG_DIR', '/tmp/nav_test_config')
+    os.environ['NAV_CONFIG_DIR'] = nav_config_dir
+
+    db_conf = os.path.join(nav_config_dir, 'db.conf')
+    if os.path.exists(db_conf):
+        return  # Already set up
+
+    # Create test config directory and copy base config
+    os.makedirs(nav_config_dir, exist_ok=True)
+    dev_config_dir = os.path.expanduser('~/.venv/etc/nav')
+    if os.path.exists(dev_config_dir):
+        import shutil
+
+        for item in os.listdir(dev_config_dir):
+            src = os.path.join(dev_config_dir, item)
+            dst = os.path.join(nav_config_dir, item)
+            if os.path.isdir(src):
+                if not os.path.exists(dst):
+                    shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+
+    # Write test database config
+    with open(db_conf, 'w') as f:
+        f.write(f"""dbhost={os.environ.get('PGHOST', 'db')}
+dbport={os.environ.get('PGPORT', '5432')}
+db_nav={os.environ.get('PGDATABASE', 'nav_test')}
+script_default={os.environ.get('PGUSER', 'nav')}
+userpw_{os.environ.get('PGUSER', 'nav')}={os.environ.get('PGPASSWORD', 'nav')}
+""")
+
+
 def pytest_configure(config):
+    # For devcontainer: set up test config before Django loads
+    _setup_devcontainer_test_config()
+
     # Bootstrap Django config
     from nav.bootstrap import bootstrap_django
 
