@@ -13,16 +13,17 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-import operator
+from django.db.models import Case, F, IntegerField, OuterRef, Q, Subquery, When
+from django.db.models.functions import Cast
 
-from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import serializers
-from rest_framework import viewsets, filters
+from rest_framework import filters, serializers, viewsets
 
 from nav.web.api.v1.views import NAVAPIMixin
 
 from nav.models.manage import Interface
+from nav.models.profiles import Account
 
 from .models import LogEntry
 
@@ -75,20 +76,33 @@ class MultipleFilter(filters.BaseFilterBackend):
         return queryset
 
 
-class CustomOrderingFilter(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        """Order by actor login
+class LogEntryOrderingFilter(filters.OrderingFilter):
+    """Custom ordering filter that handles the 'actor' field specially.
 
-        Sad things happen if the actor is not an account
-        """
+    The 'actor' field is a LegacyGenericForeignKey and cannot be used with
+    Django's queryset order_by(). Instead, we use a subquery to fetch the
+    actor's login from the Account table for efficient database-level sorting.
+    """
+
+    def filter_queryset(self, request, queryset, view):
         ordering = request.query_params.get('ordering')
         if ordering in ['-actor', 'actor']:
-            return sorted(
-                queryset,
-                key=operator.attrgetter('actor.login'),
-                reverse=ordering.startswith('-'),
+            actor_login = Case(
+                When(
+                    actor_pk__regex=r'^\d+$',
+                    then=Subquery(
+                        Account.objects.filter(
+                            id=Cast(OuterRef('actor_pk'), IntegerField())
+                        ).values('login')[:1]
+                    ),
+                ),
+                default=F('actor_pk'),
             )
-        return queryset
+            queryset = queryset.annotate(actor_login=actor_login)
+            if ordering == '-actor':
+                return queryset.order_by(F('actor_login').desc(nulls_last=True))
+            return queryset.order_by(F('actor_login').asc(nulls_last=True))
+        return super().filter_queryset(request, queryset, view)
 
 
 class NetboxFilter(filters.BaseFilterBackend):
@@ -130,9 +144,11 @@ class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
 
     Logentries are created behind the scenes by the subsystems themselves."""
 
-    filter_backends = NAVDefaultsMixin.filter_backends + (
+    filter_backends = (
+        filters.SearchFilter,
+        DjangoFilterBackend,
+        LogEntryOrderingFilter,
         MultipleFilter,
-        CustomOrderingFilter,
         NetboxFilter,
     )
     queryset = LogEntry.objects.all()
