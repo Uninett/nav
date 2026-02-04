@@ -28,6 +28,19 @@ from nav.auditlog.utils import get_all_historical_actors, get_lurkers
 from nav.models.profiles import Account
 
 
+KNOWN_PROBLEMS = {
+    "delete-account-fix-object": (
+        "For delete-account entries:\n"
+        "\tAttempts to set the pk of the object if it is missing"
+    ),
+    "delete-account-actually-delete": (
+        "For delete-account entries:\n"
+        "\tActually delete accounts that have a delete-account entry "
+        "\tbut for some reason still exists"
+    ),
+}
+
+
 def main():
     """Main script controller"""
     parser = create_parser()
@@ -46,8 +59,10 @@ def main():
     if args.subcommand == "fix":
         if args.list:
             list_available_fixes()
-        elif args.problem == "delete-account":
+        elif args.problem == "delete-account-fix-object":
             repair_delete_account_entries()
+        elif args.problem == "delete-account-actually-delete":
+            delete_accounts_marked_as_deleted_in_auditlog()
         else:
             parser.parse_args(["fix", "-h"])
             sys.exit(1)
@@ -88,7 +103,7 @@ def create_parser():
     return parser
 
 
-# commands
+# commands, view
 
 
 def view_dump():
@@ -120,9 +135,13 @@ def view_lurkers():
         print("*", lurker.login)
 
 
+# commands, repair
+
+
 def list_available_fixes():
-    "List avaliable fixes"
-    print("delete-account: Attempts to set the pk of the object if it is missing")
+    "List available fixes"
+    for key, value in KNOWN_PROBLEMS.items():
+        print(f"{key}: {value}")
 
 
 def _find_unused_ids():
@@ -166,6 +185,18 @@ def repair_delete_account_entries(verbose: bool = True):
         entry.save()
         if verbose:
             print(f'Fixed: {entry.id} "{entry.summary}" (lurker)')
+
+
+def delete_accounts_marked_as_deleted_in_auditlog():
+    "Delete accounts have an entry in the object column of delete-account"
+    deleted_account_ids = [
+        int(_id)
+        for _id in LogEntry.objects.filter(
+            verb="delete-account", object_pk__isnull=False
+        ).values_list("id", flat=True)
+    ]
+    accounts_to_delete = Account.objects.filter(pk__in=deleted_account_ids)
+    accounts_to_delete.delete()
 
 
 if __name__ == '__main__':
