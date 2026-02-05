@@ -1,0 +1,32 @@
+{% if navlet and navlet.mode == "VIEW" and navlet.preferences.refresh_interval %}
+{% if not navlet.ajax_reload %}
+<div
+    class="hidden"
+    hx-get="{% url 'get-user-navlet' navlet.navlet_id %}"
+    hx-trigger="every {{ navlet.preferences.refresh_interval }}ms"
+    hx-target="closest .navlet"
+></div>
+{% else %}
+<script id="navlet-ajax-refresh-{{ navlet.navlet_id }}">
+(function () {
+    const refreshScript = document.getElementById("navlet-ajax-refresh-{{ navlet.navlet_id }}");
+    if (!refreshScript) return;
+
+    let navletIntervalId = setInterval(function () {
+        const refreshScript = document.getElementById("navlet-ajax-refresh-{{ navlet.navlet_id }}")
+        if (refreshScript) {
+            console.log("Refreshing navlet {{ navlet.navlet_id }} via AJAX");
+            // Trigger 'refresh' event on the navlet element
+            const navletElement = refreshScript.closest('.navlet');
+            if (navletElement) {
+                navletElement.dispatchEvent(new Event('refresh'));
+            }
+        } else {
+            clearInterval(navletIntervalId);
+            navletIntervalId = null;
+        }
+    }, {{ navlet.preferences.refresh_interval }});
+})();
+</script>
+{% endif %}
+{% endif %}

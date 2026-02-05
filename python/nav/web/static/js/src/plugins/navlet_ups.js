@@ -16,18 +16,21 @@ define(function(require, exports, module) {
         });
 
         this.metricList = _.keys(this.sensors);
+        this.isDestroyed = false;
 
         // Run collection and listen to events
         this.update();
-        $navlet.on('refresh', this.update.bind(this));
-        this.$navlet.on('render', function(event, renderType){
-            /* We need to unregister refresh listener, as it will not be removed
-             when going into edit-mode, and thus we will have one for each time
-             you have edited the widget. */
-            if (renderType === 'EDIT') {
-                self.$navlet.off('refresh');
-            }
-        });
+        this.refreshHandler = this.update.bind(this);
+        this.cleanupHandler = this.cleanup.bind(this);
+        $navlet.on('refresh', this.refreshHandler);
+        $navlet.on('htmx:beforeSwap', this.cleanupHandler);
+    }
+
+    Poller.prototype.cleanup = function() {
+        if (this.isDestroyed) return;
+        this.$navlet.off('refresh');
+        this.$navlet.off('htmx:beforeSwap');
+        this.isDestroyed = true;
     }
 
     Poller.prototype.update = function() {

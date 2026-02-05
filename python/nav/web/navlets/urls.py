@@ -26,7 +26,6 @@ from . import (
     remove_user_navlet_modal,
     dispatcher,
     save_navlet_order,
-    render_base_template,
     set_navlet_preferences,
     add_user_navlet_sensor,
 )
@@ -65,9 +64,6 @@ urlpatterns = [
     ),
     re_path(r'^get-user-navlet/(?P<navlet_id>\d+)', dispatcher, name='get-user-navlet'),
     re_path(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
-    re_path(
-        r'^navlet-base-template/', render_base_template, name='navlet-base-template'
-    ),
     re_path(
         r'^set-navlet-preferences',
         set_navlet_preferences,

@@ -94,13 +94,15 @@
   <form id="navlets-action-form" style="display: none;">
     {% csrf_token %}
   </form>
-  <div id="navlets"
-       {% if request.user.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
-       data-list-navlets="{% url 'get-user-navlets' dashboard.pk %}"
-       data-remove-navlet="{% url 'remove-user-navlet' %}"
+  <div
+       id="navlets-htmx"
+       {% if widget_display_density == 'compact' %}class="compact"{% endif %}
+       hx-get="{% url 'dashboard-load' dashboard.pk %}"
+       hx-trigger="load, nav.dashboard.reload from:body"
+       hx-target="#navlets-htmx"
        data-save-order-url="{% url 'save-navlet-order' %}"
-       data-base-template-url="{% url 'navlet-base-template' %}"
-       data-widget-columns="{{ dashboard.num_columns }}"
-       ></div>
+       data-columns="{{ dashboard.num_columns }}"
+  >
+  </div>
 
 {% endblock %}

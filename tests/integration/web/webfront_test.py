@@ -1190,6 +1190,193 @@ class TestDashboardSearchViews:
         assert 'No dashboards found' in smart_str(response.content)
 
 
+class TestSaveDashboardColumns:
+    def test_given_valid_column_count_then_it_should_update_dashboard(
+        self, db, client, admin_account
+    ):
+        """Tests that valid column count updates the dashboard"""
+        dashboard = create_dashboard(admin_account)
+        new_columns = 4
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, data={'num_columns': new_columns})
+        dashboard.refresh_from_db()
+
+        assert response.status_code == 200
+        assert dashboard.num_columns == new_columns
+        assert f'Dashboard updated to {new_columns} columns' in smart_str(
+            response.content
+        )
+
+    def test_given_dashboard_that_does_not_exist_then_it_should_return_404(
+        self, client
+    ):
+        """Tests that updating a non-existing dashboard returns 404"""
+        url = reverse('save-dashboard-columns', args=(9999,))
+        response = client.post(url, data={'num_columns': 3})
+
+        assert response.status_code == 404
+
+    def test_given_dashboard_of_other_account_then_it_should_return_404(
+        self, db, client, non_admin_account
+    ):
+        """Tests that updating another account's dashboard returns 404"""
+        other_dashboard = create_dashboard(non_admin_account)
+        url = reverse('save-dashboard-columns', args=(other_dashboard.id,))
+        response = client.post(url, data={'num_columns': 3})
+
+        assert response.status_code == 404
+
+    def test_given_missing_num_columns_parameter_then_it_should_return_400(
+        self, db, client, admin_account
+    ):
+        """Tests that missing num_columns parameter returns 400"""
+        dashboard = create_dashboard(admin_account)
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, data={})
+
+        assert response.status_code == 400
+
+    def test_given_non_digit_num_columns_then_it_should_return_400(
+        self, db, client, admin_account
+    ):
+        """Tests that 400 is returned when num_columns is not a digit"""
+        dashboard = create_dashboard(admin_account)
+
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, {'num_columns': 'not_a_number'})
+
+        assert response.status_code == 400
+
+    def test_response_should_contain_nav_dashboard_reload_event(
+        self, db, client, admin_account
+    ):
+        """Tests that response triggers client event for dashboard reload"""
+        dashboard = create_dashboard(admin_account)
+        new_columns = 5
+
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, {'num_columns': str(new_columns)})
+
+        assert response.status_code == 200
+        assert 'nav.dashboard.reload' in response.headers['HX-Trigger']
+
+
+class TestLoadDashboardView:
+    def test_given_existing_dashboard_it_should_return_navlets_template(
+        self, db, client, admin_account
+    ):
+        """Tests that loading an existing dashboard returns the navlets template"""
+        dashboard = create_dashboard(admin_account, name="Load Test Dashboard")
+        create_widget(dashboard)
+
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'class="row' in smart_str(response.content)
+
+    def test_given_nonexistent_dashboard_it_should_return_404(
+        self, db, client, admin_account
+    ):
+        """Tests that loading a non-existent dashboard returns 404"""
+        url = reverse('dashboard-load', args=(9999,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_given_other_users_private_dashboard_it_should_return_404(
+        self, db, client, non_admin_account
+    ):
+        """Tests that loading another user's private dashboard returns 404"""
+        dashboard = create_dashboard(non_admin_account, is_shared=False)
+
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_given_other_users_shared_dashboard_it_should_return_navlets(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that loading another user's shared dashboard works"""
+        dashboard = create_dashboard(non_admin_account, is_shared=True)
+        create_widget(dashboard)
+
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'class="row' in smart_str(response.content)
+
+    def test_given_dashboard_with_compact_preference_it_should_add_collapse_class(
+        self, db, client, admin_account
+    ):
+        """Tests that compact preference adds collapse class to row"""
+        admin_account.preferences['widget_display_density'] = 'compact'
+        admin_account.save()
+
+        dashboard = create_dashboard(admin_account)
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'class="row collapse"' in smart_str(response.content)
+
+    def test_given_dashboard_with_no_widgets_it_should_show_empty_state(
+        self, db, client, admin_account
+    ):
+        """Tests that dashboard with no widgets shows proper empty state"""
+        dashboard = create_dashboard(admin_account)
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['has_navlets'] is False
+        assert "no-widgets-message" in smart_str(response.content)
+
+    def test_dashboard_load_should_contain_correct_number_of_columns(
+        self, db, client, admin_account
+    ):
+        """Tests that the loaded dashboard contains the correct number of columns"""
+        num_columns = 4
+        dashboard = create_dashboard(admin_account)
+        dashboard.num_columns = num_columns
+        dashboard.save()
+
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        content = smart_str(response.content)
+        for col_index in range(1, num_columns + 1):
+            assert f'data-col="{col_index}"' in content
+        assert f'data-col="{num_columns + 1}"' not in content
+
+    def test_given_navlets_in_different_columns_it_should_distribute_them_correctly(
+        self, db, client, admin_account
+    ):
+        """Tests that navlets are distributed correctly across columns when loading"""
+        dashboard = create_dashboard(admin_account)
+        widget1 = create_widget(dashboard, column=1, order=0)
+        widget2 = create_widget(dashboard, column=2, order=0)
+        widget3 = create_widget(dashboard, column=1, order=1)
+
+        url = reverse('dashboard-load', args=(dashboard.id,))
+        response = client.get(url)
+        assert response.status_code == 200
+
+        columns = response.context['columns']
+        assert isinstance(columns, dict)
+        assert set(columns.keys()) >= {1, 2}
+
+        # Check widgets are in the correct columns and orders
+        column1_ids = [w['id'] for w in columns[1]]
+        column2_ids = [w['id'] for w in columns[2]]
+
+        assert column1_ids == [widget1.id, widget3.id]
+        assert column2_ids == [widget2.id]
+
+
 def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
     return AccountDashboard.objects.create(
         name=name,
@@ -1199,11 +1386,15 @@ def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared
     )
 
 
-def create_widget(dashboard, navlet='nav.web.navlets.welcome.WelcomeNavlet'):
+def create_widget(
+    dashboard, navlet='nav.web.navlets.welcome.WelcomeNavlet', column=1, order=0
+):
     return AccountNavlet.objects.create(
         dashboard=dashboard,
         account=dashboard.account,
         navlet=navlet,
+        column=column,
+        order=order,
     )
 
 

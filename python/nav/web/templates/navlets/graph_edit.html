@@ -2,7 +2,11 @@
 
 {% block navlet-content %}
 
-  <form method="POST" action="{% url 'get-user-navlet' navlet.navlet_id %}">
+  <form
+    hx-post="{% url 'get-user-navlet' navlet.navlet_id %}"
+    hx-target="[data-id='{{ navlet.navlet_id }}']"
+    hx-swap="innerHTML"
+  >
 
     {% include 'custom_crispy_templates/_form_content.html' %}
 
