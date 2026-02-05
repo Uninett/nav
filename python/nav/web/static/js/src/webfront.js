@@ -185,7 +185,7 @@ require([
     function addDefaultDashboardListener(feedback) {
         const defaultDashboardContainer = $('#default-dashboard-container'),
             setDefaultDashboardForm = $('#form-set-default-dashboard'),
-            isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box'),
+            isDefaultDashboardAlert = $('#is-default-dashboard-alert'),
             deleteDashboardForm = $('#form-delete-dashboard');
 
         if (defaultDashboardContainer.data('is-default-dashboard')) {
@@ -194,15 +194,13 @@ require([
             isDefaultDashboardAlert.hide();
         }
 
-        // Handle UI updates after HTMX request completes
-        document.body.addEventListener('htmx:afterRequest', function (event) {
-            if (event.detail.elt.id === 'form-set-default-dashboard') {
-                setDefaultDashboardForm.hide();
-                isDefaultDashboardAlert.show();
-                deleteDashboardForm.hide();
-                $dashboardNavigator.find('.fa-star').addClass('hidden');
-                $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
-            }
+        // Handle UI updates when default dashboard changes
+        document.body.addEventListener('nav.dashboard.defaultChanged', function () {
+            setDefaultDashboardForm.hide();
+            isDefaultDashboardAlert.show();
+            deleteDashboardForm.hide();
+            $dashboardNavigator.find('.fa-star').addClass('hidden');
+            $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
         });
     }
 

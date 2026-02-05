@@ -74,6 +74,23 @@ def test_when_setting_shared_dashboard_as_default_then_it_should_subscribe(
     assert shared_dashboard.is_subscribed(admin_account)
 
 
+def test_when_no_default_dashboard_set_then_it_should_set_needs_default_flag(
+    db, admin_account
+):
+    """Tests that find_dashboard sets needs_default_set when no default exists"""
+    # Clear any existing dashboards and defaults for a clean slate
+    AccountDashboard.objects.filter(account=admin_account).delete()
+    create_dashboard(account=admin_account)
+
+    # Verify no default is set
+    admin_account.refresh_from_db()
+    assert not admin_account.has_default_dashboard
+
+    # Find dashboard should set needs_default_set to True
+    dashboard = find_dashboard(admin_account)
+    assert dashboard.needs_default_set is True
+
+
 def test_when_setting_shared_default_then_it_should_toggle_subscribe_button(
     db, client, admin_account, non_admin_account
 ):

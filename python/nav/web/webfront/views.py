@@ -580,7 +580,7 @@ def set_default_dashboard(request, did):
     account.set_default_dashboard(dash.id)
 
     dash.shared_by_other = dash.is_shared and dash.account_id != account.id
-    return render(
+    response = render(
         request,
         'webfront/_dashboard_set_default_response.html',
         {
@@ -590,6 +590,7 @@ def set_default_dashboard(request, did):
             'status': 'success',
         },
     )
+    return trigger_client_event(response, name='nav.dashboard.defaultChanged')
 
 
 @require_POST

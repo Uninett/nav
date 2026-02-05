@@ -30,6 +30,8 @@ def find_dashboard(account, dashboard_id=None):
     )
     dashboard.shared_by_other = dashboard.is_shared and dashboard.account != account
     dashboard.is_default = dashboard.is_default_for_account(account)
+    # Only show warning on root view, not when navigating to specific dashboards
+    dashboard.needs_default_set = not account.has_default_dashboard and not dashboard_id
 
     return dashboard
 

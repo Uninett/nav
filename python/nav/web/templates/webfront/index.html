@@ -70,6 +70,17 @@
     {# Buttons for selecting dashboards #}
     {%  include 'webfront/_dashboard_nav.html' with current_dashboard=dashboard dashboards=dashboards %}
 
+    {% if dashboard.needs_default_set %}
+    <div id="no-default-dashboard-warning" class="alert-box warning with-icon">
+        No default dashboard is set. The default dashboard is shown when you log in.
+        <button class="button tiny" style="margin-bottom: 0;"
+                hx-post="{% url 'set-default-dashboard' dashboard.pk %}"
+                hx-target="#dashboard-settings-feedback">
+            Set this dashboard as default
+        </button>
+    </div>
+    {% endif %}
+
   {% endif %}
 
 

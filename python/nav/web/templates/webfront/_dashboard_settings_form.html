@@ -27,7 +27,7 @@
             <div class="column medium-6">
                 <div id="default-dashboard-container"
                      data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
-                    <div class="alert-box">This is the default dashboard</div>
+                    <div id="is-default-dashboard-alert" class="alert-box">This is the default dashboard</div>
                     <form id="form-set-default-dashboard"
                           hx-post="{% url 'set-default-dashboard' dashboard.pk %}"
                           hx-target="#dashboard-settings-feedback">
