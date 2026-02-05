@@ -1,31 +1,18 @@
-"""Selenium tests for room views"""
+"""Playwright tests for room views"""
 
 import os
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from playwright.sync_api import expect
 
 
-def test_room_image_upload(selenium, base_url):
-    """Tests upload of an image to the standard room that comes with NAV"""
-    # Photo by ChrisDag (CC BY 2.0)
+def test_when_uploading_room_image_then_it_should_appear(authenticated_page):
+    page, base_url = authenticated_page
     filedir = os.path.abspath(os.path.dirname(__file__))
     filename = "closet.jpg"
     filepath = os.path.join(filedir, filename)
 
-    selenium.get("{}/search/room/myroom/upload/".format(base_url))
-    upload = selenium.find_element(By.ID, "file")
-    upload.send_keys(filepath)
+    page.goto(f"{base_url}/search/room/myroom/upload/")
+    page.locator("#file").set_input_files(filepath)
+    page.locator("input[type='submit'][value='Upload selected images']").click()
 
-    submit = selenium.find_element(
-        By.XPATH, "//input[@type='submit' and @value='Upload selected images']"
-    )
-    submit.click()
-
-    caption_present = WebDriverWait(selenium, 15).until(
-        EC.text_to_be_present_in_element(
-            (By.XPATH, "//li[@class='imagecardcontainer']//div//h5"), filename
-        )
-    )
-    assert caption_present
+    expect(page.locator("li.imagecardcontainer div h5")).to_contain_text(filename)
