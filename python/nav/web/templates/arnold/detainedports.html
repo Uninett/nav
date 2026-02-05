@@ -42,7 +42,7 @@
                             Could not find interface. Last interface was {{ identity.textual_interface }}
                         {% endif %}
                     </td>
-                    <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
+                    <td data-sort="{{ identity.last_changed|date:'c' }}">{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
                         <a href="{% url 'arnold-choose-detentions' identity.id %}" class="button tiny secondary">
                             {% if identity.interface %}

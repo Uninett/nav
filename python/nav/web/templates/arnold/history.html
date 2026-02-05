@@ -44,7 +44,7 @@
                     <td>{{ identity.organization|default_if_none:'' }}</td>
                     <td>{{ identity.status }}</td>
                     <td>{{ identity.justification.name }}</td>
-                    <td>{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
+                    <td data-sort="{{ identity.last_changed|date:'c' }}">{{ identity.last_changed|date:"DATETIME_FORMAT" }}</td>
                     <td>
                         <a href="{% url 'arnold-details' identity.id %}">
                           Details

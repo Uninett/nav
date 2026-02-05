@@ -30,7 +30,7 @@ var require = {
         "jquery": "libs/jquery-4.0.0.min",
         "jquery-migrate": "libs/jquery-migrate-4.0.2",
         "jquery-ui": "libs/jquery-ui-1.14.0.min",
-        "jquery-tablesorter": "libs/jquery.tablesorter-2.32.0.min",
+        "tablesort": "libs/tablesort-5.7.0.min",
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
         "select2": "libs/select2-4.0.13.min",
     },
@@ -58,14 +58,14 @@ var require = {
         'jquery-migrate': {
             deps: ['jquery']
         },
-        'jquery-tablesorter': {
-            deps: ['jquery-migrate']
-        },
         'libs/datatables.min': {
             deps: ['jquery']
         },
         'select2': {
             deps: ['jquery-migrate']
+        },
+        'tablesort': {
+            exports: 'Tablesort'
         },
     },
     deps: ['jquery']

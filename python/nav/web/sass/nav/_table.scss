@@ -112,21 +112,25 @@ table {
     border-bottom: 1px solid #ddd;
     margin-bottom: 1em;
 }
-
-/* --- List table with tablesorter --- */
+/* --- List table with tablesort --- */
 
 .tablesorter {
-    .header {
+    th[role="columnheader"] {
         background-image: url('#{$image-path-partials}/tablesorter/bg.gif');
         background-repeat: no-repeat;
         background-position: center right;
         padding-right: 1.5em;
         cursor: pointer;
-    }
-    .headerSortUp {
-        background-image: url('#{$image-path-partials}/tablesorter/asc.gif');
-    }
-    .headerSortDown {
-        background-image: url('#{$image-path-partials}/tablesorter/desc.gif');
+
+        &[aria-sort="ascending"] {
+            background-image: url('#{$image-path-partials}/tablesorter/desc.gif');
+        }
+        &[aria-sort="descending"] {
+            background-image: url('#{$image-path-partials}/tablesorter/asc.gif');
+        }
+        &[data-sort-method="none"] {
+            background-image: none;
+            cursor: default;
+        }
     }
 }

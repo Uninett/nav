@@ -6,23 +6,21 @@
     #token-list-table .label { cursor: help; margin-bottom: 1px; }
   </style>
   <script>
-    require(['jquery-tablesorter', 'src/tablesorter_custom_sorters'], function() {
-      $(function() {
-        var $table = $('#token-list-table');
-        if ($table.length && $table.find('tbody tr').length > 0) {
-          $table.tablesorter({
-            sortList: [[2, 0]],
-            headers: {
-              2: {sorter: "custom-iso-datetime"},
-              3: {sorter: "custom-iso-datetime"},
-              4: {sorter: "custom-iso-datetime"},
-              5: {sorter: false},
-              6: {sorter: false},
-              7: {sorter: false}
-            }
-          });
-        }
-      });
+    require(['src/libs/tablesort_extensions'], function(tablesort) {
+      const table = document.getElementById('token-list-table');
+      if (table && table.querySelector('tbody tr')) {
+        tablesort.init(table, {
+          sortList: [[2, 0]],
+          headers: {
+            2: {sorter: "iso-datetime"},
+            3: {sorter: "iso-datetime"},
+            4: {sorter: "iso-datetime"},
+            5: {sorter: false},
+            6: {sorter: false},
+            7: {sorter: false}
+          }
+        });
+      }
     });
   </script>
 {% endblock %}
@@ -76,7 +74,7 @@
                 <td>
                   {{ token.permission }}
                 </td>
-                <td data-sort-value="{{ token.expires|date:'c' }}">
+                <td data-sort="{{ token.expires|date:'c' }}">
                   {% if token.is_expired %}
                     <span class="label warning"
                           title="Token expired {{ token.expires|date:'DATE_FORMAT' }}">
@@ -88,10 +86,10 @@
                 </td>
 
                 {# Created #}
-                <td class="show-for-large-up" data-sort-value="{{ token.created|date:'c'|default:'last' }}">{{ token.created|default:'' }}</td>
+                <td class="show-for-large-up" data-sort="{{ token.created|date:'c'|default:'last' }}">{{ token.created|default:'' }}</td>
 
                 {# Last used #}
-                <td class="show-for-large-up" data-sort-value="{{ token.last_used|date:'c'|default:'last' }}">{{ token.last_used|default:'Never' }}</td>
+                <td class="show-for-large-up" data-sort="{{ token.last_used|date:'c'|default:'last' }}">{{ token.last_used|default:'Never' }}</td>
 
                 {# Token endpoints #}
                 <td class="show-for-medium-up">
