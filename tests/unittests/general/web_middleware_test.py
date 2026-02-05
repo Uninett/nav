@@ -286,19 +286,6 @@ class TestNAVAuthenticationMiddleware:
                     getattr(fake_request.account, 'sudo_operator', None) == SUDO_ACCOUNT
                 )
 
-    def test_process_request_not_logged_in(self, fake_session):
-        r = RequestFactory()
-        fake_request = r.get('/')
-        fake_request.session = fake_session
-        with patch(
-            'nav.web.auth.middleware.ensure_account',
-            side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
-        ):
-            with patch('nav.web.auth.remote_user.get_username', return_value=None):
-                NAVAuthenticationMiddleware(lambda x: x).process_request(fake_request)
-                assert fake_request.account == DEFAULT_ACCOUNT
-                assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
-
     def test_process_request_sudoed_to_anonymoususer(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
@@ -312,30 +299,3 @@ class TestNAVAuthenticationMiddleware:
             side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
         ):
             assert fake_request.user == DEFAULT_ACCOUNT
-
-    def test_process_request_switch_users(self, fake_session):
-        r = RequestFactory()
-        fake_request = r.get('/')
-        fake_request.session = fake_session
-        with patch(
-            'nav.web.auth.middleware.ensure_account',
-            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
-        ):
-            with patch(
-                'nav.web.auth.remote_user.get_username',
-                return_value=ANOTHER_PLAIN_ACCOUNT.login,
-            ):
-                with patch(
-                    'nav.web.auth.remote_user.login',
-                    side_effect=set_account(fake_request, ANOTHER_PLAIN_ACCOUNT),
-                ):
-                    with patch('nav.web.auth.logout'):
-                        NAVAuthenticationMiddleware(lambda x: x).process_request(
-                            fake_request
-                        )
-                        assert fake_request.account == ANOTHER_PLAIN_ACCOUNT
-                        assert (
-                            ACCOUNT_ID_VAR in fake_request.session
-                            and fake_request.session[ACCOUNT_ID_VAR]
-                            == ANOTHER_PLAIN_ACCOUNT.id
-                        )

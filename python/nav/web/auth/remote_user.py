@@ -22,10 +22,7 @@ from configparser import NoOptionError
 from os.path import join
 import secrets
 
-from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
-from nav.models.profiles import Account
-from nav.web.auth.utils import set_account
 
 
 __all__ = []
@@ -150,96 +147,3 @@ _REMOTE_USER_WORKAROUNDS = {
     'default': _workaround_default,
     'feide-oidc': _workaround_feide_oidc,
 }
-
-
-# XXX: delete everything below
-
-
-# deprecated
-def authenticate(request):
-    """Authenticate username from http header REMOTE_USER
-
-    Returns:
-
-    :return: If the user was authenticated, an account.
-             If the user was blocked from logging in, False.
-             Otherwise, None.
-    :rtype: Account, False, None
-    """
-    username = get_username(request)
-    if not username:
-        return None
-
-    # We now have a username-ish
-
-    try:
-        account = Account.objects.get(login=username)
-    except Account.DoesNotExist:
-        if CONFIG.will_autocreate_user():
-            return autocreate_remote_user(username)
-        # Bail out!
-        _logger.info('User creation turned off, did not create "%s"', username)
-        return False
-
-    # Bail out! Potentially evil user
-    if account.locked:
-        _logger.info("Locked user %s tried to log in", account.login)
-        template = 'Account "{actor}" was prevented from logging in: blocked'
-        LogEntry.add_log_entry(
-            account, 'login-prevent', template=template, subsystem='auth'
-        )
-        return False
-
-    return account
-
-
-# deprecated
-def autocreate_remote_user(username):
-    # Store the remote user in the database and return the new account
-    account = Account(login=username, name=username, ext_sync='REMOTE_USER')
-    account.set_password(fake_password(32))
-    account.save()
-    _logger.info("Created user %s from header REMOTE_USER", account.login)
-    template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
-    LogEntry.add_log_entry(
-        account, 'create-account', template=template, subsystem='auth'
-    )
-    return account
-
-
-# deprecated
-def login(request):
-    """Log in the user in REMOTE_USER, if any and enabled
-
-    :return: Account for remote user, or None
-    :rtype: Account, None
-    """
-    remote_username = get_username(request)
-    if remote_username:
-        # Get or create an account from the REMOTE_USER http header
-        account = authenticate(request)
-        if account:
-            set_account(request, account)
-            return account
-    return None
-
-
-# deprecated
-def get_username(request):
-    """Return the username in REMOTE_USER if set and enabled
-
-    :return: The username in REMOTE_USER if any, or None.
-    :rtype: str, None
-    """
-    try:
-        if not CONFIG.getboolean('remote-user', 'enabled'):
-            return None
-    except ValueError:
-        return None
-
-    if not request:
-        return None
-
-    varname = CONFIG.get_remote_user_varname()
-    username = request.META.get(varname, '')
-    return CONFIG.clean_username(username)
