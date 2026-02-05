@@ -77,7 +77,6 @@ dev = [
 ]
 test = [
     "coverage>=7.0.0",
-    "gunicorn==23.0.0",
     "mock==2.0.0",
     "pytest>=8.3.3",
     "pytest-metadata==3.1.1",
@@ -91,7 +90,6 @@ test = [
     "snmpsim>=1.0,!=1.1.6",
     "toml",
     "whisper>=0.9.9",
-    "whitenoise==4.1.4",
     # Our version of selenium breaks down if it is allowed to pull in the newest version of urllib3
     "urllib3<2.0",
 ]
