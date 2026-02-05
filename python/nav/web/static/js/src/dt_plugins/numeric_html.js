@@ -4,7 +4,7 @@
 */
 require(['libs/datatables.min'], function () {
     $.fn.DataTable.ext.type.order['num-html-pre'] = (data) => {
-        const x = String(data).replace(/<[\s\S]*?>/g, '');
+        const x = String(data).replace(/<[^>]*>/g, '');
         return parseFloat(x);
     };
 });
