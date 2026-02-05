@@ -116,6 +116,23 @@ def _scan_testargs(filename):
 ##################
 
 
+@pytest.fixture(scope='session')
+def live_server():
+    """Start a threaded Django live server for integration tests."""
+    from django.contrib.staticfiles.handlers import StaticFilesHandler
+    from django.test.testcases import LiveServerThread
+
+    server_thread = LiveServerThread('localhost', StaticFilesHandler, port=0)
+    server_thread.daemon = True
+    server_thread.start()
+    server_thread.is_ready.wait()
+    if server_thread.error:
+        raise server_thread.error
+    yield f'http://{server_thread.host}:{server_thread.port}'
+    server_thread.terminate()
+    server_thread.join()
+
+
 @pytest.fixture()
 def management_profile():
     from nav.models.manage import ManagementProfile
