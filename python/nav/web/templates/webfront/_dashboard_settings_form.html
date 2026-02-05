@@ -28,8 +28,9 @@
                 <div id="default-dashboard-container"
                      data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
                     <div class="alert-box">This is the default dashboard</div>
-                    <form id="form-set-default-dashboard" method="post"
-                          action="{% url 'set-default-dashboard' dashboard.pk %}">
+                    <form id="form-set-default-dashboard"
+                          hx-post="{% url 'set-default-dashboard' dashboard.pk %}"
+                          hx-target="#dashboard-settings-feedback">
                         {% csrf_token %}
                         <input type="submit" value="Set as default dashboard"
                                class="small button secondary expand">

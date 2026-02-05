@@ -183,7 +183,7 @@ require([
 
     /** Functions for handling setting of default dashboard */
     function addDefaultDashboardListener(feedback) {
-        var defaultDashboardContainer = $('#default-dashboard-container'),
+        const defaultDashboardContainer = $('#default-dashboard-container'),
             setDefaultDashboardForm = $('#form-set-default-dashboard'),
             isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box'),
             deleteDashboardForm = $('#form-delete-dashboard');
@@ -194,21 +194,15 @@ require([
             isDefaultDashboardAlert.hide();
         }
 
-        setDefaultDashboardForm.submit(function (event) {
-            event.preventDefault();
-            feedback.removeAlertbox();
-            const request = $.post(
-                this.getAttribute('action'),
-                $(this).serialize()
-            );
-            request.done(function (responseText) {
-                feedback.addFeedback(responseText);
+        // Handle UI updates after HTMX request completes
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            if (event.detail.elt.id === 'form-set-default-dashboard') {
                 setDefaultDashboardForm.hide();
                 isDefaultDashboardAlert.show();
                 deleteDashboardForm.hide();
                 $dashboardNavigator.find('.fa-star').addClass('hidden');
                 $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
-            });
+            }
         });
     }
 

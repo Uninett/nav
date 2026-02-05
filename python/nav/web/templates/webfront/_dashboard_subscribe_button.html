@@ -1,0 +1,13 @@
+<div id="dashboard-subscribe-button" {% if oob %}hx-swap-oob="true"{% endif %}>
+{% if dashboard.shared_by_other %}
+    {% if is_subscribed %}
+        <button class="tiny secondary" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' dashboard.pk %}">
+            <i class="fa fa-bell-slash" style="margin-right: 0.25rem;"></i><span>Unsubscribe</span>
+        </button>
+    {% else %}
+        <button class="tiny info" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' dashboard.pk %}">
+            <i class="fa fa-bell" style="margin-right: 0.25rem;"></i><span>Subscribe</span>
+        </button>
+    {% endif %}
+{% endif %}
+</div>

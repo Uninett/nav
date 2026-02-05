@@ -1,0 +1,4 @@
+<div class="alert-box {{ status }}">{{ message }}</div>
+{% if dashboard.shared_by_other %}
+{% include "webfront/_dashboard_subscribe_button.html" with dashboard=dashboard is_subscribed=is_subscribed oob=True %}
+{% endif %}

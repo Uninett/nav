@@ -579,7 +579,17 @@ def set_default_dashboard(request, did):
     dash = find_dashboard(account, did)
     account.set_default_dashboard(dash.id)
 
-    return HttpResponse('Default dashboard set to «{}»'.format(dash.name))
+    dash.shared_by_other = dash.is_shared and dash.account_id != account.id
+    return render(
+        request,
+        'webfront/_dashboard_set_default_response.html',
+        {
+            'dashboard': dash,
+            'is_subscribed': dash.is_subscribed(account),
+            'message': f'Default dashboard set to «{dash.name}»',
+            'status': 'success',
+        },
+    )
 
 
 @require_POST

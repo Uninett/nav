@@ -57,6 +57,41 @@ def test_set_default_dashboard_with_previous_default_should_succeed(
     assert not default_dashboard.is_default_for_account(admin_account)
 
 
+def test_when_setting_shared_dashboard_as_default_then_it_should_subscribe(
+    db, client, admin_account, non_admin_account
+):
+    """Tests that setting a shared dashboard as default also subscribes to it"""
+    shared_dashboard = create_dashboard(
+        account=non_admin_account,
+        name="shared_dashboard",
+        is_shared=True,
+    )
+    url = reverse("set-default-dashboard", args=(shared_dashboard.pk,))
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert shared_dashboard.is_default_for_account(admin_account)
+    assert shared_dashboard.is_subscribed(admin_account)
+
+
+def test_when_setting_shared_default_then_it_should_toggle_subscribe_button(
+    db, client, admin_account, non_admin_account
+):
+    """Tests that setting a shared dashboard as default updates the subscribe button"""
+    shared_dashboard = create_dashboard(
+        account=non_admin_account,
+        name="shared_dashboard",
+        is_shared=True,
+    )
+    url = reverse("set-default-dashboard", args=(shared_dashboard.pk,))
+    response = client.post(url)
+
+    assert response.status_code == 200
+    content = smart_str(response.content)
+    assert 'id="dashboard-subscribe-button"' in content
+    assert 'hx-swap-oob="true"' in content
+
+
 class TestDeleteDashboardView:
     """Tests for the delete_dashboard view which allows deleting dashboards"""
 

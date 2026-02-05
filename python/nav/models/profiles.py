@@ -388,10 +388,20 @@ class Account(AbstractBaseUser):
             return None
 
     def set_default_dashboard(self, dashboard_id: int):
-        """Sets the user's default dashboard preference."""
+        """Sets the user's default dashboard preference.
+
+        If the dashboard is shared and owned by another user, it will also
+        be subscribed to, so it remains visible if the default is changed later.
+        """
         AccountDefaultDashboard.objects.update_or_create(
             account_id=self.id, defaults={'dashboard_id': dashboard_id}
         )
+        # Subscribe to shared dashboards owned by others
+        dashboard = AccountDashboard.objects.filter(pk=dashboard_id).first()
+        if dashboard and dashboard.is_shared and dashboard.account_id != self.id:
+            AccountDashboardSubscription.objects.get_or_create(
+                account_id=self.id, dashboard_id=dashboard_id
+            )
 
 
 class AccountGroup(models.Model):
