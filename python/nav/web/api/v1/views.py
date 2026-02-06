@@ -577,7 +577,7 @@ class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     Search
     ------
-    Searches in the cables *jack*-field
+    Searches in *jack*, *room*, *sysname*, *ifname*, *ifalias*
 
     Filters
     -------
@@ -597,7 +597,13 @@ class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     ).all()
     serializer_class = serializers.PatchSerializer
     filterset_fields = ('cabling', 'cabling__room', 'interface', 'interface__netbox')
-    search_fields = ('cabling__jack',)
+    search_fields = (
+        'cabling__jack',
+        'cabling__room__id',
+        'interface__netbox__sysname',
+        'interface__ifname',
+        'interface__ifalias',
+    )
 
 
 class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
@@ -605,7 +611,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     Search
     ------
-    Searches in *jack*, *target_room*, *building*
+    Searches in *jack*, *target_room*, *building*, *description*, *category*, *room*
 
     Filters
     -------
@@ -620,7 +626,14 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     serializer_class = serializers.CablingSerializer
     filterset_fields = ('room', 'jack', 'building', 'target_room', 'category')
-    search_fields = ('jack', 'target_room', 'building')
+    search_fields = (
+        'jack',
+        'target_room',
+        'building',
+        'description',
+        'category',
+        'room__id',
+    )
 
     def get_queryset(self):
         queryset = cabling.Cabling.objects.all()
