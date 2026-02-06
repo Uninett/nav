@@ -50,19 +50,19 @@ def get_login_url(request: HttpRequest, path=None) -> str:
         default_new_url = LOGIN_URL
     else:
         default_new_url = '{0}?origin={1}&noaccess'.format(LOGIN_URL, path)
-    remote_loginurl = remote_user.get_loginurl(request)
+    remote_loginurl = remote_user.CONFIG.get_loginurl(request)
     return remote_loginurl if remote_loginurl else default_new_url
 
 
 def get_post_logout_redirect_url(request: HttpRequest) -> str:
     default = "/"
-    redirect_url = remote_user.get_post_logout_redirect_url(request)
+    redirect_url = remote_user.CONFIG.get_post_logout_redirect_url(request)
     return redirect_url if redirect_url else default
 
 
 def get_logout_url(request: HttpRequest) -> str:
     """Calculate which logout_url to use"""
-    remote_logouturl = remote_user.get_logouturl(request)
+    remote_logouturl = remote_user.CONFIG.get_logouturl(request)
     if remote_logouturl and remote_logouturl.endswith('='):
         remote_logouturl += request.build_absolute_uri(LOGOUT_URL)
     return remote_logouturl if remote_logouturl else LOGOUT_URL

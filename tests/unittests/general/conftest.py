@@ -11,6 +11,9 @@ class FakeSession(dict):
     def cycle_key(self, *_):
         pass
 
+    def flush(self):
+        pass
+
 
 @pytest.fixture
 def fake_session():
