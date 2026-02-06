@@ -707,75 +707,70 @@ class JWTList(NavPathMixin, generic.ListView):
         return context
 
 
-class JWTCreate(NavPathMixin, generic.View):
+class JWTCreate(NavPathMixin, generic.CreateView):
     """Class based view for creating a new token"""
 
     model = JWTRefreshToken
     form_class = forms.JWTRefreshTokenCreateForm
     template_name = 'useradmin/jwt_edit.html'
 
-    def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            token = form.save(commit=False)
-            try:
-                encoded_token = generate_refresh_token_from_model(token)
-            except ConfigurationError:
-                return render(
-                    request,
-                    'useradmin/jwt_not_enabled.html',
-                )
-            claims = decode_token(encoded_token)
-            token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
-            token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
-            token.hash = hash_token(encoded_token)
-            token.save()
-            messages.success(request, 'New token created')
-            account = get_account(request)
-            LogEntry.add_create_entry(account, token)
+    def form_valid(self, form):
+        # Raises error if form is not valid
+        token = form.save(commit=False)
+        # Use get_context_data so breadcrumbs work correctly
+        context = self.get_context_data()
+
+        if not LOCAL_JWT_IS_CONFIGURED:
             return render(
-                request,
-                'useradmin/jwt_created.html',
-                {"object": token, "token": encoded_token},
+                self.request,
+                'useradmin/jwt_not_enabled.html',
+                context,
             )
-        return render(request, self.template_name, {"form": form})
+        encoded_token = generate_refresh_token_from_model(token)
+        claims = decode_token(encoded_token)
+        token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
+        token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
+        token.hash = hash_token(encoded_token)
+        self.object = token.save()
 
-    def get(self, request):
-        form = self.form_class()
-        context = {
-            'form': form,
-        }
-        return render(request, self.template_name, context)
+        messages.success(self.request, 'New token created')
+        account = get_account(self.request)
+        LogEntry.add_create_entry(account, token)
+        context["object"] = token
+        context["token"] = encoded_token
+        # Render manually to add encoded token to context
+        return render(
+            self.request,
+            'useradmin/jwt_created.html',
+            context,
+        )
 
 
-class JWTEdit(NavPathMixin, generic.View):
+class JWTEdit(NavPathMixin, generic.UpdateView):
     """Class based view for creating a new token"""
 
     model = JWTRefreshToken
     form_class = forms.JWTRefreshTokenEditForm
     template_name = 'useradmin/jwt_edit.html'
 
-    def post(self, request, *args, **kwargs):
-        token = get_object_or_404(JWTRefreshToken, pk=kwargs['pk'])
-        old_object = copy.deepcopy(token)
-        form = self.form_class(request.POST, instance=token)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Token saved')
-            account = get_account(request)
-            LogEntry.compare_objects(
-                account,
-                old_object,
-                token,
-                ['name', 'description'],
-            )
-            return redirect('useradmin-jwt_detail', pk=token.pk)
-        return render(request, self.template_name, {"form": form, "object": token})
+    def form_valid(self, form):
+        # Add custom logic before editing
+        old_object = copy.deepcopy(self.get_object())
 
-    def get(self, request, *args, **kwargs):
-        token = JWTRefreshToken.objects.get(pk=kwargs['pk'])
-        form = self.form_class(instance=token)
-        return render(request, self.template_name, {"form": form, "object": token})
+        # Call the parent's form_valid() method to perform the actual editing
+        response = super().form_valid(form)
+
+        # Add custom logic after editing
+        messages.success(self.request, 'Token saved')
+        account = get_account(self.request)
+        LogEntry.compare_objects(
+            account,
+            old_object,
+            self.get_object(),
+            ['name', 'description'],
+        )
+
+        return response
 
 
 class JWTDetail(NavPathMixin, generic.DetailView):
