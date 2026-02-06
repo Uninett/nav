@@ -1,4 +1,4 @@
-{% load i18n string_manipulation %}
+{% load i18n string_manipulation socialaccount %}
 {% if request.user.is_authenticated %}
     <ul>
         {% url 'webfront-preferences' as my_account_url_ %}
@@ -13,11 +13,14 @@
                 <a href="{{ change_password_url_ }}">{% trans "Change Password" %}</a>
             </li>
         {% endif %}
-        {% url 'socialaccount_connections' as connections_url_ %}
-        {% if connections_url_ %}
-            <li class="{% if request.path|starts_with:connections_url_ %}tabactive{% endif %}">
-                <a href="{{ connections_url_ }}">{% trans "Account Connections" %}</a>
-            </li>
+        {% get_providers as socialaccount_providers %}
+        {% if socialaccount_providers %}
+            {% url 'socialaccount_connections' as connections_url_ %}
+            {% if connections_url_ %}
+                <li class="{% if request.path|starts_with:connections_url_ %}tabactive{% endif %}">
+                    <a href="{{ connections_url_ }}">{% trans "Account Connections" %}</a>
+                </li>
+            {% endif %}
         {% endif %}
         {% url 'mfa_index' as mfa_url_ %}
         {% if mfa_url_ %}
