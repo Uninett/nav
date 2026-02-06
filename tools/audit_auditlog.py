@@ -18,27 +18,38 @@
 
 import argparse
 import sys
+from textwrap import wrap
 
 from nav.bootstrap import bootstrap_django
 
 bootstrap_django()
 
 from nav.auditlog.models import LogEntry
-from nav.auditlog.utils import get_all_historical_actors, get_lurkers
+from nav.auditlog.utils import get_all_historical_actors, get_lurkers, get_zombies
 from nav.models.profiles import Account
 
 
-KNOWN_PROBLEMS = {
-    "delete-account-fix-object": (
-        "For delete-account entries:\n"
-        "\tAttempts to set the pk of the object if it is missing"
-    ),
-    "delete-account-actually-delete": (
-        "For delete-account entries:\n"
-        "\tActually delete accounts that have a delete-account entry "
-        "\tbut for some reason still exists"
-    ),
-}
+def register_argument(registry, name, description, function):
+    registry[name] = {'description': description, "function": function}
+
+
+def list_registered_commands(registry):
+    "List registered commands in given registry"
+    for key, value in registry.items():
+        print(f"{key}:")
+        for line in wrap(
+            value['description'],
+            initial_indent="\t",
+            subsequent_indent="\t",
+            break_long_words=False,
+        ):
+            print(line)
+
+        print()
+
+
+KNOWN_REPORTS = {}
+KNOWN_REPAIRS = {}
 
 
 def main():
@@ -47,10 +58,11 @@ def main():
     args = parser.parse_args()
 
     if args.subcommand == "view":
-        if args.lurkers:
-            view_lurkers()
-        elif args.dump:
-            view_dump()
+        if args.list:
+            list_registered_commands(KNOWN_REPORTS)
+        elif args.report in KNOWN_REPORTS:
+            view = KNOWN_REPORTS[args.report]["function"]
+            view()
         else:
             parser.parse_args(["view", "-h"])
             sys.exit(1)
@@ -58,11 +70,10 @@ def main():
 
     if args.subcommand == "fix":
         if args.list:
-            list_available_fixes()
-        elif args.problem == "delete-account-fix-object":
-            repair_delete_account_entries()
-        elif args.problem == "delete-account-actually-delete":
-            delete_accounts_marked_as_deleted_in_auditlog()
+            list_registered_commands(KNOWN_REPAIRS)
+        elif args.repair in KNOWN_REPAIRS:
+            repair = KNOWN_REPAIRS[args.problem]["function"]
+            repair()
         else:
             parser.parse_args(["fix", "-h"])
             sys.exit(1)
@@ -79,27 +90,26 @@ def create_parser():
     view = subparsers.add_parser("view")
     view_group = view.add_mutually_exclusive_group()
     view_group.add_argument(
-        "--dump",
-        action="store_true",
-        help=(
-            "dump details of verb, actor, object, target and summary, "
-            "suitable for further processing"
-        ),
+        '-l', '--list', action="store_true", help="list and describe available reports"
     )
     view_group.add_argument(
-        "--lurkers",
-        action="store_true",
-        help=(
-            "list currently existing accounts that have not done anything "
-            "in this NAV instance"
-        ),
+        "-r",
+        "--report",
+        help="Generate and print the named report",
+        choices=KNOWN_REPORTS.keys(),
     )
+
     fix = subparsers.add_parser("fix")
     fix_group = fix.add_mutually_exclusive_group()
     fix_group.add_argument(
-        '-l', '--list', action="store_true", help="list available fixes"
+        '-l', '--list', action="store_true", help="list and describe available fixes"
     )
-    fix_group.add_argument('-p', '--problem', help="fix the named problem")
+    fix_group.add_argument(
+        '-r',
+        '--report',
+        help="fix the named problem",
+        choices=KNOWN_REPAIRS.keys(),
+    )
     return parser
 
 
@@ -127,6 +137,17 @@ def view_dump():
             )
 
 
+register_argument(
+    KNOWN_REPORTS,
+    "dump",
+    (
+        "Dump details of verb, actor, object, target and summary, "
+        "suitable for further processing"
+    ),
+    view_dump,
+)
+
+
 def view_lurkers():
     "Print list of current accounts that have no entries in the audit log"
     lurkers = get_lurkers()
@@ -135,13 +156,39 @@ def view_lurkers():
         print("*", lurker.login)
 
 
-# commands, repair
+register_argument(
+    KNOWN_REPORTS,
+    "lurkers",
+    (
+        "List currently existing accounts that have not done anything "
+        "in this NAV instance"
+    ),
+    view_lurkers,
+)
 
 
-def list_available_fixes():
-    "List available fixes"
-    for key, value in KNOWN_PROBLEMS.items():
-        print(f"{key}: {value}")
+def view_zombies():
+    """Print list of still existing accounts that have been deleted according to
+    the auditlog.
+    """
+    zombies = get_zombies()
+    print("zombies:", zombies.count())
+    for zombie in zombies:
+        print("*", zombie.pk, zombie.login)
+
+
+register_argument(
+    KNOWN_REPORTS,
+    "zombies",
+    (
+        "List currently existing accounts that according to the audit log "
+        "should no longer exist."
+    ),
+    view_zombies,
+)
+
+
+# commands, fix
 
 
 def _find_unused_ids():
@@ -187,16 +234,33 @@ def repair_delete_account_entries(verbose: bool = True):
             print(f'Fixed: {entry.id} "{entry.summary}" (lurker)')
 
 
-def delete_accounts_marked_as_deleted_in_auditlog():
+register_argument(
+    KNOWN_REPAIRS,
+    "delete-account-fix-object",
+    (
+        "For delete-account entries:\n"
+        "Attempts to set the pk of the object if it is missing"
+    ),
+    repair_delete_account_entries,
+)
+
+
+def delete_account_remove_zombies():
     "Delete accounts have an entry in the object column of delete-account"
-    deleted_account_ids = [
-        int(_id)
-        for _id in LogEntry.objects.filter(
-            verb="delete-account", object_pk__isnull=False
-        ).values_list("id", flat=True)
-    ]
-    accounts_to_delete = Account.objects.filter(pk__in=deleted_account_ids)
-    accounts_to_delete.delete()
+    zombies = get_zombies()
+    zombies.delete()
+
+
+register_argument(
+    KNOWN_REPAIRS,
+    "delete-account-remove-zombies",
+    (
+        "For delete-account entries:\n"
+        "Actually delete accounts that have a delete-account entry "
+        "but for some reason still exists"
+    ),
+    delete_account_remove_zombies,
+)
 
 
 if __name__ == '__main__':

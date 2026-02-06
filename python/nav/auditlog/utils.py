@@ -81,3 +81,17 @@ def get_lurkers():
     "Get a list of current accounts that have no actor entries in the audit log"
     actor_pks = [pk for _, pk in get_all_historical_actors()]
     return Account.objects.exclude(pk__in=actor_pks)
+
+
+def get_zombies():
+    "Get a list of accounts that should have been deleted according to the auditlog"
+    deleted_accounts = LogEntry.objects.filter(
+        verb="delete-account",
+    )
+    deleted_account_ids = [
+        int(pk)
+        for pk in deleted_accounts.exclude(
+                object_pk__isnull=True,
+        ).values_list("object_pk", flat=True)
+    ]
+    return Account.objects.filter(pk__in=deleted_account_ids)
