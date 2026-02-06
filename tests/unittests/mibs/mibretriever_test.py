@@ -33,7 +33,9 @@ class TestMultiMibMixInGetAlternateAgent:
         agent.snmp_parameters = SNMPParameters(version=2, community="public")
 
         mixin = MultiMibMixIn(agent, [])
-        instance = LogicalMibInstance("vlan100", "public@100", "vlan-100", None)
+        instance = LogicalMibInstance(
+            description="vlan100", community="public@100", context="vlan-100"
+        )
 
         alt_agent = mixin._get_alternate_agent(instance)
 
@@ -48,7 +50,9 @@ class TestMultiMibMixInGetAlternateAgent:
         agent.snmp_parameters = SNMPParameters(version=3, sec_name="user")
 
         mixin = MultiMibMixIn(agent, [])
-        instance = LogicalMibInstance("vlan100", "public@100", "vlan-100", None)
+        instance = LogicalMibInstance(
+            description="vlan100", community="public@100", context="vlan-100"
+        )
 
         alt_agent = mixin._get_alternate_agent(instance)
 
@@ -65,7 +69,12 @@ class TestMultiMibMixInGetAlternateAgent:
 
         mixin = MultiMibMixIn(agent, [])
         engine_id = bytes.fromhex("800000090300001234")
-        instance = LogicalMibInstance("vlan100", "public@100", "vlan-100", engine_id)
+        instance = LogicalMibInstance(
+            description="vlan100",
+            community="public@100",
+            context="vlan-100",
+            context_engine_id=engine_id,
+        )
 
         alt_agent = mixin._get_alternate_agent(instance)
 
@@ -79,7 +88,9 @@ class TestMultiMibMixInGetAlternateAgent:
         agent.snmp_parameters = SNMPParameters(version=3, sec_name="user")
 
         mixin = MultiMibMixIn(agent, [])
-        instance = LogicalMibInstance("vlan100", "public@100", "vlan-100", None)
+        instance = LogicalMibInstance(
+            description="vlan100", community="public@100", context="vlan-100"
+        )
 
         alt_agent = mixin._get_alternate_agent(instance)
 
@@ -94,7 +105,7 @@ class TestMultiMibMixInGetAlternateAgent:
         agent.snmp_parameters = SNMPParameters(version=2, community="public")
 
         mixin = MultiMibMixIn(agent, [])
-        instance = LogicalMibInstance("vlan100", "public@100")
+        instance = LogicalMibInstance(description="vlan100", community="public@100")
 
         alt_agent = mixin._get_alternate_agent(instance)
 

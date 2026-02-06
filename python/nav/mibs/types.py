@@ -15,10 +15,12 @@
 #
 """Type definitions for nav.mibs package."""
 
-from typing import NamedTuple, Optional
+from dataclasses import dataclass
+from typing import Optional
 
 
-class LogicalMibInstance(NamedTuple):
+@dataclass(frozen=True)
+class LogicalMibInstance:
     """A MIB instance identifier.
 
     Some devices (like Cisco switches) provide multiple logical instances of a MIB (such
