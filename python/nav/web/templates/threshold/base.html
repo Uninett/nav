@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load tools %}
+{% load popover tools %}
 
 {% block footer_scripts %}
   <script>
@@ -49,24 +49,12 @@
           <td class="hide-for-medium-down">{{ rule.creator.name }}</td>
           <td class="hide-for-medium-down" data-sort-value="{{ rule.created|date:'c' }}">{{ rule.created }}</td>
           <td>
-            <div id="delete-popover-{{ rule.id }}" class="popover with-arrow" data-align="end">
-              <a
-                  href="#"
-                  data-popover-target="#delete-popover-{{ rule.id }}"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-              >
-                  <i class="fa fa-times-circle deleteicon"></i>
-              </a>
-              <div class="popover-content tiny">
-                <h5>Delete this rule?</h5>
-                <form action="{% url 'threshold-delete' rule.id %}" method="POST">
-                  {% csrf_token %}
-                  <input type="submit" value="Yes" class="button small alert left" />
-                  <button type="button" class="button small secondary close-button left" close-popover>No way!</button>
-                </form>
-              </div>
-            </div>
+            {% with rule_id_str=rule.id|stringformat:"s" %}
+              {% with popover_id="delete-popover-"|add:rule_id_str %}
+                {% url 'threshold-delete' rule.id as delete_url %}
+                {% confirm_popover popover_id=popover_id action_url=delete_url title="Delete this rule?" cancel_text="No way!" align="end" %}
+              {% endwith %}
+            {% endwith %}
           </td>
         </tr>
       {% endfor %}
