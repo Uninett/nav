@@ -24,6 +24,7 @@ from urllib.parse import quote as urlquote
 
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth import authenticate, login as django_login
 from django.http import (
     HttpResponseForbidden,
     HttpResponseRedirect,
@@ -48,8 +49,7 @@ from nav.models.profiles import (
     AccountNavlet,
     NavbarLink,
 )
-from nav.web import auth, webfrontConfig
-from nav.web.auth import ldap
+from nav.web import webfrontConfig
 from nav.web.auth import logout as auth_logout
 from nav.web.auth.utils import get_account, set_account
 from nav.web.message import new_message, Messages
@@ -396,25 +396,22 @@ def do_login(request: HttpRequest) -> HttpResponse:
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
 
-        try:
-            account = auth.authenticate(username, password)
-        except ldap.Error as error:
-            errors.append('Error while talking to LDAP:\n%s' % error)
+        account = authenticate(request, username=username, password=password)
+        if account is not None:
+            LogEntry.add_log_entry(
+                account, 'log-in', '{actor} logged in', before=account
+            )
+            django_login(request, account)
+            set_account(request, account)  # NAV legacy specific
+            _logger.info("%s successfully logged in", account.login)
+            if not origin:
+                origin = reverse('webfront-index')
+            return HttpResponseRedirect(origin)
         else:
-            if account:
-                LogEntry.add_log_entry(
-                    account, 'log-in', '{actor} logged in', before=account
-                )
-                set_account(request, account)
-                _logger.info("%s successfully logged in", account.login)
-                if not origin:
-                    origin = reverse('webfront-index')
-                return HttpResponseRedirect(origin)
-            else:
-                _logger.info("failed login: %r", username)
-                errors.append(
-                    'Username or password is incorrect, or the account is locked.'
-                )
+            _logger.info("failed login: %r", username)
+            errors.append(
+                'Username or password is incorrect, or the account is locked.'
+            )
 
     # Something went wrong. Display login page with errors.
     return render(

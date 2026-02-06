@@ -39,10 +39,19 @@ from http import cookies
 
 from nav.bootstrap import bootstrap_django
 
+from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from nav.web.auth.middleware import AuthenticationMiddleware, AuthorizationMiddleware
+from nav.web.auth.middleware import NAVAuthenticationMiddleware, AuthorizationMiddleware
 from nav.web import loginit
 from django.db import connection
+
+
+MODPYTHON_MIDDLEWARE = (
+    SessionMiddleware,
+    AuthenticationMiddleware,
+    NAVAuthenticationMiddleware,
+    AuthorizationMiddleware,
+)
 
 
 def headerparserhandler(req):
@@ -60,7 +69,7 @@ def headerparserhandler(req):
     req.is_ajax = lambda: is_ajax
     req.COOKIES = _get_cookie_dict(req)
 
-    for mware in (SessionMiddleware, AuthenticationMiddleware, AuthorizationMiddleware):
+    for mware in MODPYTHON_MIDDLEWARE:
         response = mware().process_request(req)
 
     try:

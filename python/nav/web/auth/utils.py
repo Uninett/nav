@@ -21,6 +21,7 @@ login method.
 import logging
 import re
 
+from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
 from django.core.cache import cache
 
 from nav.models.profiles import Account
@@ -60,6 +61,7 @@ def set_account(request, account, cycle_session_id=True):
     Cycles the session ID by default to avoid session fixation.
     """
     request.session[ACCOUNT_ID_VAR] = account.id
+    request.session[DJANGO_USER_SESSION_KEY] = str(account.id)
     request.account = request.user = account
     _logger.debug('Set active account to "%s"', account.login)
     if cycle_session_id:
