@@ -183,9 +183,9 @@ require([
 
     /** Functions for handling setting of default dashboard */
     function addDefaultDashboardListener(feedback) {
-        var defaultDashboardContainer = $('#default-dashboard-container'),
+        const defaultDashboardContainer = $('#default-dashboard-container'),
             setDefaultDashboardForm = $('#form-set-default-dashboard'),
-            isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box'),
+            isDefaultDashboardAlert = $('#is-default-dashboard-alert'),
             deleteDashboardForm = $('#form-delete-dashboard');
 
         if (defaultDashboardContainer.data('is-default-dashboard')) {
@@ -194,21 +194,13 @@ require([
             isDefaultDashboardAlert.hide();
         }
 
-        setDefaultDashboardForm.submit(function (event) {
-            event.preventDefault();
-            feedback.removeAlertbox();
-            const request = $.post(
-                this.getAttribute('action'),
-                $(this).serialize()
-            );
-            request.done(function (responseText) {
-                feedback.addFeedback(responseText);
-                setDefaultDashboardForm.hide();
-                isDefaultDashboardAlert.show();
-                deleteDashboardForm.hide();
-                $dashboardNavigator.find('.fa-star').addClass('hidden');
-                $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
-            });
+        // Handle UI updates when default dashboard changes
+        document.body.addEventListener('nav.dashboard.defaultChanged', function () {
+            setDefaultDashboardForm.hide();
+            isDefaultDashboardAlert.show();
+            deleteDashboardForm.hide();
+            $dashboardNavigator.find('.fa-star').addClass('hidden');
+            $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
         });
     }
 

@@ -29,56 +29,84 @@ def test_set_default_dashboard_should_succeed(db, client, admin_account):
     """Tests that a default dashboard can be set"""
     dashboard = AccountDashboard.objects.create(
         name="new_default",
-        is_default=False,
         account=admin_account,
     )
     url = reverse("set-default-dashboard", args=(dashboard.pk,))
     response = client.post(url, follow=True)
 
-    dashboard.refresh_from_db()
-
     assert response.status_code == 200
     assert f"Default dashboard set to «{dashboard.name}»" in smart_str(response.content)
-    assert dashboard.is_default
-    assert (
-        AccountDashboard.objects.filter(account=admin_account, is_default=True).count()
-        == 1
-    )
+    assert dashboard.is_default_for_account(admin_account)
 
 
-def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
+def test_set_default_dashboard_with_previous_default_should_succeed(
     db, client, admin_account
 ):
-    """
-    Tests that a default dashboard can be set if multiple default dashboards
-    exist currently
-    """
-    # By default there already exists one default dashboard for the admin user
-    # which is why we only have to create a second default one
-    default_dashboard = AccountDashboard.objects.create(
-        name="default_dashboard",
-        is_default=True,
-        account=admin_account,
-    )
-    dashboard = AccountDashboard.objects.create(
+    """Tests that a default dashboard can be set when another default exists"""
+    default_dashboard = admin_account.default_dashboard
+    dashboard = create_dashboard(
         name="new_default",
-        is_default=False,
         account=admin_account,
     )
     url = reverse("set-default-dashboard", args=(dashboard.pk,))
     response = client.post(url, follow=True)
 
-    default_dashboard.refresh_from_db()
-    dashboard.refresh_from_db()
-
     assert response.status_code == 200
     assert f"Default dashboard set to «{dashboard.name}»" in smart_str(response.content)
-    assert dashboard.is_default
-    assert not default_dashboard.is_default
-    assert (
-        AccountDashboard.objects.filter(account=admin_account, is_default=True).count()
-        == 1
+    assert dashboard.is_default_for_account(admin_account)
+    assert not default_dashboard.is_default_for_account(admin_account)
+
+
+def test_when_setting_shared_dashboard_as_default_then_it_should_subscribe(
+    db, client, admin_account, non_admin_account
+):
+    """Tests that setting a shared dashboard as default also subscribes to it"""
+    shared_dashboard = create_dashboard(
+        account=non_admin_account,
+        name="shared_dashboard",
+        is_shared=True,
     )
+    url = reverse("set-default-dashboard", args=(shared_dashboard.pk,))
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert shared_dashboard.is_default_for_account(admin_account)
+    assert shared_dashboard.is_subscribed(admin_account)
+
+
+def test_when_no_default_dashboard_set_then_it_should_set_needs_default_flag(
+    db, admin_account
+):
+    """Tests that find_dashboard sets needs_default_set when no default exists"""
+    # Clear any existing dashboards and defaults for a clean slate
+    AccountDashboard.objects.filter(account=admin_account).delete()
+    create_dashboard(account=admin_account)
+
+    # Verify no default is set
+    admin_account.refresh_from_db()
+    assert not admin_account.has_default_dashboard
+
+    # Find dashboard should set needs_default_set to True
+    dashboard = find_dashboard(admin_account)
+    assert dashboard.needs_default_set is True
+
+
+def test_when_setting_shared_default_then_it_should_toggle_subscribe_button(
+    db, client, admin_account, non_admin_account
+):
+    """Tests that setting a shared dashboard as default updates the subscribe button"""
+    shared_dashboard = create_dashboard(
+        account=non_admin_account,
+        name="shared_dashboard",
+        is_shared=True,
+    )
+    url = reverse("set-default-dashboard", args=(shared_dashboard.pk,))
+    response = client.post(url)
+
+    assert response.status_code == 200
+    content = smart_str(response.content)
+    assert 'id="dashboard-subscribe-button"' in content
+    assert 'hx-swap-oob="true"' in content
 
 
 class TestDeleteDashboardView:
@@ -93,7 +121,6 @@ class TestDeleteDashboardView:
         dashboard = self._create_dashboard(
             admin_account,
             name="to_be_deleted",
-            is_default=False,
         )
         url = reverse("delete-dashboard", args=(dashboard.pk,))
         response = client.post(url)
@@ -110,7 +137,6 @@ class TestDeleteDashboardView:
         dashboard = self._create_dashboard(
             admin_account,
             name="to_be_deleted",
-            is_default=False,
         )
         url = reverse("delete-dashboard", args=(dashboard.pk,))
         response = client.post(url)
@@ -176,9 +202,7 @@ class TestDeleteDashboardView:
         """Tests that the default dashboard cannot be deleted"""
         # Ensure at least one non-default dashboard exists
         self._create_dashboard(admin_account, name="non_default_dashboard")
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=admin_account
-        )
+        default_dashboard = admin_account.default_dashboard
         url = reverse("delete-dashboard", args=(default_dashboard.pk,))
         response = client.post(url)
 
@@ -187,12 +211,9 @@ class TestDeleteDashboardView:
         assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
 
     @staticmethod
-    def _create_dashboard(
-        account, name="to_be_deleted", is_default=False, is_shared=False
-    ):
+    def _create_dashboard(account, name="to_be_deleted", is_shared=False):
         return AccountDashboard.objects.create(
             name=name,
-            is_default=is_default,
             account=account,
             is_shared=is_shared,
         )
@@ -293,9 +314,7 @@ class TestDashboardIndexView:
         self, db, client, admin_account
     ):
         """Tests that the default dashboard is shown when no ID is given"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=admin_account
-        )
+        default_dashboard = admin_account.default_dashboard
         url = reverse('dashboard-index')
         response = client.get(url)
 
@@ -883,9 +902,7 @@ class TestFindDashboardUtil:
         self, db, non_admin_account
     ):
         """Tests that the default dashboard is returned when no ID is given"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=non_admin_account
-        )
+        default_dashboard = non_admin_account.default_dashboard
 
         dashboard = find_dashboard(non_admin_account)
         assert dashboard == default_dashboard
@@ -987,9 +1004,7 @@ class TestGetDashboardsForAccount:
 
     def test_given_account_then_return_all_own_dashboards(self, db, non_admin_account):
         """Tests that all own dashboards are returned"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=non_admin_account
-        )
+        default_dashboard = non_admin_account.default_dashboard
         other_dashboard = create_dashboard(
             non_admin_account, name="Own 1", is_shared=False
         )
@@ -1377,10 +1392,9 @@ class TestLoadDashboardView:
         assert column2_ids == [widget2.id]
 
 
-def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
+def create_dashboard(account, name="Test Dashboard", is_shared=False):
     return AccountDashboard.objects.create(
         name=name,
-        is_default=is_default,
         account=account,
         is_shared=is_shared,
     )

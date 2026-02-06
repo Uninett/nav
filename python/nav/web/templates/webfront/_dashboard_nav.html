@@ -15,7 +15,7 @@
             <span>
                 {{ d.name }}
             </span>
-            <i class="fa fa-star {% if not d.is_default or d.shared_by_other %}hidden{% endif %}"
+            <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
                title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
             <i class="fa fa-share-alt {% if not d.shared_by_other %}hidden{% endif %}"
                title="This dashboard is shared by another account."></i>
@@ -60,17 +60,7 @@
       </li>
     </ul>
     <div class="dashboard-meta-wrapper">
-        {% if dashboard.shared_by_other %}
-            {% if is_subscribed %}
-                <button class="tiny secondary" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
-                    <i class="fa fa-bell-slash" style="margin-right: 0.25rem;"></i><span>Unsubscribe</span>
-                </button>
-            {% else %}
-                <button class="tiny info" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
-                    <i class="fa fa-bell" style="margin-right: 0.25rem;"></i><span>Subscribe</span>
-                </button>
-            {% endif %}
-        {% endif %}
+        {% include "webfront/_dashboard_subscribe_button.html" with dashboard=current_dashboard %}
         {% include "webfront/_dashboard_nav_shared_indicator.html" with dashboard=dashboard %}
         <div class="nav-tooltip" data-align="end">
             <div class="badge unstyled-tooltip" aria-describedby="owner-tooltip">

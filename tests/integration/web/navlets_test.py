@@ -205,9 +205,7 @@ def _get_dashboard_url(dashboard: AccountDashboard):
 
 @pytest.fixture
 def dashboard(db, admin_account):
-    dashboard = AccountDashboard(
-        account=admin_account, name='Test Dashboard', is_default=True
-    )
+    dashboard = AccountDashboard(account=admin_account, name='Test Dashboard')
     dashboard.save()
     yield dashboard
     dashboard.delete()
@@ -221,9 +219,7 @@ def other_account_dashboard(db):
         password='apasswordthatislongenough123',
     )
     account.save()
-    dashboard = AccountDashboard(
-        account=account, name='Other Dashboard', is_default=True
-    )
+    dashboard = AccountDashboard(account=account, name='Other Dashboard')
     dashboard.save()
     yield dashboard
     account.delete()

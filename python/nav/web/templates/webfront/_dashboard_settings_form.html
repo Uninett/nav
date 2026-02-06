@@ -7,7 +7,8 @@
     >
         <i class="fa fa-gear fa-lg"></i>
     </div>
-    <div class="popover-content large">
+    <div class="popover-content large {% if can_edit %}settings-popover{% else %}shared-settings-popover{% endif %}">
+        {% if can_edit %}
         <form id="form-rename-dashboard"
               method="post"
               data-dashboard="{{ dashboard.pk }}"
@@ -17,23 +18,26 @@
                    value="{{ dashboard.name }}">
             <input type="submit" class="small button" value="Rename dashboard">
         </form>
+        {% else %}
+        <p aria-label="Dashboard name">{{ dashboard.name }}</p>
+        {% endif %}
 
         <div class="row">
 
-            <div class="column medium-4">
+            <div class="column medium-6">
                 <div id="default-dashboard-container"
                      data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
-                    <div class="alert-box">This is the default dashboard</div>
-                    <form id="form-set-default-dashboard" method="post"
-                          action="{% url 'set-default-dashboard' dashboard.pk %}">
+                    <div id="is-default-dashboard-alert" class="alert-box">This is the default dashboard</div>
+                    <form id="form-set-default-dashboard"
+                          hx-post="{% url 'set-default-dashboard' dashboard.pk %}"
+                          hx-target="#dashboard-settings-feedback">
                         {% csrf_token %}
                         <input type="submit" value="Set as default dashboard"
                                class="small button secondary expand">
                     </form>
                 </div>
             </div>
-
-            <div class="column medium-4">
+            <div class="column medium-6">
                 <a href="{% url 'export-dashboard' dashboard.pk %}" class="small button expand">Export dashboard
                 </a><br/>
                 <div class="nav-tooltip">
@@ -44,8 +48,9 @@
                 </div>
             </div>
 
+            {% if can_edit %}
             <div class="column medium-4">
-                {% if request.user.account_dashboards.count > 1 and not dashboard.is_default %}
+                {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
                     <form
                         hx-post="{% url 'delete-dashboard' dashboard.pk %}"
                             hx-target="body"
@@ -63,8 +68,9 @@
                 {% endif %}
 
             </div>
-
+            {% endif %}
         </div>
+        {% if can_edit %}
         <div class="row">
             <div class="column medium-4">
                 <h5>Columns</h5>
@@ -77,6 +83,7 @@
             </div>
             <div class="column medium-4"></div>
         </div>
+        {% endif %}
         <div id="dashboard-settings-feedback">
         </div>
     </div>

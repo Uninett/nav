@@ -23,27 +23,45 @@ def find_dashboard(account, dashboard_id=None):
     Either find a specific one or the default one. If none of those exist we
     find the one with the most widgets.
     """
-    kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
+    dashboard = (
+        _find_dashboard_by_id(account, dashboard_id)
+        if dashboard_id
+        else _find_default_dashboard(account)
+    )
+    dashboard.shared_by_other = dashboard.is_shared and dashboard.account != account
+    dashboard.is_default = dashboard.is_default_for_account(account)
+    # Only show warning on root view, not when navigating to specific dashboards
+    dashboard.needs_default_set = not account.has_default_dashboard and not dashboard_id
+
+    return dashboard
+
+
+def _find_dashboard_by_id(account, dashboard_id):
+    """Find a specific dashboard by ID for this account"""
     try:
         dashboard = AccountDashboard.objects.get(
-            (Q(account=account) | Q(is_shared=True)), **kwargs
+            (Q(account=account) | Q(is_shared=True)), pk=dashboard_id
         )
-        dashboard.shared_by_other = dashboard.is_shared and dashboard.account != account
+        return dashboard
 
     except AccountDashboard.DoesNotExist:
-        if dashboard_id:
-            raise Http404
+        raise Http404
 
-        # Do we have a dashboard at all?
-        dashboards = AccountDashboard.objects.filter(account=account)
-        if dashboards.count() == 0:
-            raise Http404
 
-        # No default dashboard? Find the one with the most widgets
-        dashboard = dashboards.annotate(Count('widgets')).order_by('-widgets__count')[0]
-    except AccountDashboard.MultipleObjectsReturned:
-        # Grab the first one
-        dashboard = AccountDashboard.objects.filter(account=account, **kwargs)[0]
+def _find_default_dashboard(account):
+    """Find the default dashboard for this account"""
+    if account.has_default_dashboard:
+        return account.default_dashboard
+
+    # No default dashboard? Find the one with the most widgets
+    dashboards = AccountDashboard.objects.filter(account=account)
+    if dashboards.count() == 0:
+        raise Http404
+    dashboard = (
+        dashboards.annotate(widget_count=Count('widgets'))
+        .order_by('-widget_count')
+        .first()
+    )
 
     return dashboard
 
@@ -53,9 +71,13 @@ def get_dashboards_for_account(account) -> list[AccountDashboard]:
     Returns a queryset of dashboards for the given account,
     including those the account subscribes to.
     """
+    default_dashboard = account.default_dashboard
+    default_dashboard_id = default_dashboard.id if default_dashboard else None
     dashboards = (
         AccountDashboard.objects.filter(
-            Q(account=account) | Q(subscribers__account=account)
+            Q(account=account)
+            | Q(subscribers__account=account)
+            | Q(pk=default_dashboard_id)
         )
         .select_related('account')
         .distinct()
@@ -63,5 +85,6 @@ def get_dashboards_for_account(account) -> list[AccountDashboard]:
     for dash in dashboards:
         dash.can_edit = dash.can_edit(account)
         dash.shared_by_other = dash.is_shared and dash.account_id != account.id
+        dash.is_default = dash.id == default_dashboard_id
 
     return list(dashboards)
