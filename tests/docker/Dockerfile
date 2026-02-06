@@ -33,10 +33,6 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
       python3.13-dbg python3.13-dev python3.13-venv \
       python3-pip
 
-RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-# 78BD65473CB3BD13 Google signing key for chrome (for selenium, functional tests)
-RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
-
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
@@ -55,13 +51,9 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     libwww-perl \
     xvfb \
     imagemagick \
-    x11vnc google-chrome-stable cloc \
-    cmake nbtscan libtidy5deb1
-
-# Install Firefox (we don't want Snap!)
-ENV FF_VER=135.0
-ENV FF_DEB=firefox-$FF_VER.deb
-RUN cd /tmp && wget https://ftp.mozilla.org/pub/firefox/releases/$FF_VER/linux-x86_64/en-US/$FF_DEB && dpkg -i $FF_DEB && rm $FF_DEB
+    x11vnc cloc \
+    cmake nbtscan libtidy5deb1 \
+    libxcursor1 libgtk-3-0t64 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0
 
 # Now install NodeJS and NPM for Javascript testing needs -
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -69,25 +61,17 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     curl -sL https://deb.nodesource.com/setup_18.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
 
-# Install geckodriver to properly run Selenium tests in Firefox versions>=47
-ENV GECKOVERSION=0.35.0
-RUN cd /tmp && \
-    wget https://github.com/mozilla/geckodriver/releases/download/v$GECKOVERSION/geckodriver-v$GECKOVERSION-linux64.tar.gz && \
-    tar xvzf geckodriver-v$GECKOVERSION-linux64.tar.gz && \
-    mv geckodriver /usr/local/bin/
-
-# Install chromedriver to properly run Selenium tests in Chrome, if need be
-# Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-ENV CHROMEDRIVERVERSION=139.0.7258.154
-RUN cd /tmp && \
-    wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVERVERSION/linux64/chromedriver-linux64.zip && \
-    unzip chromedriver-linux64.zip && \
-    mv chromedriver-linux64/chromedriver /usr/local/bin/
-
 # Install required Python tools in a virtualenv, as required by Ubuntu
 ENV PATH=/opt/venvs/nav/bin:$PATH
 RUN python3.9 -m venv /opt/venvs/nav && \
     /opt/venvs/nav/bin/pip install --upgrade pip setuptools tox
+
+# Install Playwright system dependencies for Chromium
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    pip install playwright && \
+    playwright install-deps chromium && \
+    pip uninstall -y playwright
 
 # Add a build user
 ENV USER=build
