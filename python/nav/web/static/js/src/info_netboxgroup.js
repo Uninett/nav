@@ -1,6 +1,7 @@
 require([
     'plugins/multiple_select',
     'libs/datatables.min',
+    'dt_config',
     'src/dt_plugins/numeric_html',
     'src/dt_plugins/ip_address_sort',
     'src/dt_plugins/ip_address_typedetect',

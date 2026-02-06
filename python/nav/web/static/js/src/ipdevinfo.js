@@ -2,12 +2,12 @@ require([
     "plugins/table_utils",
     "plugins/tab_navigation",
     "plugins/jquery_ui_helpers",
+    "plugins/d3_sparkline",
     "plugins/graphfetcher_controller",
     "jquery",
     "jquery-ui",
-    "jquery-sparkline",
     "plugins/rickshaw_graph"
-], function (TableUtil, TabNavigation, JUIHelpers) {
+], function (TableUtil, TabNavigation, JUIHelpers, d3Sparkline) {
 
     var mainTabsSelector = '#ipdevinfotabs';
     var metricTabsSelector = "#metrictabs";
@@ -176,22 +176,23 @@ require([
     }
 
     function addSparkLinesToJobs() {
-        var formatter = function(sparkline, options, fields) {
+        var formatter = function(data) {
             /* The x value is seconds since epoch in local timezone. As
                toLocaleString converts based on UTC values, we cheat and say
              that the timeZone is UTC while keeping the formatting local */
-            var date = new Date(fields.x * 1000).toLocaleString({}, {timeZone: 'UTC'});
-            return '<div class="jqsfield"><span style="color: ' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
+            var date = new Date(data.x * 1000).toLocaleString({}, {timeZone: 'UTC'});
+            return '<div class="jqsfield"><span style="color: ' + data.color + '">&#9679</span> ' + data.y + '<br/> ' + date + '</div>';
         };
 
         var options = {
-            type: 'line',
+            width: '100%',
+            height: 20,
             tooltipFormatter: formatter
         };
 
         $('#ipdevpoll-jobs .sparkline').each(function() {
             var $element = $(this);
-            $element.sparkline($element.data('values'), options);
+            d3Sparkline.line($element, $element.data('values'), options);
         });
 
     }

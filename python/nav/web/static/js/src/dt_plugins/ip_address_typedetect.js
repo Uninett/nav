@@ -3,14 +3,11 @@
  * Author: Brad Wasson
  */
 
-require(['libs/datatables.min'], function() {
-    jQuery.fn.dataTableExt.aTypes.unshift(
-        function ( sData )
-        {
-            if (/^\d{1,3}[\.]\d{1,3}[\.]\d{1,3}[\.]\d{1,3}$/.test(sData)) {
-                return 'ip-address';
-            }
-            return null;
+require(['libs/datatables.min'], function () {
+    $.fn.DataTable.ext.type.detect.unshift((data) => {
+        if (/^\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}$/.test(data)) {
+            return 'ip-address';
         }
-    );
+        return null;
+    });
 });

@@ -1,4 +1,4 @@
-require(['libs/datatables.min', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
+require(['libs/datatables.min', 'dt_config', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
 
     function initTimeField() {
         var time_field = $('#id_time_1');
@@ -29,7 +29,7 @@ require(['libs/datatables.min', 'src/dt_plugins/ip_address_sort', 'src/dt_plugin
         resulttable.on('click', 'td', function() {
             var filter = $(this).data('filter');
             if (filter) {
-                datatable.fnFilter(filter);
+                datatable.search(filter).draw();
             }
         });
     }
@@ -39,7 +39,7 @@ require(['libs/datatables.min', 'src/dt_plugins/ip_address_sort', 'src/dt_plugin
         filter_input.keypress(function(e) {
             // i.e. enter was pressed
             if (e.keyCode === 13) {
-                datatable.fnFilter(filter_input.val());
+                datatable.search(filter_input.val()).draw();
             }
         });
     }
@@ -47,8 +47,8 @@ require(['libs/datatables.min', 'src/dt_plugins/ip_address_sort', 'src/dt_plugin
         // Add classes
         var nosort = resulttable.children('thead').data('nosort');
 
-        // Iniialize
-        var datatable = resulttable.dataTable({
+        // Initialize
+        var datatable = resulttable.DataTable({
             'iDisplayLength': 50,
             'bPaginate': false,
             "aaSorting": [],
