@@ -1,0 +1,13 @@
+{% load allauth %}
+{% comment %} djlint:off {% endcomment %}
+<{% if attrs.href %}a href="{{ attrs.href }}"{% else %}button{% endif %}
+{% if attrs.form %}form="{{ attrs.form }}"{% endif %}
+{% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+{% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+{% if attrs.value %}value="{{ attrs.value }}"{% endif %}
+{% if attrs.type %}type="{{ attrs.type }}"{% endif %}
+class="button small{% if attrs.tags %}{% if "danger" in attrs.tags or "delete" in attrs.tags %} alert{% elif "secondary" in attrs.tags %} secondary{% endif %}{% endif %}"
+>
+{% slot %}
+{% endslot %}
+</{% if attrs.href %}a{% else %}button{% endif %}>
