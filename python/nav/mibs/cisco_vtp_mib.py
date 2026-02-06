@@ -18,6 +18,7 @@ from twisted.internet import defer
 from nav.bitvector import BitVector
 from nav.smidumps import get_mib
 from . import mibretriever
+from .types import LogicalMibInstance
 
 CHARS_IN_1024_BITS = 128
 
@@ -98,13 +99,14 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         states = yield self.get_ethernet_vlan_states()
         return set(vlan for vlan, state in states.items() if state == 'operational')
 
-    async def retrieve_alternate_bridge_mibs(self):
+    async def retrieve_alternate_bridge_mibs(self) -> list[LogicalMibInstance]:
         """Retrieve a list of alternate bridge mib instances.
 
-        :returns: A list of (descr, community) tuples for each operational
-                  VLAN on this device.
+        :returns: A list of LogicalMibInstance for each operational VLAN on this device.
 
         """
         vlans = await self.get_operational_vlans()
         community = self.agent_proxy.community
-        return [("vlan%s" % vlan, "%s@%s" % (community, vlan)) for vlan in vlans]
+        return [
+            LogicalMibInstance(f"vlan{vlan}", f"{community}@{vlan}") for vlan in vlans
+        ]
