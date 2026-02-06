@@ -22,3 +22,9 @@ def deep_urlize(value):
     if value:
         return re.sub(r'(https?://[^" ]+)', r'<a href="\1">\1</a>', value)
     return value
+
+
+@register.filter
+def starts_with(value, arg):
+    """Check if a string starts with the given argument"""
+    return str(value).startswith(str(arg))
