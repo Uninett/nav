@@ -20,7 +20,8 @@ var require = {
         // consider patching Marionette
         "backbone": "libs/backbone",
         "underscore": "libs/underscore",
-        "marionette": "libs/backbone.marionette.min",
+        "marionette": "libs/backbone.marionette-4.1.3.min",
+        "backbone.radio": "libs/backbone.radio-2.0.0.min",
         "vue": "libs/vue.min",
         "driver": "libs/driver-1.3.6.min",
         "tinysort": "libs/tinysort-3.1.4.min",
@@ -40,8 +41,12 @@ var require = {
           deps: ["libs/underscore"],
           exports: 'Backbone'
         },
-        'marionette': {
+        'backbone.radio': {
           deps: ["backbone"],
+          exports: "Backbone.Radio"
+        },
+        'marionette': {
+          deps: ["backbone", "backbone.radio"],
           exports: "Marionette"
         },
         'libs/backbone': {

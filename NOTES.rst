@@ -8,6 +8,16 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.16
+========
+
+Dependency changes
+------------------
+
+A dependency was added to this Python module:
+
+* :mod:`distro`
+
 NAV 5.15
 ========
 

@@ -62,7 +62,7 @@ urlpatterns = [
         name='netmap-defaultview-user',
     ),
     path(
-        'views/<int:viewid>)/nodepositions/update/',
+        'views/<int:viewid>/nodepositions/update/',
         NodePositionUpdate.as_view(),
         name='netmap-nodepositions-update',
     ),

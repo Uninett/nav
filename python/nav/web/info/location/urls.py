@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2022, 2026 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,6 +22,6 @@ from nav.web.info.location import views
 
 urlpatterns = [
     path('', views.search, name='location-search'),
-    path('<str:locationid>/upload/', views.upload_image, name='location-info-upload'),
-    path('<str:locationid>/', views.locationinfo, name='location-info'),
+    path('<path:locationid>/upload/', views.upload_image, name='location-info-upload'),
+    path('<path:locationid>/', views.locationinfo, name='location-info'),
 ]

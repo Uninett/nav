@@ -1,21 +1,21 @@
 define([
+    'plugins/csrf-utils',
     'libs/underscore',
     'libs/backbone'
-], function () {
-
+], function (CsrfUtils) {
     /**
      * Models for Netmap
      */
 
-    var Node = Backbone.Model.extend({
+    const Node = Backbone.Model.extend({
         idAttribute: 'id',
 
         initialize: function () {
             this.set('node', this.get('id'));
         }
     });
-
-    var NodePositions = Backbone.Model.extend({
+    const csrfToken = CsrfUtils.getCsrfToken();
+    const NodePositions = Backbone.Model.extend({
         idAttribute: 'viewid',
         defaults: {
             data: []
@@ -27,23 +27,21 @@ define([
 
         save: function (attrs, options) {
             options = options || {};
-            const csrfToken = $('#netmap-view-settings-form input[name="csrfmiddlewaretoken"]').val();
-
             options.headers = {
                 ...options.headers,
                 'X-CSRFToken': csrfToken
-            }
+            };
             return Backbone.Model.prototype.save.call(this, attrs, options);
         }
     });
 
-    var Link = Backbone.Model.extend({
+    const Link = Backbone.Model.extend({
         defaults: {
             traffic: {}
         }
     });
 
-    var Vlan = Backbone.Model.extend({
+    const Vlan = Backbone.Model.extend({
         idAttribute: 'nav_vlan'
     });
 
@@ -52,7 +50,7 @@ define([
      * This is a data model which encapsulates a number of options and filters
      * over how the netmap topology graph is displayed.
      */
-    var NetmapView = Backbone.Model.extend({
+    const NetmapView = Backbone.Model.extend({
         idAttribute: 'viewid',
 
         defaults: {

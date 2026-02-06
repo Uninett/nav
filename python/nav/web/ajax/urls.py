@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2022, 2026 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -37,12 +37,12 @@ urlpatterns = [
         name='room-positions',
     ),
     path(
-        'open/roommapper/rooms/<str:roomid>/',
+        'open/roommapper/rooms/<path:roomid>/',
         views.get_rooms_with_position,
         name='room-position',
     ),
     path(
-        'open/roommapper/locations/<str:locationid>/',
+        'open/roommapper/locations/<path:locationid>/',
         views.get_rooms_with_position_for_location,
         name='location-position',
     ),

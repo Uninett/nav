@@ -8,74 +8,18 @@
     <small class="alert-update-timestamp right">Last update: <span></span></small>
 
     <script>
-     (function() {
-         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
-         var $alertBox = $navlet.find('.alert-box');
-         var $timestamp = $navlet.find('.alert-update-timestamp span');
-         var onState = +'{{ on_state }}';
-         var text = {
-             on: '{{ on_message }}',
-             off: '{{ off_message }}',
-             unknown: 'N/A'
-         };
-         var alertType = '{{ alert_type }}';
-
-         update();
-         $navlet.on('refresh', update);  // navlet controller determines when to update
-         $navlet.on('render', function(event, renderType){
-             /* We need to unregister eventlistener, as it will not be removed
-             when going into edit-mode, and thus we will have one for each time
-             you have edited the widget. */
-             if (renderType === 'EDIT') {
-                 $navlet.off('refresh', update);
+     require(['plugins/navlet_alert'], function (AlertController) {
+         new AlertController(
+             $('[data-id={{ navlet.navlet_id }}]'),
+             {
+                 dataUrl: '{{ data_url }}',
+                 onState: +'{{ on_state }}',
+                 onMessage: '{{ on_message }}',
+                 offMessage: '{{ off_message }}',
+                 alertType: '{{ alert_type }}'
              }
-         });
-
-         function feedBack(text, klass) {
-             $alertBox.attr('class', 'alert-box with-icon');
-             if (klass) {
-                 $alertBox.addClass(klass);
-             }
-             $alertBox.html(text);
-         }
-
-         function update() {
-             var request = $.get('{{ data_url }}');
-
-             request.done(function(data) {
-                 if (data.length === 0) {
-                     feedBack('<strong>Got no data from Graphite</strong> - perhaps the metric name is wrong?');
-                     return;
-                 }
-
-                 var datapoints = data[0].datapoints.reverse();
-
-                 $timestamp.text('N/A');
-
-                 for (var i=0; i<datapoints.length; i++) {
-                     var value = datapoints[i][0];
-                     var epoch = datapoints[i][1];
-                     if (value !== null) {
-                         if (value === onState) {
-                             feedBack(text.on, alertType);
-                         } else {
-                             feedBack(text.off, 'success');
-                         }
-                         $timestamp.text(new Date(epoch * 1000).toLocaleString());
-                         break;
-                     }
-                     if (i >= 3) {
-                         feedBack(text.unknown);
-                     }
-                 }
-             });
-
-             // Very basic error handling
-             request.fail(function(jqXhr, textStatus, errorThrown) {
-                 feedBack(['<strong>Error updating widget:</strong>', jqXhr.status, jqXhr.statusText].join(' '));
-             });
-         }
-     })()
+         );
+     })
     </script>
 
   {% else %}
@@ -87,9 +31,13 @@
 
     <script>
      (function(){
-         var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');
-         $navlet.find('.configure-link').click(function() {
-             $navlet.find('.navlet-mode-switch').click();
+         const $navlet = $('[data-id="{{ navlet.navlet_id }}"]');
+         $navlet.find('.configure-link').click(function(e) {
+             e.preventDefault();
+             const $switch = $navlet.find('.navlet-mode-switch')[0];
+             if ($switch) {
+                 htmx.trigger($switch, 'click');
+             }
          });
      })();
     </script>

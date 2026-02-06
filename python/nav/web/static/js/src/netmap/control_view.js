@@ -2,10 +2,13 @@ define([
     'netmap/collections',
     'netmap/models',
     'netmap/graph',
+    'plugins/csrf-utils',
     'libs/backbone',
     'libs/backbone-eventbroker',
     'jquery-ui'
-], function (Collections, Models) {
+], function (Collections, Models, Graph, CsrfUtils) {
+
+    const csrfToken = CsrfUtils.getCsrfToken();
 
     /**
      * This view is responsible for responding to DOM events
@@ -229,12 +232,6 @@ define([
             this.currentView.baseZoom = this.currentView.get('zoom');
             var isNew = this.currentView.isNew();
 
-            // Get CSRF token from the appropriate form
-            const csrfToken = isNew
-                ? $('#netmap-view-create-form input[name=csrfmiddlewaretoken]').val()
-                : $('#netmap-view-edit-form input[name=csrfmiddlewaretoken]').val();
-            this.currentView.set('csrfmiddlewaretoken', csrfToken);
-
             var self = this;
             this.currentView.save(this.currentView.attributes,
                 {
@@ -279,10 +276,12 @@ define([
             };
 
             this.currentView.save(data, {
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                },
                 success: function (model) {
                     console.log(model);
                     Backbone.EventBroker.trigger('netmap:saveNodePositions', model, {'isUpdated': true}, self.leftAlertContainer);
-//                    self.saveSuccessful.call(self, model, {'isUpdated': true}, self.leftAlertContainer);
                 },
                 error: function (model, resp) {
                     self.saveError.call(self, resp.responseText);
@@ -303,7 +302,6 @@ define([
             if(confirm('Delete this view?')) {
                 if (!this.currentView.isNew()) {
                     var self = this;
-                    const csrfToken = $('#netmap-view-delete-form input[name=csrfmiddlewaretoken]').val();
                     this.currentView.destroy({
                         beforeSend: function(xhr) {
                             xhr.setRequestHeader('X-CSRFToken', csrfToken);

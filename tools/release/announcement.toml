@@ -1,0 +1,21 @@
+[debian]
+releases = ["12 (Bookworm)", "11 (Bullseye)", "13 (Trixie)"]
+
+[urls]
+github_releases = "https://github.com/Uninett/nav/releases"
+apt_repo = "https://nav.uninett.no/install-instructions/#debian"
+release_notes_base = "https://nav.readthedocs.io/en/latest/release-notes.html"
+
+[blog]
+# Path to nav-landing-page blog directory for --enact
+landing_page_blog_path = "~/d/nav-landing-page/content/blog"
+
+[email]
+subject_template = "Announcement: NAV {version} released"
+security_subject_template = "Security announcement: NAV {version} released"
+# Recipients for --enact
+to = ["nav-users@lister.sikt.no"]
+# Command to open email client for --enact
+# Available placeholders: {subject}, {subject_file}, {body_file}, {to}
+# Example for mu4e in Emacs:
+compose_command = '''emacsclient -cn --eval "(nav-announcement-compose \"{to}\" \"{subject}\" \"{body_file}\")"'''

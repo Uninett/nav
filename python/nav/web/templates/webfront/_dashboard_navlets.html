@@ -1,0 +1,19 @@
+<div class="row{% if compact %} collapse{% endif %}">
+{% if has_navlets %}
+{% for col_num, navlets in columns.items %}
+    <div class="column navletColumn {{ column_class }}" data-col="{{ col_num }}">
+        {% for navlet in navlets %}
+            {% include 'navlets/_navlet_item.html' with navlet=navlet %}
+        {% endfor %}
+    </div>
+{% endfor %}
+{% else %}
+{% for col_num in columns.keys %}
+    <div class="column navletColumn {{ column_class }}" data-col="{{ col_num }}">
+        {% if col_num == 1 %}
+            <div id="no-widgets-message" class="alert-box info">No widgets added to this dashboard</div>
+        {% endif %}
+    </div>
+{% endfor %}
+{% endif %}
+</div>

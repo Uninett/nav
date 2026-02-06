@@ -1,4 +1,6 @@
-require([], function () {
+require(['plugins/csrf-utils'], function (CsrfUtils) {
+
+    const csrfToken = CsrfUtils.getCsrfToken();
 
 
     function addToggleFiltersListener() {
@@ -32,9 +34,14 @@ require([], function () {
 
         $button.click(function () {
             console.log("Adding widget");
-            var request = $.post($button.data("report_url"), {
-                report_id: $button.data("report_id"),
-                query_string: $button.data("report_qs")
+            const request = $.ajax({
+                url: $button.data("report_url"),
+                type: 'POST',
+                data: {
+                    report_id: $button.data("report_id"),
+                    query_string: $button.data("report_qs")
+                },
+                headers: {'X-CSRFToken': csrfToken}
             });
 
             request.done(function () {

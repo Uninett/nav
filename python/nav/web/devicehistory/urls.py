@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2008-2009 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2022, 2026 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -39,7 +39,7 @@ urlpatterns = [
         name='devicehistory-view-netbox',
     ),
     path(
-        'history/location/<str:location_id>/',
+        'history/location/<path:location_id>/',
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),
