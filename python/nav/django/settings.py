@@ -349,11 +349,12 @@ ACCOUNT_ALLOW_SIGNUPS = False
 ACCOUNT_MAX_EMAIL_ADDRESSES = 1
 LOGIN_URL = '/accounts/login/'
 
+# SOCIALACCOUNT_AUTO_SIGNUP = True
+# SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
+
 MFA_ADAPTER = "nav.web.auth.allauth.adapter.NAVMFAAdapter"
 MFA_TOTP_ISSUER = 'NAV'
 MFA_TOTP_TOLERANCE = 1
-# SOCIALACCOUNT_AUTO_SIGNUP = True
-# SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
 
 _allauth_mfa_config = MFAConfigParser()
 MFA_SUPPORTED_TYPES = _allauth_mfa_config.get_MFA_SUPPORTED_TYPES_setting()

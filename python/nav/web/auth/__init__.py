@@ -25,10 +25,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 
 from nav.django.defaults import LOGIN_URL
-from nav.auditlog.models import LogEntry
 from nav.web.auth import remote_user
-from nav.web.auth.sudo import desudo
-from nav.web.auth.utils import clear_session, get_account
 
 _logger = logging.getLogger(__name__)
 
@@ -73,6 +70,10 @@ def logout(request: HttpRequest, sudo=False) -> Optional[str]:
     """Log out a user from a request
 
     Returns a safe, public path useful for callers building a redirect."""
+    from nav.web.auth.sudo import desudo
+    from nav.auditlog.models import LogEntry
+    from nav.web.auth.utils import clear_session, get_account
+
     # Ensure that logout can safely be called whenever
     if not (hasattr(request, 'session') and hasattr(request, 'account')):
         _logger.debug('logout: not logged in')
