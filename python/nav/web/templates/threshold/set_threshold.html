@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load popover %}
 
 {% block base_header_additional_head %}
   <script>require(['src/threshold']);</script>
@@ -30,25 +31,8 @@
         {% include 'custom_crispy_templates/flat_form.html' %}
       </div>
       {% if id %}
-      <div id="confirm-delete" class="popover with-arrow">
-          <button
-              data-popover-target="#confirm-delete"
-              aria-haspopup="true"
-              aria-expanded="false"
-              class="button alert"
-              style="margin-bottom: 0;"
-          >
-              Delete
-          </button>
-          <div class="popover-content tiny" style="width: 200px;">
-              <h5>Delete this rule?</h5>
-              <form action="{% url 'threshold-delete' id %}" method="POST">
-                  {% csrf_token %}
-                  <input type="submit" value="Yes" class="button small alert left">
-                  <button type="button" class="button small secondary close-button left" close-popover>No way!</button>
-              </form>
-          </div>
-      </div>
+        {% url 'threshold-delete' id as delete_url %}
+        {% confirm_popover popover_id="confirm-delete" action_url=delete_url title="Delete this rule?" trigger_text="Delete" trigger_icon="" trigger_classes="button alert" cancel_text="No way!" %}
       {% endif %}
     </div>
 
