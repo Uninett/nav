@@ -34,13 +34,12 @@
 <script type="text/javascript">
  require(['libs/urijs/URI', 'moment', 'libs/datatables.min'], function(Uri, moment, DataTable) {
      var api_parameters = {{ auditlog_api_parameters|safe|default:'{}' }};
-     var columns = {
+     var orderingFields = {
          0: 'timestamp',
-         1: 'actor',
+         1: 'actor_sortkey',
          2: 'verb',
-         3: 'object',
-         4: 'target',
-         5: 'summary'
+         3: 'object_sortkey',
+         4: 'target_sortkey'
      };
 
      /* Utility function to escape HTML special characters to prevent XSS */
@@ -52,10 +51,20 @@
          return div.innerHTML;
      }
 
+     /* Render an entity (actor/object/target) as a link if URL is available */
+     function renderEntity(data) {
+         if (!data) return '';
+         const name = escapeHtml(data.name);
+         if (data.url) {
+             return '<a href="' + escapeHtml(data.url) + '">' + name + '</a>';
+         }
+         return name;
+     }
+
      var dt_config = {
          serverSide: true,  // Everything is done serverside - sorting, filtering, etc.
          ajax: {
-             url: '/api/1/auditlog/',
+             url: '/api/2/auditlog/',
              data: function(d) {
                  // Override the original parameters that we get when using serverSide rendering
                  var parameters = {
@@ -64,7 +73,7 @@
                      page_size: d.length,
                      ordering: d.order.map(function(order) {
                          var direction = order.dir === 'asc' ? '' : '-';
-                         return direction + columns[order.column];
+                         return direction + orderingFields[order.column];
                      }).join(',')
                  }
                  return _.extend(parameters, api_parameters);
@@ -80,28 +89,26 @@
          },
          columns: [
              {
-                 data: columns[0],
+                 data: 'timestamp',
                  render: function(data, type, row, meta) {
                      return moment(data).format('YYYY-MM-DD HH:mm:ss');
                  }
              },
              {
-                 data: columns[1],
-                 render: escapeHtml
+                 data: 'actor',
+                 render: renderEntity
              },
-             { data: columns[2] },
+             { data: 'verb' },
              {
-                 data: columns[3],
-                 orderable: false,
-                 render: escapeHtml
-             },
-             {
-                 data: columns[4],
-                 orderable: false,
-                 render: escapeHtml
+                 data: 'object',
+                 render: renderEntity
              },
              {
-                 data: columns[5],
+                 data: 'target',
+                 render: renderEntity
+             },
+             {
+                 data: 'summary',
                  orderable: false,
                  render: escapeHtml
              }
@@ -122,7 +129,7 @@
          ],
          language: {
              lengthMenu: "Rows _MENU_",
-             search: "Search in summary"
+             search: "Search"
          },
          drawCallback: drawCallback,
      };
