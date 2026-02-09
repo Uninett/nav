@@ -78,7 +78,7 @@
 /* Sets monospaced font on the select2 dropdown that is used in "parent"-selections */
 .parent-element .select2-results  {
     font-family: "Courier New", Courier, monospace;
-    .select2-result-label {
+    .select2-results__option {
         font-size: 1.2rem;
         line-height: 1.1;
         padding: 0;
@@ -140,7 +140,7 @@ give this class  */
     padding-right: 35px;
   }
 
-  .select2-highlighted .profile-link {
+  .select2-results__option--highlighted .profile-link {
     color: #fff;
   }
 
