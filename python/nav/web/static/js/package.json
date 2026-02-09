@@ -13,10 +13,8 @@
         "karma-firefox-launcher": "~2.1.2",
         "karma-junit-reporter": "~2.0.1",
         "karma-mocha": "~2.0.1",
-        "karma-phantomjs-launcher": "~1.0.4",
         "karma-requirejs": "~1.1.0",
         "mocha": "~5.2.0",
-        "phantomjs-prebuilt2": "~2.1.13",
         "requirejs": "~2.3.7"
     },
     "scripts": {
