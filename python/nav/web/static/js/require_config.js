@@ -28,11 +28,10 @@ var require = {
         "tinysort": "libs/tinysort-3.1.4.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
         "jquery": "libs/jquery-4.0.0.min",
-        "jquery-migrate": "libs/jquery-migrate-4.0.2",
         "jquery-ui": "libs/jquery-ui-1.14.0.min",
         "tablesort": "libs/tablesort-5.7.0.min",
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
-        "select2": "libs/select2-4.0.13.min",
+        "select2": "libs/select2-4.1.0-rc.0.min",
     },
     shim: {
         'libs/underscore': {
@@ -55,14 +54,11 @@ var require = {
             exports: 'Backbone'
         },
         'libs/backbone-eventbroker': ['libs/backbone'],
-        'jquery-migrate': {
-            deps: ['jquery']
-        },
         'libs/datatables.min': {
             deps: ['jquery']
         },
         'select2': {
-            deps: ['jquery-migrate']
+            deps: ['jquery']
         },
         'tablesort': {
             exports: 'Tablesort'
