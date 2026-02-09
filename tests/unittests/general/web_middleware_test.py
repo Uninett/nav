@@ -14,7 +14,7 @@ from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthorizationMiddleware
 from nav.web.auth.middleware import NAVAuthenticationMiddleware
 from nav.web.auth.middleware import NAVRemoteUserMiddleware
-from nav.web.auth import logout
+from nav.web.webfront.views import _logout_helper
 from nav.models import profiles
 
 
@@ -177,7 +177,7 @@ class TestLogout(object):
         r = RequestFactory()
         fake_request = r.get('/anyurl')
         with patch('nav.auditlog.models.LogEntry.add_log_entry'):
-            result = logout(fake_request)
+            result = _logout_helper(fake_request)
             assert result is None
 
     def test_sudo_logout(self, fake_session):
@@ -186,9 +186,9 @@ class TestLogout(object):
         fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
         fake_request.session = fake_session
         fake_request.account = PLAIN_ACCOUNT
-        with patch('nav.web.auth.desudo'):
-            with patch('nav.web.auth.reverse', return_value='parrot'):
-                result = logout(fake_request)
+        with patch('nav.web.webfront.views.desudo'):
+            with patch('nav.web.webfront.views.reverse', return_value='parrot'):
+                result = _logout_helper(fake_request)
                 assert result == 'parrot'
                 # Side effects of desudo() tested elsewhere
 

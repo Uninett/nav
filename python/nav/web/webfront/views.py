@@ -20,6 +20,7 @@ import json
 import logging
 from datetime import datetime
 from operator import attrgetter
+from typing import Optional
 from urllib.parse import quote as urlquote
 
 from django.db import models
@@ -51,8 +52,9 @@ from nav.models.profiles import (
     NavbarLink,
 )
 from nav.web import webfrontConfig
-from nav.web.auth import logout as auth_logout
-from nav.web.auth.utils import get_account, set_account
+from nav.web.auth import get_post_logout_redirect_url
+from nav.web.auth.sudo import desudo
+from nav.web.auth.utils import clear_session, get_account, set_account
 from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
 from nav.web.navlets import can_modify_navlet, create_navlet_object
@@ -431,8 +433,29 @@ def do_login(request: HttpRequest) -> HttpResponse:
 
 def logout(request: HttpRequest) -> HttpResponse:
     """Controller for doing a logout"""
-    nexthop = auth_logout(request)
+    nexthop = _logout_helper(request)
     return HttpResponseRedirect(nexthop)
+
+
+# not a view, here to avoid import loops
+def _logout_helper(request: HttpRequest, sudo=False) -> Optional[str]:
+    """Log out a user from a request
+
+    Returns a safe, public path useful for callers building a redirect."""
+    # Ensure that logout can safely be called whenever
+    if not (hasattr(request, 'session') and hasattr(request, 'account')):
+        _logger.debug('logout: not logged in')
+        return None
+    if sudo or request.method == 'POST' and 'submit_desudo' in request.POST:
+        desudo(request)
+        return reverse('webfront-index')
+    else:
+        account = get_account(request)
+        clear_session(request)
+        _logger.debug('logout: logout %s', account.login)
+        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
+    _logger.debug('logout: redirect to "/" after logout')
+    return get_post_logout_redirect_url(request)
 
 
 def about(request):
