@@ -34,6 +34,15 @@ ENTITY_FIELDS = (
 )
 
 
+class LGFKRelatedField(serializers.RelatedField):
+    """
+    Custom field for any LegacyGenericForeignKey
+    """
+
+    def to_representation(self, value):
+        return str(value)
+
+
 def _collect_entity_references(entries):
     """Collect all (model_name, pk) pairs from a page of log entries,
     grouped by model name for batch fetching."""
@@ -102,9 +111,9 @@ def _resolve_entity(log_entry, model_field, pk_field, sortkey_field, object_cach
 class LogEntrySerializer(serializers.ModelSerializer):
     """V1 serializer - returns plain strings for backward compatibility"""
 
-    actor = serializers.CharField(source='actor_sortkey')
-    object = serializers.CharField(source='object_sortkey')
-    target = serializers.CharField(source='target_sortkey')
+    actor = LGFKRelatedField(read_only=True)
+    object = LGFKRelatedField(read_only=True)
+    target = LGFKRelatedField(read_only=True)
 
     class Meta:
         model = LogEntry
