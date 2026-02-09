@@ -95,7 +95,9 @@
   (function () {
     const navletid = "{{ navlet.account_navlet.pk }}";
     const navletElement = document.querySelector(`.navlet[data-id="${navletid}"]`);
-    globalThis.initializeTooltips(navletElement);
+    if (typeof globalThis.initializeTooltips === 'function') {
+      globalThis.initializeTooltips(navletElement);
+    }
   })()
   </script>
 
