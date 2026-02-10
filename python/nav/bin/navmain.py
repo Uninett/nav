@@ -302,7 +302,7 @@ def command_config_where(_args):
     else:
         sys.exit(
             "Could not find nav.conf in any of these locations:\n{}".format(
-                '\n'.join(get_config_locations())
+                '\n'.join(str(loc) for loc in get_config_locations())
             )
         )
 
