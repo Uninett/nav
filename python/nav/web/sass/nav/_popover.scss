@@ -2,6 +2,12 @@
 .popover {
   position: relative;
   width: fit-content;
+
+  // Remove margin from trigger buttons
+  > button,
+  > .button {
+    margin-bottom: 0;
+  }
 }
 
 // Content positioning by side
@@ -241,5 +247,15 @@
 
   &.large {
     max-width: 800px;
+  }
+
+  // Remove bottom margin from elements to prevent extra space
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  button,
+  .button {
+    margin-bottom: 0;
   }
 }
