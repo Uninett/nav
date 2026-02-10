@@ -17,8 +17,8 @@
 
 define(function(require, exports, module) {
 
-  var _ = require("libs/underscore");
-  var d3 = require("d3v4");
+  const _ = require("libs/underscore");
+  const d3 = require("d3v7");
 
   var viewbox = _.template("0 0 <%= width %> <%= height %>");
   var tooltipTmpl = _.template("<%= prefix %> <% if (vlan_number) { %> (vlan <%= vlan_number %>)<% } %> - <%= description %>");
@@ -77,15 +77,15 @@ define(function(require, exports, module) {
       .attr("stroke", colors(rootElem).darker(1))
       .attr("width", xScale(rootElem.x1) - xScale(rootElem.x0))
       .attr("height", yScale(rootElem.y1) - yScale(rootElem.y0))
-      .on("mouseover", function(d) {
+      .on("mouseover", function(event, d) {
         div.transition()
           .duration(200)
           .style("opacity", .9);
         div.html(tooltipTmpl(rootElem.data))
-          .style("left", (d3.event.pageX) + "px")
-          .style("top", (d3.event.pageY - 28) + "px");
+          .style("left", (event.pageX) + "px")
+          .style("top", (event.pageY - 28) + "px");
       })
-      .on("mouseout", function(d) {
+      .on("mouseout", function(event, d) {
         div.transition()
           .duration(500)
           .style("opacity", 0);
@@ -112,18 +112,18 @@ define(function(require, exports, module) {
           .attr("class", "matrix-subnet-rect")
           .attr("fill", colors)
           .attr("stroke", function(d) { return colors(d).darker(1); })
-          .on("click", function(d) {
+          .on("click", function(event, d) {
             selectNodeCallback(d.data);
           })
-          .on("mouseover", function(d) {
+          .on("mouseover", function(event, d) {
             div.transition()
               .duration(200)
               .style("opacity", .9);
             div.html(tooltipTmpl(d.data))
-              .style("left", (d3.event.pageX) + "px")
-              .style("top", (d3.event.pageY - 28) + "px");
+              .style("left", (event.pageX) + "px")
+              .style("top", (event.pageY - 28) + "px");
           })
-          .on("mouseout", function(d) {
+          .on("mouseout", function(event, d) {
             div.transition()
               .duration(500)
               .style("opacity", 0);
@@ -134,7 +134,7 @@ define(function(require, exports, module) {
     var subnetText = subnet.append("text");
     var subnetPrefix = subnetText.append("tspan")
           .attr("class", "matrix-subnet-prefix")
-          .on("click", function(d) {
+          .on("click", function(event, d) {
             selectNodeCallback(d.data);
           });
     calculateText();
@@ -229,10 +229,10 @@ define(function(require, exports, module) {
     svg.call(zoom);
 
     // TODO: Create small axis "grid" to draw this brush upon
-    function brushended() {
-      if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return;
-      if (!d3.event.sourceEvent) return; // Only transition after input.
-      var s = d3.event.selection || canonicalXScale.range();
+    function brushended(event) {
+      if (event.sourceEvent && event.sourceEvent.type === "zoom") return;
+      if (!event.sourceEvent) return; // Only transition after input.
+      const s = event.selection || canonicalXScale.range();
       xScale.domain(canonicalXScale.domain());
       xScale.domain(s.map(canonicalXScale.invert, xScale));
       // redraw stuff
@@ -244,9 +244,9 @@ define(function(require, exports, module) {
                .translate(-s[0], 0));
     }
 
-    function zoomed() {
-      if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; 
-      var t = d3.event.transform;
+    function zoomed(event) {
+      if (event.sourceEvent && event.sourceEvent.type === "brush") return;
+      const t = event.transform;
       xScale.domain(t.rescaleX(canonicalXScale).domain());
       // redraw stuff
       calculateText();
