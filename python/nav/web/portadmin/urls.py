@@ -56,7 +56,4 @@ urlpatterns = [
         views.render_trunk_edit,
         name="portadmin-render-trunk-edit",
     ),
-    path(
-        'feedback_modal/', views.render_feedback_modal, name='portadmin-feedback-modal'
-    ),
 ]

@@ -11,18 +11,15 @@ require(['libs/spin.min', 'jquery-ui'], function (Spinner) {
     }
 
     Feedbacker.prototype = {
-        modalOpen: async function() {
+        modalOpen: function() {
             if (this.isOpen) {
-                return Promise.resolve();
+                return;
             }
-            return htmx.ajax('GET', '/portadmin/feedback_modal', {
-                target: 'body',
-                swap: 'beforeend'
-            }).then(() => {
-                this.modal = document.getElementById('portadmin-feedback-modal');
-                this.list = this.modal.querySelector('ul');
-                this.isOpen = true;
-            })
+            const template = document.getElementById('portadmin-feedback-template');
+            document.body.appendChild(template.content.cloneNode(true));
+            this.modal = document.getElementById('portadmin-feedback-modal');
+            this.list = this.modal.querySelector('ul');
+            this.isOpen = true;
         },
         modalClose: function() {
             this.modal.remove();

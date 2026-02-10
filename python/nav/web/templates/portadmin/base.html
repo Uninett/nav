@@ -8,6 +8,10 @@
 
 {% block base_content %}
 
+  <template id="portadmin-feedback-template">
+    {% include 'modals/_nav_modal.html' with modal_id='portadmin-feedback-modal' content_template='portadmin/_feedback_modal.html' modal_size='small' show_close_button=False close_on_outside_click=False %}
+  </template>
+
   {% with tool=current_user_data.tools|get_tool:'Port Admin' %}
     {% include 'nav_header.html' %}
   {% endwith %}
