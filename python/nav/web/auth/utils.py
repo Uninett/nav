@@ -20,9 +20,14 @@ login method.
 
 import logging
 import re
+from copy import copy
 
-from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
+from django.contrib.auth import (
+    SESSION_KEY as DJANGO_USER_SESSION_KEY,
+    update_session_auth_hash,
+)
 from django.core.cache import cache
+from django.utils.functional import SimpleLazyObject
 
 from nav.django.defaults import PUBLIC_URLS
 from nav.models.profiles import Account
@@ -48,11 +53,11 @@ def default_account():
 def get_account(request):
     """Returns the account associated with the request"""
     try:
-        return request.account
+        return copy(request.user)
     except AttributeError:
         pass
     try:
-        return request.user
+        return request.account
     except AttributeError:
         return default_account()
 
@@ -61,9 +66,13 @@ def set_account(request, account, cycle_session_id=True):
     """Updates request with new account.
     Cycles the session ID by default to avoid session fixation.
     """
+    old_account_id = request.session.get(DJANGO_USER_SESSION_KEY, None)
     request.session[ACCOUNT_ID_VAR] = account.id
     request.session[DJANGO_USER_SESSION_KEY] = str(account.id)
-    request.account = request.user = account
+    request.account = request._cached_user = account
+    request.user = SimpleLazyObject(lambda: account)
+    if old_account_id and old_account_id != str(account.id):
+        update_session_auth_hash(request, account)
     _logger.debug('Set active account to "%s"', account.login)
     if cycle_session_id:
         request.session.cycle_key()
@@ -76,15 +85,24 @@ def clear_session(request):
         del request.account
     if hasattr(request, "user"):
         del request.user
+    if hasattr(request, "_cached_user"):
+        del request._cached_user
     request.session.flush()
     request.session.save()
 
 
 def ensure_account(request):
-    """Guarantee that valid request.account is set"""
-    session = request.session
+    """Guarantee that valid request.user is set
 
-    account_id = session.get(ACCOUNT_ID_VAR, Account.DEFAULT_ACCOUNT)
+    Translates Django's AnonymousUser to NAV's default_account
+    """
+    if hasattr(request, "user") and request.user.id and not request.user.locked:
+        set_account(request, request.user, cycle_session_id=False)
+        return
+
+    account_id = (
+        request.session.get(DJANGO_USER_SESSION_KEY, Account.DEFAULT_ACCOUNT) or 0
+    )
     account = Account.objects.get(id=account_id)
 
     if account.locked and not account.is_default_account():
