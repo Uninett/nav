@@ -18,6 +18,9 @@
       "version": "17"
     }
   },
+  "mounts": [
+    "source=jetbrains_pycharm_config,target=/.jbdevcontainer/config,type=volume"
+  ],
   "containerEnv": {
     "DJANGO_SETTINGS_MODULE": "nav.django.settings",
     "DISPLAY": "dummy"
