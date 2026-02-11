@@ -19,6 +19,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import views, generics
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import BasePermission
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -30,7 +31,6 @@ from nav.models.profiles import (
     Account,
     NetmapViewNodePosition,
 )
-from nav.web.api.v1.auth import NavBaseAuthentication
 from nav.web.auth.utils import get_account
 
 from .cache import cache_exists, update_cached_node_positions
@@ -119,7 +119,7 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
 
     lookup_field = 'owner'
     serializer_class = NetmapViewDefaultViewSerializer
-    authentication_classes = (NavBaseAuthentication,)
+    authentication_classes = (SessionAuthentication,)
     permission_classes = (OwnerOrAdminPermission,)
 
     def get_queryset(self):

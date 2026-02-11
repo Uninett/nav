@@ -31,6 +31,7 @@ import json
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.filters import ModelMultipleChoiceFilter, CharFilter
 from rest_framework import status, filters, viewsets, exceptions
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view, renderer_classes, action
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (
@@ -69,7 +70,6 @@ from nav.macaddress import MacPrefix
 from .auth import (
     APIAuthentication,
     DefaultPermission,
-    NavBaseAuthentication,
     RelaxedReadPermission,
 )
 from .helpers import prefix_collector
@@ -221,7 +221,7 @@ class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
 
     authentication_classes = (
-        NavBaseAuthentication,
+        SessionAuthentication,
         APIAuthentication,
         JSONWebTokenAuthentication,
     )

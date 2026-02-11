@@ -65,7 +65,7 @@ def account_processor(request):
        see.
     """
     account = get_account(request)
-    admin = account.is_admin()
+    admin = account.is_staff
 
     if hasattr(request, 'session'):
         messages = Messages(request)
