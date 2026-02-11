@@ -15,6 +15,10 @@ ENV PYTHONUNBUFFERED=1
 # We're using mount caches, so don't clean the apt cache after every apt command!
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
+# Update the stale yarnpkg GPG key shipped in the base image
+RUN gpg --keyserver keyserver.ubuntu.com --recv-keys 62D54FD4003F6525 \
+    && gpg --export 62D54FD4003F6525 | gpg --dearmor --yes -o /usr/share/keyrings/yarn-archive-keyring.gpg
+
 ## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
 ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
