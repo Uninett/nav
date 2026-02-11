@@ -1,0 +1,141 @@
+// Maintenance task form styles
+
+#new-task-form {
+  textarea {
+    height: 8em;
+  }
+
+  select[multiple] {
+    height: 8em;
+  }
+}
+
+#component-list {
+  li {
+    overflow: auto;
+
+    div:first-child {
+      float: left;
+      width: 8em;
+    }
+
+    div:last-child {
+      margin-left: 8em;
+    }
+  }
+}
+
+.component-search-section {
+  label {
+    position: relative;
+  }
+
+  .htmx-indicator {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  input[type="search"] {
+    margin-bottom: 0.25em;
+  }
+
+  .browse-hint {
+    margin: 0;
+    text-align: right;
+
+    button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: #008cba;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: inherit;
+    }
+  }
+
+  #search-results:not(:empty) {
+    margin-top: 0.5em;
+  }
+}
+
+.browse-actions {
+  margin-bottom: 0;
+
+  .button {
+    margin-bottom: 0;
+  }
+}
+
+.browse-tree {
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  margin-top: 0.5em;
+  max-height: 20em;
+  overflow-y: auto;
+  background:
+    linear-gradient(white 30%, rgba(255, 255, 255, 0)) top,
+    linear-gradient(rgba(255, 255, 255, 0), white 70%) bottom,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)) top,
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0)) bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 2em, 100% 2em, 100% 0.6em, 100% 0.6em;
+  background-attachment: local, local, scroll, scroll;
+
+  .fa {
+    cursor: pointer;
+  }
+
+  .room-connector {
+    cursor: default;
+    color: #999;
+    font-family: monospace;
+  }
+
+  .child {
+    display: none;
+    overflow: hidden;
+
+    &.open {
+      display: block;
+    }
+  }
+
+  li {
+    list-style: none;
+    margin: 0.2em 0;
+  }
+
+  ul {
+    padding-left: 1.2em;
+    margin: 0;
+  }
+
+  .browse-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+
+    .button {
+      margin-bottom: 0;
+    }
+  }
+
+  .nav-tooltip {
+    [role="tooltip"] {
+      position: fixed;
+    }
+  }
+
+  .browse-description {
+    color: #666;
+    max-width: 12em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+}

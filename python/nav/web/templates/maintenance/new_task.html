@@ -1,27 +1,6 @@
 {% extends "maintenance/base.html" %}
 {% load maintenance %}
 
-{% block base_header_additional_head %}
-  {{ block.super }}
-  <style>
-   #new-task-form textarea {
-       height: 8em;
-   }
-   #new-task-form select[multiple] {
-       height: 8em;
-   }
-   #component-list li { overflow: auto; }
-   #component-list li div:first-child {
-       float: left;
-       width: 8em;
-   }
-   #component-list li div:last-child {
-       margin-left: 8em;
-   }
-  </style>
-{% endblock %}
-
-
 {% block content %}
 
   {% include 'maintenance/back.html' %}
@@ -39,27 +18,36 @@
         </div>
 
         <div class="large-4 columns">
-            <fieldset>
-                <legend>Select components</legend>
-                <label for="component-search">
-                    Search
-                </label>
-                <input
-                    id="component-search"
-                    class="form-control" type="search"
-                    name="search"
-                    placeholder="Begin typing to search for components..."
-                    hx-post="{% url 'maintenance-component-search' %}"
-                    hx-trigger="input changed delay:500ms, search"
-                    hx-target="#search-results"
-                    hx-indicator=".htmx-indicator"
-                />
+          <fieldset>
+            <legend>Select components</legend>
+            <div class="component-search-section">
+              <label for="component-search">
+                Search
                 <span class="htmx-indicator">
-                    <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" /> Searching...
+                  <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" /> Searching...
                 </span>
-                <div id="search-results"></div>
-            </fieldset>
-
+              </label>
+              <input
+                id="component-search"
+                class="form-control" type="search"
+                name="search"
+                placeholder="Search for components..."
+                hx-post="{% url 'maintenance-component-search' %}"
+                hx-trigger="input changed delay:500ms, search"
+                hx-target="#search-results"
+                hx-indicator=".htmx-indicator"
+              />
+              <div class="browse-hint">
+                or
+                <button type="button"
+                  hx-get="{% url 'maintenance-component-browse' %}"
+                  hx-target="#search-results"
+                  hx-indicator=".htmx-indicator"
+                >browse locations &amp; rooms</button>
+              </div>
+              <div id="search-results"></div>
+            </div>
+          </fieldset>
         </div>
 
         <div class="large-4 columns">

@@ -34,6 +34,7 @@ urlpatterns = [
     path('planned/', views.planned, name='maintenance-planned'),
     path('historic/', views.historic, name='maintenance-historic'),
     path('search/', views.component_search, name='maintenance-component-search'),
+    path('browse/', views.component_browse, name='maintenance-component-browse'),
     path(
         'selectcomponents/',
         views.component_select,
