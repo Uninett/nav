@@ -16,14 +16,18 @@
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/robbert229/devcontainer-features/postgresql-client:1": {
       "version": "17"
-    }
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
   "mounts": [
+    "source=claude_config_volume,target=/home/vscode/.claude,type=volume",
     "source=jetbrains_pycharm_config,target=/.jbdevcontainer/config,type=volume"
   ],
+
   "containerEnv": {
     "DJANGO_SETTINGS_MODULE": "nav.django.settings",
-    "DISPLAY": "dummy"
+    "DISPLAY": "dummy",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
   },
 
   // Configure tool-specific properties.
