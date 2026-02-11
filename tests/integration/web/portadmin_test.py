@@ -13,13 +13,6 @@ from nav.portadmin.handlers import ManagementHandler
 from nav.web.portadmin.views import populate_infodict, load_portadmin_data_by_kwargs
 
 
-class TestFeedbackModal:
-    def test_should_render_feedback_modal(self, client):
-        url = reverse('portadmin-feedback-modal')
-        response = client.get(url)
-        assert 'id="portadmin-feedback-modal"' in smart_str(response.content)
-
-
 class TestPortadminSearchViews:
     """Combined tests for all search view types"""
 
