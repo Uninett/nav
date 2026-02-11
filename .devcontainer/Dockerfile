@@ -57,4 +57,8 @@ ENV UV_PROJECT_ENVIRONMENT=/home/vscode/.venv
 ENV UV_PYTHON=${MAIN_PYTHON_VERSION}
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
 
+# Pre-create the Claude config directory with correct ownership so that the
+# named volume mount inherits it (Docker initializes empty volumes from the image)
+RUN mkdir -p /home/vscode/.claude && chown vscode:vscode /home/vscode/.claude
+
 RUN echo "This is the original base image for NAV devcontainer" > /README.TXT
