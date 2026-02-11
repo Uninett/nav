@@ -2,6 +2,28 @@ define('jquery', [], function() {
     return jQuery;
 });
 
+// Global CSRF token setup for all jQuery AJAX requests.
+// This approach is used because we have 17+ locations in the codebase with
+// jQuery $.post() calls that lack CSRF tokens, which would break when CSRF
+// protection is enabled. A global handler provides a safety net for both
+// existing code and future additions.
+// See: https://docs.djangoproject.com/en/5.0/howto/csrf/
+require(['plugins/csrf-utils'], function(CsrfUtils) {
+    function csrfSafeMethod(method) {
+        return /^(GET|HEAD|OPTIONS|TRACE)$/i.test(method);
+    }
+    jQuery.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                const token = CsrfUtils.getCsrfToken();
+                if (token) {
+                    xhr.setRequestHeader('X-CSRFToken', token);
+                }
+            }
+        }
+    });
+});
+
 require([
     'plugins/accordion_maker',
     'select2',
