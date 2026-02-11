@@ -17,6 +17,7 @@
 
 import logging
 import time
+from collections import defaultdict
 from datetime import datetime
 from typing import Optional
 
@@ -363,8 +364,8 @@ def component_search(request):
 
     results = {}
     searches: list[tuple[type[Model], Q, Optional[Model]]] = [
-        (Location, Q(id__icontains=search), None),
-        (Room, Q(id__icontains=search), Location),
+        (Location, Q(id__icontains=search) | Q(description__icontains=search), None),
+        (Room, Q(id__icontains=search) | Q(description__icontains=search), Location),
         (Netbox, Q(sysname__icontains=search), Room),
         (NetboxGroup, Q(id__icontains=search), None),
         (
@@ -410,6 +411,31 @@ def component_select(request):
         request,
         'maintenance/_selected-components-list.html',
         {'components': component_trail, 'selected': component_keys},
+    )
+
+
+@require_http_methods(["GET"])
+def component_browse(request):
+    """HTMX endpoint that returns a browsable tree of locations and rooms"""
+    locations = list(Location.objects.order_by('id'))
+    rooms = list(Room.objects.order_by('id'))
+
+    rooms_by_location = defaultdict(list)
+    for room in rooms:
+        rooms_by_location[room.location_id].append(room)
+
+    children_by_parent = defaultdict(list)
+    for loc in locations:
+        loc.browse_rooms = rooms_by_location[loc.pk]
+        children_by_parent[loc.parent_id].append(loc)
+
+    for loc in locations:
+        loc.browse_children = children_by_parent[loc.pk]
+
+    return render(
+        request,
+        'maintenance/_component-browse.html',
+        {'locations': children_by_parent[None]},
     )
 
 

@@ -157,6 +157,8 @@ def get_component_keys(post):
     errors = []
     raw_component_keys = {key: post.getlist(key) for key in ALLOWED_COMPONENTS}
     raw_component_keys['location'].extend(post.getlist('loc'))
+    raw_component_keys['location'].extend(post.getlist('add_loc'))
+    raw_component_keys['room'].extend(post.getlist('add_room'))
     if 'remove' in post:
         remove = {key: post.getlist(f"remove_{key}") for key in ALLOWED_COMPONENTS}
     component_keys = {key: [] for key in ALLOWED_COMPONENTS}

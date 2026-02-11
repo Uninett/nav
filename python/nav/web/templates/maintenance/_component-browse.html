@@ -1,0 +1,77 @@
+<div id="browse-panel">
+    <div class="browse-actions">
+        <button type="button" class="button tiny secondary" id="browse-expand-all">Expand all</button>
+        <button type="button" class="button tiny secondary" id="browse-collapse-all">Collapse all</button>
+        <button type="button" class="button tiny" id="browse-close">Close</button>
+    </div>
+
+    <div class="browse-tree">
+        <ul class="no-bullet">
+            {% for location in locations %}
+                <li>
+                    {% include 'maintenance/_component-browse-location.html' %}
+                </li>
+            {% empty %}
+                <li>No locations found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const tree = document.querySelector('.browse-tree');
+        const panel = document.getElementById('browse-panel');
+
+        const collapseAll = () => {
+            tree.querySelectorAll('.child').forEach(el => el.classList.remove('open'));
+            tree.querySelectorAll('.fa-toggle-down').forEach(el => {
+                el.classList.replace('fa-toggle-down', 'fa-toggle-right');
+            });
+        };
+
+        tree.addEventListener('click', (event) => {
+            const icon = event.target.closest('.fa-toggle-right, .fa-toggle-down');
+            if (icon) {
+                icon.classList.toggle('fa-toggle-right');
+                icon.classList.toggle('fa-toggle-down');
+                const childList = icon.closest('li').querySelector(':scope > .child');
+                if (childList) {
+                    childList.classList.toggle('open');
+                }
+            }
+        });
+
+        document.getElementById('browse-expand-all').addEventListener('click', () => {
+            tree.querySelectorAll('.child').forEach(el => el.classList.add('open'));
+            tree.querySelectorAll('.fa-toggle-right').forEach(el => {
+                el.classList.replace('fa-toggle-right', 'fa-toggle-down');
+            });
+        });
+
+        document.getElementById('browse-collapse-all').addEventListener('click', collapseAll);
+
+        document.getElementById('browse-close').addEventListener('click', () => {
+            panel.style.display = 'none';
+            collapseAll();
+        });
+
+        tree.querySelectorAll('.nav-tooltip').forEach(tooltip => {
+            tooltip.addEventListener('mouseenter', () => {
+                const trigger = tooltip.querySelector('[aria-describedby]');
+                const popup = tooltip.querySelector('[role="tooltip"]');
+                if (!trigger || !popup) return;
+                popup.style.display = '';
+                const rect = trigger.getBoundingClientRect();
+                popup.style.top = `${rect.bottom + 8}px`;
+                popup.style.left = `${rect.left}px`;
+            });
+        });
+
+        tree.addEventListener('scroll', () => {
+            tree.querySelectorAll('[role="tooltip"]').forEach(popup => {
+                popup.style.display = 'none';
+            });
+        });
+    })();
+</script>

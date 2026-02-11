@@ -1,0 +1,56 @@
+{% if location.browse_children or location.browse_rooms %}
+    <i class="fa fa-toggle-right"></i>
+{% endif %}
+<span class="browse-item">
+    <strong>{{ location.id }}</strong>
+    {% if location.description %}
+        <span class="browse-description">{{ location.description }}</span>
+        <div class="nav-tooltip">
+            <i class="fa fa-question-circle-o unstyled-tooltip" aria-describedby="#loc-tooltip-{{ location.pk }}"></i>
+            <span id="loc-tooltip-{{ location.pk }}" role="tooltip" class="small">{{ location.description }}</span>
+        </div>
+    {% endif %}
+    <button
+        type="button"
+        class="button tiny secondary"
+        hx-post="{% url 'maintenance-component-select' %}"
+        hx-target="#selected-components"
+        hx-include="#selected-components input"
+        hx-vals='{"add_loc": "{{ location.pk|escapejs }}"}'
+    >Add</button>
+</span>
+
+{% if location.browse_children or location.browse_rooms %}
+<ul class="child">
+    {% for child in location.browse_children %}
+        <li>
+            {% with location=child %}
+                {% include 'maintenance/_component-browse-location.html' %}
+            {% endwith %}
+        </li>
+    {% endfor %}
+    {% for room in location.browse_rooms %}
+        <li>
+            <span class="browse-item">
+                <span class="room-connector">{% if forloop.last %}└─{% else %}├─{% endif %}</span>
+                <strong>{{ room.id }}</strong>
+                {% if room.description %}
+                    <span class="browse-description">{{ room.description }}</span>
+                    <div class="nav-tooltip">
+                        <i class="fa fa-question-circle-o unstyled-tooltip" aria-describedby="#room-tooltip-{{ room.pk }}"></i>
+                        <span id="room-tooltip-{{ room.pk }}" role="tooltip" class="small">{{ room.description }}</span>
+                    </div>
+                {% endif %}
+                <button
+                    type="button"
+                    class="button tiny secondary"
+                    hx-post="{% url 'maintenance-component-select' %}"
+                    hx-target="#selected-components"
+                    hx-include="#selected-components input"
+                    hx-vals='{"add_room": "{{ room.pk|escapejs }}"}'
+                >Add</button>
+            </span>
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
