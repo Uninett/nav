@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.authentication import TokenAuthentication, BaseAuthentication
+from rest_framework.authentication import TokenAuthentication
 from oidc_auth.authentication import JWTToken
 
 from nav.models.api import APIToken
@@ -48,16 +48,6 @@ class APIAuthentication(TokenAuthentication):
                 _logger.warning('API authentication attempted with expired %s', token)
                 raise AuthenticationFailed
             return None, token
-
-
-class NavBaseAuthentication(BaseAuthentication):
-    """Returns logged in user"""
-
-    def authenticate(self, request):
-        account = get_account(request)
-        _logger.debug("Baseauthentication account is %s", account)
-        if account and not account.is_anonymous:
-            return account, None
 
 
 class ReadOnlyNonAdminPermission(BasePermission):

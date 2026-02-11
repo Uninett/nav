@@ -23,6 +23,7 @@ import re
 
 from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
 from django.core.cache import cache
+from django.utils.functional import SimpleLazyObject
 
 from nav.django.defaults import PUBLIC_URLS
 from nav.models.profiles import Account
@@ -63,7 +64,8 @@ def set_account(request, account, cycle_session_id=True):
     """
     request.session[ACCOUNT_ID_VAR] = account.id
     request.session[DJANGO_USER_SESSION_KEY] = str(account.id)
-    request.account = request.user = account
+    request.account = request._cached_user = account
+    request.user = SimpleLazyObject(lambda: account)
     _logger.debug('Set active account to "%s"', account.login)
     if cycle_session_id:
         request.session.cycle_key()
@@ -82,10 +84,10 @@ def clear_session(request):
 
 def ensure_account(request):
     """Guarantee that valid request.account is set"""
-    session = request.session
-
-    account_id = session.get(ACCOUNT_ID_VAR, Account.DEFAULT_ACCOUNT)
-    account = Account.objects.get(id=account_id)
+    if request.user.id:
+        account = Account.objects.get(id=request.user.id)
+    else:
+        account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
     if account.locked and not account.is_default_account():
         # logout of locked account
