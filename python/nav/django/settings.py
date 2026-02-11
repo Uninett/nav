@@ -159,11 +159,11 @@ MIDDLEWARE = (
     'django_htmx.middleware.HtmxMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'nav.web.auth.middleware.NAVRemoteUserMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'nav.web.auth.middleware.NAVAuthenticationMiddleware',
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = [
@@ -173,7 +173,7 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/index/login/'
+LOGIN_URL = '/accounts/login/'
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -368,7 +368,6 @@ ACCOUNT_ADAPTER = "nav.web.auth.allauth.adapter.NAVAccountAdapter"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'login'
 ACCOUNT_ALLOW_SIGNUPS = False
 ACCOUNT_MAX_EMAIL_ADDRESSES = 1
-LOGIN_URL = '/accounts/login/'
 
 # SOCIALACCOUNT_AUTO_SIGNUP = True
 # SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'

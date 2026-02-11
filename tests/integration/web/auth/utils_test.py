@@ -1,3 +1,4 @@
+from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
 from django.core.cache import cache
 from django.test import RequestFactory
 from django.urls import reverse
@@ -8,7 +9,6 @@ from nav.web.auth.utils import (
     get_account,
     set_account,
     clear_session,
-    ACCOUNT_ID_VAR,
     ensure_account,
     get_number_of_accounts_with_password_issues,
     PASSWORD_ISSUES_CACHE_KEY,
@@ -76,20 +76,22 @@ class TestEnsureAccount:
     ):
         assert not hasattr(session_request, "account")
         ensure_account(session_request)
-        assert ACCOUNT_ID_VAR in session_request.session, (
+        assert DJANGO_USER_SESSION_KEY in session_request.session, (
             'Account id is not in the session'
         )
         assert hasattr(session_request, 'account'), 'Account not set'
-        assert session_request.account.id == session_request.session[ACCOUNT_ID_VAR], (
-            'Correct user not set'
-        )
+        assert session_request.account.id == int(
+            session_request.session[DJANGO_USER_SESSION_KEY]
+        ), 'Correct user not set'
 
     def test_account_should_be_switched_to_default_if_locked(
         self, db, session_request, locked_account, default_account
     ):
         set_account(session_request, locked_account)
         ensure_account(session_request)
-        assert session_request.session[ACCOUNT_ID_VAR] == default_account.id
+        assert (
+            int(session_request.session[DJANGO_USER_SESSION_KEY]) == default_account.id
+        )
         assert session_request.account == default_account, 'Correct user not set'
 
     def test_account_should_be_unchanged_if_ok(
@@ -98,7 +100,10 @@ class TestEnsureAccount:
         set_account(session_request, non_admin_account)
         ensure_account(session_request)
         assert session_request.account == non_admin_account
-        assert session_request.session[ACCOUNT_ID_VAR] == non_admin_account.id
+        assert (
+            int(session_request.session[DJANGO_USER_SESSION_KEY])
+            == non_admin_account.id
+        )
 
     def test_session_should_not_be_flushed_if_account_is_default(
         self, db, session_request, default_account, admin_account

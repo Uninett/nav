@@ -245,6 +245,11 @@ class Account(AbstractBaseUser):
         """
         return self.is_admin()
 
+    @property
+    def username(self):
+        "Workaround 3rd party Django apps that poorly support custom users"
+        return self.login
+
     @sensitive_variables('password')
     def set_password(self, password):
         """Sets user password. Copied from nav.db.navprofiles"""
