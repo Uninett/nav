@@ -116,6 +116,7 @@
   }
 }
 
+.popover.with-arrow:not([data-side])[data-align="end"] .popover-content,
 .popover.with-arrow[data-side="bottom"][data-align="end"] .popover-content {
   &:before {
     top: -12px;
