@@ -108,5 +108,8 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         vlans = await self.get_operational_vlans()
         community = self.agent_proxy.community
         return [
-            LogicalMibInstance(f"vlan{vlan}", f"{community}@{vlan}") for vlan in vlans
+            LogicalMibInstance(
+                description=f"vlan{vlan}", community=f"{community}@{vlan}"
+            )
+            for vlan in vlans
         ]

@@ -202,9 +202,10 @@ def get_arista_vrf_instances(agentproxy) -> Deferred:
     states = yield vrf_mib.get_vrf_states(only='active')
     # XXX: This part does not currently support SNMPv3, as we have no known way to
     #      derive the correct SNMPv3 context name for each VRF.
-    vrfs = [LogicalMibInstance('', agentproxy.community)]
+    vrfs = [LogicalMibInstance(description='', community=agentproxy.community)]
     vrfs.extend(
-        LogicalMibInstance(vrf, f"{agentproxy.community}@{vrf}") for vrf in states
+        LogicalMibInstance(description=vrf, community=f"{agentproxy.community}@{vrf}")
+        for vrf in states
     )
     return vrfs
 
@@ -234,10 +235,10 @@ def _workaround_broken_aruba_alternate_communities(
             index = '@' + vlan
             if instance.community and not instance.community.endswith(index):
                 instance = LogicalMibInstance(
-                    instance.description,
-                    instance.community + index,
-                    instance.context,
-                    instance.context_engine_id,
+                    description=instance.description,
+                    community=instance.community + index,
+                    context=instance.context,
+                    context_engine_id=instance.context_engine_id,
                 )
         output.append(instance)
     return output

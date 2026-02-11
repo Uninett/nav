@@ -71,10 +71,10 @@ class EntityMib(mibretriever.MibRetriever):
         )
         return [
             LogicalMibInstance(
-                r["entLogicalDescr"],
-                r["entLogicalCommunity"].decode("utf-8"),
-                r["entLogicalContextName"],
-                r["entLogicalContextEngineID"],
+                description=r["entLogicalDescr"],
+                community=r["entLogicalCommunity"].decode("utf-8"),
+                context=r["entLogicalContextName"],
+                context_engine_id=r["entLogicalContextEngineID"],
             )
             for r in result.values()
             if _is_bridge_mib_instance_with_valid_community(r)

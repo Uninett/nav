@@ -28,10 +28,10 @@ def test_get_arista_vrf_instances_should_return_expected_instances(snmp_agent_pr
 
     result = yield get_arista_vrf_instances(snmp_agent_proxy)
     expected = [
-        LogicalMibInstance('', 'arista'),
-        LogicalMibInstance('IOT', 'arista@IOT'),
-        LogicalMibInstance('MGMT', 'arista@MGMT'),
-        LogicalMibInstance('STUDENT', 'arista@STUDENT'),
-        LogicalMibInstance('VR', 'arista@VR'),
+        LogicalMibInstance(description='', community='arista'),
+        LogicalMibInstance(description='IOT', community='arista@IOT'),
+        LogicalMibInstance(description='MGMT', community='arista@MGMT'),
+        LogicalMibInstance(description='STUDENT', community='arista@STUDENT'),
+        LogicalMibInstance(description='VR', community='arista@VR'),
     ]
     assert set(result) == set(expected)
