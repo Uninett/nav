@@ -37,6 +37,7 @@
     <div id="widgets-actions" class="hide-for-small" >
       {% if can_edit %}
           <div
+              id="widgets-action-add"
               title="Add widget"
               class="widget-action"
               hx-get="{% url 'add-navlet-modal' dashboard.id %}"
