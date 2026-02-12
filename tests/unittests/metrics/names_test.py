@@ -1,6 +1,12 @@
 import pytest
 from unittest import TestCase
-from nav.metrics.names import join_series, escape_metric_name, safe_name
+from unittest.mock import patch
+from nav.metrics.names import (
+    join_series,
+    escape_metric_name,
+    get_expanded_nodes,
+    safe_name,
+)
 
 
 class MetricNamingTests(TestCase):
@@ -13,6 +19,26 @@ class MetricNamingTests(TestCase):
     def test_join_single_series_should_return_same(self):
         series = 'oh.freddled.gruntbuggly'
         self.assertEqual(join_series([series]), series)
+
+
+class TestGetExpandedNodes:
+    def test_when_valid_response_should_return_results(self):
+        raw_response = {
+            "results": [
+                "nav.foo.1",
+                "nav.foo.2",
+                "nav.foo.3",
+                "nav.bar.baz",
+            ]
+        }
+
+        with patch("nav.metrics.names.raw_metric_query", return_value=raw_response):
+            assert get_expanded_nodes("whatever.path") == raw_response["results"]
+
+    @pytest.mark.parametrize("raw_response", [[], {}, "foo", "", {"results": "foo"}])
+    def test_when_invalid_response_should_return_empty_list(self, raw_response):
+        with patch("nav.metrics.names.raw_metric_query", return_value=raw_response):
+            assert get_expanded_nodes("whatever.path") == []
 
 
 @pytest.mark.parametrize(

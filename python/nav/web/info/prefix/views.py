@@ -26,6 +26,7 @@ from IPy import IP
 
 from nav.web import utils
 from nav.web.auth.utils import get_account
+from nav.metrics.errors import GraphiteUnreachableError
 from nav.models.manage import Prefix, Usage, PrefixUsage
 from ..forms import SearchForm
 
@@ -143,6 +144,16 @@ def prefix_details(request, prefix_id):
     context = get_context(prefix)
     context['form'] = PrefixUsageForm(instance=prefix)
     context['can_edit'] = authorize_user(request)
+
+    try:
+        dhcp_graph_urls = prefix.get_dhcp_graph_urls()
+        graphite_error = False
+    except GraphiteUnreachableError:
+        dhcp_graph_urls = []
+        graphite_error = True
+
+    context['dhcp_graph_urls'] = dhcp_graph_urls
+    context['graphite_error'] = graphite_error
 
     return render(request, 'info/prefix/details.html', context)
 
