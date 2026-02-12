@@ -28,12 +28,25 @@ import string
 LEGAL_METRIC_CHARACTERS = string.ascii_letters + string.digits + "-_"
 
 
+class safe_name(str):
+    """
+    Marks a string as not needing to be escaped by :func escape_metric_name:
+    """
+
+    def __str__(self):
+        # This assures that safe_name strings aren't weakened to normal
+        # strings on calls to str()
+        return self
+
+
 def escape_metric_name(name):
     """
     Escapes any character of `name` that may not be used in graphite metric
     names.
     """
     if name is None:
+        return name
+    if isinstance(name, safe_name):
         return name
     name = name.replace('\x00', '')  # some devices have crazy responses!
     name = ''.join([c if c in LEGAL_METRIC_CHARACTERS else "_" for c in name])
