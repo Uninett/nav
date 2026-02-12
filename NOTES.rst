@@ -37,6 +37,23 @@ With SNMPv3, these are accessed using SNMP contexts (named ``vlan-1``,
 See the :doc:`/reference/management-profiles` documentation for more details on
 configuring SNMPv3 profiles.
 
+Stopped testing on Python 3.12
+------------------------------
+
+Python 3.12 has been removed from our test matrix because of issues with Python
+3.12 and race conditions that affect coverage measurements in our test suite.
+No tests were failing, but the coverage collection process would fail almost
+every run on GitHub, causing all our builds to be flagged as failing.
+
+This means that, moving forward, we cannot guarantee NAV is fully compatible
+with Python 3.12. Additionally, we normally target Debian for production
+deployments, and Debian has had no releases that provided Python 3.12, which
+means we will never actually run NAV in production on 3.12 ourselves (Debian 12
+provides Python 3.11, Debian 13 provides Python 3.13).
+
+However, our test matrix still includes Python 3.11 and 3.13, which means we
+can still be reasonably sure things will work on 3.12.
+
 
 NAV 5.16
 ========
