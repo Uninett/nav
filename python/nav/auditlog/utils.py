@@ -18,8 +18,10 @@
 from django.utils.encoding import force_str
 from django.db.models import Q
 
+from nav.models.profiles import Account
 from . import find_modelname
 from .models import LogEntry
+
 
 LATEST_N_AUDITLOG_ENTRIES = 15
 
@@ -64,3 +66,32 @@ def get_auditlog_entries(
         qs = qs.filter(subsystem=subsystem)
     entries = qs.distinct().order_by('-timestamp')[:limit]
     return entries
+
+
+def get_all_historical_actors():
+    "List all recorded actors (need not be accounts!), including deleted ones"
+    actors = set()
+    for pk, summary in LogEntry.objects.values_list("actor_pk", "summary").distinct():
+        name = summary.split(' ', 1)[0].strip(':')
+        actors.add((name, pk))
+    return sorted(actors)
+
+
+def get_lurkers():
+    "Get a list of current accounts that have no actor entries in the audit log"
+    actor_pks = [pk for _, pk in get_all_historical_actors()]
+    return Account.objects.exclude(pk__in=actor_pks)
+
+
+def get_zombies():
+    "Get a list of accounts that should have been deleted according to the auditlog"
+    deleted_accounts = LogEntry.objects.filter(
+        verb="delete-account",
+    )
+    deleted_account_ids = [
+        int(pk)
+        for pk in deleted_accounts.exclude(
+                object_pk__isnull=True,
+        ).values_list("object_pk", flat=True)
+    ]
+    return Account.objects.filter(pk__in=deleted_account_ids)
