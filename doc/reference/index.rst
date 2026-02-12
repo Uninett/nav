@@ -19,7 +19,7 @@ This section contains reference material for end-users.
    geomap
    ipam
    ipdevpoll
-   external_authentication
+   authentication
    mailin
    models-event
    models-manage

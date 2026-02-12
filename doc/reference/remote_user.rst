@@ -60,6 +60,12 @@ is "/index/logout".
 Some remote user systems need to be visited *after* NAV has logged out the
 user locally. The flag for that is ``post-logout-redirect-url``.
 
+``REMOTE_USER`` and local multi-factor/two-factor authentication
+----------------------------------------------------------------
+
+``REMOTE_USER`` cannot be supported at the same time as locally controlled
+two-factor authentication. Pick one.
+
 
 Relevant How Tos:
 -----------------
