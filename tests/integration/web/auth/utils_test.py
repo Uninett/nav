@@ -33,7 +33,11 @@ class TestGetAccount:
         user = self.Account()
         request.user = user
         result = get_account(request)
-        assert result == user
+        # Cannot use "result == user" or "result is user" because request.user
+        # must be copied to be safely used thanks to SimpleLazyObject
+        # shenaningans. The self.Account-class does not define __eq__ and can
+        # thus falls back to using "is"
+        assert result.id == user.id
 
     # Needs to be an integration test due to default_account()
     def test_return_default_account_if_neither_request_user_nor_request_account_is_set(

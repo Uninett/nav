@@ -52,14 +52,18 @@ def default_account():
 
 def get_account(request):
     """Returns the account associated with the request"""
+    account = None
     try:
-        return copy(request.user)
+        account = copy(request.user)
     except AttributeError:
-        pass
-    try:
-        return request.account
-    except AttributeError:
+        try:
+            account = request.account
+        except AttributeError:
+            pass
+
+    if not account or not account.id:
         return default_account()
+    return account
 
 
 def set_account(request, account, cycle_session_id=True):
