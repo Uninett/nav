@@ -37,19 +37,30 @@ def test_set_account(fake_session):
     request.session = fake_session
     set_account(request, DEFAULT_ACCOUNT)
     assert ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
+    assert hasattr(request, 'user'), 'request.user not set'
     assert hasattr(request, 'account'), 'Account not set'
     assert request.account.id == request.session[ACCOUNT_ID_VAR], 'Correct user not set'
     assert request.user == request.account
     assert request.session[ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
 
 
-def test_get_account(fake_session):
-    r = RequestFactory()
-    request = r.get('/')
-    request.session = fake_session
-    set_account(request, DEFAULT_ACCOUNT)
-    session_account = get_account(request)
-    assert session_account.id == DEFAULT_ACCOUNT.id
+class TestGetAccount:
+    def test_get_account_golden_path(self, fake_session):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = fake_session
+        set_account(request, PLAIN_ACCOUNT)
+        session_account = get_account(request)
+        assert session_account.id == PLAIN_ACCOUNT.id
+
+    def test_get_account_when_account_not_set_returns_default_account(
+        self, fake_session
+    ):
+        r = RequestFactory()
+        request = r.get('/')
+        with patch("nav.web.auth.utils.default_account", return_value=DEFAULT_ACCOUNT):
+            session_account = get_account(request)
+            assert session_account.id == DEFAULT_ACCOUNT.id
 
 
 class TestAuthorizationMiddleware(object):
@@ -72,8 +83,13 @@ class TestAuthorizationMiddleware(object):
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert result is None
+            with patch(
+                'nav.web.auth.middleware.get_account', return_value=DEFAULT_ACCOUNT
+            ):
+                result = AuthorizationMiddleware(lambda x: x).process_request(
+                    fake_request
+                )
+                assert result is None
 
     def test_process_request_authorized(self):
         r = RequestFactory()
