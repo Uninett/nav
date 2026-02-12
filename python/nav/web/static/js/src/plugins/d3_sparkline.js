@@ -22,6 +22,10 @@ define(function (require) {
             strokeColor: '#00f',
             strokeWidth: 1,
             fillColor: 'rgba(0, 0, 255, 0.1)',
+            spotColor: '#f80',
+            minSpotColor: '#f80',
+            maxSpotColor: '#f80',
+            spotRadius: 1.5,
             tooltipFormatter: null
         },
         bullet: {
@@ -66,7 +70,7 @@ define(function (require) {
         const svg = d3.select(el).append('svg')
             .attr('width', width)
             .attr('height', height)
-            .style('display', 'block');
+            .style('display', 'inline-block');
 
         const xExtent = d3.extent(normalizedData, d => d[0]);
         const yExtent = d3.extent(normalizedData, d => d[1]);
@@ -111,6 +115,9 @@ define(function (require) {
             .attr('fill', 'none')
             .attr('stroke', opts.strokeColor)
             .attr('stroke-width', opts.strokeWidth);
+
+        // Draw spot dots at min, max, and last data points
+        drawSpots(svg, normalizedData, x, y, opts);
 
         // Add tooltip functionality if formatter provided
         if (opts.tooltipFormatter) {
@@ -159,7 +166,7 @@ define(function (require) {
         const svg = d3.select(el).append('svg')
             .attr('width', width)
             .attr('height', height)
-            .style('display', 'block');
+            .style('display', 'inline-block');
 
         const x = d3.scaleLinear()
             .domain([0, max])
@@ -202,6 +209,37 @@ define(function (require) {
         }
 
         return svg;
+    }
+
+    /**
+     * Draw spot dots at min, max, and last data points
+     */
+    function drawSpots(svg, data, xScale, yScale, opts) {
+        const validData = data.filter(d => d[1] !== null);
+        if (validData.length === 0) {
+            return;
+        }
+
+        let minPoint = validData[0];
+        let maxPoint = validData[0];
+        for (const d of validData) {
+            if (d[1] < minPoint[1]) minPoint = d;
+            if (d[1] > maxPoint[1]) maxPoint = d;
+        }
+
+        const drawDot = (point, color) => {
+            if (color) {
+                svg.append('circle')
+                    .attr('cx', xScale(point[0]))
+                    .attr('cy', yScale(point[1]))
+                    .attr('r', opts.spotRadius)
+                    .attr('fill', color);
+            }
+        };
+
+        drawDot(minPoint, opts.minSpotColor);
+        drawDot(maxPoint, opts.maxSpotColor);
+        drawDot(validData[validData.length - 1], opts.spotColor);
     }
 
     /**
