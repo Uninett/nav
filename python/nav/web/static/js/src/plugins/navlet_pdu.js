@@ -75,7 +75,7 @@ define(function(require, exports, module) {
             performanceColor: '#333333',
             rangeColors: rangeColors.reverse(),
             tooltipFormatter: function(data) {
-                const prefix = isTotal(data.$el.data('metric')) ? 'Total load' : 'Load';
+                const prefix = isTotal(data.el.dataset.metric) ? 'Total load' : 'Load';
                 return `${prefix} ${data.values[1]} (limits: ${data.values.slice(2).reverse()})`;
             }
         };

@@ -7,9 +7,7 @@
  *
  * Tooltip formatter signature:
  * - Line: tooltipFormatter({x, y, color}) - x/y are data point values
- * - Bullet: tooltipFormatter({$el, values}) - $el is jQuery-wrapped element, values is data array
- *
- * Note: Bullet tooltips use jQuery ($) for element wrapping
+ * - Bullet: tooltipFormatter({el, values}) - el is the container DOM element, values is data array
  */
 define(function (require) {
 
@@ -336,7 +334,7 @@ define(function (require) {
 
         svg.on('mouseover', (event) => {
             const tooltipData = {
-                $el: $(el),
+                el: el,
                 values: data
             };
             const html = opts.tooltipFormatter(tooltipData);
