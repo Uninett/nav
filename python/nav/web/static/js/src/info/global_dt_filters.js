@@ -68,13 +68,20 @@ define(['libs/datatables.min'], function () {
      * Secondary filters
      */
 
+    var last_seen_mode = 'ago';
+
+    function set_last_seen_mode(mode) {
+        last_seen_mode = mode;
+    }
     /* Filter on column 5 (last active) when column 4 (vlan) is not trunk.
      * Very reusable code! ;-P */
     function filter_last_seen(oSettings, aData, iDataIndex) {
-        var days = get_keyword(/\$days:\w+/) || getInputValue(filters.last_seen.node);
+        const days = get_keyword(/\$days:\w+/) || getInputValue(filters.last_seen.node);
         if (days) {
-            var rowdate = extract_date(aData[4]);
-            return (!is_trunk(aData[3]) && daysince(rowdate) >= days);
+            const rowdate = extract_date(aData[4]);
+            const isMoreThanMode = last_seen_mode === 'ago';
+            const diff = daysince(rowdate);
+            return !is_trunk(aData[3]) && (isMoreThanMode ? diff >= days : diff <= days);
         }
         return true;
     }
@@ -152,8 +159,9 @@ define(['libs/datatables.min'], function () {
         extract_date: extract_date,
         daysince: daysince,
         is_trunk: is_trunk,
-        remove_keywords: remove_keywords
+        remove_keywords: remove_keywords,
+        set_last_seen_mode: set_last_seen_mode,
+        refresh: do_primary_filter
     };
 
 });
-

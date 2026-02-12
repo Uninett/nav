@@ -32,11 +32,16 @@
     </div>
 
     <div id="lastseenfilter" class="small-3 columns">
-      <label>
-        Last Seen (days ago)
-        <input type="text">
-      </label>
+      <label for="lastseen-input">Last Seen</label>
+      <div class="form-inline">
+        <select id="lastseen-mode" name="lastseen_mode">
+          <option value="ago">more than</option>
+          <option value="since">less than</option>
+        </select>
 
+        <input id="lastseen-input" type="number" min="0">
+        <span>days ago</span>
+      </div>
     </div>
 
     <div class="small-3 columns">

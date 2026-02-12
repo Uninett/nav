@@ -76,14 +76,48 @@ define(['info/global_dt_filters', 'jquery'], function (plugin) {
                 it("with no value should return true", function () {
                     assert.isTrue(plugin.filter_last_seen('', this.data, ''));
                 });
-                it("with value greater than cellvalue should return false", function () {
-                    this.input.value = '$days:10000';
-                    assert.isFalse(plugin.filter_last_seen('', this.data, ''));
+
+                describe("more than mode", function () {
+                    beforeEach(function () {
+                        plugin.set_last_seen_mode('ago');
+                    });
+
+                    it("with cellvalue 0 should return true", function () {
+                        this.input.value = '$days:0';
+                        assert.isTrue(plugin.filter_last_seen('', this.data, ''));
+                    });
+
+                    it("with value greater than cellvalue should return false", function () {
+                        this.input.value = '$days:10000';
+                        assert.isFalse(plugin.filter_last_seen('', this.data, ''));
+                    });
+                    it("with value less than cellvalue should return true", function () {
+                        this.input.value = '$days:3';
+                        assert.isTrue(plugin.filter_last_seen('', this.data, ''));
+                    });
                 });
-                it("with value less than cellvalue should return true", function () {
-                    this.input.value = '$days:3';
-                    assert.isTrue(plugin.filter_last_seen('', this.data, ''));
+
+                describe("less than mode", function () {
+                    beforeEach(function () {
+                        plugin.set_last_seen_mode('since');
+                    });
+
+                    it("with cellvalue 0 should return false", function () {
+                        this.input.value = '$days:0';
+                        assert.isFalse(plugin.filter_last_seen('', this.data, ''));
+                    });
+
+                    it("with value greater than cellvalue should return true", function () {
+                        this.input.value = '$days:10000';
+                        assert.isTrue(plugin.filter_last_seen('', this.data, ''));
+                    });
+                    it("with value less than cellvalue should return false", function () {
+                        this.input.value = '$days:3';
+                        assert.isFalse(plugin.filter_last_seen('', this.data, ''));
+                    });
                 });
+
+
                 describe("on trunk", function () {
                     beforeEach(function () {
                         this.data[3] = this.trunk_cell;
