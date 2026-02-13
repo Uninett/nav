@@ -50,11 +50,13 @@
     {% if object %}
       {# Display button for revoking a token #}
       <form action="{% url 'useradmin-jwt_revoke' object.pk %}" method="post">
+        {% csrf_token %}
         <input type="submit" value="Revoke token" class="button small">
       </form>
 
       {# Display button for recreating a token #}
       <form action="{% url 'useradmin-jwt_recreate' object.pk %}" method="post">
+        {% csrf_token %}
         <input type="submit" value="Recreate token" class="button small">
       </form>
 
