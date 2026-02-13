@@ -55,6 +55,10 @@ class LogEntry(models.Model):
     target_pk = VarcharField(null=True)
     target = LegacyGenericForeignKey('target_model', 'target_pk')
 
+    actor_sortkey = VarcharField(null=True)
+    object_sortkey = VarcharField(null=True)
+    target_sortkey = VarcharField(null=True)
+
     timestamp = models.DateTimeField()
 
     verb = models.SlugField()
@@ -80,11 +84,11 @@ class LogEntry(models.Model):
     ):
         """LogEntry factory"""
         self = cls()
-        dict = {'actor': actor, 'object': object, 'target': target}
-        for k, v in dict.items():
-            dict[k] = getattr(v, 'audit_logname', '%s' % v)
+        names = {'actor': actor, 'object': object, 'target': target}
+        for k, v in names.items():
+            names[k] = getattr(v, 'audit_logname', '%s' % v) if v is not None else ''
         try:
-            self.summary = template.format(**dict)
+            self.summary = template.format(**names)
         except KeyError as error:
             self.summary = 'Error creating summary - see error log'
             _logger.error('KeyError when creating summary: %s', error)
@@ -95,6 +99,9 @@ class LogEntry(models.Model):
         self.actor_pk = actor.pk
         self.object_pk = object.pk if object else None
         self.target_pk = target.pk if target else None
+        self.actor_sortkey = names['actor']
+        self.object_sortkey = names['object'] if object else None
+        self.target_sortkey = names['target'] if target else None
         self.timestamp = utcnow()
         self.subsystem = subsystem if subsystem else None
         self.before = force_str(before)

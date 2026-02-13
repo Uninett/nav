@@ -1,6 +1,5 @@
 #
-# Copyright (C) 2014 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2025 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,15 +13,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""URL mapping for the various API versions"""
+"""Urlconf for the NAV REST API v2"""
 
-from django.urls import path
-from django.urls import include
-from nav.web.api.v1 import urls as v1_urls
-from nav.web.api.v2 import urls as v2_urls
+from rest_framework import routers
 
-urlpatterns = [
-    path('', include((v1_urls, 'api'))),
-    path('1/', include((v1_urls, 'api'), namespace='1')),
-    path('2/', include((v2_urls, 'api'), namespace='2')),
-]
+from nav.auditlog import api as auditlogapi
+
+router = routers.SimpleRouter()
+router.register(r'auditlog', auditlogapi.LogEntryViewSetV2, basename='auditlog')
+
+urlpatterns = router.urls

@@ -1190,6 +1190,10 @@ class Organization(models.Model, TreeMixin):
         else:
             return '{o.id}'.format(o=self)
 
+    def get_absolute_url(self):
+        """Returns the URL to this organization's edit page"""
+        return reverse('seeddb-organization-edit', kwargs={'organization_id': self.id})
+
     def extract_emails(self):
         """Naively extract email addresses from the contact string"""
         contact = self.contact if self.contact else ""

@@ -144,6 +144,10 @@ class Account(AbstractBaseUser):
         """Returns the natural key for an account as a tuple"""
         return (self.login,)
 
+    def get_absolute_url(self):
+        """Returns the URL to this account's detail page"""
+        return reverse('useradmin-account_detail', kwargs={'account_id': self.id})
+
     def get_active_profile(self):
         """Returns the account's active alert profile"""
         try:
