@@ -50,11 +50,11 @@ def selenium(selenium, base_url, admin_username, admin_password):
     selenium.get(f"{base_url}/{LOGIN_URL}")
     wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "label"), "Username"))
 
-    username = selenium.find_element(By.ID, "id_username")
+    username = selenium.find_element(By.ID, "id_login")
     password = selenium.find_element(By.ID, "id_password")
     username.send_keys(admin_username)
     password.send_keys(admin_password)
-    selenium.find_element(By.NAME, "submit").click()
+    selenium.find_element(By.ID, "password_login").click()
     wait.until(EC.url_to_be(f"{base_url}/"))
 
     # Yield logged-in session to the test
