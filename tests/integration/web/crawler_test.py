@@ -220,8 +220,8 @@ def _quote_url(url):
 
 
 @pytest.fixture(scope="session")
-def webcrawler(gunicorn, admin_username, admin_password):
-    crawler = WebCrawler(gunicorn, admin_username, admin_password)
+def webcrawler(live_server, admin_username, admin_password):
+    crawler = WebCrawler(live_server, admin_username, admin_password)
     yield crawler
 
 
