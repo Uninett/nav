@@ -18,16 +18,12 @@ Contains web authentication and login functionality for NAV.
 """
 
 import logging
-from typing import Optional
 from urllib import parse
 
 from django.http import HttpRequest
-from django.urls import reverse
 
-from nav.auditlog.models import LogEntry
+from nav.django.defaults import LOGIN_URL
 from nav.web.auth import remote_user
-from nav.web.auth.sudo import desudo
-from nav.web.auth.utils import clear_session, get_account
 
 _logger = logging.getLogger(__name__)
 
@@ -35,7 +31,7 @@ _logger = logging.getLogger(__name__)
 # This may seem like redundant information, but it seems django's reverse
 # will hang under some usages of these middleware classes - so until we figure
 # out what's going on, we'll hardcode this here.
-LOGIN_URL = '/index/login/'
+# LOGIN_URL = '/accounts/login/'
 # The local logout url, redirects to '/' after logout
 # If the entire site is protected via remote_user, this link must be outside
 # that protection!
@@ -66,23 +62,3 @@ def get_logout_url(request: HttpRequest) -> str:
     if remote_logouturl and remote_logouturl.endswith('='):
         remote_logouturl += request.build_absolute_uri(LOGOUT_URL)
     return remote_logouturl if remote_logouturl else LOGOUT_URL
-
-
-def logout(request: HttpRequest, sudo=False) -> Optional[str]:
-    """Log out a user from a request
-
-    Returns a safe, public path useful for callers building a redirect."""
-    # Ensure that logout can safely be called whenever
-    if not (hasattr(request, 'session') and hasattr(request, 'account')):
-        _logger.debug('logout: not logged in')
-        return None
-    if sudo or request.method == 'POST' and 'submit_desudo' in request.POST:
-        desudo(request)
-        return reverse('webfront-index')
-    else:
-        account = get_account(request)
-        clear_session(request)
-        _logger.debug('logout: logout %s', account.login)
-        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
-    _logger.debug('logout: redirect to "/" after logout')
-    return get_post_logout_redirect_url(request)

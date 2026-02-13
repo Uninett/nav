@@ -1,4 +1,4 @@
-from nav.web.auth import logout
+from nav.web.webfront.views import _logout_helper
 from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account
 from nav.web.auth.sudo import sudo
 
@@ -9,7 +9,7 @@ class TestLogout:
     ):
         # login with admin acount
         set_account(session_request, admin_account)
-        logout(session_request)
+        _logout_helper(session_request)
         assert not hasattr(session_request, 'account')
         assert ACCOUNT_ID_VAR not in session_request.session
 
@@ -18,7 +18,7 @@ class TestLogout:
     ):
         # login with admin acount
         set_account(session_request, admin_account)
-        result = logout(session_request)
+        result = _logout_helper(session_request)
         assert result == '/'
 
     def test_sudo_logout_should_set_session_to_original_user(
@@ -28,7 +28,7 @@ class TestLogout:
         set_account(session_request, admin_account)
         sudo(session_request, non_admin_account)
         assert session_request.account is non_admin_account
-        result = logout(session_request, sudo=True)
+        result = _logout_helper(session_request, sudo=True)
         assert result == '/'
         assert session_request.account == admin_account
 
@@ -38,7 +38,7 @@ class TestLogout:
         # login with admin acount
         set_account(session_request, admin_account)
         pre_session_id = session_request.session.session_key
-        logout(session_request)
+        _logout_helper(session_request)
         post_session_id = session_request.session.session_key
         assert post_session_id != pre_session_id
 
@@ -49,6 +49,6 @@ class TestLogout:
         set_account(session_request, admin_account)
         sudo(session_request, non_admin_account)
         pre_session_id = session_request.session.session_key
-        logout(session_request, sudo=True)
+        _logout_helper(session_request, sudo=True)
         post_session_id = session_request.session.session_key
         assert post_session_id != pre_session_id

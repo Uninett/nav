@@ -14,7 +14,7 @@ from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthorizationMiddleware
 from nav.web.auth.middleware import NAVAuthenticationMiddleware
 from nav.web.auth.middleware import NAVRemoteUserMiddleware
-from nav.web.auth import logout
+from nav.web.webfront.views import _logout_helper
 from nav.models import profiles
 
 
@@ -37,19 +37,30 @@ def test_set_account(fake_session):
     request.session = fake_session
     set_account(request, DEFAULT_ACCOUNT)
     assert ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
+    assert hasattr(request, 'user'), 'request.user not set'
     assert hasattr(request, 'account'), 'Account not set'
     assert request.account.id == request.session[ACCOUNT_ID_VAR], 'Correct user not set'
     assert request.user == request.account
     assert request.session[ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
 
 
-def test_get_account(fake_session):
-    r = RequestFactory()
-    request = r.get('/')
-    request.session = fake_session
-    set_account(request, DEFAULT_ACCOUNT)
-    session_account = get_account(request)
-    assert session_account.id == DEFAULT_ACCOUNT.id
+class TestGetAccount:
+    def test_get_account_golden_path(self, fake_session):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = fake_session
+        set_account(request, PLAIN_ACCOUNT)
+        session_account = get_account(request)
+        assert session_account.id == PLAIN_ACCOUNT.id
+
+    def test_get_account_when_account_not_set_returns_default_account(
+        self, fake_session
+    ):
+        r = RequestFactory()
+        request = r.get('/')
+        with patch("nav.web.auth.utils.default_account", return_value=DEFAULT_ACCOUNT):
+            session_account = get_account(request)
+            assert session_account.id == DEFAULT_ACCOUNT.id
 
 
 class TestAuthorizationMiddleware(object):
@@ -72,8 +83,13 @@ class TestAuthorizationMiddleware(object):
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert result is None
+            with patch(
+                'nav.web.auth.middleware.get_account', return_value=DEFAULT_ACCOUNT
+            ):
+                result = AuthorizationMiddleware(lambda x: x).process_request(
+                    fake_request
+                )
+                assert result is None
 
     def test_process_request_authorized(self):
         r = RequestFactory()
@@ -177,7 +193,7 @@ class TestLogout(object):
         r = RequestFactory()
         fake_request = r.get('/anyurl')
         with patch('nav.auditlog.models.LogEntry.add_log_entry'):
-            result = logout(fake_request)
+            result = _logout_helper(fake_request)
             assert result is None
 
     def test_sudo_logout(self, fake_session):
@@ -186,9 +202,9 @@ class TestLogout(object):
         fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
         fake_request.session = fake_session
         fake_request.account = PLAIN_ACCOUNT
-        with patch('nav.web.auth.desudo'):
-            with patch('nav.web.auth.reverse', return_value='parrot'):
-                result = logout(fake_request)
+        with patch('nav.web.webfront.views.desudo'):
+            with patch('nav.web.webfront.views.reverse', return_value='parrot'):
+                result = _logout_helper(fake_request)
                 assert result == 'parrot'
                 # Side effects of desudo() tested elsewhere
 

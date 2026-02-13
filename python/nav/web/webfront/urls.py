@@ -21,7 +21,6 @@ from django.views.generic import RedirectView
 
 from nav.web.webfront import views
 
-
 urlpatterns = [
     path('', views.index, name='webfront-index'),
     path('index/login/', views.login, name='webfront-login'),
@@ -103,19 +102,20 @@ urlpatterns = [
         RedirectView.as_view(url='/static/uploads/%(path)s', permanent=True),
     ),
     path('toolbox/', views.toolbox, name='webfront-toolbox'),
-    path('preferences/', views.preferences, name='webfront-preferences'),
+    path('preferences/', RedirectView.as_view(url='/accounts/', permanent=True)),
+    path('accounts/', views.preferences, name='webfront-preferences'),
     path(
-        'preferences/savelinks',
+        'accounts/savelinks',
         views.save_links,
         name='webfront-preferences-savelinks',
     ),
     path(
-        'preferences/changepassword',
+        'accounts/changepassword',
         views.change_password,
         name='webfront-preferences-changepassword',
     ),
     path(
-        'preferences/set_account_preference',
+        'accounts/set_account_preference',
         views.set_account_preference,
         name='set-account-preference',
     ),

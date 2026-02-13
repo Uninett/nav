@@ -607,6 +607,19 @@ select[multiple] {
 .graphitegraph button { margin-bottom: 0; }
 
 
+/* Allauth element styles */
+.allauth-actions {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+
+    .button {
+        margin-bottom: 0;
+    }
+}
+
 /* Geo is a microformat standard
  * https://en.wikipedia.org/wiki/Geo_(microformat)
  */
