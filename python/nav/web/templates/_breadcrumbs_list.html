@@ -1,0 +1,11 @@
+{% if breadcrumbs %}
+<ul id="nav-breadcrumbs" class="breadcrumbs">
+    {% for element in breadcrumbs %}
+        {% if element|length > 1 and element.1 %}
+            <li><a href="{{ element.1 }}">{{ element.0 }}</a></li>
+        {% else %}
+            <li class="current"><a href="#">{{ element.0 }}</a></li>
+        {% endif %}
+    {% endfor %}
+</ul>
+{% endif %}

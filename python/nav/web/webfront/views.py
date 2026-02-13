@@ -498,13 +498,13 @@ def _create_preference_context(request):
         password_form = ChangePasswordForm()
 
     context = {
-        'navpath': [('Home', '/'), ('Preferences', None)],
+        'navpath': [('Home', '/'), ('Account', None)],
         'title': 'Personal NAV preferences',
         'password_form': password_form,
         'account': account,
         'tool': {
             'name': 'My account',
-            'description': 'Edit my personal NAV account settings',
+            'description': 'Edit your personal NAV account settings',
         },
         'navbar_formset': NavbarLinkFormSet(
             queryset=NavbarLink.objects.filter(account=account)
