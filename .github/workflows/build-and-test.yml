@@ -74,11 +74,10 @@ jobs:
           sudo apt-get install -y libldap2-dev libsasl2-dev libtidy5deb1 libsnmp40
 
       - name: "Set up PostgreSQL"
-        uses: harmon758/postgresql-action@v1
+        uses: ankane/setup-postgres@v1
         with:
-          postgresql version: '13'  # minimum NAV requirement
-          postgresql user: $PGUSER
-          postgresql password: $PGPASSWORD
+          postgres-version: '13'  # minimum NAV requirement
+          user: nav
       - name: "Check for Django warnings"
         run: python3 -m tox -e django-warnings
       - name: "Run tests"
