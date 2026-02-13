@@ -18,6 +18,20 @@
     {% comment %} Javascript global variables {% endcomment %}
     <script src="{{ STATIC_URL }}js/libs/jquery-4.0.0.min.js"></script>
     <script src="{{ STATIC_URL }}js/libs/htmx-2.0.4.min.js"></script>
+    <script src="{{ STATIC_URL }}js/src/plugins/csrf-utils.js"></script>
+    <script>
+      // Global CSRF token setup for all HTMX requests.
+      // This approach is used because we have 7+ locations in the codebase with
+      // hx-post elements outside forms that lack CSRF tokens, which would break
+      // when CSRF protection is enabled. A global handler provides a safety net.
+      // See: https://docs.djangoproject.com/en/5.0/howto/csrf/
+      document.addEventListener('htmx:configRequest', function(event) {
+          const token = getCsrfToken();
+          if (token) {
+              event.detail.headers['X-CSRFToken'] = token;
+          }
+      });
+    </script>
     {% include 'navurls.html' %}
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
     {% if debug %}
