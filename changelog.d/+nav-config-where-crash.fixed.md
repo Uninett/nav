@@ -1,1 +1,0 @@
-Fixed a crash in `nav config where` when no config file directory could be found
