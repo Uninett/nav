@@ -10,7 +10,7 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files:          [
             'require_config.js',
-            'libs/jquery-3.7.1.min.js',
+            'libs/jquery-4.0.0.min.js',
             {pattern: 'libs/**/*.js', included: false},
             {pattern: 'src/**/*.js', included: false},
             {pattern: 'src/**/*.html', included: false},
@@ -66,15 +66,7 @@ module.exports = function (config) {
         autoWatch:      true,
 
 
-        // Start these browsers, currently available:
-        // - Chrome
-        // - ChromeCanary
-        // - Firefox
-        // - Opera
-        // - Safari (only Mac)
-        // - PhantomJS
-        // - IE (only Windows)
-        browsers:       ['Chrome', 'Firefox', 'PhantomJS'],
+        browsers:       ['Chrome', 'Firefox'],
 
 
         // If browser does not capture in given timeout [ms], kill it

@@ -8,11 +8,12 @@ var require = {
         "libs-amd": "resources/libs",
         "plugins": "src/plugins",
         "dt_plugins": "src/dt_plugins",
+        "dt_config": "src/dt_config",
         "info": "src/info",
         "netmap": "src/netmap",
         "status": "src/status2",
         "d3": "libs/d3.min",  // rickshaw needs the d3 target defined
-        "d3v4": "libs/d3.v4.min",
+        "d3v7": "libs/d3.v7.min",
         "d3tip": "libs/d3tip.min",
         "nav-url-utils": "src/plugins/nav-url-utils",
          "rickshaw-utils": "src/plugins/rickshaw-utils",
@@ -26,12 +27,11 @@ var require = {
         "driver": "libs/driver-1.3.6.min",
         "tinysort": "libs/tinysort-3.1.4.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
-        "jquery": "libs/jquery-3.7.1.min",
+        "jquery": "libs/jquery-4.0.0.min",
         "jquery-ui": "libs/jquery-ui-1.14.0.min",
-        "jquery-tablesorter": "libs/jquery.tablesorter-2.32.0.min",
-        "jquery-sparkline": "libs/jquery.sparkline-2.4.0.min",
+        "tablesort": "libs/tablesort-5.7.0.min",
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
-        "select2": "libs/select2-4.0.13.min",
+        "select2": "libs/select2-4.1.0-rc.0.min",
     },
     shim: {
         'libs/underscore': {
@@ -54,6 +54,15 @@ var require = {
             exports: 'Backbone'
         },
         'libs/backbone-eventbroker': ['libs/backbone'],
+        'libs/datatables.min': {
+            deps: ['jquery']
+        },
+        'select2': {
+            deps: ['jquery']
+        },
+        'tablesort': {
+            exports: 'Tablesort'
+        },
     },
     deps: ['jquery']
 };

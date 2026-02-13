@@ -1,9 +1,29 @@
+/**
+ * Matches all search terms when searching in Select2
+ * Updated for Select2 v4 - matcher signature changed from (term, text) to (params, data)
+ */
+function select2MultipleMatcher(params, data) {
+    // If there are no search terms, return all data
+    if (!params.term || params.term.trim() === '') {
+        return data;
+    }
+    // Check if text matches all search terms
+    let has = true;
+    const words = params.term.toUpperCase().split(" ");
+    const text = data.text || '';
+    words.forEach((word, idx) => {
+        has = has && (text.toUpperCase().indexOf(word) >= 0);
+    })
+    // Return null if no match, or the data object if it matches
+    return has ? data : null;
+}
+
 require([
     'plugins/csrf-utils',
     'plugins/linear_gauge',
     'plugins/symbols',
-    'jquery-sparkline'
-], function (CsrfUtils, LinearGauge, symbol) {
+    'plugins/d3_sparkline'
+], function (CsrfUtils, LinearGauge, symbol, d3Sparkline) {
 
     const csrfToken = CsrfUtils.getCsrfToken();
 
@@ -35,26 +55,6 @@ require([
         } catch (e) {
             return number;
         }
-    }
-
-    /**
-     * Matches all search terms when searching in Select2
-     * Updated for Select2 v4 - matcher signature changed from (term, text) to (params, data)
-     */
-    function select2MultipleMatcher(params, data) {
-        // If there are no search terms, return all data
-        if ($.trim(params.term) === '') {
-            return data;
-        }
-        // Check if text matches all search terms
-        let has = true;
-        const words = params.term.toUpperCase().split(" ");
-        const text = data.text || '';
-        words.forEach((word, idx) => {
-            has = has && (text.toUpperCase().indexOf(word) >= 0);
-        })
-        // Return null if no match, or the data object if it matches
-        return has ? data : null;
     }
 
 
@@ -215,15 +215,9 @@ require([
 
         if (unitIsKnown) {
             // Create sparkline if unit is known only
-            $element.find('.sparkline').sparkline([null, value, max], {
-                type: 'bullet',
+            d3Sparkline.bullet($element.find('.sparkline'), [null, value, max], {
                 performanceColor: 'lightsteelblue',
-                rangeColors: ['#fff'],
-                width: '100%',
-                tooltipFormatter: function (data) {
-                    // return data.values[1].toFixed(2);
-                    return "";
-                }
+                rangeColors: ['#fff']
             });
         }
 

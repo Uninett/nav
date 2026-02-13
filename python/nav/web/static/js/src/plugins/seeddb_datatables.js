@@ -1,5 +1,6 @@
 define([
     'libs/datatables.min',
+    'dt_config',
 ],
 
 function() {
@@ -50,9 +51,6 @@ function() {
             showCheckBoxes = false;
         }
 
-        // Add custom class to the wrapper element
-        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background';
-
         return {
             wrapper: $wrapper,
             key: key,
@@ -83,6 +81,12 @@ function() {
         $(tableWrapper).removeClass('notvisible');
     }
 
+    /* Runs once when DataTable is initialized */
+    function initComplete() {
+        /* Add custom class to the wrapper element */
+        $(this.api().table().container()).addClass('dataTables_background');
+    }
+
     function applyDefaultDataTable(options) {
         var numRows = options.numRows,
             showCheckBoxes = options.showCheckBoxes;
@@ -104,7 +108,8 @@ function() {
             },
 
             dom: "<lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: drawCallback
+            drawCallback: drawCallback,
+            initComplete: initComplete
         };
         $.extend(config, getPageConfig(numRows));
 
@@ -138,7 +143,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = jQuery.parseJSON( data );
+                    const json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
@@ -180,13 +185,14 @@ function() {
                 info: '_START_ - _END_ of _TOTAL_'
             },
             dom: "<'filters'f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: drawCallback
+            drawCallback: drawCallback,
+            initComplete: initComplete
         };
         $.extend(config, getPageConfig(numRows));
 
 
         /* Apply DataTable */
-        var table = $(tableSelector).DataTable(config);
+        const table = $(tableSelector).DataTable(config);
 
         /*
          Add a dropdown to select room. The dropdown is prepopulated. Do a new
@@ -227,7 +233,7 @@ function() {
                     }).join(',');
                 },
                 dataFilter: function(data){
-                    var json = jQuery.parseJSON( data );
+                    const json = JSON.parse( data );
                     json.recordsTotal = json.count;
                     json.recordsFiltered = json.count;
                     json.data = json.results;
@@ -269,7 +275,8 @@ function() {
                 info: '_START_ - _END_ of _TOTAL_'
             },
             dom: "<'filters'f><lip>t",   // display order of metainfo (lengthchange, info, pagination)
-            drawCallback: drawCallback
+            drawCallback: drawCallback,
+            initComplete: initComplete
         };
         $.extend(config, getPageConfig(numRows));
 

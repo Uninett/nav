@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
 
-    var _sparkline = require("jquery-sparkline");
+    const d3Sparkline = require("plugins/d3_sparkline");
 
 
     /**
@@ -33,13 +33,13 @@ define(function(require, exports, module) {
 
     PduController.prototype.update = function() {
         this.feedBack.hide();
-        var self = this;
+        const self = this;
 
-        var request = $.post(this.dataUrl, this.parameters, function(response) {
+        const request = $.post(this.dataUrl, this.parameters, function(response) {
             _.each(response, function(data) {
-                var $el = self.$navlet.find('[data-metric="' + data.target + '"]');
+                const $el = self.$navlet.find('[data-metric="' + data.target + '"]');
 
-                var point = _.find(data.datapoints.reverse(), function(datapoint) {
+                const point = _.find(data.datapoints.reverse(), function(datapoint) {
                     return datapoint[0] !== null;
                 });
 
@@ -47,14 +47,14 @@ define(function(require, exports, module) {
                     $el.html('<small>No data</small>');
                     return;
                 }
-                var load = point[0];
+                const load = point[0];
 
                 // Recalculate limits for the total column
-                var limits = isTotal(data.target) ?
-                    self.limits.map(function (t) { return t * 2; }) :
+                const limits = isTotal(data.target) ?
+                    self.limits.map(t => t * 2) :
                     self.limits;
 
-                $el.sparkline([null, load].concat(limits), self.config);
+                d3Sparkline.bullet($el, [null, load].concat(limits), self.config);
             });
             self.timestamp.text(new Date().toLocaleString());
         });
@@ -67,17 +67,16 @@ define(function(require, exports, module) {
     /** Constructs config for the sparkline */
     function getConfig(numLimits) {
         //                  green      yellow     red
-        var rangeColors = ['#A5D6A7', '#FFEE58', '#EF9A9A'];
+        let rangeColors = ['#A5D6A7', '#FFEE58', '#EF9A9A'];
         // The splice is necessary because of the way sparklines.js applies the colors.
         rangeColors = rangeColors.splice(0, numLimits);
 
         return {
-            type: 'bullet',
             performanceColor: '#333333',
             rangeColors: rangeColors.reverse(),
             tooltipFormatter: function(data) {
-                var prefix = isTotal(data.$el.data('metric')) ? 'Total load' : 'Load';
-                return prefix + ' ' + data.values[1] + " (limits: " + data.values.slice(2).reverse() + ")";
+                const prefix = isTotal(data.el.dataset.metric) ? 'Total load' : 'Load';
+                return `${prefix} ${data.values[1]} (limits: ${data.values.slice(2).reverse()})`;
             }
         };
     }

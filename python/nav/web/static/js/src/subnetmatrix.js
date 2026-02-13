@@ -1,4 +1,4 @@
-require(['libs/underscore', 'jquery-sparkline'], function() {
+require(['libs/underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query
@@ -223,9 +223,8 @@ require(['libs/underscore', 'jquery-sparkline'], function() {
                                 return [point[1], point[0]];
                             });
 
-                        sparkContainer.sparkline(dataPoints, {
+                        d3Sparkline.line(sparkContainer, dataPoints, {
                             tooltipFormatter: self.formatter,
-                            type: 'line',
                             width: '100%'
                         });
                     } else {
@@ -242,9 +241,9 @@ require(['libs/underscore', 'jquery-sparkline'], function() {
         /**
          * Formatter for sparkline tooltip
          */
-        formatter: function(sparkline, options, fields) {
-            var date = new Date(fields.x * 1000).toLocaleString();
-            return '<div class="jqsfield"><span style="color:' + fields.color + '">&#9679</span> ' + fields.y + '<br/> ' + date + '</div>';
+        formatter: function(data) {
+            const date = new Date(data.x * 1000).toLocaleString();
+            return '<div class="jqsfield"><span style="color:' + data.color + '">&#9679</span> ' + data.y + '<br/> ' + date + '</div>';
         }
 
     };

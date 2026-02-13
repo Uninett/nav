@@ -10,7 +10,6 @@ define(function (require, exports, module) {
   var _ = require("libs/underscore");
   var util = require("src/ipam/util");
   var d3tip = require("d3tip");
-  var d3v4 = require("d3v4");
 
   // === Tooltip (+ template)
   var tip = d3tip()

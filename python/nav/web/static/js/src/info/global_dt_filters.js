@@ -1,4 +1,4 @@
-define(['libs/datatables.min'], function () {
+define(['libs/datatables.min', 'dt_config'], function () {
     /*
      * Primary filter is the main filter run on all tables
      * Secondary filters are run together with the primary filter
@@ -24,7 +24,7 @@ define(['libs/datatables.min'], function () {
     function do_primary_filter() {
         var filter = remove_keywords($(primary_node).val());
         for (var i = 0; i < tables.length; i++) {
-            $(tables[i]).dataTable().fnFilter(filter);
+            $(tables[i]).DataTable().search(filter).draw();
         }
     }
 
@@ -60,7 +60,7 @@ define(['libs/datatables.min'], function () {
 
     /* Attach keylistener and register filter to datatable plugin */
     function register_filter(config) {
-        $.fn.dataTableExt.afnFiltering.push(config.runner);
+        $.fn.DataTable.ext.search.push(config.runner);
         $('#' + config.node + ' input').keyup(do_primary_filter);
     }
 

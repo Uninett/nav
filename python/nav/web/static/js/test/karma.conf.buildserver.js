@@ -14,7 +14,7 @@ module.exports = function (config) {
             outputFile: 'javascript-results.xml',
                 suite: ''
         },
-        browsers:      ['ChromeNoSandbox', 'Firefox', 'PhantomJS'],
+        browsers:      ['ChromeNoSandbox', 'Firefox'],
         autoWatch:      false,
         singleRun: true,
         colors: false,

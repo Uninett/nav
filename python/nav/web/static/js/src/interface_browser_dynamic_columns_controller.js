@@ -2,7 +2,7 @@ define(function(require) {
 
     var URI = require('libs/urijs/URI');
     var Moment = require('moment');
-    require('jquery-sparkline');
+    const d3Sparkline = require('plugins/d3_sparkline');
 
     var storedMetricsRequests = {};
     var storedDataRequests = {};
@@ -88,7 +88,7 @@ define(function(require) {
         return $container;
     }
 
-    /* Maps data from graphite to format jquery.sparkline understands */
+    /* Maps data from graphite to format sparkline understands */
     function convertToSparkLine(data) {
         return data.datapoints.map(function(point) {
             return [point[1], Number(point[0]).toFixed()];
@@ -96,10 +96,8 @@ define(function(require) {
     }
 
     function createSparkLine($container, dataPoints) {
-        $container.sparkline(dataPoints, {
-            tooltipFormatter: self.formatter,
-            type: 'line',
-            width: '100px'
+        d3Sparkline.line($container, dataPoints, {
+            width: 100
         });
     }
 

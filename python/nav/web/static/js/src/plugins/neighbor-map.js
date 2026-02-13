@@ -1,6 +1,6 @@
 define(function (require, exports, module) {
 
-    var d3 = require('d3v4');
+    var d3 = require('d3v7');
     var _ = require('libs/underscore');
 
     function NeighborMap(node) {
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
         /** Fetch neighbourhood data for this netbox */
         fetchData: function () {
             var self = this;
-            d3.json('/ajax/open/neighbormap/' + this.netboxid, function (json) {
+            d3.json('/ajax/open/neighbormap/' + this.netboxid).then(function (json) {
                 if (json) {
                     // Filter duplicates
                     json.nodes = _.uniq(json.nodes, function(node) { return node.netboxid; });
@@ -298,7 +298,7 @@ define(function (require, exports, module) {
         /** Go to other page when node is clicked */
         appendClickListeners: function (svgNodes) {
             var self = this;
-            svgNodes.on('click', function (node) {
+            svgNodes.on('click', function (event, node) {
                 if (node.category !== self.unrecognized) {
                     location.href = '/ipdevinfo/' + node.sysname + '/#!neighbors';
                 }
@@ -333,19 +333,14 @@ define(function (require, exports, module) {
 
         /** Add drag behaviour to nodes */
         addDrag: function(simulation) {
-            function dragStarted(d) {
-                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            function dragStarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
                 d.fx = d.x;
                 d.fy = d.y;
             }
 
-            function dragging(d) {
-                d.fx = d3.event.x;
-                d.fy = d3.event.y;
-            }
-
-            function dragEnded(d) {
-                if (!d3.event.active) simulation.alphaTarget(0);
+            function dragEnded(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
                 d.fx = null;
                 d.fy = null;
             }
@@ -353,7 +348,7 @@ define(function (require, exports, module) {
             var self = this;
             this.svgNodes.call(
                 d3.drag()
-                    .filter(function(node) {
+                    .filter(function(event, node) {
                         // Set focus node to not be draggable
                         return !self.isFocusNode(node);
                     })
@@ -364,6 +359,10 @@ define(function (require, exports, module) {
         }
     };
 
+    function dragging(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
 
     return NeighborMap;
 

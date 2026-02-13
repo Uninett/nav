@@ -1,5 +1,5 @@
 /* Javascript forced and smeared on the Unrecognized Neighbors page. No tests, no fuzz :p */
-require(['libs/datatables.min'], function() {
+require(['libs/datatables.min', 'dt_config'], function() {
 
     console.log('Neighbors script loaded');
 
@@ -41,14 +41,14 @@ require(['libs/datatables.min'], function() {
     function addToggleIgnoredHandler() {
         $('#toggle-ignored').click(function() {
             setIgnoredSinceVisibility();
-            dataTable.fnDraw(); // Redraw table
+            dataTable.draw(); // Redraw table
         });
     }
 
 
     /** Set visibility on the 'ignored since' column based on toggleIgnored state */
     function setIgnoredSinceVisibility() {
-        dataTable.fnSetColumnVis(ignoredSinceIndex, toggleIgnored.checked);
+        dataTable.column(ignoredSinceIndex).visible(toggleIgnored.checked);
     }
 
 
@@ -100,16 +100,16 @@ require(['libs/datatables.min'], function() {
                 feedback('Neighbors ignored');
                 $rows.each(function() {
                     this.dataset.ignored = 'true';
-                    dataTable.fnUpdate(response, this, ignoredSinceIndex, false);
+                    dataTable.cell(this, ignoredSinceIndex).data(response);
                 });
             } else {
                 feedback('Neighbors unignored');
                 $rows.each(function() {
                     this.dataset.ignored = 'false';
-                    dataTable.fnUpdate('', this, ignoredSinceIndex, false);
+                    dataTable.cell(this, ignoredSinceIndex).data('');
                 });
             }
-            dataTable.fnDraw();
+            dataTable.draw();
         });
 
         request.fail(function() {
@@ -138,11 +138,9 @@ require(['libs/datatables.min'], function() {
     /** Apply datatables plugin to table */
     function applyDatatable() {
         // Register new filtering function based on neighbor state
-        $.fn.dataTableExt.afnFiltering.push(filterNeighborState);
-        // Add custom class to the wrapper element
-        $.fn.dataTableExt.oStdClasses.sWrapper += ' dataTables_background_white';
+        $.fn.DataTable.ext.search.push(filterNeighborState);
 
-        return $table.dataTable({
+        return $table.DataTable({
             "bFilter": true,      // Explicitly set filtering
             "bSort": true,        // Explicitly set sorting
             "bPaginate": true,   // Do show pagination
@@ -159,6 +157,10 @@ require(['libs/datatables.min'], function() {
             "fnDrawCallback": function (oSettings) {
                 /* Run this on redraw of table */
                 $('.ellipsis').addClass('button tiny secondary disabled paginate_button');
+            },
+            "initComplete": function () {
+                /* Add custom class to the wrapper element */
+                $(this.api().table().container()).addClass('dataTables_background_white');
             }
         });
     }
@@ -183,7 +185,7 @@ require(['libs/datatables.min'], function() {
     function filterQueryParameters(dataTable) {
         var params = window.location.search.substr(1).split('=');
         if (params[0] === 'filter') {
-            dataTable.fnFilter(params[1]);
+            dataTable.search(params[1]).draw();
         }
     }
 

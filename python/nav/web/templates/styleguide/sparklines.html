@@ -1,0 +1,110 @@
+<!-- D3-based sparkline examples. See js/src/plugins/d3_sparkline.js for implementation -->
+<h3 class="underline">Sparklines</h3>
+<div class="row">
+  <div class="small-6 column">
+    <div class="panel white">
+      <h5>Line sparklines</h5>
+      <table class="vertitable">
+        <tr>
+          <!-- Used in: js/src/interface_browser_dynamic_columns_controller.js -->
+          <th>Basic</th>
+          <td><div id="sparkline-basic"></div></td>
+        </tr>
+        <tr>
+          <th>Custom size</th>
+          <td><div id="sparkline-wide"></div></td>
+        </tr>
+        <tr>
+          <th>Custom colors</th>
+          <td><div id="sparkline-styled"></div></td>
+        </tr>
+        <tr>
+          <th>With null gaps</th>
+          <td><div id="sparkline-gaps"></div></td>
+        </tr>
+        <tr>
+          <!-- Used in: js/src/subnetmatrix.js, js/src/ipdevinfo.js -->
+          <th>Full width with tooltip</th>
+          <td style="width: 200px"><div id="sparkline-fullwidth"></div></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="small-6 column">
+    <div class="panel white">
+      <h5>Bullet sparklines</h5>
+      <table class="vertitable">
+        <tr>
+          <th>Basic</th>
+          <td style="width: 200px"><div id="sparkline-bullet-basic"></div></td>
+        </tr>
+        <tr>
+          <!-- Used in: js/src/info_room_rack.js, js/src/plugins/vue_rack.js -->
+          <th>Sensor style</th>
+          <td><div id="sparkline-bullet-sensor"></div></td>
+        </tr>
+        <tr>
+          <!-- Used in: js/src/plugins/navlet_pdu.js -->
+          <th>With color ranges</th>
+          <td><div id="sparkline-bullet-ranges"></div></td>
+        </tr>
+        <tr>
+          <!-- Used in: js/src/plugins/navlet_pdu.js -->
+          <th>With tooltip (hover)</th>
+          <td><div id="sparkline-bullet-tooltip"></div></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+require(['plugins/d3_sparkline'], function(d3Sparkline) {
+    const lineData = [5, 10, 8, 15, 12, 20, 18, 25, 22, 30, 28, 35];
+    const lineDataWithGaps = [5, 10, null, 15, 12, null, null, 25, 22, 30];
+    const timeSeriesData = [];
+    const now = Math.floor(Date.now() / 1000);
+    for (let i = 0; i < 20; i++) {
+        timeSeriesData.push([now - (20 - i) * 3600, crypto.getRandomValues(new Uint32Array(1))[0] / 0xFFFFFFFF * 100]);
+    }
+
+    // Line sparklines
+    // Used in: js/src/interface_browser_dynamic_columns_controller.js
+    d3Sparkline.line(document.getElementById('sparkline-basic'), lineData);
+    d3Sparkline.line(document.getElementById('sparkline-wide'), lineData, {
+        width: 200, height: 30
+    });
+    d3Sparkline.line(document.getElementById('sparkline-styled'), lineData, {
+        strokeColor: '#e74c3c', fillColor: 'rgba(231, 76, 60, 0.2)'
+    });
+    d3Sparkline.line(document.getElementById('sparkline-gaps'), lineDataWithGaps);
+    // Used in: js/src/subnetmatrix.js, js/src/ipdevinfo.js
+    d3Sparkline.line(document.getElementById('sparkline-fullwidth'), timeSeriesData, {
+        width: '100%',
+        tooltipFormatter: function(data) {
+            const date = new Date(data.x * 1000).toLocaleString();
+            return '<span style="color:' + data.color + '">●</span> ' + data.y.toFixed(1) + '<br>' + date;
+        }
+    });
+
+    // Bullet sparklines
+    d3Sparkline.bullet(document.getElementById('sparkline-bullet-basic'), [null, 75, 100]);
+    // Used in: js/src/info_room_rack.js, js/src/plugins/vue_rack.js
+    d3Sparkline.bullet(document.getElementById('sparkline-bullet-sensor'), [null, 75, 100], {
+        performanceColor: 'lightsteelblue',
+        rangeColors: ['#fff']
+    });
+    // Used in: js/src/plugins/navlet_pdu.js
+    d3Sparkline.bullet(document.getElementById('sparkline-bullet-ranges'), [null, 65, 50, 75, 100], {
+        rangeColors: ['#A5D6A7', '#FFEE58', '#EF9A9A']
+    });
+    // Used in: js/src/plugins/navlet_pdu.js
+    d3Sparkline.bullet(document.getElementById('sparkline-bullet-tooltip'), [null, 42, 30, 60, 100], {
+        rangeColors: ['#A5D6A7', '#FFEE58', '#EF9A9A'],
+        tooltipFormatter: function(data) {
+            return 'Value: ' + data.values[1] + ' (limits: ' + data.values.slice(2).join(', ') + ')';
+        }
+    });
+});
+</script>
