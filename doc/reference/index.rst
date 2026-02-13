@@ -31,3 +31,4 @@ This section contains reference material for end-users.
    snmptrapd
    backend-processes
    jwt
+   dhcpstats

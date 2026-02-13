@@ -40,6 +40,7 @@ configuration file at all, but at its simplest it looks like this::
   [graphiteweb]
   base = http://localhost:8000/
 
+.. _integrating_graphite_with_nav_configuring_graphite:
 
 Configuring Graphite
 ~~~~~~~~~~~~~~~~~~~~

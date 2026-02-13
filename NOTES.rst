@@ -12,6 +12,47 @@ Unreleased
 ==========
 
 
+Viewing DHCP stats
+------------------
+
+This release adds support for viewing DHCP usage/utilization graphs in the
+*Prefix* and *Vlan* detail pages in the NAV web UI.
+
+See the :doc:`DHCP stats documentation </reference/dhcpstats>` for information
+about DHCP stats in NAV.
+
+.. warning::
+   To accomodate for this feature, changes have been made to where DHCP stats
+   are stored and read from in the Graphite/Carbon timeseries database. Some
+   manual renaming is necessary if you've configured NAV to collect DHCP stats
+   prior to this release, and if you want the stats you've collected up until
+   now to show up in the new DHCP usage/utilization graphs. See the :doc:`DHCP
+   stats migration documentation </howto/migrate-dhcpstats>` for more
+   information.
+
+.. warning::
+   To accomodate for this feature, changes have been made to the name of a Kea
+   DHCPv4 optional option in :file:`dhcpstats.conf` and its default value: The
+   option previously called *user_context_poolname_key* with default value
+   ``name`` now goes by *user_context_groupname_key* with default value
+   ``group``. When this option is unset, this means that NAV looks for
+   user-context objects in Kea DHCPv4 configurations that look like this:
+
+   .. code-block:: json
+
+     "user-context": {
+       "group": "first-floor"
+     }
+
+   as opposed to this:
+
+   .. code-block:: json
+
+     "user-context": {
+       "name": "first-floor"
+     }
+
+
 SNMPv3 context support for Cisco switches
 -----------------------------------------
 
