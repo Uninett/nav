@@ -12,6 +12,10 @@ def pytest_configure(config):
 
     bootstrap_django('pytest')
 
+    from django.test.utils import setup_test_environment
+
+    setup_test_environment()
+
     if platform.system() == 'Linux':
         # Install custom reactor for Twisted tests
         from nav.ipdevpoll.epollreactor2 import install
