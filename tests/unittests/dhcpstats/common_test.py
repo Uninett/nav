@@ -1,5 +1,6 @@
 from dataclasses import dataclass, replace
 from itertools import chain
+import inspect
 import logging
 import random
 import re
@@ -542,7 +543,7 @@ def test_fetch_paths_from_graphite_should_warn_when_paths_from_graphite_are_bad(
         "nav.dhcpstats.common.get_expanded_nodes", lambda *args, **kwargs: [path]
     )
     with caplog.at_level(logging.WARNING):
-        fetch_paths_from_graphite()
+        inspect.unwrap(fetch_paths_from_graphite)()  # Run without caching
         assert re.search(log_pattern, caplog.text, flags=re.IGNORECASE)
 
 
