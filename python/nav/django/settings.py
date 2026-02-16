@@ -137,7 +137,7 @@ MIDDLEWARE = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # 'nav.web.auth.middleware.NAVRemoteUserMiddleware',
+    'nav.web.auth.middleware.NAVRemoteUserMiddleware',
     'nav.web.auth.middleware.NAVAuthenticationMiddleware',
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
@@ -145,7 +145,7 @@ MIDDLEWARE = (
 )
 
 AUTHENTICATION_BACKENDS = [
-    # "nav.web.auth.backends.NAVRemoteUserBackend",
+    "nav.web.auth.backends.NAVRemoteUserBackend",
     "nav.web.auth.ldap_auth_backend.LdapBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
