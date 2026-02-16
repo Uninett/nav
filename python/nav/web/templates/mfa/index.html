@@ -8,6 +8,15 @@
     {% element h1 tags="mfa,index" %}
         {% trans "Two-Factor Authentication" %}
     {% endelement %}
+    {% if not MFA_SUPPORTED_TYPES %}
+        {% element p %}
+            Two-factor authentication has been disabled.
+        {% endelement %}
+    {% else %}
+        {% element p %}
+            Two-factor authentication has been enabled.
+        {% endelement %}
+    {% endif %}
     {% if "totp" in MFA_SUPPORTED_TYPES %}
         {% element panel %}
             {% slot title %}
