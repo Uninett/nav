@@ -89,7 +89,7 @@ def get_static_query():
         COUNT(DISTINCT mac) AS maccount
     FROM vlan
     JOIN prefix USING (vlanid)
-    LEFT JOIN arp ON (ip << netaddr AND arp.end_time = 'infinity')
+    LEFT JOIN arp ON (ip << netaddr AND arp.end_time >= 'infinity')
     WHERE vlan.nettype NOT IN ('loopback')
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
