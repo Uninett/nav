@@ -196,7 +196,9 @@ class EventEngine(object):
                 len(new_events),
                 len(old_events),
             )
+            batch_start = time.monotonic()
             for event in new_events:
+                handler_start = time.monotonic()
                 unresolved.update()
                 try:
                     self.handle_event(event)
@@ -207,6 +209,21 @@ class EventEngine(object):
                     )
                     if event.id:
                         event.delete()
+                handler_duration = time.monotonic() - handler_start
+                self._logger.debug(
+                    "spent %.3fs handling event %s (%s for %s)",
+                    handler_duration,
+                    event.id,
+                    event.event_type_id,
+                    event.netbox,
+                )
+            if new_events:
+                batch_duration = time.monotonic() - batch_start
+                self._logger.info(
+                    "processed %d events in %.3fs",
+                    len(new_events),
+                    batch_duration,
+                )
 
         self._log_task_queue()
 
