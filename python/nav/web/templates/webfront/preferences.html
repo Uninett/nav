@@ -1,12 +1,11 @@
-{% extends "base.html" %}
+{% extends "allauth/layouts/base.html" %}
 
 {% block base_header_additional_head %}
 <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/my_account.css" />
 <script>require(['src/navigation_preferences']);</script>
 {% endblock %}
 
-{% block base_content %}
-
+{% block content %}
     <div class="row">
         <div class="medium-12 columns">
             {% include 'nav_header.html' %}
@@ -15,8 +14,8 @@
     {% for m in current_user_data.messages %}
         <div class="alert-box {{ m.type }}">{{ m.message }}</div>
     {% endfor %}
-
-    <div class="medium-6 large-5">
+<div class="row">
+    <div class="columns medium-6">
 
         <table class="vertitable full-width">
             <caption>User information</caption>
@@ -58,35 +57,33 @@
             </tr>
         </table>
     </div>
+    <!--
     <div class="medium-6 large-5">
-
     {% if account.ext_sync %}
         <p class='alert-box secondary'>
             You are not allowed to change your password from this page. Your
             account is managed through an external system, known as "{{ account.ext_sync }}".
         </p>
-    {% else %}
-        {% include 'custom_crispy_templates/flat_form.html' with form=password_form %}
     {% endif %}
+    </div>
+    -->
+    <div class="column medium-6">
+        <form method="post" id="navigation-preferences" action="{% url 'webfront-preferences-savelinks' %}">
+            <fieldset>
+                <legend>'My stuff' quick links</legend>
+                <p>A quick link requires both link text and URL.</p>
+                {% csrf_token %}
+                <div>{{ navbar_formset.management_form }}</div>
+                {% include 'foundation-5/errors_formset.html' %}
+                {% for form in navbar_formset %}
+                  {% include 'webfront/_navbar_link_form.html' %}
+                  {% empty %}
+                  {{ navbar_formset }}
+                {% endfor %}
+                <input type="submit" class="button primary small" name="submit" value="Save changes" />
+            </fieldset>
 
-        </div>
-        <div class="column medium-6 large-7" style="float:left;">
-            <form method="post" id="navigation-preferences" action="{% url 'webfront-preferences-savelinks' %}">
-                <fieldset>
-                    <legend>'My stuff' quick links</legend>
-                    <p>A quick link requires both link text and URL.</p>
-                    {% csrf_token %}
-                    <div>{{ navbar_formset.management_form }}</div>
-                    {% include 'foundation-5/errors_formset.html' %}
-                    {% for form in navbar_formset %}
-                      {% include 'webfront/_navbar_link_form.html' %}
-                      {% empty %}
-                      {{ navbar_formset }}
-                    {% endfor %}
-                    <input type="submit" class="button primary small" name="submit" value="Save changes" />
-                </fieldset>
-
-            </form>
-        </div>
-
+        </form>
+    </div>
+</div>
 {% endblock %}
