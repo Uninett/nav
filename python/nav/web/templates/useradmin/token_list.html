@@ -35,7 +35,7 @@
         Create new token
       </a>
 
-      {% if request.account.is_admin %}
+      {% if request.user.is_admin %}
         <div>
           {% include 'useradmin/frag-auditlog.html' %}
         </div>

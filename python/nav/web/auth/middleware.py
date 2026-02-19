@@ -60,7 +60,9 @@ class AuthorizationMiddleware(MiddlewareMixin):
         ) or account.has_perm('web_access', request.get_full_path())
         if not authorized:
             _logger.warning(
-                "User %s denied access to %s", account.login, request.get_full_path()
+                "User %s denied access to %s",
+                account.get_username(),
+                request.get_full_path(),
             )
             return self.redirect_to_login(request)
 
