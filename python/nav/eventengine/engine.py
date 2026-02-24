@@ -176,6 +176,11 @@ class EventEngine(object):
             self.CHECK_INTERVAL, action=self._load_new_events_and_reschedule
         )
 
+    def _has_overdue_callbacks(self):
+        """Checks whether the scheduler has any callbacks that are past due."""
+        queue = self._scheduler.queue
+        return bool(queue) and queue[0].time <= time.time()
+
     def _schedule_next_queuecheck(self, delay=0, action=None):
         if not action:
             action = self.load_new_events
