@@ -25,9 +25,9 @@ BEGIN
             ELSE
                 truncated_comment := token_rec.comment;
             END IF;
-            new_token_str := 'token #' || token_rec.id || ' (' || truncated_comment || ')';
+            new_token_str := 'token #' || token_rec.id::TEXT || ' (' || truncated_comment || ')';
         ELSE
-            new_token_str := 'token #' || token_rec.id;
+            new_token_str := 'token #' || token_rec.id::TEXT;
         END IF;
 
         -- Update summary field (only for entries that reference this specific token)
