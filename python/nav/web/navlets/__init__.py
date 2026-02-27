@@ -195,7 +195,8 @@ class Navlet(TemplateView):
         :return: The URL with the cache-busting parameter added
         """
         timestamp = int(datetime.now().timestamp())
-        return f'{url}&bust={timestamp}'
+        separator = '&' if '?' in url else '?'
+        return f'{url}{separator}bust={timestamp}'
 
 
 def list_navlets():
