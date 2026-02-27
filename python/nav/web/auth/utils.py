@@ -22,6 +22,7 @@ import logging
 import re
 
 from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
+from django.contrib.sessions.backends.base import UpdateError
 from django.core.cache import cache
 
 from nav.models.profiles import Account
@@ -66,7 +67,11 @@ def set_account(request, account, cycle_session_id=True):
     _logger.debug('Set active account to "%s"', account.login)
     if cycle_session_id:
         request.session.cycle_key()
-    request.session.save()
+    try:
+        request.session.save()
+    except UpdateError:
+        _logger.debug("Session save failed (stale session key?); creating new session")
+        request.session.create()
 
 
 def clear_session(request):
