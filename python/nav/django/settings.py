@@ -75,6 +75,7 @@ _mail_admin_filters.append('suppress_503')
 # Admins
 ADMINS = (('NAV Administrator', NAV_CONFIG.get('ADMIN_MAIL', 'root@localhost')),)
 MANAGERS = ADMINS
+DEFAULT_EXCEPTION_REPORTER_FILTER = 'nav.django.filter.NAVExceptionReporterFilter'
 
 # Database / ORM configuration
 try:
