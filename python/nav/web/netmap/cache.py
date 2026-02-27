@@ -16,8 +16,11 @@
 
 """Cache utils for NetMap"""
 
+import logging
 from functools import wraps
 from django.core.cache import cache
+
+_logger = logging.getLogger(__name__)
 
 # TODO: This cache should be shared by all of NAV?
 # TODO: This cache should be invalidated only when the topology is
@@ -46,7 +49,7 @@ def cache_traffic(layer):
             if cached is not None:
                 return cached
             result = func(location_or_room_id)
-            cache.set(cache_key, result, TRAFFIC_CACHE_TIMEOUT)
+            _safe_cache_set(cache_key, result, TRAFFIC_CACHE_TIMEOUT)
             return result
 
         return get_traffic
@@ -73,7 +76,7 @@ def cache_topology(layer):
             except ValueError:
                 pass
             result = func(*args, **kwargs)
-            cache.set(cache_key, result, CACHE_TIMEOUT)
+            _safe_cache_set(cache_key, result, CACHE_TIMEOUT)
             return result
 
         return get_traffic
@@ -95,13 +98,21 @@ def update_cached_node_positions(viewid, layer, updated_nodes):
             continue
         diff = {"x": node["x"], "y": node["y"]}
         to_update["nodes"][node["id"]]["position"] = diff
-    cache.set(cache_key, to_update, CACHE_TIMEOUT)
+    _safe_cache_set(cache_key, to_update, CACHE_TIMEOUT)
 
 
 def invalidate_topology_cache(viewid, layer):
     "Resets the topology cache, prompting NAV to rebuild it"
     cache_key = _cache_key("topology", viewid, layer)
     cache.delete(cache_key)
+
+
+def _safe_cache_set(key, value, timeout):
+    """Attempt to set a cache key, logging a warning on failure."""
+    try:
+        cache.set(key, value, timeout)
+    except Exception as error:  # noqa: BLE001
+        _logger.warning("Failed to set cache key %s: %s", key, error)
 
 
 # TODO: Consider using a proper slug generator for this

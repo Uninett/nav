@@ -176,6 +176,11 @@ class EventEngine(object):
             self.CHECK_INTERVAL, action=self._load_new_events_and_reschedule
         )
 
+    def _has_overdue_callbacks(self):
+        """Checks whether the scheduler has any callbacks that are past due."""
+        queue = self._scheduler.queue
+        return bool(queue) and queue[0].time <= time.time()
+
     def _schedule_next_queuecheck(self, delay=0, action=None):
         if not action:
             action = self.load_new_events
@@ -196,7 +201,10 @@ class EventEngine(object):
                 len(new_events),
                 len(old_events),
             )
+            batch_start = time.monotonic()
+            events_processed = 0
             for event in new_events:
+                handler_start = time.monotonic()
                 unresolved.update()
                 try:
                     self.handle_event(event)
@@ -207,6 +215,30 @@ class EventEngine(object):
                     )
                     if event.id:
                         event.delete()
+                events_processed += 1
+                handler_duration = time.monotonic() - handler_start
+                self._logger.debug(
+                    "spent %.3fs handling event %s (%s for %s)",
+                    handler_duration,
+                    event.id,
+                    event.event_type_id,
+                    event.netbox,
+                )
+                if self._has_overdue_callbacks():
+                    self._logger.debug(
+                        "yielding to overdue scheduler entries after %d of %d events",
+                        events_processed,
+                        len(new_events),
+                    )
+                    self._schedule_next_queuecheck()
+                    break
+            if events_processed:
+                batch_duration = time.monotonic() - batch_start
+                self._logger.info(
+                    "processed %d events in %.3fs",
+                    events_processed,
+                    batch_duration,
+                )
 
         self._log_task_queue()
 

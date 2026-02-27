@@ -8,8 +8,18 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-Unreleased
-==========
+NAV 5.17
+========
+
+CSRF protection enabled
+-----------------------
+
+This release adds CSRF (Cross Site Request Forgery) protection to the whole NAV
+site - i.e. POST requests to the NAV web backend will require a valid CSRF
+token to be included. This should not be noticable for end-users, but be beware
+of the unlikely case that some form or front-end feature stops working due to
+403 errors. As usual, issues can be reported at
+https://github.com/Uninett/nav/issues
 
 
 Viewing DHCP stats

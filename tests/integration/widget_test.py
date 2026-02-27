@@ -168,6 +168,34 @@ def test_given_htmx_request_with_unauthorized_navlet_then_it_should_return_htmx_
     assert response.context['error_message'] == 'Not authorized to view this widget'
 
 
+def test_when_sudoer_requests_unauthorized_navlet_via_htmx_then_it_should_not_crash(
+    client, admin_account, non_admin_account
+):
+    """Regression test: the error response template should render without
+    NoReverseMatch even when the user is a sudoer (which causes the navlet
+    header action buttons to be rendered).
+    """
+    dashboard = AccountDashboard.objects.create(
+        account=non_admin_account, name="Private Dashboard", is_shared=False
+    )
+    private_navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.welcome.WelcomeNavlet",
+        account=non_admin_account,
+        dashboard=dashboard,
+    )
+
+    # Simulate admin having sudoed into another account
+    session = client.session
+    session['sudoer'] = admin_account.id
+    session.save()
+
+    url = reverse('get-user-navlet', kwargs={'navlet_id': private_navlet.id})
+    response = client.get(url, HTTP_HX_REQUEST='true')
+
+    assert response.status_code == 200
+    assert response.context['error_message'] == 'Not authorized to view this widget'
+
+
 #
 # Fixtures
 #

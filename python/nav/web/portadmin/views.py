@@ -868,17 +868,21 @@ def commit_configuration(request):
                 handler.netbox, error
             )
             _logger.error(error_message)
-            return HttpResponse(error_message, status=500)
+            return HttpResponse(error_message, status=503)
         except (AttributeError, NotImplementedError):
             error_message = 'Error committing configuration on {}: {}'.format(
                 handler.netbox, 'Configuration commit not supported'
             )
             _logger.error(error_message)
-            return HttpResponse(error_message, status=500)
+            return HttpResponse(error_message, status=503)
 
         return HttpResponse()
     else:
-        return HttpResponse(status=500)
+        error_message = 'Could not obtain management handler for {}'.format(
+            interface.netbox
+        )
+        _logger.error(error_message)
+        return HttpResponse(error_message, status=503)
 
 
 def get_management_handler(netbox: Netbox) -> ManagementHandler:

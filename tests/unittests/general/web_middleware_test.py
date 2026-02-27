@@ -3,9 +3,10 @@ import os
 
 import pytest
 
-from django.http import HttpResponseRedirect
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sessions.backends.base import UpdateError
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponseRedirect
 from django.test import RequestFactory
 from django_htmx.http import HttpResponseClientRedirect
 
@@ -299,3 +300,29 @@ class TestNAVAuthenticationMiddleware:
             side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
         ):
             assert fake_request.user == DEFAULT_ACCOUNT
+
+
+class TestSetAccountSessionRecovery:
+    """Tests for UpdateError recovery in set_account()"""
+
+    def test_when_session_save_raises_update_error_it_should_create_new_session(
+        self, fake_session
+    ):
+        request = RequestFactory().get('/')
+        request.session = fake_session
+        request.session.save = Mock(side_effect=UpdateError)
+        request.session.create = Mock()
+
+        set_account(request, DEFAULT_ACCOUNT)
+
+        request.session.create.assert_called_once()
+
+    def test_when_session_save_succeeds_it_should_not_call_create(self, fake_session):
+        request = RequestFactory().get('/')
+        request.session = fake_session
+        request.session.save = Mock()
+        request.session.create = Mock()
+
+        set_account(request, DEFAULT_ACCOUNT)
+
+        request.session.create.assert_not_called()

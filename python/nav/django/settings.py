@@ -17,6 +17,7 @@
 
 """Django configuration wrapper around the NAV configuration files"""
 
+import logging
 import os
 import sys
 import copy
@@ -53,9 +54,28 @@ _handlers = LOGGING.get('handlers', {})
 _mail_admin_handler = _handlers.get('mail_admins', {})
 _mail_admin_handler['include_html'] = True
 
+
+class Suppress503(logging.Filter):
+    """Prevents 503 responses from generating admin error emails.
+
+    NAV returns 503 for expected operational errors such as unreachable managed
+    devices.  These are already logged by NAV's own loggers; the Django admin
+    emails would be redundant noise.
+    """
+
+    def filter(self, record):
+        return getattr(record, 'status_code', None) != 503
+
+
+_filters = LOGGING.setdefault('filters', {})
+_filters['suppress_503'] = {'()': Suppress503}
+_mail_admin_filters = _mail_admin_handler.setdefault('filters', [])
+_mail_admin_filters.append('suppress_503')
+
 # Admins
 ADMINS = (('NAV Administrator', NAV_CONFIG.get('ADMIN_MAIL', 'root@localhost')),)
 MANAGERS = ADMINS
+DEFAULT_EXCEPTION_REPORTER_FILTER = 'nav.django.filter.NAVExceptionReporterFilter'
 
 # Database / ORM configuration
 try:

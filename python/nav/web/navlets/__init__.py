@@ -195,7 +195,8 @@ class Navlet(TemplateView):
         :return: The URL with the cache-busting parameter added
         """
         timestamp = int(datetime.now().timestamp())
-        return f'{url}&bust={timestamp}'
+        separator = '&' if '?' in url else '?'
+        return f'{url}{separator}bust={timestamp}'
 
 
 def list_navlets():
@@ -325,12 +326,15 @@ def dispatcher(request, navlet_id):
 
 
 def _handle_htmx_error_response(
-    request, navlet: Optional[AccountNavlet], error_message: str
+    request, account_navlet: Optional[AccountNavlet], error_message: str
 ):
     """Render error response for htmx dispatcher requests"""
-    if navlet:
-        cls = get_navlet_from_name(navlet.navlet)
+    navlet = None
+    if account_navlet:
+        cls = get_navlet_from_name(account_navlet.navlet)
         navlet = cls(request=request)
+        navlet.navlet_id = account_navlet.id
+        navlet.account_navlet = account_navlet
 
     return render(
         request,

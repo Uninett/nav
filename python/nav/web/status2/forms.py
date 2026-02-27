@@ -35,6 +35,16 @@ from nav.web.crispyforms import (
 from . import STATELESS_THRESHOLD
 
 
+class Select2Multiple(forms.SelectMultiple):
+    """A SelectMultiple widget with select2 styling and full width"""
+
+    def __init__(self, attrs=None, choices=()):
+        default_attrs = {'class': 'select2', 'style': 'width: 100%'}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs, choices=choices)
+
+
 class StatusPanelForm(forms.Form):
     """Form representing the status panel options for the user"""
 
@@ -53,62 +63,48 @@ class StatusPanelForm(forms.Form):
         alert_types = get_alert_types()
 
         self.fields['event_type'] = forms.MultipleChoiceField(
-            choices=get_event_types(), required=False
+            choices=get_event_types(), required=False, widget=Select2Multiple()
         )
-        self.fields['event_type'].widget.attrs.update({'class': 'select2'})
         self.fields['alert_type'] = forms.MultipleChoiceField(
-            choices=alert_types, required=False
+            choices=alert_types, required=False, widget=Select2Multiple()
         )
-        self.fields['alert_type'].widget.attrs.update({'class': 'select2'})
         self.fields['category'] = forms.MultipleChoiceField(
-            choices=get_categories(), required=False
+            choices=get_categories(), required=False, widget=Select2Multiple()
         )
-        self.fields['category'].widget.attrs.update({'class': 'select2'})
         self.fields['organization'] = forms.MultipleChoiceField(
-            choices=get_organizations(), required=False
+            choices=get_organizations(), required=False, widget=Select2Multiple()
         )
-        self.fields['organization'].widget.attrs.update({'class': 'select2'})
         self.fields['device_group'] = forms.MultipleChoiceField(
-            choices=get_device_groups(), required=False
+            choices=get_device_groups(), required=False, widget=Select2Multiple()
         )
-        self.fields['device_group'].widget.attrs.update({'class': 'select2'})
         self.fields['location'] = forms.MultipleChoiceField(
-            choices=get_locations(), required=False
+            choices=get_locations(), required=False, widget=Select2Multiple()
         )
-        self.fields['location'].widget.attrs.update({'class': 'select2'})
         self.fields['severity'] = forms.MultipleChoiceField(
-            choices=get_severity(), required=False
+            choices=get_severity(), required=False, widget=Select2Multiple()
         )
-        self.fields['severity'].widget.attrs.update({'class': 'select2'})
 
         self.fields['not_event_type'] = forms.MultipleChoiceField(
-            choices=get_event_types(), required=False
+            choices=get_event_types(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_event_type'].widget.attrs.update({'class': 'select2'})
         self.fields['not_alert_type'] = forms.MultipleChoiceField(
-            choices=alert_types, required=False
+            choices=alert_types, required=False, widget=Select2Multiple()
         )
-        self.fields['not_alert_type'].widget.attrs.update({'class': 'select2'})
         self.fields['not_category'] = forms.MultipleChoiceField(
-            choices=get_categories(), required=False
+            choices=get_categories(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_category'].widget.attrs.update({'class': 'select2'})
         self.fields['not_organization'] = forms.MultipleChoiceField(
-            choices=get_organizations(), required=False
+            choices=get_organizations(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_organization'].widget.attrs.update({'class': 'select2'})
         self.fields['not_device_group'] = forms.MultipleChoiceField(
-            choices=get_device_groups(), required=False
+            choices=get_device_groups(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_device_group'].widget.attrs.update({'class': 'select2'})
         self.fields['not_location'] = forms.MultipleChoiceField(
-            choices=get_locations(), required=False
+            choices=get_locations(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_location'].widget.attrs.update({'class': 'select2'})
         self.fields['not_severity'] = forms.MultipleChoiceField(
-            choices=get_severity(), required=False
+            choices=get_severity(), required=False, widget=Select2Multiple()
         )
-        self.fields['not_severity'].widget.attrs.update({'class': 'select2'})
 
         self.fields['status_filters'] = forms.MultipleChoiceField(
             choices=[
@@ -118,8 +114,8 @@ class StatusPanelForm(forms.Form):
             ],
             required=False,
             label='Choose fields to filter status by',
+            widget=Select2Multiple(),
         )
-        self.fields['status_filters'].widget.attrs.update({'class': 'select2'})
 
         column_class = 'medium-6'
 
@@ -201,24 +197,6 @@ class StatusWidgetForm(StatusPanelForm):
 
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
-
-        for field_name in (
-            "event_type",
-            "not_event_type",
-            "category",
-            "not_category",
-            "alert_type",
-            "not_alert_type",
-            "organization",
-            "not_organization",
-            "device_group",
-            "not_device_group",
-            "location",
-            "not_location",
-            "severity",
-            "not_severity",
-        ):
-            self.fields[field_name].widget.attrs.update({'class': 'select2'})
 
         column_class = 'medium-6'
 

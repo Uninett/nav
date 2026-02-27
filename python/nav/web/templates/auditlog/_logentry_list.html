@@ -71,7 +71,7 @@
              },
              dataFilter: function(data) {
                  // Map the response to something datatables understands
-                 var json = jQuery.parseJSON( data );
+                 const json = JSON.parse( data );
                  json.recordsTotal = json.count;
                  json.recordsFiltered = json.count;
                  json.data = json.results;
