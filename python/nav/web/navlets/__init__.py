@@ -49,6 +49,7 @@ import json
 from datetime import datetime
 from operator import attrgetter
 from typing import Optional
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -195,8 +196,11 @@ class Navlet(TemplateView):
         :return: The URL with the cache-busting parameter added
         """
         timestamp = int(datetime.now().timestamp())
-        separator = '&' if '?' in url else '?'
-        return f'{url}{separator}bust={timestamp}'
+        parsed = urlparse(url)
+        existing_params = parse_qs(parsed.query, keep_blank_values=True)
+        existing_params['bust'] = [str(timestamp)]
+        new_query = urlencode(existing_params, doseq=True)
+        return urlunparse(parsed._replace(query=new_query))
 
 
 def list_navlets():
