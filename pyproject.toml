@@ -28,7 +28,7 @@ dependencies = [
     "sphinx==7.4.7",
     "sphinxcontrib-programoutput==0.17",
     "sphinxcontrib-django",
-    "Markdown==3.3.6",
+    "Markdown==3.8.1",
 
     "feedparser==6.0.11",
     "dnspython<3.0.0,>=2.1.0",
