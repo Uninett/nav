@@ -46,6 +46,20 @@ SCRIPT_CREATE_DB = _find_create_db_script()
 
 
 def pytest_configure(config):
+    # Import and call setup from parent conftest to ensure test config is ready
+    # before DB creation script runs. This prevents navsyncdb from accidentally
+    # using the dev database config instead of the test database config.
+    import sys
+
+    parent_conftest_path = os.path.join(os.path.dirname(__file__), '..')
+    sys.path.insert(0, parent_conftest_path)
+    try:
+        from conftest import _setup_devcontainer_test_config
+
+        _setup_devcontainer_test_config()
+    finally:
+        sys.path.pop(0)
+
     subprocess.check_call([SCRIPT_CREATE_DB])
 
 
