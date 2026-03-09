@@ -442,24 +442,42 @@ over 60%, and we aim to increase it further.
 All test suites (except those for Javascript) are located in the
 :file:`tests/` subdirectory.
 
+.. _running-tests:
+
 Running tests
 -------------
 
 We use pytest_ as our test runner, and tox_ to enable running the test suites
 in matrix environments for different combinations of Python and Django
-versions. For the time being, our test suite is divided into three parts
-(``unittests``, ``integration`` and ``functional``).  The unit test suite can
-usually be run just fine from your local computer as long as tox_ and pytest_
-are available, but the integration and functional test suites have lots of
-external requirements that make them best suited to be run in a containerized
-environment (we are, however, working on rebuilding this so the necessary
-environments are easier to achieve on your local computer.  Please see `PR#3248
-<https://github.com/Uninett/nav/pull/3248>`_ for ongoing work).
+versions. The test suite is divided into three parts: ``unittests``,
+``integration``, and ``functional``.
 
+Running tests from your IDE (devcontainer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For now, there is a script to produce an entire test environment as a Docker
-image, and to run the entire test suite inside a Docker container created
-from that image. Take a look in the :file:`tests/docker/` directory.
+If you are working inside a devcontainer (recommended), you can run unit
+and integration tests directly from your IDE or command line without needing
+the Docker test environment.
+
+* **Unit tests** can be run anywhere with pytest
+* **Integration tests** can be run inside the devcontainer using pytest with
+  the appropriate environment variables
+
+The integration test setup automatically creates a separate ``nav_test``
+database to avoid affecting your development database.
+
+See :doc:`using-devcontainers` for detailed instructions on running tests
+from PyCharm or VS Code, including pre-configured run configurations.
+
+Running tests in Docker (CI environment)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For functional tests (which require Playwright/browser support) or to replicate
+the CI environment exactly, use the Docker-based test environment.
+
+There is a script to produce an entire test environment as a Docker image, and
+to run the entire test suite inside a Docker container created from that
+image. Take a look in the :file:`tests/docker/` directory.
 
 For an interactive testing session with tox_, you can utilize the Docker image
 like thus:
@@ -472,6 +490,8 @@ like thus:
    $ make shell
    ...
    $ tox run -e unit-py311-django42
+   $ tox run -e integration-py311-django42
+   $ tox run -e functional-py311-django42
    ...
 
 

@@ -153,6 +153,92 @@ daemon programs in the foreground rather than using the :program:`nav` command,
 e.g. :samp:`ipdevpolld -f -s` instead of :samp:`nav start ipdevpolld`.
 
 
+Running tests
+-------------
+
+NAV's test suite is divided into three parts: unit tests, integration tests,
+and functional tests. When working inside the devcontainer, you can run unit
+and integration tests directly using pytest or your IDE's test runner.
+
+Unit tests
+~~~~~~~~~~
+
+Unit tests have no external dependencies and can be run anywhere:
+
+.. code-block:: console
+
+   $ pytest tests/unittests/
+   $ pytest tests/unittests/ipdevpoll/interfaces_test.py
+   $ pytest tests/unittests/ipdevpoll/interfaces_test.py::test_function_name
+
+To run with coverage reporting:
+
+.. code-block:: console
+
+   $ pytest tests/unittests/ --cov=python/nav --cov-report=html
+
+Integration tests
+~~~~~~~~~~~~~~~~~
+
+Integration tests require database access and use Django's test framework.
+Inside the devcontainer, these can be run directly using pytest with the
+appropriate environment variables:
+
+.. code-block:: console
+
+   $ export PGHOST=db PGDATABASE=nav_test NAV_CONFIG_DIR=/tmp/nav_test_config
+   $ pytest tests/integration/ -v --showlocals
+
+The test suite will automatically:
+
+1. Create a separate ``nav_test`` database (your development ``nav`` database
+   is never touched)
+2. Set up test-specific NAV configuration in :file:`/tmp/nav_test_config/`
+3. Load test data and configure the admin user with password ``admin``
+
+**Important:** Integration tests use an isolated test database to protect your
+development data. The ``nav_test`` database is created on the same PostgreSQL
+server (the ``db`` container) but is completely separate from your ``nav``
+development database.
+
+Using PyCharm run configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For PyCharm users, pre-configured run configurations are available in
+:file:`.idea/runConfigurations/`:
+
+* **Unit Tests** - Runs the unit test suite
+* **Integration Tests** - Runs integration tests with proper environment
+  variables pre-configured
+
+To use these:
+
+1. Open PyCharm inside the devcontainer
+2. Go to *Run -> Edit Configurations...*
+3. Select "Unit Tests" or "Integration Tests"
+4. Click the green run button
+
+The run configurations handle all necessary environment variable setup
+automatically.
+
+Functional tests
+~~~~~~~~~~~~~~~~
+
+Functional tests use Playwright for browser automation and require Chromium
+and a display server. Run these using the Docker-based test environment:
+
+.. code-block:: console
+
+   $ cd tests/docker
+   $ make
+   $ make shell
+   # Inside container:
+   $ tox run -e functional-py311-django42
+
+See :ref:`running-tests` in the main hacking guide for more details on the
+Docker-based test environment.
+
+
 (Re)building CSS stylesheets from SASS sources
 ----------------------------------------------
 
