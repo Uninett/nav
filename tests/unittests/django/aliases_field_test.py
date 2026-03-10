@@ -56,6 +56,12 @@ class TestAliasListWidgetValueFromDatadict:
         data['aliases_json'] = 'not valid json'
         assert widget.value_from_datadict(data, {}, 'aliases') == []
 
+    def test_when_data_has_non_list_json_then_it_should_return_empty_list(self):
+        widget = AliasListWidget()
+        data = QueryDict(mutable=True)
+        data['aliases_json'] = '{"key": "value"}'
+        assert widget.value_from_datadict(data, {}, 'aliases') == []
+
 
 class TestAliasListFieldPrepareValue:
     def test_when_value_is_list_then_it_should_return_it(self):

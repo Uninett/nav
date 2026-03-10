@@ -123,6 +123,9 @@ class AliasListField(forms.Field):
 def _parse_json_list(value):
     """Parse a JSON string as a list, returning [] on failure."""
     try:
-        return json.loads(value)
+        result = json.loads(value)
     except (json.JSONDecodeError, TypeError):
         return []
+    if not isinstance(result, list):
+        return []
+    return result
