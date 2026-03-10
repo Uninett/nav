@@ -260,7 +260,7 @@ def test_shows_password_issue_banner_on_own_password_issues(db, client):
 
 
 def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
-    db, client, admin_account
+    db, admin_account
 ):
     """
     If other users have insecure or old passwords a banner should be shown to admins
@@ -269,14 +269,25 @@ def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
     # Admin account has a password with outdated password hashing method
     # This needs to be fixed, otherwise the "Your password is insecure..." banner will
     # be shown
-    admin_account.set_password("new_password")
+    new_password = 'new_password'
+    admin_account.set_password(new_password)
     admin_account.save()
+    assert not admin_account.has_password_issues(), (
+        'Admin account should not have password issues'
+    )
 
-    Account.objects.create(login="plaintext_pw_user", password="plaintext_pw")
+    account = Account.objects.create(login="plaintext_pw_user", password="plaintext_pw")
 
+    assert account.has_password_issues(), 'Test account SHOULD have password issues'
+
+    # login with a password only used for this test
+    client_ = Client()
+    url = reverse('webfront-login')
+    client_.post(url, {'username': admin_account.login, 'password': new_password})
+
+    # test
     index_url = reverse('webfront-index')
-    response = client.get(index_url)
-
+    response = client_.get(index_url)
     assert "There are 1 accounts that have insecure or old passwords." in smart_str(
         response.content
     )

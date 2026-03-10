@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load socialaccount %}
+{% block base_content %}
+    <div class="tabs">
+      {% include "allauth/layouts/_tabs_list.html" %}
+      <section id="account-tab-content" class="tabcontent">
+        <div>
+          {% block content %}
+          {% endblock content %}
+        </div>
+      </section>
+    </div>
+{% endblock base_content %}

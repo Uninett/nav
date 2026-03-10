@@ -66,6 +66,7 @@ urlpatterns += [
     path('refresh_session/', refresh_session, name='refresh-session'),
     path('auditlog/', include('nav.auditlog.urls')),
     path('interfaces/', include('nav.web.interface_browser.urls')),
+    path('accounts/', include('allauth.urls')),
     path('500/', force_500),
 ]
 
