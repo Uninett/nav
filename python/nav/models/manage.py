@@ -1059,6 +1059,15 @@ class Memory(models.Model):
             return self.type
 
 
+class AliasQuerySet(models.QuerySet):
+    """Generic QuerySet for looking up models that has aliases stored"""
+
+    def aka(self, partial_alias: str):
+        return self.filter(
+            Q(aliases__icontains=partial_alias) | Q(id__icontains=partial_alias)
+        )
+
+
 class Room(models.Model):
     """From NAV Wiki: The room table defines a wiring closes / network room /
     server room."""
@@ -1073,6 +1082,9 @@ class Room(models.Model):
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
     data = HStoreField(blank=True, default=dict)
+    aliases = JSONField(default=list)
+
+    objects = AliasQuerySet.as_manager()
 
     class Meta(object):
         db_table = 'room'
@@ -1097,6 +1109,10 @@ class Room(models.Model):
     def longitude(self):
         if self.position:
             return self.position[1]
+
+    def get_all_aliases(self):
+        aliases = [self.id] + list(self.aliases)
+        return aliases
 
 
 class TreeMixin(object):
@@ -1140,6 +1156,9 @@ class Location(models.Model, TreeMixin):
     )
     description = VarcharField(db_column='descr', blank=True)
     data = HStoreField(default=dict)
+    aliases = JSONField(default=list)
+
+    objects = AliasQuerySet.as_manager()
 
     class Meta(object):
         db_table = 'location'
@@ -1160,6 +1179,10 @@ class Location(models.Model, TreeMixin):
 
     def get_absolute_url(self):
         return reverse('location-info', kwargs={'locationid': self.pk})
+
+    def get_all_aliases(self):
+        aliases = [self.id] + list(self.aliases)
+        return aliases
 
 
 class Organization(models.Model, TreeMixin):
