@@ -87,6 +87,12 @@
         if (dimmed) dimmed.classList.remove('alias-tag--pending');
       });
 
+      input.addEventListener('blur', function() {
+        pendingBackspace = false;
+        const dimmed = list.querySelector('.alias-tag--pending');
+        if (dimmed) dimmed.classList.remove('alias-tag--pending');
+      });
+
       input.addEventListener('paste', function(e) {
         e.preventDefault();
         const text = e.clipboardData.getData('text');
