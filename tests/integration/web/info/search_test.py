@@ -207,6 +207,28 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert template in [t.name for t in response.templates]
 
+    def test_given_alias_for_room_in_info_search_should_redirect_to_room(
+        self, client, room_with_alias
+    ):
+        url = reverse('info-search') + f'?query={room_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'room-info', kwargs={'roomid': room_with_alias.pk}
+        )
+
+    def test_given_alias_for_location_in_info_search_should_redirect_to_location(
+        self, client, location_with_alias
+    ):
+        url = reverse('info-search') + f'?query={location_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'location-info', kwargs={'locationid': location_with_alias.pk}
+        )
+
 
 class TestIndexSearchPreviewView:
     """Tests for the search preview feature."""
@@ -263,3 +285,21 @@ def create_interface(
     interface = Interface(netbox=netbox, ifname=ifname, ifalias=ifalias, **kwargs)
     interface.save()
     return interface
+
+
+@pytest.fixture
+def room_with_alias(db, location_with_alias):
+    room = Room.objects.create(
+        id='roomwithalias', location_id=location_with_alias.id, aliases=["roomalias"]
+    )
+
+    yield room
+
+
+@pytest.fixture
+def location_with_alias(db):
+    location = Location.objects.create(
+        id='locationwithalias', aliases=["locationalias"]
+    )
+
+    yield location
