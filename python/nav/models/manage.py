@@ -1063,8 +1063,23 @@ class AliasQuerySet(models.QuerySet):
     """Generic QuerySet for looking up models that has aliases stored"""
 
     def aka(self, partial_alias: str):
+        """
+        Returns a filtered queryset for partial case insensitive matches for id and
+        aliases
+        """
         return self.filter(
             Q(aliases__icontains=partial_alias) | Q(id__icontains=partial_alias)
+        )
+
+    def aka_or_description(self, query: str):
+        """
+        Returns a filtered queryset for partial case insensitive matches for id,
+        aliases and description
+        """
+        return self.filter(
+            Q(aliases__icontains=query)
+            | Q(id__icontains=query)
+            | Q(description__icontains=query)
         )
 
 
