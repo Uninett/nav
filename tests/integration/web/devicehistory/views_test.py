@@ -18,6 +18,22 @@ class TestSearchDeviceHistoryComponents:
         assert response.status_code == 200
         assert new_room.id in smart_str(response.content)
 
+    def test_given_alias_of_existing_room_then_component_search_should_return_results(
+        self, db, client, new_room
+    ):
+        url = reverse('devicehistory-component-search')
+        response = client.post(url, {'search': new_room.aliases[0]})
+        assert response.status_code == 200
+        assert new_room.id in smart_str(response.content)
+
+    def test_given_alias_of_existing_location_then_component_search_should_return_results(  # noqa: E501
+        self, db, client, new_location
+    ):
+        url = reverse('devicehistory-component-search')
+        response = client.post(url, {'search': new_location.aliases[0]})
+        assert response.status_code == 200
+        assert new_location.id in smart_str(response.content)
+
     def test_given_a_non_existing_component_then_component_search_should_return_no_hits(
         self, client
     ):
@@ -171,14 +187,21 @@ def create_alert_history_for_device(device, count=1):
 
 
 @pytest.fixture
-def new_room(db):
-    location = Location(id="testlocation")
+def new_location(db):
+    location = Location(id="testlocation", aliases=["locationalias"])
     location.save()
-    room = Room(id="123", description="Test Room", location=location)
+    yield location
+    location.delete()
+
+
+@pytest.fixture
+def new_room(db, new_location):
+    room = Room(
+        id="123", description="Test Room", location=new_location, aliases=["roomalias"]
+    )
     room.save()
     yield room
     room.delete()
-    location.delete()
 
 
 @pytest.fixture

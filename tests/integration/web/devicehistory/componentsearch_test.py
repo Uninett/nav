@@ -19,6 +19,29 @@ class TestGetComponentSearchResults:
         room_ids = [room_id for _, rooms in search_values for room_id, _ in rooms]
         assert new_room.id in room_ids
 
+    def test_given_alias_as_query_should_return_existing_room_in_search_results(
+        self, db, new_room
+    ):
+        results = get_component_search_results(new_room.aliases[0], BUTTON_TEXT_PATTERN)
+        room_result = results['room']
+        search_values = room_result['values']
+
+        room_ids = [room_id for _, rooms in search_values for room_id, _ in rooms]
+        assert new_room.id in room_ids
+
+    def test_given_alias_as_query_should_return_existing_location_in_search_results(
+        self, db, new_location
+    ):
+        results = get_component_search_results(
+            new_location.aliases[0], BUTTON_TEXT_PATTERN
+        )
+
+        location_result = results['location']
+        search_values = location_result['values']
+
+        location_ids = [location[0] for location in search_values]
+        assert new_location.id in location_ids
+
     def test_should_include_component_name_in_button_text_pattern(self, db, new_room):
         results = get_component_search_results(new_room.id, BUTTON_TEXT_PATTERN)
         room_result = results['room']
@@ -71,14 +94,24 @@ class TestGetComponentSearchResults:
 
 
 @pytest.fixture
-def new_room(db):
-    location = Location(id="testlocation")
+def new_location(db):
+    location = Location(id="testlocation", aliases=["locationalias"])
     location.save()
-    room = Room(id="testroom", description="Test Room", location=location)
+    yield location
+    location.delete()
+
+
+@pytest.fixture
+def new_room(db, new_location):
+    room = Room(
+        id="testroom",
+        description="Test Room",
+        location=new_location,
+        aliases=["roomalias"],
+    )
     room.save()
     yield room
     room.delete()
-    location.delete()
 
 
 @pytest.fixture
