@@ -525,24 +525,48 @@ Tips and tricks
 Make fixtures for integration testing
 -------------------------------------
 
+Use pytest fixtures to create test data for integration tests. Fixtures can
+depend on other fixtures, as shown in this example from
+:file:`tests/integration/conftest.py`:
+
 .. code-block:: python
 
-   from django.core import serializers
-   from nav.models.manage import Netbox
+   @pytest.fixture()
+   def localhost(management_profile):
+       from nav.models.manage import Netbox, NetboxProfile
 
-   fixtures = serializers.serialize("xml", Netbox.objects.all()[:2])
+       box = Netbox(
+           ip='127.0.0.1',
+           sysname='localhost.example.org',
+           organization_id='myorg',
+           room_id='myroom',
+           category_id='SRV',
+       )
+       box.save()
+       NetboxProfile(netbox=box, profile=management_profile).save()
+       yield box
+       box.delete()
 
-Fixtures can so be used in your integration tests by extending
-the test case :py:class:`DjangoTransactionTestCase` in :py:mod:`nav.tests.cases`.
+The ``localhost`` fixture depends on ``management_profile``, which pytest
+automatically creates first. Shared fixtures like these in :file:`conftest.py`
+can be used across multiple test modules.
 
-See :py:mod:`nav.tests.integration.l2trace_test` for an example on applying
-fixtures for your particular test case.
+Fixtures that create database objects should in many cases depend on the ``db``
+fixture (either directly or transitively through another fixture). This wraps
+each test in a database transaction that is rolled back after the test
+completes, so explicit cleanup code is not strictly necessary:
 
-See https://docs.djangoproject.com/en/4.2/topics/serialization/
+.. code-block:: python
 
-.. TODO:: Be able to use `django-admin's management command: dumpdata
-   <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
-   to create fixtures.
+   @pytest.fixture
+   def my_netbox(db):
+       box = Netbox(...)
+       box.save()
+       yield box
+       # No cleanup needed - transaction is rolled back automatically
+
+Use ``get_or_create`` for objects that might already exist in the test database
+(e.g. rooms or organizations created by :file:`test-data.sql`).
 
 Force the custom Django 500 error handler to run
 ------------------------------------------------
