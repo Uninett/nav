@@ -13,16 +13,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Selenium tests for geomap"""
+"""Playwright tests for geomap"""
 
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.by import By
+from playwright.sync_api import expect
 
 
-def test_geomap_loaded(selenium, base_url):
-    """Test if map is loaded"""
-    selenium.get('{}/geomap/'.format(base_url))
-    try:
-        selenium.find_element(By.CLASS_NAME, 'olMapViewport')
-    except NoSuchElementException:
-        assert False, 'GeoMap seems to not have loaded'
+def test_when_loading_geomap_then_map_viewport_should_exist(authenticated_page):
+    page, base_url = authenticated_page
+    page.goto(f"{base_url}/geomap/")
+    expect(page.locator(".olMapViewport")).to_be_visible()

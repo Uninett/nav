@@ -13,9 +13,14 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Selenium tests for arnold"""
+"""Playwright tests for arnold"""
+
+import re
+
+from playwright.sync_api import expect
 
 
-def test_title_should_contain_detentions(selenium, base_url):
-    selenium.get('{}/arnold/'.format(base_url))
-    assert 'Detentions' in selenium.title
+def test_when_visiting_arnold_then_title_should_contain_detentions(authenticated_page):
+    page, base_url = authenticated_page
+    page.goto(f"{base_url}/arnold/")
+    expect(page).to_have_title(re.compile("Detentions"))
