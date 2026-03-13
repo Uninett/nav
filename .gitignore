@@ -5,10 +5,15 @@
 !.git-blame-ignore-revs
 !.github/
 !.gitkeep
+!.idea/
 !.mega-linter.yml
 !.pre-commit-config.yaml
 !.readthedocs.yaml
 !.sonarcloud.properties
+
+# Inside .idea, only track shared run configurations
+.idea/*
+!.idea/runConfigurations/
 
 *.orig
 *.rej
