@@ -223,11 +223,11 @@ class Handlers(object):
 
     @staticmethod
     def room():
-        header("# roomid[:locationid:descr:aliases:position:attr=value:...]")
+        header("# roomid:locationid[:descr:aliases:position:attr=value:...]")
         for room in manage.Room.objects.all():
             line = [
                 room.id,
-                room.location_id if room.location_id else "",
+                room.location_id,
                 room.description or "",
             ]
             if room.aliases:
