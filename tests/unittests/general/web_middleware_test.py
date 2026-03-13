@@ -15,6 +15,8 @@ from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthorizationMiddleware
 from nav.web.auth.middleware import NAVAuthenticationMiddleware
 from nav.web.auth.middleware import NAVRemoteUserMiddleware
+from nav.web.auth.middleware import authorize_request
+from nav.web.auth.middleware import redirect_to_login
 from nav.web.webfront.views import _logout_helper
 from nav.models import profiles
 
@@ -64,7 +66,7 @@ class TestGetAccount:
             assert session_account.id == DEFAULT_ACCOUNT.id
 
 
-class TestAuthorizationMiddleware(object):
+class TestAuthorizeRequest:
     def teardown_method(self, method):
         if 'REMOTE_USER' in os.environ:
             del os.environ['REMOTE_USER']
@@ -74,7 +76,7 @@ class TestAuthorizationMiddleware(object):
         fake_request = r.get('/')
         fake_request.session = fake_session
         with pytest.raises(ImproperlyConfigured):
-            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+            authorize_request(fake_request)
 
     def test_process_request_anonymous(self):
         r = RequestFactory()
@@ -87,10 +89,8 @@ class TestAuthorizationMiddleware(object):
             with patch(
                 'nav.web.auth.middleware.get_account', return_value=DEFAULT_ACCOUNT
             ):
-                result = AuthorizationMiddleware(lambda x: x).process_request(
-                    fake_request
-                )
-                assert result is None
+                result = authorize_request(fake_request)
+                assert result is True
 
     def test_process_request_authorized(self):
         r = RequestFactory()
@@ -100,8 +100,8 @@ class TestAuthorizationMiddleware(object):
         with patch(
             'nav.web.auth.middleware.authorization_not_required', return_value=True
         ):
-            result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
-            assert result is None
+            result = authorize_request(fake_request)
+            assert result is True
 
     def test_process_request_not_authorized(self):
         r = RequestFactory()
@@ -112,55 +112,79 @@ class TestAuthorizationMiddleware(object):
             'nav.web.auth.middleware.authorization_not_required', return_value=False
         ):
             with patch('nav.models.profiles.Account.has_perm', return_value=False):
-                with patch(
-                    'nav.web.auth.middleware.AuthorizationMiddleware.redirect_to_login',
-                    return_value='here',
-                ):
-                    result = AuthorizationMiddleware(lambda x: x).process_request(
-                        fake_request
-                    )
-                    assert result == 'here'
+                result = authorize_request(fake_request)
+                assert result is False
 
-    def test_redirect_to_login_returns_HttpResponseRedirect(self):
+
+class TestAuthorizationMiddleware(object):
+    def test_path_if_explicit_login_required_should_call_authorize_request_and_return_None(  # noqa: E501
+        self,
+    ):
+        # Golden path!
+        viewfunc = lambda request: None
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.htmx = False
-        response = AuthorizationMiddleware(lambda x: x).redirect_to_login(fake_request)
-        assert response.status_code == 302
-
-    def test_redirect_to_login_with_ajax_returns_401_response(self):
-        r = RequestFactory()
-        fake_request = r.get('/')
-        with patch('nav.web.auth.middleware.is_ajax', return_value=True):
-            response = AuthorizationMiddleware(lambda x: x).redirect_to_login(
-                fake_request
+        with patch(
+            'nav.web.auth.middleware.authorize_request', return_value=True
+        ) as ar:
+            response = AuthorizationMiddleware(lambda x: x).process_view(
+                fake_request,
+                viewfunc,
+                (),
+                (),
             )
-            assert response.status_code == 401
+            ar.assert_called_once()
+            assert response is None
+
+    def test_if_explicit_login_required_and_not_authorized_should_call_redirect_to_login(  # noqa: E501
+        self,
+    ):
+        viewfunc = lambda request: None
+        r = RequestFactory()
+        fake_request = r.get('/')
+        with patch('nav.web.auth.middleware.authorize_request', return_value=False):
+            with patch('nav.web.auth.middleware.redirect_to_login') as rtl:
+                AuthorizationMiddleware(lambda x: x).process_view(
+                    fake_request,
+                    viewfunc,
+                    (),
+                    (),
+                )
+                rtl.assert_called_once()
+
+    def test_if_not_explicit_login_required_should_return_None(self):
+        viewfunc = lambda request: None
+        viewfunc.login_required = False
+        r = RequestFactory()
+        fake_request = r.get('/')
+        response = AuthorizationMiddleware(lambda x: x).process_view(
+            fake_request,
+            viewfunc,
+            (),
+            (),
+        )
+        assert response is None
 
 
 class TestRedirectToLogin:
-    """Tests for AuthorizationMiddleware.redirect_to_login"""
+    """Tests for redirect_to_login"""
 
-    def test_regular_request_should_return_http_redirect(self):
+    def test_golden_path_returns_HttpResponseRedirect(self):
         """A regular unauthenticated request should get a standard HTTP redirect"""
-        request = RequestFactory().get('/protected/')
-        request.htmx = False
-
+        r = RequestFactory()
+        fake_request = r.get('/')
+        fake_request.htmx = False
         with patch('nav.web.auth.middleware.is_ajax', return_value=False):
-            middleware = AuthorizationMiddleware(lambda x: x)
-            response = middleware.redirect_to_login(request)
-
+            response = redirect_to_login(fake_request)
         assert isinstance(response, HttpResponseRedirect)
+        assert response.status_code == 302
 
-    def test_ajax_request_should_return_401(self):
+    def test_with_ajax_returns_401_response(self):
         """An AJAX request should get a 401 response, not a redirect"""
-        request = RequestFactory().get('/protected/')
-        request.htmx = False
-
+        r = RequestFactory()
+        fake_request = r.get('/')
         with patch('nav.web.auth.middleware.is_ajax', return_value=True):
-            middleware = AuthorizationMiddleware(lambda x: x)
-            response = middleware.redirect_to_login(request)
-
+            response = redirect_to_login(fake_request)
         assert response.status_code == 401
 
     def test_htmx_request_should_return_client_redirect(self):
@@ -170,9 +194,7 @@ class TestRedirectToLogin:
         request.htmx.current_url_abs_path = '/some/page/'
 
         with patch('nav.web.auth.middleware.is_ajax', return_value=False):
-            middleware = AuthorizationMiddleware(lambda x: x)
-            response = middleware.redirect_to_login(request)
-
+            response = redirect_to_login(request)
         assert isinstance(response, HttpResponseClientRedirect)
         assert 'HX-Redirect' in response
 
@@ -183,9 +205,7 @@ class TestRedirectToLogin:
         request.htmx.current_url_abs_path = None
 
         with patch('nav.web.auth.middleware.is_ajax', return_value=False):
-            middleware = AuthorizationMiddleware(lambda x: x)
-            response = middleware.redirect_to_login(request)
-
+            response = redirect_to_login(request)
         assert response.status_code == 401
 
 
