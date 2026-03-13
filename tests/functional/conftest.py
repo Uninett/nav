@@ -20,6 +20,14 @@ def pytest_configure(config):
 
     ensure_config_dir()
     create_test_database()
+    _ensure_playwright_browser()
+
+
+def _ensure_playwright_browser():
+    """Download the Chromium binary if not already present."""
+    import subprocess
+
+    subprocess.check_call(["playwright", "install", "chromium"])
 
 
 @pytest.fixture(scope='session')
