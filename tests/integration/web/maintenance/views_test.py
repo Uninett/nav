@@ -185,11 +185,27 @@ class TestSearchMaintenanceComponents:
         assert response.status_code == 200
         assert new_room.id in smart_str(response.content)
 
+    def test_when_searching_by_room_alias_then_it_should_return_matching_rooms(
+        self, db, client, new_room
+    ):
+        url = reverse('maintenance-component-search')
+        response = client.post(url, {'search': new_room.aliases[0]})
+        assert response.status_code == 200
+        assert new_room.id in smart_str(response.content)
+
     def test_when_searching_by_location_description_then_it_should_return_results(
         self, db, client, location_with_description
     ):
         url = reverse('maintenance-component-search')
         response = client.post(url, {'search': 'Building'})
+        assert response.status_code == 200
+        assert location_with_description.id in smart_str(response.content)
+
+    def test_when_searching_by_location_alias_then_it_should_return_results(
+        self, db, client, location_with_description
+    ):
+        url = reverse('maintenance-component-search')
+        response = client.post(url, {'search': location_with_description.aliases[0]})
         assert response.status_code == 200
         assert location_with_description.id in smart_str(response.content)
 
@@ -343,7 +359,9 @@ def empty_maintenance_task(db):
 def new_room(db):
     location = Location(id="testlocation")
     location.save()
-    room = Room(id="123", description="Test Room", location=location)
+    room = Room(
+        id="123", description="Test Room", location=location, aliases=["roomalias"]
+    )
     room.save()
     yield room
     room.delete()
@@ -352,7 +370,9 @@ def new_room(db):
 
 @pytest.fixture
 def location_with_description(db):
-    location = Location(id="testloc", description="Building A")
+    location = Location(
+        id="testloc", description="Building A", aliases=["locationalias"]
+    )
     location.save()
     yield location
     location.delete()

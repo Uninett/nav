@@ -364,8 +364,20 @@ def component_search(request):
 
     results = {}
     searches: list[tuple[type[Model], Q, Optional[Model]]] = [
-        (Location, Q(id__icontains=search) | Q(description__icontains=search), None),
-        (Room, Q(id__icontains=search) | Q(description__icontains=search), Location),
+        (
+            Location,
+            Q(id__icontains=search)
+            | Q(aliases__icontains=search)
+            | Q(description__icontains=search),
+            None,
+        ),
+        (
+            Room,
+            Q(id__icontains=search)
+            | Q(aliases__icontains=search)
+            | Q(description__icontains=search),
+            Location,
+        ),
         (Netbox, Q(sysname__icontains=search), Room),
         (NetboxGroup, Q(id__icontains=search), None),
         (
