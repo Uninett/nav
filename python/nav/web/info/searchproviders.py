@@ -84,9 +84,7 @@ class RoomSearchProvider(SearchProvider):
     link = 'Roomid'
 
     def fetch_results(self):
-        results = Room.objects.filter(
-            Q(id__icontains=self.query) | Q(description__icontains=self.query)
-        ).order_by("id")
+        results = Room.objects.aka_or_description(self.query).order_by("id")
         for result in results:
             self.results.append(
                 SearchResult(reverse('room-info', kwargs={'roomid': result.id}), result)
@@ -101,9 +99,7 @@ class LocationSearchProvider(SearchProvider):
     link = 'Locationid'
 
     def fetch_results(self):
-        results = Location.objects.filter(
-            Q(id__icontains=self.query) | Q(description__icontains=self.query)
-        ).order_by("id")
+        results = Location.objects.aka_or_description(self.query).order_by("id")
         for result in results:
             self.results.append(
                 SearchResult(

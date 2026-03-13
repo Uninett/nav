@@ -95,8 +95,10 @@ def process_searchform(form):
     else:
         return Location.objects.filter(
             Q(id__icontains=query)
+            | Q(aliases__icontains=query)
             | Q(description__icontains=query)
             | Q(child_locations__id__icontains=query)
+            | Q(child_locations__aliases__icontains=query)
         ).order_by("id")
 
 

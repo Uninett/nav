@@ -207,6 +207,68 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert template in [t.name for t in response.templates]
 
+    def test_given_alias_for_room_in_info_search_should_redirect_to_room(
+        self, client, room_with_alias
+    ):
+        url = reverse('info-search') + f'?query={room_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'room-info', kwargs={'roomid': room_with_alias.pk}
+        )
+
+    def test_given_alias_for_location_in_info_search_should_redirect_to_location(
+        self, client, location_with_alias
+    ):
+        url = reverse('info-search') + f'?query={location_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 302
+        assert response.url == reverse(
+            'location-info', kwargs={'locationid': location_with_alias.pk}
+        )
+
+    def test_given_alias_for_room_in_room_search_should_return_room(
+        self, client, room_with_alias
+    ):
+        url = reverse('room-search') + f'?query={room_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert room_with_alias.pk in response.content.decode('utf-8')
+
+    def test_given_alias_for_location_in_room_search_should_return_room_in_location(
+        self, client, location_with_alias, room_with_alias
+    ):
+        url = reverse('room-search') + f'?query={location_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert room_with_alias.pk in response.content.decode('utf-8')
+
+    def test_given_alias_for_location_in_location_search_should_return_location(
+        self, client, location_with_alias
+    ):
+        url = reverse('location-search') + f'?query={location_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert location_with_alias.pk in response.content.decode('utf-8')
+
+    def test_given_alias_for_location_in_location_search_should_return_parent_location(
+        self, client, location_with_alias
+    ):
+        parent_location = Location.objects.create(id="parent_location")
+        location_with_alias.parent = parent_location
+        location_with_alias.save()
+
+        url = reverse('location-search') + f'?query={location_with_alias.aliases[0]}'
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert parent_location.pk in response.content.decode('utf-8')
+
 
 class TestIndexSearchPreviewView:
     """Tests for the search preview feature."""
@@ -263,3 +325,21 @@ def create_interface(
     interface = Interface(netbox=netbox, ifname=ifname, ifalias=ifalias, **kwargs)
     interface.save()
     return interface
+
+
+@pytest.fixture
+def room_with_alias(db, location_with_alias):
+    room = Room.objects.create(
+        id='roomwithalias', location_id=location_with_alias.id, aliases=["roomalias"]
+    )
+
+    yield room
+
+
+@pytest.fixture
+def location_with_alias(db):
+    location = Location.objects.create(
+        id='locationwithalias', aliases=["locationalias"]
+    )
+
+    yield location
