@@ -26,6 +26,7 @@ from django_htmx.http import trigger_client_event, HttpResponseClientRedirect
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
+from nav.util import Timer
 from nav.web.modals import render_modal
 from nav.web.utils import create_title
 
@@ -148,7 +149,15 @@ def process_form(form):
         try:
             providermodule = importlib.import_module(modulestring)
             provider = getattr(providermodule, functionstring)
-            searchproviders.append(provider(query))
+            timer = Timer()
+            with timer:
+                searchproviders.append(provider(query))
+            _logger.debug(
+                "Search provider %s fetched results for %r in %.3f msecs",
+                providerpath,
+                query,
+                timer.elapsed * 1000,
+            )
         except (AttributeError, ImportError) as error:
             providers_with_errors.append((providerpath, error))
             _logger.error('Could not import %s', providerpath)

@@ -12,6 +12,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import time
 import pytest
 
 from nav import util
@@ -160,3 +161,27 @@ class TestFirstTrue(object):
     def test_first_true_should_parse_predicate_correctly(self):
         elems = ["foo", "bar", "baz", "frobnicate"]
         assert first_true(elems, pred=lambda x: x == "baz") == "baz"
+
+
+class TestTimer:
+    def test_when_block_completes_elapsed_should_be_a_positive_float(self):
+        timer = util.Timer()
+        with timer:
+            time.sleep(0.01)
+        assert isinstance(timer.elapsed, float)
+        assert timer.elapsed > 0
+
+    def test_before_entering_context_elapsed_should_be_none(self):
+        timer = util.Timer()
+        assert timer.elapsed is None
+
+    def test_when_block_raises_elapsed_should_still_be_set(self):
+        timer = util.Timer()
+        with pytest.raises(ValueError):
+            with timer:
+                raise ValueError("boom")
+        assert timer.elapsed is not None
+
+    def test_when_used_as_context_variable_it_should_return_self(self):
+        with util.Timer() as t:
+            assert isinstance(t, util.Timer)

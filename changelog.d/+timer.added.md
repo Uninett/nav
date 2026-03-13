@@ -1,0 +1,1 @@
+Debug log runtimes of individual NAVbar search providers

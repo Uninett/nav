@@ -20,6 +20,7 @@ import os
 import re
 import stat
 import socket
+import time
 import datetime
 from functools import wraps
 from importlib.resources import as_file, files as resource_files
@@ -410,6 +411,28 @@ def synchronized(lock):
         return _wrapper
 
     return _decorator
+
+
+class Timer:
+    """Context manager that measures wall-clock elapsed time.
+
+    Usage::
+
+        timer = Timer()
+        with timer:
+            do_something()
+        print(timer.elapsed)  # float, in seconds
+    """
+
+    def __init__(self):
+        self.elapsed = None
+
+    def __enter__(self):
+        self._start = time.monotonic()
+        return self
+
+    def __exit__(self, *args):
+        self.elapsed = time.monotonic() - self._start
 
 
 def parse_interval(string):
