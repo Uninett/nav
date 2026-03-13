@@ -25,6 +25,7 @@ TEST_DATA = {
         'data': {'a': 'b'},
         'parent': 'mylocation',
         'description': 'ÆØÅ descr',
+        'aliases': ['localias1', 'localias2'],
     },
     'netbox': {
         "ip": "158.38.152.169",
@@ -33,7 +34,11 @@ TEST_DATA = {
         "categoryid": "SW",
         "snmp_version": 2,
     },
-    'room': {'id': 'blapp', 'location': 'mylocation'},
+    'room': {
+        'id': 'blapp',
+        'location': 'mylocation',
+        'aliases': ['roomalias1', 'roomalias2'],
+    },
     'vlan': {
         'net_type': 'scope',
     },
@@ -266,6 +271,46 @@ def test_patch_room(db, api_client, token):
 
     print(response)
     assert response.status_code == 200
+
+
+def test_patch_room_alias(db, api_client, token):
+    endpoint = 'room'
+    create_token_endpoint(token, 'room')
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    new_aliases = ['new-alias-1', 'new-alias-2']
+    response = api_client.patch(
+        '/api/1/room/blapp/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+    print(response)
+    assert response.status_code == 200
+
+    data = json.loads(response.content.decode('utf-8'))
+    assert data.get('aliases') == new_aliases
+
+
+def test_patch_location_alias(db, api_client, token):
+    endpoint = 'location'
+    create_token_endpoint(token, endpoint)
+
+    response_create = create(api_client, endpoint, TEST_DATA.get(endpoint))
+    assert response_create.status_code == 201
+
+    location_id = TEST_DATA['location']['id']
+
+    new_aliases = ['new-localias-1', 'new-localias-2']
+    response = api_client.patch(
+        f'/api/1/location/{location_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+    print(response)
+    assert response.status_code == 200
+
+    data = json.loads(response.content.decode('utf-8'))
+    assert data.get('aliases') == new_aliases
 
 
 def test_delete_room_wrong_room(db, api_client, token):
