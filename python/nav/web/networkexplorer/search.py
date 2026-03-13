@@ -317,9 +317,18 @@ def room_search(room, exact=False):
 
     interfaces = Interface.objects.filter(baseport__isnull=False)
     if exact:
-        swport_matches.update(interfaces.filter(netbox__room__id=room))
+        swport_matches.update(
+            interfaces.filter(
+                Q(netbox__room__id=room) | Q(netbox__room__aliases__contains=room)
+            )
+        )
     else:
-        swport_matches.update(interfaces.filter(netbox__room__id__icontains=room))
+        swport_matches.update(
+            interfaces.filter(
+                Q(netbox__room__id__icontains=room)
+                | Q(netbox__room__aliases__icontains=room)
+            )
+        )
 
     for swport in [swport for swport in swport_matches if swport]:
         swport_search = search_expand_swport(swport=swport)

@@ -1,4 +1,9 @@
 from unittest import TestCase
+
+import pytest
+from django.test.client import RequestFactory
+
+from nav.models.manage import Room
 from nav.web.networkexplorer import search
 from nav.web.networkexplorer.forms import NetworkSearchForm
 from nav.web.networkexplorer.views import (
@@ -6,8 +11,6 @@ from nav.web.networkexplorer.views import (
     RouterJSONView,
     SearchView,
 )
-
-from django.test.client import RequestFactory
 
 
 class NetworkExplorerSearchTest(TestCase):
@@ -50,6 +53,12 @@ class NetworkExplorerSearchTest(TestCase):
 
     def test_room_search_exact(self):
         search.room_search('myroom', exact=True)
+
+    def test_room_alias_search(self):
+        search.room_search('alias')
+
+    def test_room_alias_search_exact(self):
+        search.room_search('roomalias', exact=True)
 
     def test_mac_search(self):
         search.mac_search('00:12:34:56:78:90')
@@ -154,3 +163,12 @@ class FormsTest(TestDataMixin, TestCase):
         self.assertFalse(
             invalid_ip_form.is_valid(), msg="Invalid IP form passed validation"
         )
+
+
+@pytest.fixture
+def room_with_alias(db):
+    room = Room.objects.create(
+        id="testroom", location_id="mylocation", aliases=["roomalias"]
+    )
+
+    yield room
