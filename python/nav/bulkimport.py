@@ -35,6 +35,12 @@ from nav.web.servicecheckers import get_description
 from nav.bulkparse import BulkParseError
 
 
+def _get_aliases(aliases: str):
+    if not aliases:
+        return []
+    return aliases.split('|')
+
+
 class BulkImporter:
     """Abstract bulk import iterator"""
 
@@ -213,8 +219,12 @@ class LocationImporter(BulkImporter):
             parent = get_object_or_fail(Location, id=row['parent'])
         else:
             parent = None
+        aliases = _get_aliases(row.get('aliases', ''))
         location = Location(
-            id=row['locationid'], parent=parent, description=row['descr']
+            id=row['locationid'],
+            parent=parent,
+            description=row['descr'],
+            aliases=aliases,
         )
         return [location]
 
@@ -226,10 +236,12 @@ class RoomImporter(BulkImporter):
         raise_if_exists(Room, id=row['roomid'])
         location = get_object_or_fail(Location, id=row['locationid'])
         attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
+        aliases = _get_aliases(row.get('aliases', ''))
         room = Room(
             id=row['roomid'],
             location=location,
             description=row['descr'],
+            aliases=aliases,
             data=attributes,
         )
         try:
