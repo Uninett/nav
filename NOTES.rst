@@ -8,6 +8,24 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+Unreleased
+==========
+Changes to bulk import formats
+------------------------------
+
+The Room and Location bulk import formats have changed. The column aliases has
+been added to both, so that the formats are now specified as::
+
+    roomid[:locationid:descr:aliases:position:attr=value:...]
+
+for rooms and
+
+    locationid[:parent:descr:aliases]
+
+for locations.
+
+The aliases column supports the new NAV-wide ability to search for rooms and locations by alias.
+
 NAV 5.17
 ========
 
