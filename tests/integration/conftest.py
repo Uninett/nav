@@ -1,9 +1,9 @@
-import os
 import importlib.util
 import io
 import re
 import shlex
 from itertools import cycle
+from pathlib import Path
 from shutil import which
 import subprocess
 import time
@@ -17,22 +17,19 @@ from django.test.testcases import LiveServerThread
 
 ########################################################################
 #                                                                      #
-# Set up the required components for an integration test. Components   #
-# such as PostgreSQL and Apache are assumed to already be installed on #
-# the system. The system is assumed to be Debian. See                  #
-# tests/docker/Dockerfile.                                             #
+# Set up the required components for an integration test. PostgreSQL   #
+# is assumed to already be available, with connection details in the   #
+# PG* environment variables.  The connecting role must have CREATEDB   #
+# privileges.                                                          #
 #                                                                      #
 ########################################################################
 
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
-
 
 def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
+    from ..setup_test_config import ensure_config_dir, create_test_database
+
+    ensure_config_dir()
+    create_test_database()
 
 
 @pytest.fixture(scope='session')
@@ -302,7 +299,7 @@ def snmpsim():
     """
     snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    workspace = str(Path(__file__).resolve().parent.parent.parent)
     proc = subprocess.Popen(
         [
             snmpsimd,
