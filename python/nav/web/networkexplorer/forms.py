@@ -78,7 +78,7 @@ class NetworkSearchForm(forms.Form):
     )
     query = MultitypeQueryField(QUERY_TYPES)
     exact_results = forms.BooleanField(
-        label='Search exact (no substring)', required=False
+        label='Search exact (no substring, case sensitive)', required=False
     )
     hide_ports = forms.BooleanField(
         label='Hide ports with no description', required=False
