@@ -71,3 +71,61 @@ class HStoreField(Field):
 
     def to_python(self, value):
         return validators.validate_hstore(value)
+
+
+class AliasListWidget(forms.Widget):
+    """Widget that renders a dynamic list of alias text inputs"""
+
+    template_name = 'seeddb/widgets/alias_list.html'
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        if isinstance(value, str):
+            value = _parse_json_list(value)
+        context['aliases'] = value or []
+        return context
+
+    def value_from_datadict(self, data, files, name):
+        return _parse_json_list(data.get(f'{name}_json', '[]'))
+
+
+class AliasListField(forms.Field):
+    """Form field for editing a list of alias strings"""
+
+    widget = AliasListWidget
+
+    def __init__(self, *args, verbose_name='entry', **kwargs):
+        kwargs.setdefault(
+            'help_text',
+            "Alternative names that can be used to find"
+            f" this {verbose_name} in searches.",
+        )
+        super().__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        if isinstance(value, str):
+            return _parse_json_list(value)
+        return value or []
+
+    def clean(self, value):
+        if not value:
+            return []
+        cleaned = []
+        for item in value:
+            if not isinstance(item, str):
+                raise forms.ValidationError("All aliases must be strings.")
+            stripped = item.strip()
+            if stripped and stripped not in cleaned:
+                cleaned.append(stripped)
+        return cleaned
+
+
+def _parse_json_list(value):
+    """Parse a JSON string as a list, returning [] on failure."""
+    try:
+        result = json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        return []
+    if not isinstance(result, list):
+        return []
+    return result

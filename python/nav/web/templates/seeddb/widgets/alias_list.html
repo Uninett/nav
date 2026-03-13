@@ -1,0 +1,116 @@
+<div class="alias-tags" id="alias-tags-{{ widget.name }}">
+  <div class="alias-tags-list">
+    {% for alias in aliases %}
+    <span class="badge alias-tag" data-value="{{ alias }}">
+      {{ alias }}
+      <button type="button" class="alias-tag-remove" aria-label="Remove {{ alias }}">&times;</button>
+    </span>
+    {% endfor %}
+    <input type="text" class="alias-tags-input"
+           placeholder="Add alias..."
+           aria-label="Add alias">
+  </div>
+  <input type="hidden" name="{{ widget.name }}_json" value="">
+  <span class="sr-only" aria-live="polite" id="alias-status-{{ widget.name }}"></span>
+  <script>
+    (function() {
+      const container = document.getElementById('alias-tags-{{ widget.name }}');
+      const list = container.querySelector('.alias-tags-list');
+      const input = container.querySelector('.alias-tags-input');
+      const hidden = container.querySelector('input[type=hidden]');
+      const status = document.getElementById('alias-status-{{ widget.name }}');
+
+      function announce(message) {
+        status.textContent = message;
+      }
+
+      function syncHidden() {
+        const tags = list.querySelectorAll('.alias-tag');
+        const values = Array.from(tags).map(t => t.dataset.value);
+        hidden.value = JSON.stringify(values);
+      }
+
+      function addTag(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        const existing = Array.from(list.querySelectorAll('.alias-tag'))
+          .map(t => t.dataset.value);
+        if (existing.includes(trimmed)) return;
+
+        const tag = document.createElement('span');
+        tag.className = 'badge alias-tag';
+        tag.dataset.value = trimmed;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'alias-tag-remove';
+        btn.setAttribute('aria-label', 'Remove ' + trimmed);
+        btn.innerHTML = '&times;';
+        tag.append(trimmed + ' ', btn);
+        input.before(tag);
+        syncHidden();
+      }
+
+      let pendingBackspace = false;
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') {
+          if (input.value.trim()) {
+            e.preventDefault();
+            addTag(input.value);
+            input.value = '';
+          } else if (e.key !== 'Tab') {
+            e.preventDefault();
+          }
+          pendingBackspace = false;
+          return;
+        }
+        if (e.key === 'Backspace' && input.value === '') {
+          const tags = list.querySelectorAll('.alias-tag');
+          if (tags.length) {
+            if (pendingBackspace) {
+              const value = tags[tags.length - 1].dataset.value;
+              tags[tags.length - 1].remove();
+              syncHidden();
+              announce('Removed alias ' + value);
+              pendingBackspace = false;
+            } else {
+              tags[tags.length - 1].classList.add('alias-tag--pending');
+              announce('Press backspace again to remove ' + tags[tags.length - 1].dataset.value);
+              pendingBackspace = true;
+            }
+          }
+          return;
+        }
+        pendingBackspace = false;
+        const dimmed = list.querySelector('.alias-tag--pending');
+        if (dimmed) dimmed.classList.remove('alias-tag--pending');
+      });
+
+      input.addEventListener('blur', function() {
+        pendingBackspace = false;
+        const dimmed = list.querySelector('.alias-tag--pending');
+        if (dimmed) dimmed.classList.remove('alias-tag--pending');
+      });
+
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text');
+        text.split(',').forEach(v => addTag(v));
+      });
+
+      list.addEventListener('click', function(e) {
+        const btn = e.target.closest('.alias-tag-remove');
+        if (btn) {
+          const value = btn.closest('.alias-tag').dataset.value;
+          btn.closest('.alias-tag').remove();
+          syncHidden();
+          announce('Removed alias ' + value);
+          input.focus();
+        }
+      });
+
+      syncHidden();
+    })();
+  </script>
+</div>
