@@ -1,9 +1,9 @@
-import os
 import importlib.util
 import io
 import re
 import shlex
 from itertools import cycle
+from pathlib import Path
 from shutil import which
 import subprocess
 import time
@@ -299,7 +299,7 @@ def snmpsim():
     """
     snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    workspace = str(Path(__file__).resolve().parent.parent.parent)
     proc = subprocess.Popen(
         [
             snmpsimd,
