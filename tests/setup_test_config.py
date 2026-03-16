@@ -16,8 +16,7 @@
 """Test environment setup helper.
 
 Provides functions to create a temporary NAV config directory and initialize
-a test database, replacing the shell-based setup previously done via
-tests/docker/scripts/create-db.sh and tox.ini sed commands.
+a test database.
 """
 
 import getpass
@@ -25,6 +24,9 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+
+# Password used for the NAV admin user during test runs
+ADMIN_PASSWORD = "omicronpersei8"
 
 
 def ensure_config_dir() -> Path:
@@ -126,21 +128,18 @@ def _refresh_nav_config() -> None:
 
 
 def _load_test_data() -> None:
-    test_data = Path(__file__).resolve().parent / "docker" / "scripts" / "test-data.sql"
+    test_data = Path(__file__).resolve().parent / "test-data.sql"
     dbname = _get_test_database_name()
     subprocess.check_call(["psql", "-f", str(test_data), dbname])
 
 
 def _set_admin_password() -> None:
-    password = os.environ.get("ADMINPASSWORD")
-    if not password:
-        return
     dbname = _get_test_database_name()
     subprocess.check_call(
         [
             "psql",
             "-c",
-            f"UPDATE account SET password = '{password}' WHERE login = 'admin'",
+            f"UPDATE account SET password = '{ADMIN_PASSWORD}' WHERE login = 'admin'",
             dbname,
         ]
     )
