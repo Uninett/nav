@@ -25,6 +25,7 @@ TEST_DATA = {
         'data': {'a': 'b'},
         'parent': 'mylocation',
         'description': 'ÆØÅ descr',
+        'aliases': ['localias1', 'localias2'],
     },
     'netbox': {
         "ip": "158.38.152.169",
@@ -33,7 +34,11 @@ TEST_DATA = {
         "categoryid": "SW",
         "snmp_version": 2,
     },
-    'room': {'id': 'blapp', 'location': 'mylocation'},
+    'room': {
+        'id': 'blapp',
+        'location': 'mylocation',
+        'aliases': ['roomalias1', 'roomalias2'],
+    },
     'vlan': {
         'net_type': 'scope',
     },
@@ -266,6 +271,26 @@ def test_patch_room(db, api_client, token):
 
     print(response)
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_patch_alias(db, api_client, token, endpoint):
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    new_aliases = ['newalias1', 'newalias2']
+    response = api_client.patch(
+        f'/api/1/{endpoint}/{object_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+    print(response)
+    assert response.status_code == 200
+
+    data = json.loads(response.content.decode('utf-8'))
+    assert data.get('aliases') == new_aliases
 
 
 def test_delete_room_wrong_room(db, api_client, token):
