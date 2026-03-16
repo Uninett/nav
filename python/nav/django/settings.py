@@ -317,6 +317,7 @@ SECURE_BROWSER_XSS_FILTER = True  # Does no harm
 _websecurity_config = WebSecurityConfigParser()
 _needs_tls = bool(_websecurity_config.getboolean('needs_tls'))
 SESSION_COOKIE_SECURE = _needs_tls
+CSRF_COOKIE_SECURE = _needs_tls
 X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 
 # Hack for hackers to use features like debug_toolbar etc.
