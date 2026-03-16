@@ -73,7 +73,7 @@ def room(request):
 def room_list(request):
     """Controller for listing rooms. Used in room()"""
     info = RoomInfo()
-    value_list = ('id', 'location', 'description', 'position', 'data')
+    value_list = ('id', 'location', 'description', 'aliases_string', 'position', 'data')
     query = Room.objects.select_related("location").all()
     filter_form = RoomFilterForm(request.GET)
     return render_list(
