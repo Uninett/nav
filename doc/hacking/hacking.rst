@@ -417,6 +417,15 @@ this to the database.
           test exists to verify that the Django models can at least be used
           to run proper SELECT statements against the database.
 
+.. WARNING:: Do not set ``OWNER`` on anything in the schema!
+          If using Django's own migration system to generate a schema
+          for you (via sqlmigrate) or some other helper, you will have to look
+          for and alter or remove any lines that explicitly set OWNER.
+
+          For Django that is any line looking like this:
+
+          ``ALTER TABLE some_tablename OWNER TO something;``
+
 
 Version Control
 ===============
