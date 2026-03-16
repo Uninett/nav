@@ -27,7 +27,7 @@ define([
     });
 
 
-    var Node = Backbone.Model.extend({
+    const Node = Backbone.Model.extend({
 
         /*
          * An object representing a node in the network tree.
@@ -55,35 +55,30 @@ define([
                     this.url = 'routers/';
                     break;
                 case 'router':
-                    var routerId = this.get('pk');
-                    this.url = 'expand/router/' + routerId + '/';
+                    this.url = `expand/router/${this.get('pk')}/`;
                     break;
                 case 'gwport':
-                    var gwPortId = this.get('pk');
-                    this.url = 'expand/gwport/' + gwPortId + '/';
+                    this.url = `expand/gwport/${this.get('pk')}/`;
                     break;
-                case 'swport':
-                    var url;
-                    var switchId = this.get('switch_id');
+                case 'swport': {
+                    const switchId = this.get('switch_id');
                     if (switchId) {
-                        url = 'expand/switch/' + switchId + '/';
-                        var vlanId = this.get('vlan_id');
-                        if (vlanId) {
-                            url += 'vlan/' + vlanId + '/';
-                        }
+                        const vlanId = this.get('vlan_id');
+                        this.url = vlanId
+                            ? `expand/switch/${switchId}/vlan/${vlanId}/`
+                            : `expand/switch/${switchId}/`;
                     } else {
-                        var swPortId = this.get('pk');
-                        url = 'expand/swport/' + swPortId + '/';
+                        this.url = `expand/swport/${this.get('pk')}/`;
                     }
-                    this.url = url;
+                }
                     break;
             }
         },
 
         elementId: function () {
             if (this.get('type') !== 'root') {
-                return this.get('type') + '-' + this.get('pk');
-            }  else {
+                return `${this.get('type')}-${this.get('pk')}`;
+            } else {
                 return 'root';
             }
         },
@@ -106,25 +101,23 @@ define([
 
             this.set('state', 'processing');
 
-            var children = this.getChildren();
+            const children = this.getChildren();
 
             if (children.length === 0) {
-
-                var node = this;
                 children.fetch({
-                    success: function () {
-                        node.set('state', 'expanded');
-                        Backbone.EventBroker.trigger('tree:render', node);
-                        if (d && d.hasOwnProperty('resolve')) d.resolve();
+                    success: () => {
+                        this.set('state', 'expanded');
+                        Backbone.EventBroker.trigger('tree:render', this);
+                        if (d?.resolve) d.resolve();
                     },
-                    error: function (collection, response) {
+                    error: (collection, response) => {
                         if (response.status === 401) {
                             // If no longer authorized, reload the page
                             location.reload();
                         }
                         console.log('Error fetching children nodes');
-                        node.set('state', 'collapsed');
-                        if (d && d.hasOwnProperty('reject')) d.reject();
+                        this.set('state', 'collapsed');
+                        if (d?.reject) d.reject();
                     }
                 });
             } else {
@@ -156,7 +149,7 @@ define([
             if (!this.get('children')) {
                 this.set('children', new NodeCollection());
             }
-            var collection = this.get('children');
+            const collection = this.get('children');
             collection.url = this.url;
             return collection;
         },
@@ -166,7 +159,7 @@ define([
         }
     });
 
-    var NodeCollection = Backbone.Collection.extend({
+    const NodeCollection = Backbone.Collection.extend({
 
         /*
          * A collection for Node-models. Used to hold
@@ -176,7 +169,7 @@ define([
         model: Node
     });
 
-    var Tree = Backbone.Model.extend({
+    const Tree = Backbone.Model.extend({
 
         /*
          * A Container-model for the tree.
@@ -200,7 +193,7 @@ define([
     });
 
 
-    var TreeView = Backbone.View.extend({
+    const TreeView = Backbone.View.extend({
 
         /*
          * View-object for the Tree model.
@@ -222,13 +215,8 @@ define([
         search: function (data) {
 
             /*
-             * Welcome to callback HELL!
-             *
-             * This is a rather un-efficient depth first search
-             * in the network tree, which checks for a match in
-             * the returned json-object and if so expands it's
-             * subtree. This relies heavily on deferred objects
-             * since expanding a node might be asynchronous.
+             * Depth first search in the network tree that expands
+             * and highlights matching nodes from the search response.
              */
 
             this.$el.find('.highlight').removeClass('highlight').addClass('node');
@@ -240,41 +228,36 @@ define([
                 data.gwports.length > 0 ||
                 data.swports.length > 0;
 
-            routers.each(function (router) {
+            routers.each((router) => {
                 if (!hasResults && router.get('state') === 'expanded') {
                     router.collapse();
                     return;
                 }
 
-                var index = data.routers.indexOf(router.get('pk'));
-                if (index >= 0) {
-                    var dRouters = $.Deferred();
+                if (data.routers.includes(router.get('pk'))) {
+                    const dRouters = $.Deferred();
                     router.match(dRouters);
+                    dRouters.done(() => this.expandMatchingGwports(router, data));
+                }
+            });
+        },
 
-                    dRouters.done(function () {
+        expandMatchingGwports: function (router, data) {
+            const gwports = router.get('children');
+            gwports.each((gwport) => {
+                if (data.gwports.includes(gwport.get('pk'))) {
+                    const dGWPorts = $.Deferred();
+                    gwport.match(dGWPorts);
+                    dGWPorts.done(() => this.highlightMatchingSwports(gwport, data));
+                }
+            });
+        },
 
-                        var gwports = router.get('children');
-                        gwports.each(function (gwport) {
-
-                            var index = data.gwports.indexOf(gwport.get('pk'));
-                            if (index >= 0) {
-                                var dGWPorts = $.Deferred();
-                                gwport.match(dGWPorts);
-
-                                dGWPorts.done(function () {
-
-                                    var swports = gwport.get('children');
-                                    swports.each(function (swport) {
-
-                                        var index = data.swports.indexOf(swport.get('pk'));
-                                        if (index >= 0) {
-                                            swport.match();
-                                        }
-                                    });
-                                });
-                            }
-                        });
-                    });
+        highlightMatchingSwports: function (gwport, data) {
+            const swports = gwport.get('children');
+            swports.each((swport) => {
+                if (data.swports.includes(swport.get('pk'))) {
+                    swport.match();
                 }
             });
         },
@@ -288,18 +271,15 @@ define([
              */
 
             if (node.get('type') === 'root') {
-
                 console.log('rendering from root');
-                var rootView = new NodeView({model: node});
-                var nodes = $('<ul>');
+                const rootView = new NodeView({model: node});
+                const nodes = $('<ul>');
                 nodes.html(rootView.render().el);
                 this.$el.html(nodes);
-
             } else {
-
-                console.log('rendering from ' + node.elementId());
-                var nodeView = new NodeView({model: node});
-                var element = this.$el.find('#' + node.elementId());
+                console.log(`rendering from ${node.elementId()}`);
+                const nodeView = new NodeView({model: node});
+                const element = this.$el.find(`#${node.elementId()}`);
                 nodeView.setElement(element);
                 nodeView.render();
             }
@@ -308,7 +288,7 @@ define([
         }
     });
 
-    var NodeView = Backbone.View.extend({
+    const NodeView = Backbone.View.extend({
 
         /*
          * View-object for the Node model
@@ -322,7 +302,7 @@ define([
         },
 
         initialize: function () {
-            var template;
+            let template;
             switch (this.model.get('type')) {
                 case 'router':
                     template = routerTemplate;
@@ -352,7 +332,7 @@ define([
 
         handleError: function (collection, response) {
             this.hideSpinner();
-            this.showError('The request for more data failed (' + response.status + ' - ' + response.statusText + ').');
+            this.showError(`The request for more data failed (${response.status} - ${response.statusText}).`);
         },
 
         showError: function (text) {
@@ -388,32 +368,30 @@ define([
             }
 
             if (this.model.get('state') === 'expanded') {
+                const children = this.model.get('children');
+                const childrenElem = this.$('.children');
+                const lastIndex = children.length - 1;
 
-                var children = this.model.get('children');
-                var children_elem = this.$('.children');
-                var last_index = children.length - 1;
-
-                children.each(function (child, i) {
-
-                    var childView = new NodeView({model: child});
-                    if (i === last_index) {
+                children.each((child, i) => {
+                    const childView = new NodeView({model: child});
+                    if (i === lastIndex) {
                         child.set('end', true);
                     }
 
-                    children_elem.append(childView.render().el);
+                    childrenElem.append(childView.render().el);
                 });
             }
             return this;
         },
 
         showSpinner: function () {
-            this.$('img').attr('src', NAV.imagePath + '/main/process-working.gif');
+            this.$('img').attr('src', `${NAV.imagePath}/main/process-working.gif`);
         },
 
         hideSpinner: function () {
             // This should only be called on a node that fails to expand
             // and therefore we know it's expandable.
-            this.$('img').attr('src', NAV.imagePath + '/networkexplorer/expand.gif');
+            this.$('img').attr('src', `${NAV.imagePath}/networkexplorer/expand.gif`);
         },
 
         registerExpandTrigger: function () {
@@ -421,8 +399,8 @@ define([
             // Bind 'triggerExpand' event to the collapse/expand image
             // if the node is expandable.
             if (this.model.get('expandable')) {
-                var expandButton = this.$('img');
-                expandButton.on('click', _.bind(this.triggerExpand, this));
+                const expandButton = this.$('img');
+                expandButton.on('click', (e) => this.triggerExpand(e));
             }
         },
 
@@ -433,7 +411,7 @@ define([
              * Is bound to click event on the expand-/collapse-icon
              */
 
-            console.log('caught expand on ' + this.model.elementId());
+            console.log(`caught expand on ${this.model.elementId()}`);
 
             if (this.model.get('state') === 'collapsed' &&
                     this.model.get('expandable')) {
