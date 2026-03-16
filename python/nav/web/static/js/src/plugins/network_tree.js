@@ -131,6 +131,7 @@ define([
                 console.log('Yay! children already fetched');
                 this.set('state', 'expanded');
                 Backbone.EventBroker.trigger('tree:render', this);
+                if (d?.resolve) d.resolve();
             }
         },
 
@@ -230,10 +231,20 @@ define([
              * since expanding a node might be asynchronous.
              */
 
-            var root = this.model.get('root');
-            var routers = root.get('children');
+            this.$el.find('.highlight').removeClass('highlight').addClass('node');
+
+            const root = this.model.get('root');
+            const routers = root.get('children');
+
+            const hasResults = data.routers.length > 0 ||
+                data.gwports.length > 0 ||
+                data.swports.length > 0;
 
             routers.each(function (router) {
+                if (!hasResults && router.get('state') === 'expanded') {
+                    router.collapse();
+                    return;
+                }
 
                 var index = data.routers.indexOf(router.get('pk'));
                 if (index >= 0) {
@@ -439,6 +450,9 @@ define([
                     this.$el.attr('class', 'highlight');
                 }
                 this.model.set('matched', true);
+                if (this.model.get('state') === 'expanded') {
+                    this.model.collapse();
+                }
                 this.triggerExpand(d);
             }
         }
