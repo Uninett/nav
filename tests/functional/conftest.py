@@ -1,6 +1,3 @@
-import os
-import subprocess
-
 from nav.django.defaults import NAV_LOGIN_URL as LOGIN_URL
 
 import pytest
@@ -11,20 +8,26 @@ from playwright.sync_api import Page
 ########################################################################
 #                                                                      #
 # Set up the required components for a functional test. PostgreSQL is  #
-# assumed to already be available in the environment (test Docker       #
-# container or devcontainer). See tests/docker/Dockerfile.             #
+# assumed to already be available, with connection details in the PG*  #
+# environment variables.  The connecting role must have CREATEDB       #
+# privileges.                                                          #
 #                                                                      #
 ########################################################################
 
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
-
 
 def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
+    from ..setup_test_config import ensure_config_dir, create_test_database
+
+    ensure_config_dir()
+    create_test_database()
+    _ensure_playwright_browser()
+
+
+def _ensure_playwright_browser():
+    """Download the Chromium binary if not already present."""
+    import subprocess
+
+    subprocess.check_call(["playwright", "install", "chromium"])
 
 
 @pytest.fixture(scope='session')

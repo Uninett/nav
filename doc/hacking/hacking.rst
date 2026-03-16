@@ -456,31 +456,33 @@ Running tests
 
 We use pytest_ as our test runner, and tox_ to enable running the test suites
 in matrix environments for different combinations of Python and Django
-versions. For the time being, our test suite is divided into three parts
-(``unittests``, ``integration`` and ``functional``).  The unit test suite can
-usually be run just fine from your local computer as long as tox_ and pytest_
-are available, but the integration and functional test suites have lots of
-external requirements that make them best suited to be run in a containerized
-environment (we are, however, working on rebuilding this so the necessary
-environments are easier to achieve on your local computer.  Please see `PR#3248
-<https://github.com/Uninett/nav/pull/3248>`_ for ongoing work).
+versions. Our test suite is divided into two parts (``unittests`` and
+``integration``).  The unit test suite can usually be run just fine from your
+local computer as long as tox_ and pytest_ are available.  The integration test
+suite (which includes functional Playwright-based browser tests) requires
+access to a PostgreSQL server.  The standard ``PG*`` environment variables
+(``PGHOST``, ``PGPORT``, ``PGUSER``, ``PGPASSWORD``) must point to a user with
+``CREATEDB`` privileges, as the test setup will create a temporary database.
+The project's devcontainer takes care of all of this out of the box.  Beyond
+PostgreSQL, each conftest configures the remaining environment automatically
+via :file:`tests/setup_test_config.py`.
 
-
-For now, there is a script to produce an entire test environment as a Docker
+There is also a script to produce an entire test environment as a Docker
 image, and to run the entire test suite inside a Docker container created
 from that image. Take a look in the :file:`tests/docker/` directory.
 
-For an interactive testing session with tox_, you can utilize the Docker image
-like thus:
+To run integration tests (including functional browser tests):
 
 .. code-block:: console
 
-   $ cd tests/docker
-   $ make
+   $ tox run -e integration-py311-django42
    ...
-   $ make shell
-   ...
-   $ tox run -e unit-py311-django42
+
+To run only the functional browser tests:
+
+.. code-block:: console
+
+   $ tox run -e integration-py311-django42 -- tests/functional
    ...
 
 

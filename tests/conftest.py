@@ -7,6 +7,10 @@ import pytest
 
 
 def pytest_configure(config):
+    from .setup_test_config import ensure_config_dir
+
+    ensure_config_dir()
+
     # Bootstrap Django config
     from nav.bootstrap import bootstrap_django
 
