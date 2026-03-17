@@ -37,6 +37,7 @@ dependencies = [
     "django-filter>=2",
     "djangorestframework>=3.14",
     "django-htmx",
+    "django-allauth[mfa]",
     "pytz",
 
     "iso8601",
@@ -65,9 +66,6 @@ dependencies = [
 
 [project.optional-dependencies]
 ldap = ["python-ldap==3.4.5"]  # optional for LDAP authentication, requires libldap (OpenLDAP) to build
-allauth-mfa = [
-    "django-allauth[mfa]",
-]
 allauth-social = [
     "django-allauth[socialaccount]",
 ]
