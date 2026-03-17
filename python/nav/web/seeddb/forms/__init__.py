@@ -20,7 +20,7 @@ import logging
 from django import forms
 from django.utils.safestring import mark_safe
 
-from nav.django.forms import HStoreField
+from nav.django.forms import AliasListField, HStoreField
 from nav.models.manage import (
     Location,
     Room,
@@ -181,6 +181,7 @@ class RoomForm(forms.ModelForm):
 
     location = forms.ChoiceField(choices=())
     data = HStoreField(label='Attributes', required=False)
+    aliases = AliasListField(label='Aliases', required=False, verbose_name='room')
 
     def __init__(self, *args, **kwargs):
         super(RoomForm, self).__init__(*args, **kwargs)
@@ -190,7 +191,7 @@ class RoomForm(forms.ModelForm):
 
     class Meta(object):
         model = Room
-        fields = '__all__'
+        fields = ('id', 'location', 'description', 'aliases', 'position', 'data')
 
     def clean_location(self):
         data = self.cleaned_data.get('location')
@@ -210,10 +211,11 @@ class LocationForm(forms.ModelForm):
 
     parent = forms.ChoiceField(required=False)
     data = HStoreField(label='Attributes', required=False)
+    aliases = AliasListField(label='Aliases', required=False, verbose_name='location')
 
     class Meta(object):
         model = Location
-        fields = ('parent', 'id', 'description', 'data')
+        fields = ('parent', 'id', 'description', 'aliases', 'data')
 
     def __init__(self, *args, **kwargs):
         super(LocationForm, self).__init__(*args, **kwargs)
