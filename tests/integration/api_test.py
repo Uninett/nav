@@ -6,6 +6,7 @@ import json
 import pytest
 from django.urls import reverse
 
+from nav.django.forms import MAX_ALIAS_LENGTH
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
@@ -291,6 +292,40 @@ def test_patch_alias(db, api_client, token, endpoint):
 
     data = json.loads(response.content.decode('utf-8'))
     assert data.get('aliases') == new_aliases
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_patch_alias_with_pipe(db, api_client, token, endpoint):
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    new_aliases = ['aliaswithpipe|']
+    response = api_client.patch(
+        f'/api/1/{endpoint}/{object_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+    print(response)
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_patch_alias_too_long(db, api_client, token, endpoint):
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    new_aliases = ['a' * (MAX_ALIAS_LENGTH + 1)]
+    response = api_client.patch(
+        f'/api/1/{endpoint}/{object_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+    print(response)
+    assert response.status_code == 400
 
 
 def test_delete_room_wrong_room(db, api_client, token):
