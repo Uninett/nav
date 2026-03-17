@@ -62,12 +62,6 @@ jobs:
           uv pip install --system tox tox-uv tox-gh-actions coverage
           sudo apt-get install -y nbtscan
 
-      # virtualenv seems to currently be embedding a broken version of
-      # setuptools (2022-03-31).  this ensures these embedded wheels are always
-      # up to date, but can potentially be removed again down the road.
-      - name: "Upgrade embedded virtualenv wheels"
-        run: |
-          virtualenv --upgrade-embed-wheel
 
       - name: "Install libraries needed to build external dependencies"
         run: |
