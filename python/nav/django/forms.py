@@ -120,7 +120,6 @@ class AliasListWidget(forms.Widget):
 class AliasListField(forms.Field):
     """Form field for editing a list of alias strings"""
 
-    MAX_ALIAS_LENGTH = 64
     widget = AliasListWidget
 
     def __init__(self, *args, verbose_name='entry', **kwargs):
@@ -137,20 +136,7 @@ class AliasListField(forms.Field):
         return value or []
 
     def clean(self, value):
-        if not value:
-            return []
-        cleaned = []
-        for item in value:
-            if not isinstance(item, str):
-                raise forms.ValidationError("All aliases must be strings.")
-            stripped = item.strip()
-            if len(stripped) > self.MAX_ALIAS_LENGTH:
-                raise forms.ValidationError(
-                    f"Alias must be {self.MAX_ALIAS_LENGTH} characters or fewer."
-                )
-            if stripped and stripped not in cleaned:
-                cleaned.append(stripped)
-        return cleaned
+        return validate_aliases(value)
 
 
 def _parse_json_list(value):
