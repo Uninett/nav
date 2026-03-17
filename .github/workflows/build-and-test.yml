@@ -20,6 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v6
       - uses: kenchan0130/actions-system-info@59699597e84e80085a750998045983daa49274c4
         id: system-info
 
@@ -58,7 +59,7 @@ jobs:
       - name: "Install test runner dependencies"
         run: |
           set -xe
-          python3 -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv
+          uv pip install --system tox tox-uv tox-gh-actions coverage
           sudo apt-get install -y nbtscan
 
       # virtualenv seems to currently be embedding a broken version of
