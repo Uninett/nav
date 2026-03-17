@@ -14,14 +14,14 @@ module.exports = function (config) {
             outputFile: 'javascript-results.xml',
                 suite: ''
         },
-        browsers:      ['ChromeNoSandbox', 'Firefox'],
+        browsers:      ['ChromeHeadlessNoSandbox'],
         autoWatch:      false,
         singleRun: true,
         colors: false,
 
         customLaunchers: {
-            ChromeNoSandbox: {
-                base: 'Chrome',
+            ChromeHeadlessNoSandbox: {
+                base: 'ChromeHeadless',
                 flags: ['--no-sandbox']
             }
         }
