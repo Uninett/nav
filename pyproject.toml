@@ -75,6 +75,7 @@ dev = [
     "towncrier",
     "pre-commit",
     "tox",
+    "tox-uv",
 ]
 test = [
     "coverage>=7.0.0",
