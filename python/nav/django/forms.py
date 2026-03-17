@@ -19,10 +19,13 @@
 import json
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import Field, Textarea
 
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets
+
+MAX_ALIAS_LENGTH = 64
 
 
 class CIDRField(forms.CharField):
@@ -71,6 +74,31 @@ class HStoreField(Field):
 
     def to_python(self, value):
         return validators.validate_hstore(value)
+
+
+def validate_aliases(aliases: list[str]) -> list[str]:
+    """
+    Validates a given list of aliases and raises a ValidationError if any of the
+    aliases contain the pipe character or are too long
+
+    Returns a deduplicated and stripped version of the given list
+    """
+    if not aliases:
+        return []
+    cleaned = []
+    for item in aliases:
+        if not isinstance(item, str):
+            raise ValidationError("All aliases must be strings.")
+        stripped = item.strip()
+        if "|" in stripped:
+            raise ValidationError("Aliases cannot contain the pipe character ('|')")
+        if len(stripped) > MAX_ALIAS_LENGTH:
+            raise ValidationError(
+                f"Alias must be {MAX_ALIAS_LENGTH} characters or fewer."
+            )
+        if stripped and stripped not in cleaned:
+            cleaned.append(stripped)
+    return cleaned
 
 
 class AliasListWidget(forms.Widget):
