@@ -101,6 +101,17 @@ services:
       - nav
     command: /source/tools/docker/doc-watch.sh
     restart: on-failure:5
+  config:
+    build:
+      context: .
+      args:
+        UID: $UID
+        GID: $GID
+    volumes_from:
+      - nav
+    # keep the container running
+    # tty: true and init: true was not sufficient
+    entrypoint: ["tail", "-f", "/dev/null"]
 
 volumes:
   nav_config:
