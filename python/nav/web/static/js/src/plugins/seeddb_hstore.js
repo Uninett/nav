@@ -1,7 +1,7 @@
 define([
     "libs-amd/text!resources/seeddb/hstore_container.html",
     "libs-amd/text!resources/seeddb/hstore_row.html",
-    'libs/handlebars'
+    'handlebars'
 ],
 function (hstore_container_source, hstore_row_source, Handlebars) {
     /*

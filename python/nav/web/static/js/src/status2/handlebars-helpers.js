@@ -1,4 +1,4 @@
-require(['moment', 'libs/handlebars'], function (moment, Handlebars) {
+require(['moment', 'handlebars'], function (moment, Handlebars) {
 
     //  format an ISO date using Moment.js
     //  http://momentjs.com/

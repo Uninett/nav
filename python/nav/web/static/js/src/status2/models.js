@@ -1,5 +1,5 @@
 define([
-    'libs/backbone',
+    'backbone',
 ], function (Backbone) {
 
     var EventModel = Backbone.Model.extend({

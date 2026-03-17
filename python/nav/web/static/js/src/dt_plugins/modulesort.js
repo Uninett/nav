@@ -2,7 +2,7 @@
  This module is used for sorting based on module-name in NAV. It's highly
  targetted at sorting specifically Cisco modules based on module-number
  */
-define(['dt_plugins/natsort', 'libs/datatables.min'], function (naturalSort) {
+define(['dt_plugins/natsort', 'datatables'], function (naturalSort) {
     function moduleSort(a, b) {
         a = stripTags(a);
         b = stripTags(b);

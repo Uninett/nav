@@ -3,7 +3,7 @@ define([
     'netmap/models',
     'netmap/graph',
     'plugins/csrf-utils',
-    'libs/backbone',
+    'backbone',
     'libs/backbone-eventbroker',
     'jquery-ui'
 ], function (Collections, Models, Graph, CsrfUtils) {

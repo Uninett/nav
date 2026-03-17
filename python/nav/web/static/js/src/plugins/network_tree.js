@@ -4,8 +4,8 @@ define([
     'libs-amd/text!resources/networkexplorer/swport.html',
     'libs-amd/text!resources/networkexplorer/switch.html',
     'libs-amd/text!resources/networkexplorer/swport_leaf.html',
-    'libs/handlebars',
-    'libs/backbone',
+    'handlebars',
+    'backbone',
     'libs/backbone-eventbroker'
                      ], function (routerTemplate,
                                   gwportTemplate,

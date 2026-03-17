@@ -1,6 +1,6 @@
 define([
     'netmap/models',
-    'libs/backbone'
+    'backbone'
 ], function (Models) {
 
     /**

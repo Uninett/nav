@@ -1,7 +1,7 @@
 define([
     'plugins/rickshaw_graph',
     'libs/urijs/URI',
-    'libs/spin.min'
+    'spin'
 ], function (RickshawGraph, URI, Spinner) {
     /*
      * GraphFetcher

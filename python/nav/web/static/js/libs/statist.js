@@ -58,7 +58,7 @@
 // mixins or simple parent-child inheritance.
 
 define(function (require, exports, module) {
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
 
   var FSM = function(stateMap) {
     var defaultMap = { INIT: {} };

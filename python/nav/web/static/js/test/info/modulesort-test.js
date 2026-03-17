@@ -1,5 +1,5 @@
 define([
-    'dt_plugins/modulesort', 'libs/datatables.min'
+    'dt_plugins/modulesort', 'datatables'
 ], function (modulesort, DataTables) {
     describe("modulesort", function () {
         it("basic numeric sort should work", function () {

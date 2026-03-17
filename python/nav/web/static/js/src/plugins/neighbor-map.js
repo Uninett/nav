@@ -1,7 +1,7 @@
 define(function (require, exports, module) {
 
     var d3 = require('d3v7');
-    var _ = require('libs/underscore');
+    var _ = require('underscore');
 
     function NeighborMap(node) {
         this.motherNode = d3.select(node);  // Use this for selecting prior to svg

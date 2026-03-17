@@ -1,6 +1,6 @@
 require([
     'status/views',
-    'libs/backbone',
+    'backbone',
 ], function (StatusView) {
 
     var selectors = {

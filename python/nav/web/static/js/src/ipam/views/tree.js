@@ -3,7 +3,7 @@
 // are used to display any descendants of our root nodes.
 
 define(function(require, exports, module) {
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
   require("backbone");
   var Marionette = require("marionette");
   const Radio = require("backbone.radio");

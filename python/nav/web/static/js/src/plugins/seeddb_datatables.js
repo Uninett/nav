@@ -1,5 +1,5 @@
 define([
-    'libs/datatables.min',
+    'datatables',
     'dt_config',
 ],
 

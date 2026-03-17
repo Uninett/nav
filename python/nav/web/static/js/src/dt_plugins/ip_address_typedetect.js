@@ -3,7 +3,7 @@
  * Author: Brad Wasson
  */
 
-require(['libs/datatables.min'], function () {
+require(['datatables'], function () {
     $.fn.DataTable.ext.type.detect.unshift((data) => {
         if (/^\d{1,3}[.]\d{1,3}[.]\d{1,3}[.]\d{1,3}$/.test(data)) {
             return 'ip-address';

@@ -1,5 +1,5 @@
 define([
-    'dt_plugins/natsort', 'libs/datatables.min'
+    'dt_plugins/natsort', 'datatables'
 ], function (natsort, DataTable) {
     describe("natsort", function () {
         it("should sort basic numbers", function () {

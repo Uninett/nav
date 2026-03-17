@@ -41,7 +41,7 @@
 
 define(function (require, exports, module) {
 
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
 
   function Debugger(name) {
     var debuggr = {};

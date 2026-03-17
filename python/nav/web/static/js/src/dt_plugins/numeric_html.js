@@ -2,7 +2,7 @@
     Copied from: http://legacy.datatables.net/plug-ins/sorting
     Author: Allan Jardine
 */
-require(['libs/datatables.min'], function () {
+require(['datatables'], function () {
     $.fn.DataTable.ext.type.order['num-html-pre'] = (data) => {
         const x = String(data).replaceAll(/[<>]/g, '');
         return parseFloat(x);

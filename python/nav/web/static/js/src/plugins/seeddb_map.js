@@ -1,4 +1,4 @@
-define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
+define(['plugins/fullscreen', 'openlayers'], function(fullscreen) {
 
     /**
      * Display map for editing room position in seedDB

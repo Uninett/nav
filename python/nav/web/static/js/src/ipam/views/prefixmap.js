@@ -17,7 +17,7 @@
 
 define(function(require, exports, module) {
 
-  const _ = require("libs/underscore");
+  const _ = require("underscore");
   const d3 = require("d3v7");
 
   var viewbox = _.template("0 0 <%= width %> <%= height %>");
