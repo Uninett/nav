@@ -23,7 +23,7 @@ var require = {
         "nav-url-utils": "src/plugins/nav-url-utils",
         "rickshaw-utils": "src/plugins/rickshaw-utils",
         "backbone": "libs/backbone-1.0.0.min",
-        "underscore": "libs/underscore-1.7.0",
+        "underscore": "libs/underscore-1.7.0.min",
         "marionette": "libs/backbone.marionette-4.1.3.min",
         "backbone.radio": "libs/backbone.radio-2.0.0.min",
         "vue": "libs/vue-2.2.0.min",
