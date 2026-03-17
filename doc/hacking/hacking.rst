@@ -497,8 +497,8 @@ inside the Docker CI image:
 
    tox -e javascript
 
-This will take of installing the required JS modules using npm, and running the
-test suite in three different browsers (Chrome, Firefox and PhantomJS).
+This will take care of installing the required JS modules using npm, and running the
+test suite in headless Chrome.
 
 All tests are located under :file:`python/nav/web/static/js/test/`. Create new tests
 there. For syntax, assertions and related stuff take a look at the tests
