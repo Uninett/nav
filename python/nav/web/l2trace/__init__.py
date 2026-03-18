@@ -187,7 +187,9 @@ def get_vlan_from_ip(ip):
 
 
 def get_netbox_vlan(netbox):
-    return netbox.get_prefix().vlan
+    prefix = netbox.get_prefix()
+    if prefix:
+        return prefix.vlan
 
 
 def get_vlan_uplink_from_netbox(netbox, vlan=None):

@@ -23,6 +23,21 @@ class L2TraceTestCase(DjangoTransactionTestCase):
         self.admin_vlan = Vlan.objects.get(net_ident='adminvlan')
 
 
+class GetNetboxVlanTest(L2TraceTestCase):
+    def test_when_netbox_has_no_prefix_it_should_return_none(self):
+        """Regression test: get_netbox_vlan should not crash when the netbox
+        has no associated prefix (GitHub issue from prod error report)."""
+        orphan = Netbox(
+            ip='192.168.99.1',
+            sysname='orphan-sw.example.org',
+            room=self.foo_gw.room,
+            organization=self.foo_gw.organization,
+            category_id='SW',
+        )
+        orphan.save()
+        self.assertIsNone(l2trace.get_netbox_vlan(orphan))
+
+
 class GetVlanFromThingsTest(L2TraceTestCase):
     def test_arbitrary_ip_is_on_vlan_10(self):
         vlan = l2trace.get_vlan_from_ip('10.0.0.99')
