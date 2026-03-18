@@ -1107,10 +1107,12 @@ class Room(models.Model):
         ordering = ('id',)
 
     def __str__(self):
+        rep = '%s' % (self.id)
         if self.description:
-            return '%s (%s)' % (self.id, self.description)
-        else:
-            return '%s' % (self.id)
+            rep += ' (%s)' % (self.description)
+        if self.aliases:
+            rep += ' [%s]' % (self.aliases_string)
+        return rep
 
     def get_absolute_url(self):
         return reverse('room-info', kwargs={'roomid': self.pk})
@@ -1185,10 +1187,12 @@ class Location(models.Model, TreeMixin):
         ordering = ['id']
 
     def __str__(self):
+        rep = '%s' % (self.id)
         if self.description:
-            return '{} ({})'.format(self.id, self.description)
-        else:
-            return '{}'.format(self.id)
+            rep += ' (%s)' % (self.description)
+        if self.aliases:
+            rep += ' [%s]' % (self.aliases_string)
+        return rep
 
     @property
     def aliases_string(self) -> str:
