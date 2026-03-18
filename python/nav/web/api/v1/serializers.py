@@ -17,9 +17,11 @@
 
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from nav.django.forms import validate_aliases
 from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
 from nav.web.seeddb.page.netbox.edit import get_sysname
@@ -103,6 +105,13 @@ class LocationSerializer(serializers.ModelSerializer):
         model = manage.Location
         fields = '__all__'
 
+    def validate_aliases(self, value):
+        try:
+            validate_aliases(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e)
+        return value
+
 
 class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
@@ -125,6 +134,13 @@ class RoomSerializer(serializers.ModelSerializer):
             lat, lon = attrs.get("position")
             attrs["position"] = (Decimal(lat), Decimal(lon))
         return attrs
+
+    def validate_aliases(self, value):
+        try:
+            validate_aliases(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e)
+        return value
 
 
 class OrganizationSerializer(serializers.ModelSerializer):

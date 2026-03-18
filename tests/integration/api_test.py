@@ -6,6 +6,7 @@ import json
 import pytest
 from django.urls import reverse
 
+from nav.django.forms import MAX_ALIAS_LENGTH
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
@@ -93,10 +94,7 @@ def test_delete(db, api_client, token, endpoint):
     response_delete = delete(api_client, endpoint, res.get('id'))
     response_get = get(api_client, endpoint, res.get('id'))
 
-    print(response_delete)
     assert response_delete.status_code == 204
-
-    print(response_get)
     assert response_get.status_code == 404
 
 
@@ -104,7 +102,7 @@ def test_delete(db, api_client, token, endpoint):
 def test_create(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response = create(api_client, endpoint, TEST_DATA.get(endpoint))
-    print(response)
+
     assert response.status_code == 201
 
 
@@ -114,7 +112,7 @@ def test_page_size(db, api_client, token):
     create(api_client, endpoint, {'id': 'blapp1', 'location': 'mylocation'})
     create(api_client, endpoint, {'id': 'blapp2', 'location': 'mylocation'})
     response = api_client.get('/api/1/room/?page_size=1')
-    print(response.data)
+
     assert len(response.data.get('results')) == 1
 
 
@@ -122,7 +120,7 @@ def test_ordering_should_not_crash(db, api_client, token):
     endpoint = 'room'
     create_token_endpoint(token, endpoint)
     response = api_client.get('/api/1/room/?ordering=whatever')
-    print(response.data)
+
     assert response.status_code == 200
 
 
@@ -134,12 +132,12 @@ def test_update_org_on_account(db, api_client, token):
     create_token_endpoint(token, endpoint)
     data = {"organizations": ["myorg"]}
     response = update(api_client, endpoint, 1, data)
-    print(response)
+
     assert response.status_code == 200
 
     data = {"organizations": []}
     response = update(api_client, endpoint, 1, data)
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -149,7 +147,7 @@ def test_update_group_on_org(db, api_client, token):
     # Only admin group
     data = {"accountgroups": [1]}
     response = update(api_client, endpoint, 1, data)
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -159,7 +157,7 @@ def test_update_group_on_org(db, api_client, token):
 def test_filter_netbox_by_invalid_ip(db, api_client, token):
     create_token_endpoint(token, 'netbox')
     response = api_client.get('{}?ip=10'.format(ENDPOINTS['netbox']))
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -168,7 +166,7 @@ def test_filter_netbox_by_invalid_ip_that_cannot_be_converted_throws_error(
 ):
     create_token_endpoint(token, 'netbox')
     response = api_client.get('{}?ip=x'.format(ENDPOINTS['netbox']))
-    print(response)
+
     assert response.status_code == 400
 
 
@@ -179,7 +177,7 @@ def test_update_netbox(db, api_client, token):
     res = json.loads(response_create.content.decode('utf-8'))
     data = {'categoryid': 'GW'}
     response_update = update(api_client, endpoint, res['id'], data)
-    print(response_update)
+
     assert response_update.status_code == 200
 
 
@@ -192,9 +190,6 @@ def test_delete_netbox(db, api_client, token):
     response_get = get(api_client, endpoint, json_create['id'])
     json_get = json.loads(response_get.content.decode('utf-8'))
 
-    print(response_delete)
-    print(json_get['deleted_at'])
-
     assert response_delete.status_code == 204
     assert json_get['deleted_at'] is not None
 
@@ -205,7 +200,7 @@ def test_delete_netbox(db, api_client, token):
 def test_get_wrong_room(db, api_client, token):
     create_token_endpoint(token, 'room')
     response = api_client.get('{}blapp/'.format(ENDPOINTS['room']))
-    print(response)
+
     assert response.status_code == 404
 
 
@@ -214,7 +209,7 @@ def test_get_new_room(db, api_client, token):
     create_token_endpoint(token, endpoint)
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     response = api_client.get('/api/1/room/blapp/')
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -226,7 +221,7 @@ def test_when_room_has_dot_in_id_the_api_should_still_find_it(db, api_client, to
     room.save()
 
     response = api_client.get(f"/api/1/room/{room.id}/")
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -240,7 +235,7 @@ def test_when_location_has_dot_in_id_the_api_should_still_find_it(
     location.save()
 
     response = api_client.get(f"/api/1/location/{location.id}/")
-    print(response)
+
     assert response.status_code == 200
 
 
@@ -248,7 +243,7 @@ def test_patch_room_not_found(db, api_client, token):
     create_token_endpoint(token, 'room')
     data = {'location': 'mylocation'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
-    print(response)
+
     assert response.status_code == 404
 
 
@@ -258,7 +253,7 @@ def test_patch_room_wrong_location(db, api_client, token):
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     data = {'location': 'mylocatio'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
-    print(response)
+
     assert response.status_code == 400
 
 
@@ -269,7 +264,6 @@ def test_patch_room(db, api_client, token):
     data = {'location': 'mylocation'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
 
-    print(response)
     assert response.status_code == 200
 
 
@@ -286,11 +280,45 @@ def test_patch_alias(db, api_client, token, endpoint):
         {'aliases': new_aliases},
         format='json',
     )
-    print(response)
+
     assert response.status_code == 200
 
     data = json.loads(response.content.decode('utf-8'))
     assert data.get('aliases') == new_aliases
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_patch_alias_with_pipe(db, api_client, token, endpoint):
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    new_aliases = ['aliaswithpipe|']
+    response = api_client.patch(
+        f'/api/1/{endpoint}/{object_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_patch_alias_too_long(db, api_client, token, endpoint):
+    create_token_endpoint(token, endpoint)
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    new_aliases = ['a' * (MAX_ALIAS_LENGTH + 1)]
+    response = api_client.patch(
+        f'/api/1/{endpoint}/{object_id}/',
+        {'aliases': new_aliases},
+        format='json',
+    )
+
+    assert response.status_code == 400
 
 
 def test_delete_room_wrong_room(db, api_client, token):
@@ -299,7 +327,6 @@ def test_delete_room_wrong_room(db, api_client, token):
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     response = api_client.delete('/api/1/room/blap/')
 
-    print(response)
     assert response.status_code == 404
 
 
@@ -310,7 +337,6 @@ def test_validate_vlan(db, api_client, token):
     testdata.update({'net_type': 'core'})
     response = create(api_client, endpoint, testdata)
 
-    print(response)
     assert response.status_code == 400
 
 
@@ -330,7 +356,6 @@ def test_create_prefix(db, api_client, token):
     testdata = prepare_prefix_test(db, api_client, token)
     response = create(api_client, endpoint, testdata)
 
-    print(response)
     assert response.status_code == 201
 
 
@@ -363,7 +388,7 @@ def test_update_prefix_remove_usage(db, api_client, token, serializer_models):
 def test_nonexistent_alert_should_give_404(db, api_client, token):
     create_token_endpoint(token, 'alert')
     response = api_client.get('{}9999/'.format(ENDPOINTS['alert']))
-    print(response)
+
     assert response.status_code == 404
 
 
@@ -371,7 +396,7 @@ def test_alert_should_be_visible_in_api(db, api_client, token, serializer_models
     create_token_endpoint(token, 'alert')
     alert = AlertHistory.objects.all()[0]
     response = api_client.get('{url}{id}/'.format(url=ENDPOINTS['alert'], id=alert.id))
-    print(response)
+
     assert response.status_code == 200
     content = response.content.decode('utf-8')
     # Simple string tests, but they might just as well parse the JSON structure
@@ -388,7 +413,7 @@ def test_interface_with_last_used_should_be_listable(
     endpoint = 'interface'
     create_token_endpoint(token, endpoint)
     response = api_client.get('/api/1/interface/?last_used=on')
-    print(response.data)
+
     assert response.status_code == 200
 
 

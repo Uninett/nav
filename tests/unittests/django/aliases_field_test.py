@@ -1,10 +1,15 @@
 """Tests for AliasListField and AliasListWidget"""
 
 import pytest
-from django import forms
+from django.core.exceptions import ValidationError
 from django.http import QueryDict
 
-from nav.django.forms import AliasListField, AliasListWidget
+from nav.django.forms import (
+    MAX_ALIAS_LENGTH,
+    AliasListField,
+    AliasListWidget,
+    validate_aliases,
+)
 
 
 class TestAliasListFieldClean:
@@ -34,14 +39,19 @@ class TestAliasListFieldClean:
 
     def test_when_value_has_non_string_then_it_should_raise_validation_error(self):
         field = AliasListField(required=False)
-        with pytest.raises(forms.ValidationError):
+        with pytest.raises(ValidationError):
             field.clean([123])
 
     def test_when_alias_exceeds_max_length_then_it_should_raise_validation_error(self):
         field = AliasListField(required=False)
-        long_alias = 'a' * (AliasListField.MAX_ALIAS_LENGTH + 1)
-        with pytest.raises(forms.ValidationError):
+        long_alias = 'a' * (MAX_ALIAS_LENGTH + 1)
+        with pytest.raises(ValidationError):
             field.clean([long_alias])
+
+    def test_when_alias_contains_pipe_then_it_should_raise_validation_error(self):
+        field = AliasListField(required=False)
+        with pytest.raises(ValidationError):
+            field.clean(['foo|bar'])
 
 
 class TestAliasListWidgetValueFromDatadict:
@@ -81,3 +91,36 @@ class TestAliasListFieldPrepareValue:
     def test_when_value_is_none_then_it_should_return_empty_list(self):
         field = AliasListField(required=False)
         assert field.prepare_value(None) == []
+
+
+class TestValidateAliases:
+    def test_when_value_is_none_then_it_should_return_empty_list(self):
+        assert validate_aliases(None) == []
+
+    def test_when_value_is_empty_list_then_it_should_return_empty_list(self):
+        assert validate_aliases([]) == []
+
+    def test_when_value_has_strings_then_it_should_return_them(self):
+        assert validate_aliases(['foo', 'bar']) == ['foo', 'bar']
+
+    def test_when_value_has_whitespace_then_it_should_strip(self):
+        assert validate_aliases(['  foo  ', ' bar ']) == ['foo', 'bar']
+
+    def test_when_value_has_empty_strings_then_it_should_remove_them(self):
+        assert validate_aliases(['foo', '', '  ', 'bar']) == ['foo', 'bar']
+
+    def test_when_value_has_duplicates_then_it_should_deduplicate(self):
+        assert validate_aliases(['foo', 'bar', 'foo']) == ['foo', 'bar']
+
+    def test_when_value_has_non_string_then_it_should_raise_validation_error(self):
+        with pytest.raises(ValidationError):
+            validate_aliases([123])
+
+    def test_when_alias_exceeds_max_length_then_it_should_raise_validation_error(self):
+        long_alias = 'a' * (MAX_ALIAS_LENGTH + 1)
+        with pytest.raises(ValidationError):
+            validate_aliases([long_alias])
+
+    def test_when_alias_contains_pipe_then_it_should_raise_validation_error(self):
+        with pytest.raises(ValidationError):
+            validate_aliases(['foo|bar'])
