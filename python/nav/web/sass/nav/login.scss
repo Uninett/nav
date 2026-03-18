@@ -26,7 +26,7 @@ html, body {
     margin-top: 100px;
     margin-left: auto;
     margin-right: auto;
-    width: 350px;
+    width: 400px;
     ul {
         margin-bottom: 0;
     }
@@ -43,6 +43,58 @@ html, body {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .button[type="submit"] {
+        margin-bottom: 0;
+    }
+    .login-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1em;
+        label, input[type="checkbox"] {
+            margin-bottom: 0;
+        }
+        .remember-label {
+            vertical-align: 2px;
+        }
+        a {
+            font-size: 0.8em;
+        }
+    }
+    .audit-logging-link {
+        display: inline-block;
+        margin-top: 1em;
+    }
+    .login-alt-section:not(:has(.login-alternatives > *)) {
+        display: none;
+    }
+    .login-divider {
+        display: flex;
+        align-items: center;
+        margin: 1em 0;
+        hr {
+            flex: 1;
+            margin: 0;
+        }
+        span {
+            padding: 0 0.75em;
+            color: #999;
+            font-size: 0.85em;
+        }
+    }
+    .login-alternatives {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        .button {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4em;
+            font-size: 0.85rem;
+        }
+    }
 }
 
 @media #{$small-only} {
@@ -55,4 +107,3 @@ html, body {
         width: 90%;
     }
 }
-
