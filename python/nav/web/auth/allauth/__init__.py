@@ -1,7 +1,6 @@
 import logging
-from os.path import join
 
-from nav.config import NAVConfigParser
+from nav.config.toml import TOMLConfigParser
 
 
 __all__ = []
@@ -9,33 +8,36 @@ _logger = logging.getLogger(__name__)
 
 
 # See https://docs.allauth.org/en/latest/mfa/index.html for more docs
-class MFAConfigParser(NAVConfigParser):
-    _KEY = "multi-factor-authentication"
-    DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
-    DEFAULT_CONFIG = f"""
-[{_KEY}]
-enabled=no
-support-recovery-codes=yes
-support_passkeys=no
-support-passkey-signups=no
-allow-insecure-origin=no
-"""
+class MFAConfigParser(TOMLConfigParser):
+    """Parse the "multi-factor-authentication" section of authentication.toml"""
+
+    SECTION = "multi-factor-authentication"
+    DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
+    DEFAULT_CONFIG = {
+        SECTION: {
+            "enabled": False,
+            "support-recovery-codes": True,
+            "support-passkeys": False,
+            "support-passkey-signups": False,
+            "allow-insecure-origin": False,
+        }
+    }
 
     def is_mfa_enabled(self):
-        return self.getboolean(self._KEY, 'enabled', fallback=False)
+        return self["enabled"]
 
     def are_recovery_codes_enabled(self):
-        return self.getboolean(self._KEY, 'support-recovery-codes', fallback=True)
+        return self["support-recovery-codes"]
 
     def are_passkeys_enabled(self):
-        return self.getboolean(self._KEY, 'support-passkeys', fallback=False)
+        return self["support-passkeys"]
 
     def are_passkey_signups_enabled(self):
-        return self.getboolean(self._KEY, 'support-passkey-signups', fallback=False)
+        return self["support-passkey-signups"]
 
     def are_insecure_origins_allowed(self):
         # Set to True when developing
-        return self.getboolean(self._KEY, 'allow-insecure-origin', fallback=False)
+        return self["allow-insecure-origin"]
 
     def get_MFA_SUPPORTED_TYPES_setting(self):
         methods = []

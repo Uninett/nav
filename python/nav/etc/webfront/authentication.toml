@@ -1,0 +1,14 @@
+# Should NAV itself handle multi factor authentication (mfa)?
+[multi-factor-authentication]
+# Whether mfa should be enabled
+enabled = false
+
+# Whether mfa recovery codes can be generated and used. Default: yes
+## We recommend not changing this setting.
+#support-recovery-codes = true
+# The number of codes is hard-coded to 10
+
+# Whether passkeys (webauthn) is supported (Poorly supported on Linux!)
+#support-passkeys = false
+#support-passkey-signups = false
+#allow-insecure-origin = false
