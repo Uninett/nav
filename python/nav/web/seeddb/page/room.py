@@ -82,6 +82,7 @@ def room_list(request):
         value_list,
         'seeddb-room-edit',
         filter_form=filter_form,
+        column_labels={'aliases_string': 'Aliases'},
         extra_context=info.template_context,
     )
 

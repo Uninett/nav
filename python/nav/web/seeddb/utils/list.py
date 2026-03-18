@@ -20,6 +20,7 @@
 
 from collections import defaultdict
 from functools import reduce
+from typing import Optional
 
 from django.db.models import Model
 from django.shortcuts import render
@@ -37,6 +38,7 @@ def render_list(
     edit_url_attr='pk',
     filter_form=None,
     template='seeddb/list.html',
+    column_labels=None,
     extra_context=None,
     add_descriptions=False,
     add_related=None,
@@ -53,6 +55,8 @@ def render_list(
      - edit_url_attr: Attribute used to make the URL to the edit page.
      - filter_form: Form used to filter the queryset.
      - template: Path to the template used.
+     - column_labels: A dictionary containing any fields that should have a different
+                      label than their field name
      - extra_context: A dictionary containing all additional context that
                       should be used in the template.
     """
@@ -67,7 +71,7 @@ def render_list(
     else:
         rows, datakeys = _process_objects(queryset, value_list, edit_url, edit_url_attr)
 
-    labels = _label(queryset.model, value_list, datakeys)
+    labels = _label(queryset.model, value_list, datakeys, column_labels)
     if add_descriptions:
         _add_descriptions(rows, queryset)
     if add_related is not None:
@@ -158,7 +162,7 @@ def _getattr(obj, attr):
         pass
 
 
-def _label(model, value_list, datakeys=None):
+def _label(model, value_list, datakeys=None, overriden_labels: Optional[dict] = None):
     """Make labels for the table head.
     Returns a list of tuples. Each tuple contains the verbose label and a key
     that can be used for sort parameters in the URL.
@@ -171,10 +175,13 @@ def _label(model, value_list, datakeys=None):
             attrs.extend(datakeys[value])
         else:
             attrs.append(value)
-            try:
-                labels.append(get_verbose_name(model, value))
-            except FieldDoesNotExist:
-                labels.append(value)
+            if overriden_labels and value in overriden_labels:
+                labels.append(overriden_labels[value])
+            else:
+                try:
+                    labels.append(get_verbose_name(model, value))
+                except FieldDoesNotExist:
+                    labels.append(value)
     return zip(labels, attrs)
 
 
