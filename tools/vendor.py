@@ -88,8 +88,12 @@ def find_old_file(base):
     return None
 
 
-def sync_one(npm_name):
-    """Sync one package. Returns (old, new) filenames or None."""
+def sync_one(npm_name, config_text=None):
+    """Sync one package. Returns (old, new, updated_config_text) or None.
+
+    If config_text is provided, references are updated in-memory and the
+    modified text is returned so the caller can batch-write once.
+    """
     source, version = resolve_source(npm_name)
     if not source:
         return None
@@ -106,11 +110,11 @@ def sync_one(npm_name):
         (LIBS / old).unlink(missing_ok=True)
         old_ref = f"libs/{old.removesuffix('.js')}"
         new_ref = f"libs/{new.removesuffix('.js')}"
-        cfg = CONFIG.read_text()
-        if old_ref in cfg:
-            CONFIG.write_text(cfg.replace(old_ref, new_ref))
+        if config_text is None:
+            config_text = CONFIG.read_text()
+        config_text = config_text.replace(old_ref, new_ref)
 
-    return old, new
+    return old, new, config_text
 
 
 def npm_install(*args):
@@ -199,18 +203,34 @@ def cmd_sync():
     config_text = original_config
     n = 0
     for pkg in sorted(get_deps()):
-        result = sync_one(pkg)
+        result = sync_one(pkg, config_text)
         if result:
-            old, new = result
+            old, new, config_text = result
             print(f"  {pkg}: {old or '(new)'} -> {new}")
             n += 1
+    if config_text != original_config:
+        CONFIG.write_text(config_text)
     print(f"\nSynced {n} library(ies)" if n else "Everything up to date")
 
 
-def cmd_update(name, version=None):
+def _install_and_sync(name, version=None):
+    """Install a package via npm and sync the vendored file.
+
+    Returns (old, new) on success, or None.
+    """
     spec = f"{name}@{version}" if version else f"{name}@latest"
     npm_install("--save-exact", spec)
     result = sync_one(name)
+    if not result:
+        return None
+    old, new, config_text = result
+    if config_text is not None:
+        CONFIG.write_text(config_text)
+    return old, new
+
+
+def cmd_update(name, version=None):
+    result = _install_and_sync(name, version)
     if result:
         old, new = result
         print(f"Updated: {old} -> {new}")
@@ -219,9 +239,7 @@ def cmd_update(name, version=None):
 
 
 def cmd_add(name, version=None):
-    spec = f"{name}@{version}" if version else f"{name}@latest"
-    npm_install("--save-exact", spec)
-    result = sync_one(name)
+    result = _install_and_sync(name, version)
     if result:
         _, new = result
         alias = VERSION_RE.sub("", new).removesuffix(".min.js")
