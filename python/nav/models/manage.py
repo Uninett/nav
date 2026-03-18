@@ -1116,6 +1116,10 @@ class Room(models.Model):
         return reverse('room-info', kwargs={'roomid': self.pk})
 
     @property
+    def aliases_string(self) -> str:
+        return ", ".join(self.aliases)
+
+    @property
     def latitude(self):
         if self.position:
             return self.position[0]
@@ -1185,6 +1189,10 @@ class Location(models.Model, TreeMixin):
             return '{} ({})'.format(self.id, self.description)
         else:
             return '{}'.format(self.id)
+
+    @property
+    def aliases_string(self) -> str:
+        return ", ".join(self.aliases)
 
     def get_all_rooms(self):
         """Return a queryset returning all rooms in this location and
