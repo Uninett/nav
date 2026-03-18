@@ -2,6 +2,7 @@
 
 from unittest import TestCase
 
+from nav.django.forms import MAX_ALIAS_LENGTH
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase
 from nav import bulkimport, bulkparse
@@ -253,6 +254,25 @@ class TestLocationImporter(DjangoTransactionTestCase):
             objects, Exception, msg="Too long id didn't raise exception"
         )
 
+    def test_location_can_have_single_alias(self):
+        data = "somewhere:::locationalias"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Location))
+        self.assertEqual(objects[0].aliases, ["locationalias"])
+
+    def test_location_can_have_multiple_aliases(self):
+        data = "somewhere:::locationalias1|locationalias2"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Location))
+        self.assertEqual(objects[0].aliases, ["locationalias1", "locationalias2"])
+
+    def test_too_long_alias_should_raise_error(self):
+        data = f"somewhere:::{'a' * (MAX_ALIAS_LENGTH + 1)}"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(isinstance(objects, bulkimport.BulkImportError))
+
     @staticmethod
     def parse_to_objects(data):
         parser = bulkparse.LocationBulkParser(data)
@@ -280,3 +300,69 @@ class TestPrefixImporter(DjangoTransactionTestCase):
         self.assertEqual(len(objects), 2)
         self.assertTrue(isinstance(objects[0], manage.Vlan))
         self.assertTrue(isinstance(objects[1], manage.Prefix))
+
+
+class TestRoomImporter(DjangoTransactionTestCase):
+    def test_import(self):
+        data = "somewhere:mylocation:Over the rainbow"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Room))
+        self.assertEqual(objects[0].id, 'somewhere')
+
+    def test_import_no_description(self):
+        data = "somewhere:mylocation"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Room))
+        self.assertEqual(objects[0].id, 'somewhere')
+
+    def test_imported_objects_can_be_saved(self):
+        data = "somewhere:mylocation:Over the rainbow"
+        objects = self.parse_to_objects(data)
+        for obj in objects:
+            bulkimport.reset_object_foreignkeys(obj)
+            print(repr(obj))
+            obj.save()
+
+    def test_duplicate_rooms_should_give_error(self):
+        manage.Room.objects.get_or_create(
+            id='somewhere', location_id='mylocation', description='original somewhere'
+        )
+
+        data = "somewhere:mylocation:Over the rainbow"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(isinstance(objects, bulkimport.AlreadyExists))
+
+    def test_too_long_roomid_should_raise_error(self):
+        data = 'this-id-is-simply-too-long-according-to-the-schema-but-lets-try'
+        objects = self.parse_to_objects(data)
+        self.assertIsInstance(
+            objects, Exception, msg="Too long id didn't raise exception"
+        )
+
+    def test_room_can_have_single_alias(self):
+        data = "somewhere:mylocation::roomalias"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Room))
+        self.assertEqual(objects[0].aliases, ["roomalias"])
+
+    def test_room_can_have_multiple_aliases(self):
+        data = "somewhere:mylocation::roomalias1|roomalias2"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.Room))
+        self.assertEqual(objects[0].aliases, ["roomalias1", "roomalias2"])
+
+    def test_too_long_alias_should_raise_error(self):
+        data = f"somewhere:mylocation::{'a' * (MAX_ALIAS_LENGTH + 1)}"
+        objects = self.parse_to_objects(data)
+        self.assertTrue(isinstance(objects, bulkimport.BulkImportError))
+
+    @staticmethod
+    def parse_to_objects(data):
+        parser = bulkparse.RoomBulkParser(data)
+        importer = bulkimport.RoomImporter(parser)
+        _line_num, objects = next(importer)
+        return objects

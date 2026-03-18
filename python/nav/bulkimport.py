@@ -20,6 +20,7 @@ import json
 
 from django.core.exceptions import ValidationError
 
+from nav.django.forms import validate_aliases
 from nav.models.fields import PointField
 from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup
@@ -33,6 +34,19 @@ from nav.util import is_valid_ip
 from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
+
+
+def _get_aliases(aliases: str) -> list[str]:
+    if not aliases:
+        return []
+    return aliases.split('|')
+
+
+def _validate_aliases(aliases: str) -> None:
+    try:
+        validate_aliases(aliases)
+    except ValidationError as e:
+        raise BulkImportError(e)
 
 
 class BulkImporter:
@@ -213,8 +227,13 @@ class LocationImporter(BulkImporter):
             parent = get_object_or_fail(Location, id=row['parent'])
         else:
             parent = None
+        aliases = _get_aliases(row.get('aliases', ''))
+        _validate_aliases(aliases)
         location = Location(
-            id=row['locationid'], parent=parent, description=row['descr']
+            id=row['locationid'],
+            parent=parent,
+            description=row['descr'],
+            aliases=aliases,
         )
         return [location]
 
@@ -226,10 +245,13 @@ class RoomImporter(BulkImporter):
         raise_if_exists(Room, id=row['roomid'])
         location = get_object_or_fail(Location, id=row['locationid'])
         attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
+        aliases = _get_aliases(row.get('aliases', ''))
+        _validate_aliases(aliases)
         room = Room(
             id=row['roomid'],
             location=location,
             description=row['descr'],
+            aliases=aliases,
             data=attributes,
         )
         try:

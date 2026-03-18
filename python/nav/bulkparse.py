@@ -249,7 +249,7 @@ class UsageBulkParser(BulkParser):
 class LocationBulkParser(BulkParser):
     """Parses the location bulk format"""
 
-    format = ('locationid', 'parent', 'descr')
+    format = ('locationid', 'parent', 'descr', 'aliases')
     required = 1
     locationid_maxlength = getattr(Location, '_meta').get_field('id').max_length
 
@@ -301,7 +301,7 @@ class PrefixBulkParser(BulkParser):
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
 
-    format = ('roomid', 'locationid', 'descr', 'position')
+    format = ('roomid', 'locationid', 'descr', 'aliases', 'position')
     restkey = 'attr'
     required = 2
     _validate_attr = staticmethod(validate_attribute_list)
