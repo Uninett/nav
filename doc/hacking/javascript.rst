@@ -81,9 +81,11 @@ only be global configuration files for *RequireJS*, *jshint*, etc.
   contains JavaScript files related to geomap module in NAV.
 
 :file:`libs/`
-  contains 3rd party libraries (both *AMD* and *non-AMD* libraries) which we
-  use in NAV. **Make sure** you add the JavaScript as a shimmed library in
-  :file:`python/nav/web/static/js/require_config.*.js` **if it is not** an *AMD* library.
+  contains vendored 3rd party libraries (both *AMD* and *non-AMD* libraries)
+  which we use in NAV. These are managed via ``tools/vendor.py`` (see
+  :ref:`managing-vendored-js-libraries`). **Make sure** you add the JavaScript
+  as a shimmed library in :file:`python/nav/web/static/js/require_config.*.js`
+  **if it is not** an *AMD* library.
 
 :file:`resources/`
   contains resources that should be available under the Karma testing
@@ -222,3 +224,72 @@ When using HTMX for dynamic content updates, the CSRF token is still required fo
    </form>
 
 The ``{% csrf_token %}`` tag renders as a hidden input field with name ``csrfmiddlewaretoken`` that JavaScript can access to include in AJAX requests.
+
+.. _managing-vendored-js-libraries:
+
+Managing vendored JS libraries
+==============================
+
+Third-party JavaScript libraries in :file:`libs/` are vendored as minified
+files and tracked as npm dependencies in :file:`package.json` for version
+management. The ``tools/vendor.py`` script automates installing, updating and
+removing these files.
+
+Listing vendored libraries
+--------------------------
+
+To see all vendored libraries and their versions:
+
+.. code-block:: bash
+
+   python tools/vendor.py list
+
+Syncing all libraries
+---------------------
+
+After a fresh clone or when :file:`package.json` has changed, install npm
+dependencies and sync the vendored files:
+
+.. code-block:: bash
+
+   npm install --legacy-peer-deps
+   python tools/vendor.py sync
+
+Adding a new library
+--------------------
+
+.. code-block:: bash
+
+   python tools/vendor.py add d3 --version 7.9.0
+
+This installs the package via npm, copies the minified file to :file:`libs/`
+as ``d3-7.9.0.min.js``, and prints the path entry to add to
+:file:`require_config.js`::
+
+   Added: d3-7.9.0.min.js
+   Add to require_config.js: "d3": "libs/d3-7.9.0.min",
+
+Add the printed entry to the ``paths`` object in
+:file:`python/nav/web/static/js/require_config.js`. If the library is not an
+AMD module, also add a ``shim`` entry.
+
+Updating a library
+------------------
+
+.. code-block:: bash
+
+   python tools/vendor.py update d3 --version 7.10.0
+
+This replaces the old minified file, updates :file:`require_config.js`
+references automatically, and pins the new version in :file:`package.json`.
+Omit ``--version`` to update to the latest release.
+
+Removing a library
+------------------
+
+.. code-block:: bash
+
+   python tools/vendor.py remove d3
+
+This removes the minified file from :file:`libs/`, removes the matching entry
+from :file:`require_config.js`, and uninstalls the npm package.

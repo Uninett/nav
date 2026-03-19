@@ -40,15 +40,6 @@ def get_deps():
     return _load_json(ROOT / "package.json").get("dependencies", {})
 
 
-def _base_name(source_path):
-    """Normalize a source filename to its base name.
-
-    'dist/jQuery.min.js' -> 'jquery'
-    'underscore-min.js'  -> 'underscore'
-    """
-    return Path(source_path).stem.removesuffix(".min").removesuffix("-min").lower()
-
-
 def resolve_source(npm_name):
     """Find the .min.js dist file and version for a package in node_modules.
 
@@ -74,9 +65,24 @@ def resolve_source(npm_name):
     return None, None
 
 
-def local_name(source_path, version):
-    """'dist/jQuery.min.js' + '4.0.0' -> 'jquery-4.0.0.min.js'"""
-    return f"{_base_name(source_path)}-{version}.min.js"
+GENERIC_STEMS = {"cdn", "index", "dist", "main", "umd", "bundle"}
+
+
+def _derive_name(npm_name, source_path):
+    """Derive a short library name from the dist file, or fall back to npm name.
+
+    'dist/jquery.min.js' -> 'jquery'
+    'cdn.min.js'         -> falls back to npm_name
+    """
+    stem = Path(source_path).stem.removesuffix(".min").removesuffix("-min").lower()
+    if stem in GENERIC_STEMS:
+        return npm_name
+    return stem
+
+
+def local_name(npm_name, source_path, version):
+    """'jquery', 'dist/jquery.min.js', '4.0.0' -> 'jquery-4.0.0.min.js'"""
+    return f"{_derive_name(npm_name, source_path)}-{version}.min.js"
 
 
 def find_old_file(base):
@@ -98,11 +104,12 @@ def sync_one(npm_name, config_text=None):
     if not source:
         return None
 
-    new = local_name(source, version)
+    name = _derive_name(npm_name, source)
+    new = local_name(npm_name, source, version)
     if (LIBS / new).exists():
         return None
 
-    old = find_old_file(_base_name(source))
+    old = find_old_file(name)
 
     shutil.copy2(NODE / npm_name / source, LIBS / new)
 
@@ -250,10 +257,10 @@ def cmd_add(name, version=None):
         print("Could not resolve dist file. Copy manually from node_modules/")
 
 
-def cmd_remove(name):
-    source, _ = resolve_source(name)
+def cmd_remove(npm_name):
+    source, _ = resolve_source(npm_name)
     if source:
-        old = find_old_file(_base_name(source))
+        old = find_old_file(_derive_name(npm_name, source))
         if old:
             (LIBS / old).unlink()
             print(f"Removed: {old}")
@@ -264,7 +271,11 @@ def cmd_remove(name):
             if len(new_lines) < len(lines):
                 CONFIG.write_text("".join(new_lines))
                 print("Removed entry from require_config.js")
-    subprocess.run(["npm", "uninstall", name], cwd=ROOT)
+    else:
+        print(f"Could not resolve dist file for {npm_name}, skipping file cleanup")
+    r = subprocess.run(["npm", "uninstall", npm_name], cwd=ROOT)
+    if r.returncode != 0:
+        sys.exit(f"npm uninstall failed for {npm_name}")
 
 
 def build_parser():
