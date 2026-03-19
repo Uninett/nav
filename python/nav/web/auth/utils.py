@@ -28,10 +28,15 @@ from django.contrib.auth import (
 )
 from django.contrib.sessions.backends.base import UpdateError
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.functional import SimpleLazyObject
+from django_htmx.http import HttpResponseClientRedirect
 
 from nav.django.defaults import PUBLIC_URLS
 from nav.models.profiles import Account
+from nav.web.auth import get_login_url
+from nav.web.utils import is_ajax
 
 
 _logger = logging.getLogger(__name__)
@@ -160,3 +165,59 @@ def get_number_of_accounts_with_password_issues() -> int:
         cache.set(PASSWORD_ISSUES_CACHE_KEY, number_of_accounts_with_password_issues)
 
     return number_of_accounts_with_password_issues
+
+
+def authorize_request(request: HttpRequest) -> bool:
+    """Check whether request.user is authorized to visit the request's path
+
+    The paths are checked against python regular expressions stored in
+    a NAV-specific table, nav.models.profiles.Privilege.
+    """
+    if not hasattr(request, "user"):
+        raise ImproperlyConfigured(
+            "The NAV Django authentication middlewares requires Django's "
+            "auth middleware to be installed. Edit your MIDDLEWARE setting "
+            "to insert "
+            "'django.contrib.auth.middleware.AuthenticationMiddleware' "
+            "before 'nav.web.auth.middleware.AuthorizationMiddleware'."
+        )
+    account = get_account(request)
+
+    authorized = authorization_not_required(
+        request.get_full_path()
+    ) or account.has_perm('web_access', request.get_full_path())
+
+    if not authorized:
+        _logger.warning(
+            "User %s denied access to %s",
+            account.get_username(),
+            request.get_full_path(),
+        )
+        return False
+
+    _logger.debug(
+        "User %s granted access to %s",
+        account.get_username(),
+        request.get_full_path(),
+    )
+    return True
+
+
+def redirect_to_login(request: HttpRequest) -> HttpResponse:
+    """Redirects a request to the NAV login page, unless it was detected
+    to be an AJAX request, in which case return a 401 Not Authorized
+    response.
+
+    """
+    if is_ajax(request):
+        return HttpResponse(status=401)
+
+    if request.htmx:
+        if orig_path := request.htmx.current_url_abs_path:
+            new_url = get_login_url(request, path=orig_path)
+            return HttpResponseClientRedirect(new_url)
+        else:
+            return HttpResponse(status=401)
+
+    new_url = get_login_url(request)
+    return HttpResponseRedirect(new_url)

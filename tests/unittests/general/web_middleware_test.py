@@ -83,12 +83,8 @@ class TestAuthorizeRequest:
         fake_request = r.get('/')
         fake_request.account = DEFAULT_ACCOUNT
         fake_request.user = DEFAULT_ACCOUNT
-        with patch(
-            'nav.web.auth.middleware.authorization_not_required', return_value=True
-        ):
-            with patch(
-                'nav.web.auth.middleware.get_account', return_value=DEFAULT_ACCOUNT
-            ):
+        with patch('nav.web.auth.utils.authorization_not_required', return_value=True):
+            with patch('nav.web.auth.utils.get_account', return_value=DEFAULT_ACCOUNT):
                 result = authorize_request(fake_request)
                 assert result is True
 
@@ -97,9 +93,7 @@ class TestAuthorizeRequest:
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
         fake_request.user = PLAIN_ACCOUNT
-        with patch(
-            'nav.web.auth.middleware.authorization_not_required', return_value=True
-        ):
+        with patch('nav.web.auth.utils.authorization_not_required', return_value=True):
             result = authorize_request(fake_request)
             assert result is True
 
@@ -108,9 +102,7 @@ class TestAuthorizeRequest:
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
         fake_request.user = PLAIN_ACCOUNT
-        with patch(
-            'nav.web.auth.middleware.authorization_not_required', return_value=False
-        ):
+        with patch('nav.web.auth.utils.authorization_not_required', return_value=False):
             with patch('nav.models.profiles.Account.has_perm', return_value=False):
                 result = authorize_request(fake_request)
                 assert result is False
@@ -174,7 +166,7 @@ class TestRedirectToLogin:
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.htmx = False
-        with patch('nav.web.auth.middleware.is_ajax', return_value=False):
+        with patch('nav.web.auth.utils.is_ajax', return_value=False):
             response = redirect_to_login(fake_request)
         assert isinstance(response, HttpResponseRedirect)
         assert response.status_code == 302
@@ -183,7 +175,7 @@ class TestRedirectToLogin:
         """An AJAX request should get a 401 response, not a redirect"""
         r = RequestFactory()
         fake_request = r.get('/')
-        with patch('nav.web.auth.middleware.is_ajax', return_value=True):
+        with patch('nav.web.auth.utils.is_ajax', return_value=True):
             response = redirect_to_login(fake_request)
         assert response.status_code == 401
 
@@ -193,7 +185,7 @@ class TestRedirectToLogin:
         request.htmx = Mock()
         request.htmx.current_url_abs_path = '/some/page/'
 
-        with patch('nav.web.auth.middleware.is_ajax', return_value=False):
+        with patch('nav.web.auth.utils.is_ajax', return_value=False):
             response = redirect_to_login(request)
         assert isinstance(response, HttpResponseClientRedirect)
         assert 'HX-Redirect' in response
@@ -204,7 +196,7 @@ class TestRedirectToLogin:
         request.htmx = Mock()
         request.htmx.current_url_abs_path = None
 
-        with patch('nav.web.auth.middleware.is_ajax', return_value=False):
+        with patch('nav.web.auth.utils.is_ajax', return_value=False):
             response = redirect_to_login(request)
         assert response.status_code == 401
 

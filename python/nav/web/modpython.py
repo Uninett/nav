@@ -46,8 +46,8 @@ from django.db import connection
 from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
-from nav.web.auth.middleware import (
-    NAVAuthenticationMiddleware,
+from nav.web.auth.middleware import NAVAuthenticationMiddleware
+from nav.web.auth.utils import (
     authorize_request,
     redirect_to_login,
 )
