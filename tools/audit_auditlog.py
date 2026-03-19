@@ -72,7 +72,7 @@ def main():
         if args.list:
             list_registered_commands(KNOWN_REPAIRS)
         elif args.repair in KNOWN_REPAIRS:
-            repair = KNOWN_REPAIRS[args.problem]["function"]
+            repair = KNOWN_REPAIRS[args.repair]["function"]
             repair()
         else:
             parser.parse_args(["fix", "-h"])
@@ -95,7 +95,7 @@ def create_parser():
     view_group.add_argument(
         "-r",
         "--report",
-        help="Generate and print the named report",
+        help="generate and print the named report",
         choices=KNOWN_REPORTS.keys(),
     )
 
@@ -106,7 +106,7 @@ def create_parser():
     )
     fix_group.add_argument(
         '-r',
-        '--report',
+        '--repair',
         help="fix the named problem",
         choices=KNOWN_REPAIRS.keys(),
     )
@@ -149,7 +149,7 @@ register_argument(
 
 
 def view_lurkers():
-    "Print list of current accounts that have no entries in the audit log"
+    "Print list of current accounts never recorded as actors in the audit log"
     lurkers = get_lurkers()
     print("Lurkers:", lurkers.count())
     for lurker in lurkers:
@@ -182,7 +182,7 @@ register_argument(
     "zombies",
     (
         "List currently existing accounts that according to the audit log "
-        "should no longer exist."
+        "should no longer exist"
     ),
     view_zombies,
 )
@@ -197,7 +197,7 @@ def _find_unused_ids():
     actor_ids = set([int(_id) for _, _id in get_all_historical_actors()])
     used_ids = account_ids | actor_ids
     max_id = max(used_ids)
-    all_ids = range(1, max_id + 1)
+    all_ids = set(range(1, max_id + 1))
     free_ids = sorted(all_ids - actor_ids)
     return free_ids
 
@@ -240,13 +240,14 @@ register_argument(
     (
         "For delete-account entries:\n"
         "Attempts to set the pk of the object if it is missing"
+        " to malformed delete-account entries"
     ),
     repair_delete_account_entries,
 )
 
 
 def delete_account_remove_zombies():
-    "Delete accounts have an entry in the object column of delete-account"
+    "Delete accounts that have an entry in the object column of delete-account"
     zombies = get_zombies()
     zombies.delete()
 
