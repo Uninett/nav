@@ -21,6 +21,8 @@ import logging
 from os.path import join
 from typing import Union, Optional
 
+from django.views.decorators.debug import sensitive_variables
+
 import nav.errors
 from nav.config import NAVConfigParser
 
@@ -118,6 +120,7 @@ def open_ldap() -> "ldap.ldapobject.LDAPObject":
     return lconn
 
 
+@sensitive_variables('password')
 def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
     """
     Attempt to authenticate the login name with password against the
@@ -202,6 +205,7 @@ class LDAPUser(object):
         self.ldap = ldap_conn
         self.user_dn = None
 
+    @sensitive_variables('password')
     def bind(self, password: str) -> None:
         """Performs an authenticated bind for this user using password"""
         suffix = _config.get('ldap', 'suffix')
