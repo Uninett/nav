@@ -1,4 +1,4 @@
-.PHONY: dummy clean distclean testclean docclean doc cssclean sassbuild sasswatch .FORCE
+.PHONY: dummy clean distclean testclean docclean doc cssclean sassbuild sasswatch setup-playwright .FORCE
 
 dummy:
 	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
@@ -51,5 +51,10 @@ sassbuild: cssclean
 
 sasswatch:
 	-npm run watch:sass
+
+PLAYWRIGHT_BROWSERS ?= chromium
+
+setup-playwright:
+	uv run playwright install --with-deps $(PLAYWRIGHT_BROWSERS)
 
 .FORCE:

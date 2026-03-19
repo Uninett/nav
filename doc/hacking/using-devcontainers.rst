@@ -178,6 +178,21 @@ will monitor all the documentation source files for changes and automatically
 rebuild the HTML output on every change.
 
 
+Running JavaScript tests
+------------------------
+
+The JavaScript test suite uses Karma with headless Chrome to run tests.
+Playwright's Chromium is automatically installed when the devcontainer is
+created, but if you need to install or update it manually, run::
+
+  make setup-playwright
+
+This installs Playwright's Chromium binary along with its required system
+libraries.  Once installed, you can run the JavaScript tests with::
+
+  tox -e javascript
+
+
 Installing Python packages manually
 -----------------------------------
 

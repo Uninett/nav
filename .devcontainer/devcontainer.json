@@ -5,7 +5,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "nav",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "postCreateCommand": "uv sync --all-extras --all-groups; git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}; uv run playwright install --with-deps chromium",
+  "postCreateCommand": "uv sync --all-extras --all-groups; git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}; make setup-playwright",
   "postStartCommand": "uvx pre-commit install; bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/scripts/init-nav-config.sh",
   "forwardPorts": [
     8000
