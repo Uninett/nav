@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Optional
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from django.views.decorators.debug import sensitive_variables
 
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap
@@ -51,6 +52,7 @@ class LdapBackend(ModelBackend):
     explicitly removed their local NAV accounts.
     """
 
+    @sensitive_variables('password')
     def authenticate(
         self,
         request: Optional[HttpRequest] = None,
@@ -87,6 +89,7 @@ class LdapBackend(ModelBackend):
         return nav_user.ext_sync == 'ldap'
 
     @staticmethod
+    @sensitive_variables('password')
     def _ldap_authenticate(username: str, password: str) -> Optional["LDAPUser"]:
         """Attempts to authenticate the user against LDAP, logging errors"""
         try:
@@ -103,6 +106,7 @@ class LdapBackend(ModelBackend):
             return ldap_user
 
     @staticmethod
+    @sensitive_variables('password')
     def _create_nav_account(ldap_user: "LDAPUser", password: str) -> Account:
         """Creates a new local NAV account based on LDAP user details."""
         nav_account = Account(
@@ -115,6 +119,7 @@ class LdapBackend(ModelBackend):
         return nav_account
 
     @classmethod
+    @sensitive_variables('password')
     def _sync_nav_account(
         cls, ldap_user: "LDAPUser", nav_user: Account, password: str
     ) -> None:
