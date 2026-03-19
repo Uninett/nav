@@ -3,7 +3,6 @@ import logging
 from nav.config.toml import TOMLConfigParser
 
 
-__all__ = []
 _logger = logging.getLogger(__name__)
 
 
@@ -84,3 +83,171 @@ class MFAConfigParser(TOMLConfigParser):
                 _logger.warn(f"{insecure_message}: yes, this is a security risk!")
             else:
                 _logger.info(f"{insecure_message}: no")
+
+
+class SocialProviderHelper:
+    """Helper class for social account configs
+
+    Social account configs have a section inside a section structure that is
+    a list of providers*, allowing for configs that hold for all providers on
+    the SECTION.
+
+    [*] Aka. idps for OIDC
+    """
+
+    _subkey: str
+
+    def get_providers(self) -> dict:
+        return self.get(self._subkey, {})
+
+    def get_provider_config(self, provider: str) -> dict:
+        providers = self.get_providers()
+        return providers.get(provider, {})
+
+    def _get_common_SOCIALACCOUNT_PROVIDERS_fields_for_provider(
+        self, provider_config: dict
+    ) -> dict:
+        # Do not alter the provider_config below
+        config = {}
+        settings = provider_config.get("settings", {})
+        config["client_id"] = provider_config["client_id"]
+        config["secret"] = provider_config["secret"]
+        if settings:
+            config["settings"] = settings
+        return config
+
+
+class SocialConfigParser(SocialProviderHelper, TOMLConfigParser):
+    """Parse the "social" section of authentication.toml
+
+    Example:
+
+    [social.providers.github]
+    module-path = allauth.socialaccount.providers.github
+    client_id = "not.optional"
+    secret = "not.optional"
+    scope = ["user:email"]  # optional, "user" scope is default for github
+                            # and includes "user:email"
+    """
+
+    _subkey = "providers"
+    SECTION = "social"
+    DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
+    DEFAULT_CONFIG = {
+        SECTION: {},
+    }
+
+    def translate_entry_for_provider(self, provider: str):
+        provider_config = self.get_provider_config(provider)
+        if not provider_config:
+            return {}
+        # Do not alter the provider_config below
+        config = {}
+        SCOPE = provider_config.get("scope", [])
+        if SCOPE:
+            config["SCOPE"] = SCOPE
+
+        APP = self._get_common_SOCIALACCOUNT_PROVIDERS_fields_for_provider(
+            provider_config
+        )
+        config["APP"] = APP
+        return config
+
+    def translate_all_provider_configs(self):
+        configs = {}
+        for provider in self.get_providers().keys():
+            configs[provider] = self.translate_entry_for_provider(provider)
+        return configs
+
+    def generate_SOCIALACCOUNT_PROVIDERS(self):
+        configs = self.translate_all_provider_configs()
+        return configs
+
+    def get_provider_import_paths(self):
+        module_paths = []
+        missing_modules = []
+        for provider_id, provider_config in self.get_providers().values():
+            if "module-path" in provider_config:
+                module_paths.append(provider_config["module_path"])
+            else:
+                missing_modules.append(provider_id)
+        if missing_modules:
+            _logger.error(
+                "No module path configured for social account provider(s) %s",
+                ', '.join(missing_modules),
+            )
+        return module_paths
+
+
+class OIDCConfigParser(SocialProviderHelper, TOMLConfigParser):
+    """Parse the "oidc" section of authentication.toml
+
+    Example:
+
+    [oidc]
+    module-path = "allauth.socialccount.providers.openid_connect"  # optional
+
+    [oidc.idps.dataporten]
+    provider = dataporten-oidc"  # The name after the dot is used in the URLs
+    name = "Feide OIDC"  # Shown in login screen
+    client_id = "not.optional"
+    secret = "not.optional"
+    server_url = "https://auth.dataporten.no/"  # NEVER optional
+    Feide OIDC does not support the standard OIDC scopes/claims
+    scope = ["userid-feide"]  # Other idps have "profile" for this
+
+    [oidc.dataporten-oidc.settings]
+    uid_field = "https://n.feide.no/claims/eduPersonPrincipalName"
+    """
+
+    _subkey = "idps"
+    _module_path = "allauth.socialaccount.providers.openid_connect"
+    SECTION = "oidc"
+    DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
+    DEFAULT_CONFIG = {
+        SECTION: {},
+    }
+
+    def translate_entry_for_provider(self, provider: str) -> dict:
+        provider_config = self.get_provider_config(provider)
+        if not provider_config:
+            return {}
+        APP = self._get_common_SOCIALACCOUNT_PROVIDERS_fields_for_provider(
+            provider_config
+        )
+        APP["provider_id"] = provider
+        APP["name"] = provider_config["name"]
+        APP.setdefault("settings", {})
+        try:
+            APP["settings"]["server_url"] = provider_config["server_url"]
+        except KeyError:
+            raise KeyError('"server_url" is a mandatory setting')
+        provider_settings = provider_config.get("settings", {})
+        APP["settings"]["uid_field"] = provider_settings.get(
+            "uid_field",
+            "sub",
+        )
+        return APP
+
+    def translate_all_provider_configs(self):
+        configs = []
+        for provider in self.get_providers().keys():
+            configs.append(self.translate_entry_for_provider(provider))
+        return configs
+
+    def get_OAUTH_PKCE_ENABLED(self):
+        return self.get("oauth_pkce_enabled", False)
+
+    def generate_SOCIALACCOUNT_PROVIDERS(self) -> dict:
+        configs = self.translate_all_provider_configs()
+        if configs:
+            return {
+                "openid_connect": {
+                    "OAUTH_PKCE_ENABLED": self.get_OAUTH_PKCE_ENABLED(),
+                    "APPS": configs,
+                },
+            }
+        return {}
+
+    def get_provider_import_paths(self):
+        return [self.get("module-path", self._module_path)]

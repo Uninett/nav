@@ -31,7 +31,7 @@ from typing import Iterator
 
 from nav.errors import GeneralException
 from nav.util import resource_files, resource_bytes
-from . import buildconf
+from nav import buildconf
 
 _logger = logging.getLogger(__name__)
 
