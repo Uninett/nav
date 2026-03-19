@@ -33,9 +33,21 @@ jshint --config ${JSDIR}/.jshintrc ${JAVASCRIPT_FILES[@]} --jslint-reporter > "$
 [ -s "${REPORTDIR}/javascript-jshint.xml" ]
 
 echo "Running tests"
-"${JSDIR}/node_modules/karma/bin/karma" start "${JSDIR}/test/karma.conf.buildserver.js"
 
-if [ "$?" -eq 1 ]; then
-    echo "Error when testing, taking screenshot"
-    import -window root "${REPORTDIR}/javascript-test-error.png"
+# Point to Playwright's Chromium if available (devcontainer/macOS), otherwise Karma will find system Chrome
+if [[ -z "$CHROME_BIN" ]]; then
+    # Playwright's directory layout varies across versions:
+    #   Old: chromium-<rev>/chrome-linux/chrome, chromium-<rev>/chrome-mac/Chromium.app/...
+    #   New: chromium-<rev>/chrome-linux-x64/chrome, chromium-<rev>/chrome-mac-arm64/Google Chrome for Testing.app/...
+    # Use broad globs and pick the newest version (sort -Vr).
+    PLAYWRIGHT_CHROME=$(find "$HOME/.cache/ms-playwright" "$HOME/Library/Caches/ms-playwright" \
+        \( -path "*/chromium-*/chrome-linux*/chrome" \) -o \
+        \( -path "*/chromium-*/chrome-mac*/*.app/Contents/MacOS/*" \
+           ! -path "*/Helpers/*" ! -path "*/Frameworks/*" \) \
+        2>/dev/null | sort -Vr | head -1)
+    if [[ -n "$PLAYWRIGHT_CHROME" ]]; then
+        export CHROME_BIN="$PLAYWRIGHT_CHROME"
+    fi
 fi
+
+"${JSDIR}/node_modules/karma/bin/karma" start "${JSDIR}/test/karma.conf.buildserver.js"
