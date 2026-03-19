@@ -9,6 +9,7 @@
       <th>Room</th>
       <th>Location</th>
       <th>Description</th>
+      <th>Aliases</th>
       <th>#Netboxes</th>
     </tr>
   </thead>
@@ -24,6 +25,9 @@
         </td>
         <td>
           {{ room.description }}
+        </td>
+        <td>
+          {{ room.aliases_string }}
         </td>
         <td>
           {{ room.filtered_netboxes.count }}

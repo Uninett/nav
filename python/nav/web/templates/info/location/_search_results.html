@@ -8,6 +8,7 @@
     <tr>
       <th>Location</th>
       <th>Description</th>
+      <th>Aliases</th>
     </tr>
   </thead>
 
@@ -19,6 +20,9 @@
         </td>
         <td>
           {{ location.description }}
+        </td>
+        <td>
+          {{ location.aliases_string }}
         </td>
       </tr>
     {% endfor %}

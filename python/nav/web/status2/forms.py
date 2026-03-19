@@ -328,7 +328,7 @@ def get_device_groups():
 def get_locations():
     """Gets all locations formatted as choices"""
     return [
-        (location.id, f"{location.id} ({', '.join(location.aliases)})")
+        (location.id, f"{location.id} ({location.aliases_string})")
         if location.aliases
         else (location.id, location.id)
         for location in Location.objects.all()
