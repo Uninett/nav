@@ -86,8 +86,23 @@ class BulkParser:
         # source file.
         self.line_num = self.reader.reader.line_num
 
+        self._strip_cell_whitespace(row)
         self.validate_row(row)
         return row
+
+    @staticmethod
+    def _strip_cell_whitespace(row):
+        """Strip leading/trailing whitespace from all cell values.
+
+        Stray whitespace (especially tabs) in CSV fields can cause
+        database errors, e.g. PostgreSQL's inet type rejects IPs with
+        trailing whitespace.
+        """
+        for key, value in row.items():
+            if isinstance(value, str):
+                row[key] = value.strip()
+            elif isinstance(value, list):
+                row[key] = [v.strip() if isinstance(v, str) else v for v in value]
 
     def validate_row(self, row):
         """Validate an entire row"""
