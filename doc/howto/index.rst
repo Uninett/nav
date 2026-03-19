@@ -14,6 +14,7 @@ Howtos
    debugging-topology
    email
    migrate-data
+   allauth-and-oidc
    mod_auth_openidc_feide
    mod_auth_mellon_feide
    setting-up-logging
