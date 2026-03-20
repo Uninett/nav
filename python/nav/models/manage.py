@@ -1083,7 +1083,28 @@ class AliasQuerySet(models.QuerySet):
         )
 
 
-class Room(models.Model):
+class AliasesMixin:
+    """A mixin that provides methods and properties for models that use aliases"""
+
+    @property
+    def aliases_string(self) -> str:
+        return ", ".join(self.aliases)
+
+    @property
+    def verbose_string(self):
+        rep = '%s' % (self.id)
+        if self.description:
+            rep += ': %s' % (self.description)
+        if self.aliases:
+            rep += ' (%s)' % (self.aliases_string)
+        return rep
+
+    def get_all_aliases(self):
+        aliases = [self.id] + list(self.aliases)
+        return aliases
+
+
+class Room(models.Model, AliasesMixin):
     """From NAV Wiki: The room table defines a wiring closes / network room /
     server room."""
 
@@ -1110,16 +1131,10 @@ class Room(models.Model):
         rep = '%s' % (self.id)
         if self.description:
             rep += ' (%s)' % (self.description)
-        if self.aliases:
-            rep += ' [%s]' % (self.aliases_string)
         return rep
 
     def get_absolute_url(self):
         return reverse('room-info', kwargs={'roomid': self.pk})
-
-    @property
-    def aliases_string(self) -> str:
-        return ", ".join(self.aliases)
 
     @property
     def latitude(self):
@@ -1130,10 +1145,6 @@ class Room(models.Model):
     def longitude(self):
         if self.position:
             return self.position[1]
-
-    def get_all_aliases(self):
-        aliases = [self.id] + list(self.aliases)
-        return aliases
 
 
 class TreeMixin(object):
@@ -1163,7 +1174,7 @@ class TreeMixin(object):
         return descendants
 
 
-class Location(models.Model, TreeMixin):
+class Location(models.Model, TreeMixin, AliasesMixin):
     """The location table defines a group of rooms; i.e. a campus."""
 
     id = models.CharField(db_column='locationid', max_length=30, primary_key=True)
@@ -1190,13 +1201,7 @@ class Location(models.Model, TreeMixin):
         rep = '%s' % (self.id)
         if self.description:
             rep += ' (%s)' % (self.description)
-        if self.aliases:
-            rep += ' [%s]' % (self.aliases_string)
         return rep
-
-    @property
-    def aliases_string(self) -> str:
-        return ", ".join(self.aliases)
 
     def get_all_rooms(self):
         """Return a queryset returning all rooms in this location and
@@ -1206,10 +1211,6 @@ class Location(models.Model, TreeMixin):
 
     def get_absolute_url(self):
         return reverse('location-info', kwargs={'locationid': self.pk})
-
-    def get_all_aliases(self):
-        aliases = [self.id] + list(self.aliases)
-        return aliases
 
 
 class Organization(models.Model, TreeMixin):
