@@ -467,10 +467,6 @@ The project's devcontainer takes care of all of this out of the box.  Beyond
 PostgreSQL, each conftest configures the remaining environment automatically
 via :file:`tests/setup_test_config.py`.
 
-There is also a script to produce an entire test environment as a Docker
-image, and to run the entire test suite inside a Docker container created
-from that image. Take a look in the :file:`tests/docker/` directory.
-
 To run integration tests (including functional browser tests):
 
 .. code-block:: console

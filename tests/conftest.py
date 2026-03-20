@@ -1,6 +1,5 @@
 """pytest setup and fixtures common for all tests, regardless of suite"""
 
-import os
 import platform
 
 import pytest
@@ -29,12 +28,14 @@ def pytest_configure(config):
 
 @pytest.fixture(scope='session')
 def admin_username():
-    return os.environ.get('ADMINUSERNAME', 'admin')
+    return 'admin'
 
 
 @pytest.fixture(scope='session')
 def admin_password():
-    return os.environ.get('ADMINPASSWORD', 'admin')
+    from .setup_test_config import ADMIN_PASSWORD
+
+    return ADMIN_PASSWORD
 
 
 @pytest.fixture(scope="session")
