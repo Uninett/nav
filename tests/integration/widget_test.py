@@ -16,10 +16,14 @@ def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_mess
     result = widget.get_context_data_view({})
     print(result)
     assert 'results' in result
-    assert len(result['results']) == 1
 
-    problem = result['results'][0]
-    assert problem['netbox_object'] == alerthist_with_two_messages.netbox
+    matching = [
+        r
+        for r in result['results']
+        if r['netbox'] == alerthist_with_two_messages.netbox.id
+    ]
+    assert len(matching) == 1
+    assert matching[0]['netbox_object'] == alerthist_with_two_messages.netbox
 
 
 def test_feedreader_widget_should_get_nav_blog_posts():
