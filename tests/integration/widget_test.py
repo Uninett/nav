@@ -202,7 +202,7 @@ def test_when_sudoer_requests_unauthorized_navlet_via_htmx_then_it_should_not_cr
 
 
 @pytest.fixture()
-def alerthist_with_two_messages(localhost):
+def alerthist_with_two_messages(db, localhost):
     alert = AlertHistory(
         source_id='ipdevpoll',
         netbox=localhost,

@@ -262,7 +262,7 @@ def _is_django_unittest(request_or_item):
 
 
 @pytest.fixture(scope='function')
-def token():
+def token(db):
     """Creates a write enabled token for API access but without endpoints
 
     Tests should manipulate the endpoints as they see fit.

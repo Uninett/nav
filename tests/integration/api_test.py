@@ -573,7 +573,7 @@ def test_api_urls_should_resolve(urlname, arg):
 
 
 @pytest.fixture()
-def serializer_models(localhost, admin_account):
+def serializer_models(db, localhost, admin_account):
     """Fixture for testing API serializers
 
     - unrecognized_neighbor
