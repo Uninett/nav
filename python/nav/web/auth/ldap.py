@@ -163,7 +163,15 @@ def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
     # the final verdict is made
     group_dn = _config.get('ldap', 'require_group')
     if group_dn:
-        if user.is_group_member(group_dn):
+        try:
+            is_member = user.is_group_member(group_dn)
+        except UserNotFound:
+            _logger.warning(
+                "Could not find %s in LDAP catalog while verifying group membership",
+                login,
+            )
+            return False
+        if is_member:
             _logger.info("%s is verified to be a member of %s", login, group_dn)
             return user
         else:
