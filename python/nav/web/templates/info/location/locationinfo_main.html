@@ -14,6 +14,12 @@
         <th>Description</th>
         <td>{{ location.description }}</td>
       </tr>
+      {% if location.aliases %}
+        <tr>
+          <th>Aliases</th>
+          <td>{{ location.aliases_string }}</td>
+        </tr>
+      {% endif %}
       {% if location.parent %}
       <tr>
         <th>Location</th>
