@@ -77,18 +77,19 @@ def fake_graphite_web_server():
     503 status code.  The fixture returns the localhost port number the server
     listens to.
     """
-    port = 54321
-    response_code = 503  # Example response code
+    response_code = 503
 
     handler = lambda *args, **kwargs: SingleStatusHandler(
         *args, response_code=response_code, **kwargs
     )
-    httpd = socketserver.TCPServer(("", port), handler)
+    socketserver.TCPServer.allow_reuse_address = True
+    httpd = socketserver.TCPServer(("", 0), handler)
+    port = httpd.server_address[1]
 
     thread = threading.Thread(target=httpd.serve_forever)
     thread.daemon = True
     thread.start()
-    time.sleep(1)  # Give the server a second to ensure it starts
+    time.sleep(0.1)
 
     yield port
 
