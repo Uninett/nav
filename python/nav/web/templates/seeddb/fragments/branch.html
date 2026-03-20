@@ -3,7 +3,11 @@
     <i class="fa fa-toggle-down"></i>
   {% endif %}
   <a href="{% url edit_url_name branch.pk %}">
-    {{ branch }}
+    {% if branch.verbose_string %}
+      {{ branch.verbose_string }}
+    {% else %}
+      {{ branch }}
+    {% endif %}
     <div class="nav-tooltip">
         <i class="fa fa-question-circle-o unstyled-tooltip" aria-describedby="#branch-tooltip-{{ branch.pk }}"></i>
         <span id="branch-tooltip-{{ branch.pk }}" role="tooltip">
