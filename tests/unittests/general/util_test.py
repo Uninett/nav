@@ -15,8 +15,11 @@
 import time
 import pytest
 
+from datetime import datetime, timedelta
+from unittest.mock import patch
+
 from nav import util
-from nav.util import IPRange, first_true
+from nav.util import IPRange, first_true, cachedfor
 from IPy import IP
 
 
@@ -185,3 +188,67 @@ class TestTimer:
     def test_when_used_as_context_variable_it_should_return_self(self):
         with util.Timer() as t:
             assert isinstance(t, util.Timer)
+
+
+year2000 = datetime.fromisoformat("2000-01-01T00:00:00.000000")
+
+
+@pytest.mark.parametrize(
+    "start_time,max_age",
+    [
+        (year2000, timedelta(seconds=1)),
+    ],
+)
+class TestCachedFor:
+    def test_cachedfor_should_hit_cache_when_age_less_than_max_age(
+        self, start_time, max_age
+    ):
+        state = 0
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
+
+            @cachedfor(max_age)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
+
+            first = inc()
+
+        with patch(
+            "nav.util.datetime.datetime", self.frozen_datetime(start_time + max_age / 2)
+        ):
+            second = inc()
+
+        assert first == second == 1
+
+    def test_cachedfor_should_miss_cache_when_age_greater_than_max_age(
+        self, start_time, max_age
+    ):
+        state = 0
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
+
+            @cachedfor(max_age)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
+
+            first = inc()
+
+        with patch(
+            "nav.util.datetime.datetime", self.frozen_datetime(start_time + max_age * 2)
+        ):
+            second = inc()
+
+        assert first + 1 == second == 2
+
+    @staticmethod
+    def frozen_datetime(start_time):
+        class _datetime(datetime):
+            @classmethod
+            def now(cls):
+                return start_time
+
+        return _datetime
