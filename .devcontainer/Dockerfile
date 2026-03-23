@@ -37,6 +37,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        python3-dev \
        git \
        libsnmp40 \
+       libtidy5deb1 \
        cron \
        inotify-tools \
        vim \
