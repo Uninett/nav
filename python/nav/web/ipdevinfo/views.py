@@ -234,10 +234,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             else:
                 alert_type = '%s' % alert.event_type
 
-            try:
-                message = alert.messages.filter(type='sms')[0].message
-            except IndexError:
-                message = None
+            message = alert.get_short_description()
 
             if not has_unresolved_alerts and alert.is_open():
                 has_unresolved_alerts = True
@@ -714,11 +711,7 @@ def get_recent_alerts_interface(interface, days_back=7):
         event_type='linkState', subid=interface.pk, end_time__gt=lowest_end_time
     )
     for alert in alerts:
-        try:
-            message = alert.messages.filter(type='sms')[0].message
-        except IndexError:
-            message = None
-        alert.message = message
+        alert.message = alert.get_short_description()
 
     return {
         'alerts': alerts,
