@@ -58,7 +58,13 @@ def timeout_command_line_program_exists():
 )
 def test_pping_localhost_should_work(localhost, pping_test_config):
     output = get_pping_output()
-    assert "0 hosts currently marked as down" in output
+    assert "hosts checked" in output
+    assert (
+        "{sysname} ({ip}) marked as down".format(
+            sysname=localhost.sysname, ip=localhost.ip
+        )
+        not in output
+    )
 
 
 @pytest.mark.timeout(20)

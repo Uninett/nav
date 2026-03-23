@@ -78,7 +78,7 @@ class TestManualDetention:
 
 
 class TestQuarantineVlan:
-    def test_quarantine_vlan_twice_should_show_error_message(self, client):
+    def test_quarantine_vlan_twice_should_show_error_message(self, client, db):
         url = reverse('arnold-quarantinevlans')
 
         vlan_id = 1

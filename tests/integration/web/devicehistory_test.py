@@ -200,7 +200,7 @@ def test_device_history_view_filter_with_initial_values_is_same_as_same_get_para
 
 
 @pytest.fixture()
-def localhost_with_alert(localhost):
+def localhost_with_alert(db, localhost):
     alert = AlertHistory(
         source_id='ipdevpoll',
         netbox=localhost,

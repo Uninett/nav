@@ -1109,7 +1109,7 @@ class TestsFilterGroups:
 
 
 @pytest.fixture(scope='function')
-def dummy_profile(admin_account):
+def dummy_profile(db, admin_account):
     account = admin_account
     profile = AlertProfile(account=account, name='ÆØÅ Profile %d' % randint(1, 1000))
     profile.save()
@@ -1117,7 +1117,7 @@ def dummy_profile(admin_account):
 
 
 @pytest.fixture(scope='function')
-def activated_dummy_profile(dummy_profile):
+def activated_dummy_profile(db, dummy_profile):
     preference = AlertPreference(
         account=dummy_profile.account, active_profile=dummy_profile
     )
@@ -1126,14 +1126,14 @@ def activated_dummy_profile(dummy_profile):
 
 
 @pytest.fixture(scope="function")
-def dummy_time_period(activated_dummy_profile):
+def dummy_time_period(db, activated_dummy_profile):
     time_period = TimePeriod(profile=activated_dummy_profile)
     time_period.save()
     return time_period
 
 
 @pytest.fixture(scope="function")
-def dummy_alert_address(admin_account):
+def dummy_alert_address(db, admin_account):
     alert_address = AlertAddress(
         account=admin_account,
         type=AlertSender.objects.get(name=AlertSender.SMS),

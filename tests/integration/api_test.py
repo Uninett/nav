@@ -394,7 +394,7 @@ def test_nonexistent_alert_should_give_404(db, api_client, token):
 
 def test_alert_should_be_visible_in_api(db, api_client, token, serializer_models):
     create_token_endpoint(token, 'alert')
-    alert = AlertHistory.objects.all()[0]
+    alert = AlertHistory.objects.filter(netbox__isnull=False)[0]
     response = api_client.get('{url}{id}/'.format(url=ENDPOINTS['alert'], id=alert.id))
 
     assert response.status_code == 200
@@ -573,7 +573,7 @@ def test_api_urls_should_resolve(urlname, arg):
 
 
 @pytest.fixture()
-def serializer_models(localhost, admin_account):
+def serializer_models(db, localhost, admin_account):
     """Fixture for testing API serializers
 
     - unrecognized_neighbor
