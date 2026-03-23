@@ -195,13 +195,18 @@ EMAIL_HOST_USER = NAV_CONFIG.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = NAV_CONFIG.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = NAV_CONFIG.get('EMAIL_USE_TLS', 'False') == 'True'
 
-# Date formatting
+# Localization
+# Django's default LANGUAGE_CODE is 'en-us', which maps to the 'en' locale.
+# NAV's custom format module (nav.django.formats.en) relies on this to provide
+# ISO-style date/time defaults.  If you change LANGUAGE_CODE, add a matching
+# format module or accept that locale's built-in date formats.
+LANGUAGE_CODE = 'en-us'
+FORMAT_MODULE_PATH = 'nav.django.formats'
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
 SHORT_TIME_FORMAT = 'H:i'  # Use template filter to access this
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 SHORT_DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, SHORT_TIME_FORMAT)
-USE_L10N = False
 
 TIME_ZONE = NAV_CONFIG.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = NAV_CONFIG.get('DOMAIN_SUFFIX', None)
