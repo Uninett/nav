@@ -60,7 +60,9 @@ Using a provider bundled with django-allauth
 
 In addition to setting ``SOCIALACCOUNT_PROVIDERS`` you'll need to add an app,
 per provider. An app might depend on a database table that is not installed in
-NAV so you need to check and if necessary add the tables yourself.
+NAV so you need to check and if necessary add the tables yourself. As of
+django-allauth version 65.15, the only provider that adds additional tables is
+``openid``, app ``allauth.socialaccount.providers.openid``.
 
 Find a complete list of provider settings that come bundled with
 allauth at `django-allauth's provider list
