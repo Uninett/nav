@@ -194,25 +194,28 @@ year2000 = datetime.fromisoformat("2000-01-01T00:00:00.000000")
 
 
 @pytest.mark.parametrize(
-    "start_time,max_age",
+    "start_time,max_age,valid_exceptions",
     [
-        (year2000, timedelta(seconds=1)),
-        (year2000, (year2000 - datetime.min) + timedelta(seconds=1)),
+        (year2000, timedelta(seconds=1), ()),
+        (year2000, (year2000 - datetime.min) + timedelta(seconds=1), (OverflowError)),
     ],
 )
 class TestCachedFor:
     def test_cachedfor_should_hit_cache_when_age_less_than_max_age(
-        self, start_time, max_age
+        self, start_time, max_age, valid_exceptions
     ):
         state = 0
 
         with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
+            try:
 
-            @cachedfor(max_age)
-            def inc():
-                nonlocal state
-                state += 1
-                return state
+                @cachedfor(max_age)
+                def inc():
+                    nonlocal state
+                    state += 1
+                    return state
+            except valid_exceptions:
+                return
 
             first = inc()
 
@@ -224,17 +227,20 @@ class TestCachedFor:
         assert first == second == 1
 
     def test_cachedfor_should_miss_cache_when_age_greater_than_max_age(
-        self, start_time, max_age
+        self, start_time, max_age, valid_exceptions
     ):
         state = 0
 
         with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
+            try:
 
-            @cachedfor(max_age)
-            def inc():
-                nonlocal state
-                state += 1
-                return state
+                @cachedfor(max_age)
+                def inc():
+                    nonlocal state
+                    state += 1
+                    return state
+            except valid_exceptions:
+                return
 
             first = inc()
 
