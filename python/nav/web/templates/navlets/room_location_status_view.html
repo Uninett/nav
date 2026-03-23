@@ -26,7 +26,7 @@
                 {{ alert.start_time }} &ndash;
                 <a href="{% url 'event-details' alert.pk %}"
                    title="See alert details">
-                  {{ alert.sms_message.message }}
+                  {{ alert.short_description }}
                 </a>
               </li>
             {% endfor %}
