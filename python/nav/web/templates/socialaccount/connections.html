@@ -20,10 +20,12 @@
                                    name="account"
                                    value="{{ account.pk }}"
                                    id="id_account_{{ account.pk }}">
-                            <span class="connected-account-info">
-                                <strong>{{ account.get_provider_account.get_brand.name }}</strong>
-                                <span class="connected-account-detail">{{ account.get_provider_account }}</span>
-                            </span>
+                            {% with provider_account=account.get_provider_account %}
+                                <span class="connected-account-info">
+                                    <strong>{{ provider_account.get_brand.name }}</strong>
+                                    <span class="connected-account-detail">{{ provider_account }}</span>
+                                </span>
+                            {% endwith %}
                         </label>
                     </li>
                 {% endfor %}
@@ -38,6 +40,27 @@
         </p>
     {% endif %}
     <h4>{% trans 'Add a Third-Party Account' %}</h4>
-    {% include "socialaccount/snippets/provider_list.html" with process="connect" %}
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+        <div class="provider-list">
+            {% for provider in socialaccount_providers %}
+                {% provider_login_url provider process="connect" as href %}
+                {% if provider.id in connected_providers %}
+                    <span class="nav-tooltip">
+                        <span class="button secondary disabled" aria-disabled="true">
+                            <i class="fa fa-sign-in"></i> {{ provider.name }}
+                        </span>
+                        <span role="tooltip">
+                            {% blocktrans with name=provider.name %}Already connected to {{ name }}{% endblocktrans %}
+                        </span>
+                    </span>
+                {% else %}
+                    <a title="{{ provider.name }}" href="{{ href }}" class="button secondary">
+                        <i class="fa fa-sign-in"></i> {{ provider.name }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
     {% include "socialaccount/snippets/login_extra.html" %}
 {% endblock content %}
