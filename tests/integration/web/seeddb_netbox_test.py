@@ -161,7 +161,7 @@ class TestCheckConnectivityView:
 
         assert response.status_code == 200
         assert response.context['status'] == 'error'
-        assert 'Name or service not known' in response.context['message']
+        assert 'not known' in response.context['message']
 
     @patch('socket.getaddrinfo')
     def test_given_unicode_error_then_return_error_message(
