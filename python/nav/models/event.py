@@ -756,6 +756,32 @@ class AlertHistory(models.Model, EventMixIn):
 
         ack.save()
 
+    def get_short_description(self, language='en'):
+        """Returns a short description of this alert from its messages.
+
+        Tries the following sources in order:
+        1. The SMS message (shortest formatted message)
+        2. The Subject line from the email message
+        3. The alert type description
+        """
+        state = STATE_START if self.end_time is not None else STATE_STATELESS
+        sms = self.messages.filter(type='sms', language=language, state=state).first()
+        if sms:
+            return sms.message
+
+        email = self.messages.filter(
+            type='email', language=language, state=state
+        ).first()
+        if email:
+            for line in email.message.splitlines():
+                if line.startswith('Subject:'):
+                    return line[len('Subject:') :].strip()
+
+        if self.alert_type:
+            return self.alert_type.description
+
+        return ""
+
     @transaction.atomic
     def save(self, *args, **kwargs):
         new_object = self.pk is None
