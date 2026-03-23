@@ -1,39 +1,45 @@
+from functools import cache
+
 from django import template
 from django.urls import reverse
 
 register = template.Library()
 
-BASE_CRUMB = ('Home', reverse('webfront-index'))
 
-# Account-related Breadcrumbs
-BASE_ACCOUNT_CRUMB = ('Account', reverse('webfront-preferences'))
-CURRENT_PATH = ''
-ACCOUNTS_BREADCRUMB_MAP = {
-    reverse('webfront-preferences'): [BASE_ACCOUNT_CRUMB],
-    reverse('account_change_password'): [
-        BASE_ACCOUNT_CRUMB,
-        ('Change Password', CURRENT_PATH),
-    ],
-    reverse('account_reauthenticate'): [
-        BASE_ACCOUNT_CRUMB,
-        ('Re-authenticate', CURRENT_PATH),
-    ],
-    reverse('socialaccount_connections'): [
-        BASE_ACCOUNT_CRUMB,
-        ('Account Connections', CURRENT_PATH),
-    ],
-}
+@cache
+def _get_breadcrumb_config():
+    """Build breadcrumb configuration on first use.
 
-# Combine all breadcrumb mappings
-BREADCRUMB_MAP = {
-    **ACCOUNTS_BREADCRUMB_MAP,
-}
+    Deferred to avoid calling reverse() at module import time, which forces
+    all URL configs and their views to be loaded eagerly.
+    """
+    base_crumb = ('Home', reverse('webfront-index'))
+    base_account_crumb = ('Account', reverse('webfront-preferences'))
 
-# 2FA Breadcrumbs
-TWO_FACTOR_AUTH_CRUMB = [
-    BASE_ACCOUNT_CRUMB,
-    ('Two-Factor Authentication', CURRENT_PATH),
-]
+    breadcrumb_map = {
+        reverse('webfront-preferences'): [base_account_crumb],
+        reverse('account_change_password'): [
+            base_account_crumb,
+            ('Change Password', ''),
+        ],
+        reverse('account_reauthenticate'): [
+            base_account_crumb,
+            ('Re-authenticate', ''),
+        ],
+        reverse('socialaccount_connections'): [
+            base_account_crumb,
+            ('Account Connections', ''),
+        ],
+    }
+
+    two_factor_auth_crumb = [
+        base_account_crumb,
+        ('Two-Factor Authentication', ''),
+    ]
+
+    mfa_prefix = reverse('mfa_index')
+
+    return base_crumb, breadcrumb_map, two_factor_auth_crumb, mfa_prefix
 
 
 @register.filter
@@ -47,16 +53,18 @@ def to_breadcrumbs(path):
         of each breadcrumb.
     :rtype: list
     """
-    # Remove leading and trailing slashes and split the path
+    base_crumb, breadcrumb_map, two_factor_auth_crumb, mfa_prefix = (
+        _get_breadcrumb_config()
+    )
+
     path = clean_path(path)
-    if path in BREADCRUMB_MAP:
-        crumbs = [BASE_CRUMB] + BREADCRUMB_MAP[path]
-        return crumbs
+    if path in breadcrumb_map:
+        return [base_crumb] + breadcrumb_map[path]
 
-    if path.startswith(reverse('mfa_index')):
-        return [BASE_CRUMB] + TWO_FACTOR_AUTH_CRUMB
+    if path.startswith(mfa_prefix):
+        return [base_crumb] + two_factor_auth_crumb
 
-    return [BASE_CRUMB]
+    return [base_crumb]
 
 
 def clean_path(path):
