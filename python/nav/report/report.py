@@ -186,9 +186,10 @@ class Report(object):
 
             uri = "?{0}".format(self.query_args.urlencode())
 
-            # change if the names exist in the overrider hash
-            title = names.get(title, title)
+            # look up explanation before overriding title with display name,
+            # since the explain dict is keyed by the original SQL field name
             explanation = explain.get(title, "")
+            title = names.get(title, title)
 
             field = Cell(title, uri, explanation)
             headers.append(field)
