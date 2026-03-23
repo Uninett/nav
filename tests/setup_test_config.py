@@ -79,7 +79,7 @@ def _write_db_conf(config_dir: Path) -> None:
     host = os.environ.get("PGHOST", "localhost")
     port = os.environ.get("PGPORT", "5432")
     user = os.environ.get("PGUSER", "nav")
-    password = os.environ.get("PGPASSWORD", "")
+    password = os.environ.get("PGPASSWORD", "nav")
     dbname = _get_test_database_name()
 
     db_conf = config_dir / "db.conf"

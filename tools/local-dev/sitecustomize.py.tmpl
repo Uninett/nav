@@ -1,0 +1,10 @@
+import os
+
+for key, value in {
+    "DJANGO_SETTINGS_MODULE": "nav.django.settings",
+    "PGHOST": "127.0.0.1",
+    "PGPORT": "$pg_port",
+    "PGUSER": "nav",
+    "PGPASSWORD": "nav",
+}.items():
+    os.environ.setdefault(key, value)

@@ -1,0 +1,32 @@
+# Lightweight infrastructure services for local NAV development.
+# Usage: make local-up / make local-down
+#
+# This runs only PostgreSQL and Graphite — NAV itself runs natively
+# on your machine. Run 'make local-setup' for first-time setup.
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    ports:
+      - "${NAV_PG_PORT:-5434}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: nav
+      POSTGRES_DB: nav
+      POSTGRES_PASSWORD: nav
+
+  graphite:
+    build: ../../tools/docker/graphite
+    restart: unless-stopped
+    ports:
+      - "2003:2003"
+      - "2003:2003/udp"
+      - "8088:8000"
+    volumes:
+      - ../../python/nav/etc/graphite/storage-schemas.conf:/etc/carbon/storage-schemas.conf
+      - ../../python/nav/etc/graphite/storage-aggregation.conf:/etc/carbon/storage-aggregation.conf
+
+volumes:
+  postgres-data:
