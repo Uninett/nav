@@ -194,12 +194,9 @@ class UnknownEventSubject(object):
             return fmt.format(self.netbox or "N/A", self.subid)
 
     def _get_description_from_message(self):
-        if not hasattr(self._alert, 'messages'):
+        if not hasattr(self._alert, 'get_short_description'):
             return
-
-        m = self._alert.messages.filter(type='sms', language='en')
-        if m:
-            return m[0].message
+        return self._alert.get_short_description() or None
 
 
 class EventMixIn(object):
