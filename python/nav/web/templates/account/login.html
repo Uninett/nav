@@ -1,57 +1,98 @@
 {% extends "account/base_entrance.html" %}
-{% load i18n %}
-{% load allauth account %}
-{% block head_title %}
-    {% trans "Sign In" %}
-{% endblock head_title %}
+{% load i18n allauth %}
+{% block head_title %}NAV Login{% endblock head_title %}
 {% block content %}
-    {% element h1 %}
-        {% trans "Sign In" %}
-    {% endelement %}
-    {% if not SOCIALACCOUNT_ONLY %}
-        {% setvar link %}
-            <a href="{{ signup_url }}">
-            {% endsetvar %}
-            {% setvar end_link %}
-            </a>
-        {% endsetvar %}
-        {% element p %}
-            {% blocktranslate %}If you have not created an account yet, then please {{ link }}sign up{{ end_link }} first.{% endblocktranslate %}
-        {% endelement %}
-        {% url 'account_login' as login_url %}
-        {% element form form=form method="post" action=login_url tags="entrance,login" %}
-            {% slot body %}
-                {% csrf_token %}
-                {% element fields form=form unlabeled=True %}
-                {% endelement %}
-                {{ redirect_field }}
-            {% endslot %}
-            {% slot actions %}
-                {% element button type="submit" tags="prominent,login" id="password_login" %}
-                    {% trans "Sign In" %}
-                {% endelement %}
-            {% endslot %}
-        {% endelement %}
+    {% if "noaccess" in request.GET %}
+        <div class="alert-box alert">
+            You need to log in to access this resource
+        </div>
     {% endif %}
-    {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
-        {% element hr %}
-        {% endelement %}
-        {% element button_group vertical=True %}
+    {% with redirect_url=request.GET.origin|default:redirect_field_value %}
+    {% if redirect_url %}
+        <div class="alert-box secondary origin">
+            After successfully logging in, you will be redirected to:<br/>
+            <strong>{{ redirect_url }}</strong>
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    {% url 'account_login' as login_url %}
+    <form method="post" action="{{ login_url }}">
+        {% csrf_token %}
+        {{ redirect_field }}
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+
+        <div class="row collapse">
+            <div class="small-1 column">
+                <span class="prefix"><i class="fa fa-user"></i></span>
+            </div>
+            <div class="small-11 column">
+                {{ form.login }}
+            </div>
+        </div>
+        {% for error in form.login.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        <div class="row collapse">
+            <div class="small-1 column">
+                <span class="prefix"><i class="fa fa-lock"></i></span>
+            </div>
+            <div class="small-11 column">
+                {{ form.password }}
+            </div>
+        </div>
+        {% for error in form.password.errors %}
+            <small class="error">{{ error }}</small>
+        {% endfor %}
+
+        <div class="login-options">
+            <label for="{{ form.remember.id_for_label }}">{{ form.remember }} <span class="remember-label">Remember me?</span></label>
+            {% url 'account_reset_password' as password_reset_url %}
+            <a href="{{ password_reset_url }}">{% trans "Forgot password?" %}</a>
+        </div>
+
+        {% for error in form.non_field_errors %}
+            <div class="alert-box alert">{{ error }}</div>
+        {% endfor %}
+        <input type="submit" value="Log in" class="button expand"/>
+    </form>
+
+    <div class="login-alt-section">
+        <div class="login-divider">
+            <hr/>
+            <span>{% trans "or" %}</span>
+            <hr/>
+        </div>
+        <div class="login-alternatives">
             {% if PASSKEY_LOGIN_ENABLED %}
-                {% element button type="submit" form="mfa_login" id="passkey_login" tags="prominent,login,outline,primary" %}
-                    {% trans "Sign in with a passkey" %}
-                {% endelement %}
+                <button type="submit" form="mfa_login" id="passkey_login" class="button expand secondary">
+                    <i class="fa fa-key"></i> {% trans "Continue with a passkey" %}
+                </button>
             {% endif %}
             {% if LOGIN_BY_CODE_ENABLED %}
-                {% element button href=request_login_code_url tags="prominent,login,outline,primary" %}
-                    {% trans "Send me a sign-in code" %}
-                {% endelement %}
+                <a href="{{ request_login_code_url }}" class="button expand secondary">
+                    <i class="fa fa-envelope"></i> {% trans "Continue with a sign-in code" %}
+                </a>
             {% endif %}
-        {% endelement %}
-    {% endif %}
-    {% if SOCIALACCOUNT_ENABLED %}
-        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
-    {% endif %}
+            {% if SOCIALACCOUNT_ENABLED %}
+                {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+            {% endif %}
+        </div>
+    </div>
+
+    <a
+        class="audit-logging-link"
+        hx-get="{% url 'webfront-audit-logging-modal' %}"
+        hx-target="body"
+        hx-swap="beforeend"
+    >
+        <small>About audit logging in NAV</small>
+    </a>
+
+    <script>document.getElementById('{{ form.login.id_for_label }}').focus();</script>
 {% endblock content %}
 {% block extra_body %}
     {{ block.super }}
