@@ -1,4 +1,4 @@
-.PHONY: dummy clean distclean testclean docclean doc cssclean sassbuild sasswatch setup-playwright .FORCE
+.PHONY: dummy clean distclean testclean docclean doc cssclean sassbuild sasswatch setup-playwright local-setup local-up local-down .FORCE
 
 dummy:
 	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
@@ -56,5 +56,14 @@ PLAYWRIGHT_BROWSERS ?= chromium
 
 setup-playwright:
 	uv run playwright install --with-deps $(PLAYWRIGHT_BROWSERS)
+
+local-setup:
+	tools/local-dev/setup.sh
+
+local-up:
+	docker compose -f docker-compose.local.yml up -d
+
+local-down:
+	docker compose -f docker-compose.local.yml down
 
 .FORCE:
