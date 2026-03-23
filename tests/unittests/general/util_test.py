@@ -197,6 +197,7 @@ year2000 = datetime.fromisoformat("2000-01-01T00:00:00.000000")
     "start_time,max_age",
     [
         (year2000, timedelta(seconds=1)),
+        (year2000, (year2000 - datetime.min) + timedelta(seconds=1)),
     ],
 )
 class TestCachedFor:
