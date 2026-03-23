@@ -97,6 +97,12 @@ class TestNetboxBulkParser(object):
         with pytest.raises(bulkparse.InvalidFieldValue):
             next(b)
 
+    def test_when_ip_has_trailing_whitespace_it_should_be_stripped(self):
+        data = b"room1:10.0.0.186\t:myorg:OTHER:SNMP v1 read profile::\n"
+        b = bulkparse.NetboxBulkParser(data)
+        row = next(b)
+        assert row['ip'] == '10.0.0.186'
+
     def test_short_line_should_raise_error_with_correct_details(self):
         data = b"room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
