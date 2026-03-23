@@ -1,0 +1,43 @@
+{% extends "allauth/layouts/base.html" %}
+{% load i18n allauth socialaccount %}
+{% block head_title %}
+    {% trans "Account Connections" %}
+{% endblock head_title %}
+{% block content %}
+    <h3>{% trans "Account Connections" %}</h3>
+    {% if form.accounts %}
+        <p>
+            {% blocktrans %}You can sign in to your account using any of the following third-party accounts:{% endblocktrans %}
+        </p>
+        {% url 'socialaccount_connections' as action_url %}
+        <form method="post" action="{{ action_url }}">
+            {% csrf_token %}
+            <ul class="connected-accounts">
+                {% for account in form.accounts %}
+                    <li class="connected-account">
+                        <label for="id_account_{{ account.pk }}">
+                            <input type="checkbox"
+                                   name="account"
+                                   value="{{ account.pk }}"
+                                   id="id_account_{{ account.pk }}">
+                            <span class="connected-account-info">
+                                <strong>{{ account.get_provider_account.get_brand.name }}</strong>
+                                <span class="connected-account-detail">{{ account.get_provider_account }}</span>
+                            </span>
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button type="submit" class="button small alert">
+                {% trans 'Remove' %}
+            </button>
+        </form>
+    {% else %}
+        <p>
+            {% trans 'You currently have no third-party accounts connected to this account.' %}
+        </p>
+    {% endif %}
+    <h4>{% trans 'Add a Third-Party Account' %}</h4>
+    {% include "socialaccount/snippets/provider_list.html" with process="connect" %}
+    {% include "socialaccount/snippets/login_extra.html" %}
+{% endblock content %}
