@@ -31,6 +31,24 @@ from nav.web import l2trace
 
 @patch('nav.web.l2trace.Host.get_host_by_name', new=Mock(return_value=None))
 @patch('nav.web.l2trace.Host.get_host_by_addr', new=Mock(return_value=None))
+class TestGetNetboxVlan:
+    def test_when_netbox_has_no_prefix_it_should_return_none(self, l2trace_topology):
+        """Regression test: get_netbox_vlan should not crash when the netbox
+        has no associated prefix (GitHub issue from prod error report)."""
+        foo_gw = Netbox.objects.get(sysname='foo-gw.example.org')
+        orphan = Netbox(
+            ip='192.168.99.1',
+            sysname='orphan-sw.example.org',
+            room=foo_gw.room,
+            organization=foo_gw.organization,
+            category_id='SW',
+        )
+        orphan.save()
+        assert l2trace.get_netbox_vlan(orphan) is None
+
+
+@patch('nav.web.l2trace.Host.get_host_by_name', new=Mock(return_value=None))
+@patch('nav.web.l2trace.Host.get_host_by_addr', new=Mock(return_value=None))
 class TestGetVlanFromThings:
     def test_arbitrary_ip_is_on_vlan_10(self, l2trace_topology):
         vlan = l2trace.get_vlan_from_ip('10.0.0.99')

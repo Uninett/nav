@@ -21,6 +21,8 @@ import logging
 from os.path import join
 from typing import Union, Optional
 
+from django.views.decorators.debug import sensitive_variables
+
 import nav.errors
 from nav.config import NAVConfigParser
 
@@ -118,6 +120,7 @@ def open_ldap() -> "ldap.ldapobject.LDAPObject":
     return lconn
 
 
+@sensitive_variables('password')
 def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
     """
     Attempt to authenticate the login name with password against the
@@ -160,7 +163,15 @@ def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
     # the final verdict is made
     group_dn = _config.get('ldap', 'require_group')
     if group_dn:
-        if user.is_group_member(group_dn):
+        try:
+            is_member = user.is_group_member(group_dn)
+        except UserNotFound:
+            _logger.warning(
+                "Could not find %s in LDAP catalog while verifying group membership",
+                login,
+            )
+            return False
+        if is_member:
             _logger.info("%s is verified to be a member of %s", login, group_dn)
             return user
         else:
@@ -202,6 +213,7 @@ class LDAPUser(object):
         self.ldap = ldap_conn
         self.user_dn = None
 
+    @sensitive_variables('password')
     def bind(self, password: str) -> None:
         """Performs an authenticated bind for this user using password"""
         suffix = _config.get('ldap', 'suffix')
