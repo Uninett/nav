@@ -58,10 +58,13 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         categories = list(Category.objects.values_list('id', flat=True))
         categories.append('ELINK')
 
-        rooms_locations = json.dumps(
-            list(Room.objects.values_list('id', flat=True))
-            + list(Location.objects.values_list('id', flat=True))
-        )
+        rooms = Room.objects.values_list('id', 'aliases')
+        locations = Location.objects.values_list('id', 'aliases')
+        rooms_locations = []
+        for item_id, aliases in (*rooms, *locations):
+            label = f"{item_id} ({', '.join(aliases)})" if aliases else item_id
+            rooms_locations.append({"label": label, "value": item_id})
+        rooms_locations = json.dumps(rooms_locations)
 
         context.update(
             {
