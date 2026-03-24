@@ -94,7 +94,7 @@ Provides access to NAVs netbox data
 
 :Search: sysname
 
-:Filters: ip, sysname, room, organization, category
+:Filters: ip, sysname, room, room_alias, room_location_alias, organization, category
 
 
 api/netboxentity/[<id>]
@@ -113,9 +113,10 @@ api/room/[<id>]
 
 Provides access to NAVs room data
 
-:Search: None
+:Search: aliases
 
-:Filters: location, description
+:Filters: location, description, alias
+
 
 
 api/prefix/[<id>]
