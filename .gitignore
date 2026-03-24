@@ -9,6 +9,10 @@
 !.pre-commit-config.yaml
 !.readthedocs.yaml
 !.sonarcloud.properties
+!.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 *.orig
 *.rej

@@ -1,0 +1,60 @@
+name: Check test names
+
+on:
+  pull_request:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-test-names:
+    runs-on: ubuntu-latest
+    name: Check test naming convention
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Check new test names
+      id: check
+      run: |
+        base="origin/${{ github.event.pull_request.base.ref }}"
+        output=$(python3 checks/check_test_names.py --base "$base" --format markdown 2>&1) && has_violations=false || has_violations=true
+        echo "$output"
+        {
+          echo "body<<BODY_EOF"
+          echo "$output"
+          echo "BODY_EOF"
+        } >> "$GITHUB_OUTPUT"
+        echo "has_violations=$has_violations" >> "$GITHUB_OUTPUT"
+
+    - name: Find existing comment
+      uses: peter-evans/find-comment@v3
+      id: find-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: '<!-- check-test-names -->'
+
+    - name: Post or update comment
+      if: steps.check.outputs.has_violations == 'true'
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        edit-mode: replace
+        body: |
+          <!-- check-test-names -->
+          ${{ steps.check.outputs.body }}
+
+    - name: Change comment to mention resolved violations
+      if: steps.check.outputs.has_violations == 'false' && steps.find-comment.outputs.comment-id != ''
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        edit-mode: replace
+        body: |
+          <!-- check-test-names -->
+          ### Test naming convention
+
+          All new test names follow the convention. :thumbsup:
