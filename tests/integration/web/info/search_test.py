@@ -14,18 +14,6 @@ def test_search_for_ip_devices_should_not_crash(client):
     assert response.status_code == 200
 
 
-def test_search_for_rooms_should_not_crash(client):
-    url = reverse('room-search') + '?query=a'
-    response = client.get(url)
-    assert response.status_code == 200
-
-
-def test_search_for_locations_should_not_crash(client):
-    url = reverse('location-search') + '?query=a'
-    response = client.get(url)
-    assert response.status_code == 200
-
-
 def test_search_for_vlans_should_not_crash(client):
     url = reverse('vlan-index') + '?query=a'
     response = client.get(url)
@@ -229,7 +217,14 @@ class TestInfoSearchViews:
             'location-info', kwargs={'locationid': location_with_alias.pk}
         )
 
-    def test_given_alias_for_room_in_room_search_should_return_room(
+
+class TestRoomSearchView:
+    def test_given_standard_query_then_should_not_crash(self, client):
+        url = reverse('room-search') + '?query=a'
+        response = client.get(url)
+        assert response.status_code == 200
+
+    def test_given_alias_for_room_then_should_return_room(
         self, client, room_with_alias
     ):
         url = reverse('room-search') + f'?query={room_with_alias.aliases[0]}'
@@ -238,7 +233,7 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert room_with_alias.pk in response.content.decode('utf-8')
 
-    def test_given_alias_for_location_in_room_search_should_return_room_in_location(
+    def test_given_alias_for_location_then_should_return_room_in_location(
         self, client, location_with_alias, room_with_alias
     ):
         url = reverse('room-search') + f'?query={location_with_alias.aliases[0]}'
@@ -247,7 +242,14 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert room_with_alias.pk in response.content.decode('utf-8')
 
-    def test_given_alias_for_location_in_location_search_should_return_location(
+
+class TestLocationSearchView:
+    def test_given_standard_query_then_it_should_not_crash(self, client):
+        url = reverse('location-search') + '?query=a'
+        response = client.get(url)
+        assert response.status_code == 200
+
+    def test_given_alias_for_location_then_it_should_return_location(
         self, client, location_with_alias
     ):
         url = reverse('location-search') + f'?query={location_with_alias.aliases[0]}'
@@ -256,7 +258,7 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert location_with_alias.pk in response.content.decode('utf-8')
 
-    def test_given_alias_for_location_in_location_search_should_return_parent_location(
+    def test_given_alias_for_location_then_it_should_return_parent_location(
         self, client, location_with_alias
     ):
         parent_location = Location.objects.create(id="parent_location")
@@ -269,7 +271,7 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert parent_location.pk in response.content.decode('utf-8')
 
-    def test_when_location_has_multiple_matching_children_then_it_should_not_return_duplicates_in_location_search(  # noqa: E501
+    def test_when_location_has_multiple_matching_children_then_it_should_not_return_duplicates(  # noqa: E501
         self, client, location_with_alias
     ):
         """
