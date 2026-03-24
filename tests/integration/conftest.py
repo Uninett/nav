@@ -14,6 +14,7 @@ from django.contrib.staticfiles.handlers import StaticFilesHandler
 from django.test import Client
 from django.test.testcases import LiveServerThread
 
+SNMP_TEST_PORT = 1024
 
 ########################################################################
 #                                                                      #
@@ -305,15 +306,20 @@ def snmpsim():
             snmpsimd,
             '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
             '--log-level=error',
-            '--agent-udpv4-endpoint=127.0.0.1:1024',
+            '--agent-udpv4-endpoint=127.0.0.1:{}'.format(SNMP_TEST_PORT),
         ],
         env={'HOME': workspace},
     )
 
-    while not _lookfor('0100007F:0400', '/proc/net/udp'):
+    for _ in range(10):
+        if _verify_localhost_snmp_response():
+            break
+        if proc.poll() is not None:
+            raise RuntimeError(f"snmpsimd exited with code {proc.returncode}")
         print("Still waiting for snmpsimd to listen for queries")
-        proc.poll()
-        time.sleep(0.1)
+        time.sleep(0.5)
+    else:
+        raise TimeoutError("snmpsimd did not start in time")
 
     yield
     proc.kill()
@@ -330,7 +336,7 @@ def snmp_agent_proxy(snmpsim, snmp_ports):
     port = next(snmp_ports)
     agent = AgentProxy(
         '127.0.0.1',
-        1024,
+        SNMP_TEST_PORT,
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
@@ -354,10 +360,19 @@ def snmp_ports():
     return _ports
 
 
-def _lookfor(string, filename):
-    """Very simple grep-like function"""
-    data = io.open(filename, 'r', encoding='utf-8').read()
-    return string in data
+def _verify_localhost_snmp_response(port=SNMP_TEST_PORT):
+    """Verifies that the snmpsimd fixture process is responding, by using NAV's own
+    SNMP framework to query it.
+    """
+    from nav.Snmp import Snmp
+    from nav.Snmp.errors import SnmpError
+
+    try:
+        session = Snmp(host="127.0.0.1", community="public", version="2c", port=port)
+        resp = session.jog("1.3.6.1.2.1.47.1.1.1.1.2")
+        return bool(resp)
+    except (SnmpError, OSError):
+        return False
 
 
 @pytest.fixture
