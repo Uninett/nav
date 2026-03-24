@@ -269,6 +269,30 @@ class TestInfoSearchViews:
         assert response.status_code == 200
         assert parent_location.pk in response.content.decode('utf-8')
 
+    def test_when_location_has_multiple_matching_children_then_it_should_not_return_duplicates_in_location_search(  # noqa: E501
+        self, client, location_with_alias
+    ):
+        """
+        Turns out that the way child_locations are joined in the search for locations
+        if we have a locations with multiple child locations where both the id of the
+        parent and the ids of the children match the query without having a distinct()
+        added we get the same parent location returned multiple times
+        """
+        mylocation = Location.objects.get(id="mylocation")
+        mylocation.parent = location_with_alias
+        mylocation.save()
+
+        second_child = Location.objects.create(id='secondlocation')
+        second_child.parent = location_with_alias
+        second_child.save()
+
+        url = reverse('location-search') + '?query=location'
+        response = client.get(url)
+
+        assert response.status_code == 200
+        ids = response.context["locations"].values_list("id", flat=True)
+        assert len(ids) == len(set(ids))
+
 
 class TestIndexSearchPreviewView:
     """Tests for the search preview feature."""
