@@ -2,6 +2,13 @@
 Authenticating with OIDC/OAuth2 by using a local settings file
 ==============================================================
 
+.. info::
+   If the config described in the reference documentation :doc:`External web
+   authentication (OAuth2, OIDC) <../reference/social-account>`_ is
+   insufficient for your needs, you can *instead* use a local settings file.
+   Don't use both, and make an issue about your issue so that we can improve
+   the proper config file.
+
 It is possible to use a local settings-file to unlock every option available in
 `django-allauth <https://docs.allauth.org/en/latest/>`_'s arsenal but we will
 only show how to support bundled and OIDC providers here. Have a look at
