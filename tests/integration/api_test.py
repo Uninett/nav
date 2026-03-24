@@ -330,6 +330,126 @@ def test_delete_room_wrong_room(db, api_client, token):
     assert response.status_code == 404
 
 
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_when_filtering_by_alias_then_it_should_return_matching_results(
+    db, api_client, token, endpoint
+):
+    create_token_endpoint(token, endpoint)
+
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    other_object_data = TEST_DATA.get(endpoint).copy()
+    other_object_data['id'] = 'otherid'
+    other_object_data.pop('aliases')
+
+    create(api_client, endpoint, other_object_data)
+
+    object_id = TEST_DATA[endpoint]['id']
+    alias = TEST_DATA[endpoint]['aliases'][0]
+
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?alias={alias}")
+
+    assert response.status_code == 200
+
+    ids = [obj['id'] for obj in response.data['results']]
+    assert object_id in ids
+    assert 'otherid' not in ids
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_when_searching_by_alias_then_it_should_return_matching_results(
+    db, api_client, token, endpoint
+):
+    create_token_endpoint(token, endpoint)
+
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    other_object_data = TEST_DATA.get(endpoint).copy()
+    other_object_data['id'] = 'otherid'
+    other_object_data.pop('aliases')
+
+    create(api_client, endpoint, other_object_data)
+
+    object_id = TEST_DATA[endpoint]['id']
+    alias = TEST_DATA[endpoint]['aliases'][0]
+
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?search={alias}")
+
+    assert response.status_code == 200
+
+    ids = [obj['id'] for obj in response.data['results']]
+    assert object_id in ids
+    assert 'otherid' not in ids
+
+
+@pytest.mark.parametrize(
+    "filter_param,alias_type,object_id",
+    [
+        ('room_alias', 'room', 'bø-123'),
+        ('room_location_alias', 'location', 'bø'),
+    ],
+)
+def test_when_filtering_netbox_by_alias_then_it_should_return_matching_results(
+    db, api_client, token, alias_filter_models, filter_param, alias_type, object_id
+):
+    # test-gsw.example.org is in room bø-123 (location bø) per test-data.sql
+    create_token_endpoint(token, alias_type)
+    aliases = patch_object_with_aliases(api_client, token, alias_type, object_id)
+
+    endpoint = 'netbox'
+    create_token_endpoint(token, endpoint)
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?{filter_param}={aliases[0]}")
+
+    assert response.status_code == 200
+
+    sysnames = [r["sysname"] for r in response.data["results"]]
+    assert "test-gsw.example.org" in sysnames
+    assert 'test-gsw-2.example.org' not in sysnames
+
+
+def test_when_searching_by_cabling_room_alias_then_it_should_return_matching_results(
+    db, api_client, token, alias_filter_models
+):
+    endpoint = 'cabling'
+    room_aliases = patch_object_with_aliases(api_client, token, 'room', 'myroom')
+    create_token_endpoint(token, endpoint)
+
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?search={room_aliases[0]}")
+
+    assert response.status_code == 200
+    room_ids = [r["room"] for r in response.data["results"]]
+    assert 'myroom' in room_ids
+    assert 'anotherroom' not in room_ids
+
+
+@pytest.mark.parametrize(
+    "endpoint,filter_param, room_id_function",
+    [
+        ('patch', 'cabling_room_alias', lambda data: data["cabling"]["room"]["id"]),
+        (
+            'patch',
+            'cabling_target_room_alias',
+            lambda data: data["cabling"]["room"]["id"],
+        ),
+        ('cabling', 'room_alias', lambda data: data["room"]),
+        ('cabling', 'target_room_alias', lambda data: data["room"]),
+        ('rack', 'room_alias', lambda data: data["room"]),
+    ],
+)
+def test_when_filtering_by_room_alias_then_it_should_return_matching_results(
+    db, api_client, token, alias_filter_models, endpoint, filter_param, room_id_function
+):
+    room_aliases = patch_object_with_aliases(api_client, token, 'room', 'myroom')
+    create_token_endpoint(token, endpoint)
+
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?{filter_param}={room_aliases[0]}")
+
+    assert response.status_code == 200
+    room_ids = [room_id_function(r) for r in response.data["results"]]
+    assert 'myroom' in room_ids
+    assert 'anotherroom' not in room_ids
+
+
 def test_validate_vlan(db, api_client, token):
     endpoint = 'vlan'
     create_token_endpoint(token, 'vlan')
@@ -569,6 +689,18 @@ def test_api_urls_should_resolve(urlname, arg):
         assert reverse(urlname, args=(arg,))
 
 
+def patch_object_with_aliases(api_client, token, endpoint, object_id):
+    create_token_endpoint(token, endpoint)
+    aliases = [f"test{object_id}alias1", f"test{object_id}alias2"]
+    api_client.patch(
+        f"/api/1/{endpoint}/{object_id}/",
+        {'aliases': aliases},
+        format='json',
+    )
+
+    return aliases
+
+
 # Fixtures
 
 
@@ -629,6 +761,52 @@ def serializer_models(db, localhost, admin_account):
     auditlog.LogEntry.add_log_entry(admin_account, verb='verb', template='asd')
     manage.Usage(id='ans', description='Ansatte').save()
     manage.Usage(id='student', description='Studenter').save()
+
+
+@pytest.fixture()
+def alias_filter_models(localhost):
+    """Fixture for testing alias based filtering"""
+    from nav.models import cabling, manage, rack
+
+    location = manage.Location(
+        id='anotherlocation',
+        description='Random location',
+    )
+    location.save()
+
+    room = manage.Room(
+        id='anotherroom',
+        location_id='anotherlocation',
+        description='Random room',
+    )
+    room.save()
+    netbox = manage.Netbox(
+        ip='127.0.0.2',
+        sysname='test-gsw-2.example.org',
+        organization_id='myorg',
+        room_id='anotherroom',
+        category_id='SW',
+    )
+    netbox.save()
+    interface = manage.Interface(
+        netbox=netbox, ifindex=1, ifname='if1', ifdescr='ifdescr', iftype=1, speed=10
+    )
+    interface.save()
+
+    # Objects in relevant room / location
+    rack.Rack(room_id='myroom').save()
+    cabling1 = cabling.Cabling(room_id='myroom', target_room='myroom', jack='1')
+    cabling1.save()
+    cabling.Patch(interface=interface, cabling=cabling1).save()
+
+    # Objects that should not be found
+    rack2 = rack.Rack(room_id='anotherroom')
+    rack2.save()
+    cabling2 = cabling.Cabling(
+        room_id='anotherroom', target_room='anotherroom', jack='1'
+    )
+    cabling2.save()
+    cabling.Patch(interface=interface, cabling=cabling2).save()
 
 
 @pytest.fixture()
