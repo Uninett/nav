@@ -187,21 +187,33 @@ class Account(AbstractBaseUser):
 
     def has_perm(self, action, target):
         """Checks if user has permission to do action on target."""
+        _logger = logging.getLogger('nav.models.profiles.Account.has_perm')
         groups = self.get_groups()
         privileges = self.get_privileges()
 
         if AccountGroup.ADMIN_GROUP in groups:
+            _logger.warning("Is admin")
             return True
         elif privileges.count() == 0:
+            _logger.warning("Has no privilges")
             return False
         elif action == 'web_access':
+            _logger.warning("About to check: %s %s", action, target)
             for privilege in privileges:
                 regexp = re.compile(privilege.target)
                 if regexp.search(target):
+                    _logger.warning(
+                        "Has web_access: %s -> %s", target, privilege.target
+                    )
                     return True
+                _logger.warning(
+                    "Does not have web_access: %s -> %s", target, privilege.target
+                )
             return False
         else:
-            return privileges.filter(target=target).count() > 0
+            has_privileges = privileges.filter(target=target).count() > 0
+            _logger.warning("Has other privilege than web_accessi: %s", has_privileges)
+            return has_privileges
 
     def is_system_account(self):
         """Is this system (undeleteable) account?"""

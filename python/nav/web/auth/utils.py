@@ -183,9 +183,11 @@ def authorize_request(request: HttpRequest) -> bool:
         )
     account = get_account(request)
 
-    authorized = authorization_not_required(
-        request.get_full_path()
-    ) or account.has_perm('web_access', request.get_full_path())
+    authorized1 = authorization_not_required(request.get_full_path())
+    _logger.warning("authorized1 %s %s", authorized1, request.get_full_path())
+    authorized2 = account.has_perm('web_access', request.get_full_path())
+    _logger.warning("authorized2 %s %s", authorized1, request.get_full_path())
+    authorized = authorized1 or authorized2
 
     if not authorized:
         _logger.warning(
