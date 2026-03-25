@@ -16,10 +16,13 @@
 #
 """Template tags used in info subsystem"""
 
+import re
 from datetime import datetime, timedelta
 import time
 
 from django import template
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 
 register = template.Library()
@@ -180,6 +183,17 @@ def sortdict(dictionary, reverse=False):
 def is_list(value):
     """Returns True if the value is a list"""
     return isinstance(value, list)
+
+
+@register.filter
+def highlight(text, query):
+    """Wraps case-insensitive occurrences of query in <mark> tags"""
+    if not query:
+        return text
+    escaped_text = escape(text)
+    escaped_query = escape(query)
+    pattern = re.compile(re.escape(escaped_query), re.IGNORECASE)
+    return mark_safe(pattern.sub(lambda m: f"<mark>{m.group()}</mark>", escaped_text))
 
 
 @register.filter

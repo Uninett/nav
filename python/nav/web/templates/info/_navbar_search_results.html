@@ -1,3 +1,4 @@
+{% load info %}
 {% if show_results %}
     {% if not results %}
     <div class="alert-box secondary">No results for "{{ query }}"</div>
@@ -7,7 +8,12 @@
             <h5>{{ provider.name }} ({{ provider.count }})</h5>
             <div>
                 {% for item in provider.results %}
-                <a href="{{ item.href }}" class="result-item">{{ item.inst }}</a>
+                <a href="{{ item.href }}" class="result-item">
+                    {{ item.inst }}
+                    {% if item.matched_aliases %}
+                        aka {% for alias in item.matched_aliases %}"{{ alias|highlight:query }}"{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% endif %}
+                </a>
                 {% endfor %}
             </div>
             {% if provider.truncated %}
