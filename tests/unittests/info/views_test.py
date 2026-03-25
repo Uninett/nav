@@ -18,7 +18,11 @@
 
 import unittest
 
-from nav.web.info.searchproviders import SearchResult, SearchProvider
+from nav.web.info.searchproviders import (
+    SearchResult,
+    SearchProvider,
+    _find_matching_aliases,
+)
 from nav.web.info.views import has_results, has_only_one_result
 from nav.web.info.forms import SearchForm
 
@@ -72,3 +76,23 @@ class ViewsTest(unittest.TestCase):
         form = SearchForm({'query': 'Test '})
         form.is_valid()
         self.assertEqual(form.cleaned_data['query'], 'Test')
+
+
+class TestFindMatchingAliases:
+    def test_when_alias_matches_query_then_it_should_return_alias(self):
+        assert _find_matching_aliases(["Building A", "Bygg A"], "bygg") == ["Bygg A"]
+
+    def test_when_no_alias_matches_then_it_should_return_none(self):
+        assert _find_matching_aliases(["Building A"], "xyz") is None
+
+    def test_when_aliases_is_empty_then_it_should_return_none(self):
+        assert _find_matching_aliases([], "test") is None
+
+    def test_when_multiple_aliases_match_then_it_should_return_all(self):
+        assert _find_matching_aliases(["Alpha Foo", "Beta Foo"], "foo") == [
+            "Alpha Foo",
+            "Beta Foo",
+        ]
+
+    def test_when_query_matches_case_insensitively_then_it_should_return_alias(self):
+        assert _find_matching_aliases(["ROOM-101"], "room") == ["ROOM-101"]
