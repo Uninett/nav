@@ -134,6 +134,8 @@ def _get_option_label(component: Model):
     """
     if component._meta.db_table == 'netbox':
         return '%(sysname)s [%(ip)s - %(chassis_serial)s]' % component.__dict__
+    if component._meta.db_table in ('room', 'location'):
+        return component.verbose_string
     return str(component)
 
 
