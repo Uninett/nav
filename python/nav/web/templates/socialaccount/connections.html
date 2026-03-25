@@ -1,0 +1,66 @@
+{% extends "allauth/layouts/base.html" %}
+{% load i18n allauth socialaccount %}
+{% block head_title %}
+    {% trans "Account Connections" %}
+{% endblock head_title %}
+{% block content %}
+    <h3>{% trans "Account Connections" %}</h3>
+    {% if form.accounts %}
+        <p>
+            {% blocktrans %}You can sign in to your account using any of the following third-party accounts:{% endblocktrans %}
+        </p>
+        {% url 'socialaccount_connections' as action_url %}
+        <form method="post" action="{{ action_url }}">
+            {% csrf_token %}
+            <ul class="connected-accounts">
+                {% for account in form.accounts %}
+                    <li class="connected-account">
+                        <label for="id_account_{{ account.pk }}">
+                            <input type="checkbox"
+                                   name="account"
+                                   value="{{ account.pk }}"
+                                   id="id_account_{{ account.pk }}">
+                            {% with provider_account=account.get_provider_account %}
+                                <span class="connected-account-info">
+                                    <strong>{{ provider_account.get_brand.name }}</strong>
+                                    <span class="connected-account-detail">{{ provider_account }}</span>
+                                </span>
+                            {% endwith %}
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button type="submit" class="button small alert">
+                {% trans 'Remove' %}
+            </button>
+        </form>
+    {% else %}
+        <p>
+            {% trans 'You currently have no third-party accounts connected to this account.' %}
+        </p>
+    {% endif %}
+    <h4>{% trans 'Add a Third-Party Account' %}</h4>
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+        <div class="provider-list">
+            {% for provider in socialaccount_providers %}
+                {% provider_login_url provider process="connect" as href %}
+                {% if provider.id in connected_providers %}
+                    <span class="nav-tooltip">
+                        <span class="button secondary disabled" aria-disabled="true">
+                            <i class="fa fa-sign-in"></i> {{ provider.name }}
+                        </span>
+                        <span role="tooltip">
+                            {% blocktrans with name=provider.name %}Already connected to {{ name }}{% endblocktrans %}
+                        </span>
+                    </span>
+                {% else %}
+                    <a title="{{ provider.name }}" href="{{ href }}" class="button secondary">
+                        <i class="fa fa-sign-in"></i> {{ provider.name }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% include "socialaccount/snippets/login_extra.html" %}
+{% endblock content %}
