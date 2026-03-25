@@ -23,6 +23,21 @@ import sys
 import copy
 import warnings
 
+# Backport Django 5.1's login_not_required decorator for Django < 5.1.
+# django-allauth uses this decorator to mark views that should be publicly
+# accessible (login, OAuth callback, password reset, etc.). On Django < 5.1
+# allauth falls back to a no-op, which means NAV's AuthorizationMiddleware
+# treats all allauth views as requiring authorization. This patch must run
+# before allauth's modules are imported (during app initialization).
+from django.contrib.auth import decorators as _auth_decorators
+
+if not hasattr(_auth_decorators, 'login_not_required'):
+
+    def _login_not_required(view_func):
+        view_func.login_required = False
+        return view_func
+
+    _auth_decorators.login_not_required = _login_not_required
 
 from django.utils.log import DEFAULT_LOGGING
 
