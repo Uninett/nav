@@ -148,7 +148,7 @@ class SharedJsonMetadataTests:
     def test_json_room_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
         self.assertTrue('room' in foo)
-        self.assertEqual('Pegasus (room description)', foo['room'])
+        self.assertEqual('Pegasus: room description', foo['room'])
 
     def test_json_is_elink_node_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']

@@ -1130,7 +1130,7 @@ class Room(models.Model, AliasesMixin):
     def __str__(self):
         rep = '%s' % (self.id)
         if self.description:
-            rep += ' (%s)' % (self.description)
+            rep += ': %s' % (self.description)
         return rep
 
     def get_absolute_url(self):
@@ -1200,7 +1200,7 @@ class Location(models.Model, TreeMixin, AliasesMixin):
     def __str__(self):
         rep = '%s' % (self.id)
         if self.description:
-            rep += ' (%s)' % (self.description)
+            rep += ': %s' % (self.description)
         return rep
 
     def get_all_rooms(self):
