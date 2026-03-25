@@ -93,13 +93,17 @@ def process_searchform(form):
     if query is None:
         return Location.objects.all()
     else:
-        return Location.objects.filter(
-            Q(id__icontains=query)
-            | Q(aliases__icontains=query)
-            | Q(description__icontains=query)
-            | Q(child_locations__id__icontains=query)
-            | Q(child_locations__aliases__icontains=query)
-        ).order_by("id")
+        return (
+            Location.objects.filter(
+                Q(id__icontains=query)
+                | Q(aliases__icontains=query)
+                | Q(description__icontains=query)
+                | Q(child_locations__id__icontains=query)
+                | Q(child_locations__aliases__icontains=query)
+            )
+            .distinct()
+            .order_by("id")
+        )
 
 
 def locationinfo(request, locationid):
