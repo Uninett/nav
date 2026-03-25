@@ -105,7 +105,7 @@ class Node(object):
             try:
                 location = self.node.room.location
                 locationid = location.id
-                location_descr = location.description
+                location_descr = location.verbose_string
             except AttributeError:
                 locationid = ''
                 location_descr = ''
@@ -122,8 +122,8 @@ class Node(object):
                     'up_image': get_status_image_link(self.node.up),
                     'roomid': self.node.room.id,
                     'locationid': str(locationid),
-                    'location': str(location_descr),
-                    'room': str(self.node.room),
+                    'location': location_descr,
+                    'room': self.node.room.verbose_string,
                     'is_elink_node': False,
                 }
             )
