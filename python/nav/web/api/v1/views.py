@@ -356,6 +356,7 @@ class RoomViewSet(
 
     Filters
     -------
+    - id
     - description
     - location
     - alias
@@ -363,7 +364,7 @@ class RoomViewSet(
 
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
-    filterset_fields = ('location', 'description')
+    filterset_fields = ('id', 'location', 'description')
     search_fields = ('aliases',)
     lookup_value_regex = '[^/]+'
     permission_classes = (RelaxedReadPermission,)

@@ -357,6 +357,30 @@ def test_when_filtering_by_alias_then_it_should_return_matching_results(
 
 
 @pytest.mark.parametrize("endpoint", ['room', 'location'])
+def test_when_filtering_by_id_then_it_should_return_matching_results(
+    db, api_client, token, endpoint
+):
+    create_token_endpoint(token, endpoint)
+
+    create(api_client, endpoint, TEST_DATA.get(endpoint))
+
+    other_object_data = TEST_DATA.get(endpoint).copy()
+    other_object_data['id'] = 'otherid'
+
+    create(api_client, endpoint, other_object_data)
+
+    object_id = TEST_DATA[endpoint]['id']
+
+    response = api_client.get(f"{ENDPOINTS[endpoint]}?id={object_id}")
+
+    assert response.status_code == 200
+
+    ids = [obj['id'] for obj in response.data['results']]
+    assert object_id in ids
+    assert 'otherid' not in ids
+
+
+@pytest.mark.parametrize("endpoint", ['room', 'location'])
 def test_when_searching_by_alias_then_it_should_return_matching_results(
     db, api_client, token, endpoint
 ):

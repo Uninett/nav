@@ -115,7 +115,7 @@ Provides access to NAVs room data
 
 :Search: aliases
 
-:Filters: location, description, alias
+:Filters: id, location, description, alias
 
 
 
