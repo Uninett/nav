@@ -261,6 +261,7 @@ class LDAPUser(object):
         user_dn = '%s=%s,%s' % (uid_attr, self.username, basedn)
         return user_dn
 
+    @sensitive_variables('manager_password')
     def search_dn(self) -> tuple[str, str]:
         """Searches for the user's Distinguished Name in the LDAP directory.
 

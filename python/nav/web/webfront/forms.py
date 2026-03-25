@@ -17,6 +17,8 @@
 
 from django import forms
 from django.forms.models import modelformset_factory
+from django.views.decorators.debug import sensitive_variables
+
 from nav.models.profiles import NavbarLink, Account
 from nav.web.crispyforms import (
     SubmitField,
@@ -100,6 +102,7 @@ class ChangePasswordForm(forms.Form):
             ],
         )
 
+    @sensitive_variables('old_password')
     def clean_old_password(self):
         """Verify that old password is correct"""
         old_password = self.cleaned_data['old_password']
@@ -109,6 +112,7 @@ class ChangePasswordForm(forms.Form):
             raise forms.ValidationError('Password is incorrect')
         return
 
+    @sensitive_variables('cleaned_data', 'password1', 'password2')
     def clean(self):
         """Check that passwords match. If not clear form data"""
         cleaned_data = super(ChangePasswordForm, self).clean()
@@ -120,6 +124,7 @@ class ChangePasswordForm(forms.Form):
             raise forms.ValidationError('Passwords did not match')
         return cleaned_data
 
+    @sensitive_variables('cleaned_data')
     @staticmethod
     def clear_passwords(cleaned_data):
         """Clear passwords from the cleaned data"""

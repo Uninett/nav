@@ -20,6 +20,7 @@ from datetime import date, timedelta
 
 from django import forms
 from django.utils.encoding import force_str
+from django.views.decorators.debug import sensitive_variables
 
 from nav.web.crispyforms import (
     set_flat_form_attributes,
@@ -116,6 +117,7 @@ class AccountForm(forms.ModelForm):
             ],
         )
 
+    @sensitive_variables('password1', 'password2')
     def clean_password1(self):
         """Validate password"""
         password1 = self.data.get('password1')
