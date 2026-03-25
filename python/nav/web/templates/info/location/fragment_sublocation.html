@@ -3,7 +3,7 @@
   <i class="fa fa-toggle-down"></i>
   {% endif %}
   <a href="{% url 'location-info' location.pk %}">
-    {{ location }}
+    {{ location.verbose_string }}
   </a>
 
   {% if location.has_children %}
