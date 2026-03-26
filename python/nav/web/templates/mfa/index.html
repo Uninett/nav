@@ -5,16 +5,18 @@
     {% trans "Two-Factor Authentication" %}
 {% endblock head_title %}
 {% block content %}
-    {% element h1 tags="mfa,index" %}
-        {% trans "Two-Factor Authentication" %}
-    {% endelement %}
+    <h3>{% trans "Two-Factor Authentication" %}</h3>
     {% if not MFA_SUPPORTED_TYPES %}
         {% element p %}
-            Two-factor authentication has been disabled.
+            Two-factor authentication is not available.
+        {% endelement %}
+    {% elif is_mfa_enabled %}
+        {% element p %}
+            Two-factor authentication is active for your account.
         {% endelement %}
     {% else %}
         {% element p %}
-            Two-factor authentication has been enabled.
+            Two-factor authentication is not yet set up for your account.
         {% endelement %}
     {% endif %}
     {% if "totp" in MFA_SUPPORTED_TYPES %}
