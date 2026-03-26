@@ -21,7 +21,7 @@
   <select id="id_room">
     <option value="">--- Room filter ---</option>
     {% for room in rooms %}
-      <option value="{{ room.pk }}">{{ room }}</option>
+      <option value="{{ room.pk }}">{{ room.verbose_string }}</option>
     {% endfor %}
   </select>
 {% endblock content %}
