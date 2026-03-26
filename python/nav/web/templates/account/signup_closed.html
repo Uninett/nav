@@ -1,0 +1,9 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% block head_title %}{% trans "Sign Up Not Available" %}{% endblock head_title %}
+{% block content %}
+    <h3>{% trans "Sign Up Not Available" %}</h3>
+    <p style="margin-bottom: 0.5em">{% trans "Sign up is not enabled for this NAV installation." %}</p>
+    <p style="margin-bottom: 0.5em">{% trans "If you already have an account, you may need to connect it to your external identity under" %}<br><strong>{% trans "My Account" %}</strong>.</p>
+    <p>{% trans "Otherwise, please contact your administrator to get access." %}</p>
+{% endblock content %}
