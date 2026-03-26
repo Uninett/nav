@@ -36,7 +36,9 @@ from nav.web.ipdevinfo.views import is_valid_hostname
 from nav.web.info.prefix.views import get_query_results as get_prefix_results
 
 
-SearchResult = namedtuple("SearchResult", ['href', 'inst'])
+SearchResult = namedtuple(
+    "SearchResult", ['href', 'inst', 'matched_aliases'], defaults=[None]
+)
 
 
 class SearchProvider(object):
@@ -87,7 +89,11 @@ class RoomSearchProvider(SearchProvider):
         results = Room.objects.aka_or_description(self.query).order_by("id")
         for result in results:
             self.results.append(
-                SearchResult(reverse('room-info', kwargs={'roomid': result.id}), result)
+                SearchResult(
+                    reverse('room-info', kwargs={'roomid': result.id}),
+                    result,
+                    _find_matching_aliases(result.aliases, self.query),
+                )
             )
 
 
@@ -103,7 +109,9 @@ class LocationSearchProvider(SearchProvider):
         for result in results:
             self.results.append(
                 SearchResult(
-                    reverse('location-info', kwargs={'locationid': result.id}), result
+                    reverse('location-info', kwargs={'locationid': result.id}),
+                    result,
+                    _find_matching_aliases(result.aliases, self.query),
                 )
             )
 
@@ -282,3 +290,9 @@ class DevicegroupSearchProvider(SearchProvider):
             .annotate(num_netboxes=Count('netboxes'))
         )
         self.results = [SearchResult(g.get_absolute_url(), g) for g in query_result]
+
+
+def _find_matching_aliases(aliases, query):
+    """Returns all aliases that contain the query (case-insensitive)."""
+    query_lower = query.lower()
+    return [alias for alias in aliases if query_lower in alias.lower()] or None

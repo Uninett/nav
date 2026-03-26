@@ -7,6 +7,7 @@ from nav.django.templatetags.info import (
     is_max_timestamp,
     get_attr,
     find_attr,
+    highlight,
 )
 
 
@@ -90,3 +91,26 @@ class TemplateTagsTest(unittest.TestCase):
         """Test helper function for getting attributes from objects"""
 
         self.assertEqual(find_attr(self.dummy, ['dummyobjec', 'test', 'nothere']), "")
+
+
+class HighlightFilterTest(unittest.TestCase):
+    def test_when_query_matches_then_it_should_wrap_in_mark_tags(self):
+        assert str(highlight("Building A", "build")) == "<mark>Build</mark>ing A"
+
+    def test_when_match_is_case_insensitive_then_it_should_preserve_case(self):
+        assert str(highlight("FOOBAR", "foo")) == "<mark>FOO</mark>BAR"
+
+    def test_when_query_does_not_match_then_it_should_return_escaped_text(self):
+        assert str(highlight("Hello World", "xyz")) == "Hello World"
+
+    def test_when_text_contains_html_then_it_should_escape_it(self):
+        result = str(highlight("<script>alert(1)</script>", "alert"))
+        assert "&lt;script&gt;" in result
+        assert "<mark>alert</mark>" in result
+
+    def test_when_query_is_empty_then_it_should_return_text_unchanged(self):
+        assert highlight("Hello", "") == "Hello"
+
+    def test_when_query_has_multiple_matches_then_it_should_highlight_all(self):
+        result = str(highlight("foo bar foo", "foo"))
+        assert result == "<mark>foo</mark> bar <mark>foo</mark>"
