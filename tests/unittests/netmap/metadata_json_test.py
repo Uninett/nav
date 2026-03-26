@@ -143,7 +143,7 @@ class SharedJsonMetadataTests:
     def test_json_location_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
         self.assertTrue('location' in foo)
-        self.assertEqual('In a galaxy far far away', foo['location'])
+        self.assertEqual('galaxy: In a galaxy far far away', foo['location'])
 
     def test_json_room_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
