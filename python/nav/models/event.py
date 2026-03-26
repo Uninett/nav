@@ -269,10 +269,16 @@ class EventMixIn(object):
                 try:
                     return model.objects.get(pk=subid)
                 except model.DoesNotExist:
-                    _logger.warning(
-                        "alert subid %s points to non-existant %s",
+                    timestamp = getattr(self, "start_time", None) or getattr(
+                        self, "time", None
+                    )
+                    _logger.debug(
+                        "alert %r subid %s points to non-existent %s,"
+                        " maybe it was deleted after %s",
+                        self,
                         subid,
                         model,
+                        timestamp,
                     )
                     return UnknownEventSubject(self)
 
