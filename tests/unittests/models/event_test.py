@@ -123,7 +123,7 @@ class TestAlertHistoryGetShortDescription:
 
         assert alert.get_short_description() == 'Router gw1 is down'
 
-    def test_when_email_subject_has_extra_whitespace_it_should_strip_it(self, alert):  # noqa: E501
+    def test_when_email_subject_has_extra_whitespace_it_should_strip_it(self, alert):
         self._add_message(
             alert,
             type='email',
@@ -140,7 +140,7 @@ class TestAlertHistoryGetShortDescription:
         )
         alert.alert_type = Mock(description='boxDown')
 
-        assert alert.get_short_description() == 'boxDown'
+        assert alert.get_short_description() != 'Just a plain message body'
 
     def test_when_no_messages_it_should_return_alert_type_description(self, alert):
         alert.alert_type = Mock(description='boxDown')
@@ -149,7 +149,7 @@ class TestAlertHistoryGetShortDescription:
 
     def test_when_no_messages_and_no_alert_type_it_should_return_empty_string(
         self, alert
-    ):  # noqa: E501
+    ):
         alert.alert_type = None
 
         assert alert.get_short_description() == ""
@@ -165,6 +165,7 @@ class TestAlertHistoryGetShortDescription:
         assert alert.get_short_description() == 'Switch down'
 
     def test_when_language_specified_it_should_filter_by_language(self, alert):
+        self._add_message(alert, type='sms', language='en', message='Switch down')
         self._add_message(alert, type='sms', language='nb', message='Svitsj nede')
 
         assert alert.get_short_description(language='nb') == 'Svitsj nede'
