@@ -113,9 +113,9 @@ api/room/[<id>]
 
 Provides access to NAVs room data
 
-:Search: aliases
+:Search: description, aliases
 
-:Filters: location, description, alias
+:Filters: id, location, description, alias
 
 
 
