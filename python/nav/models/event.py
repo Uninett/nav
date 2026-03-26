@@ -772,7 +772,7 @@ class AlertHistory(models.Model, EventMixIn):
         if email:
             for line in email.message.splitlines():
                 if line.startswith('Subject:'):
-                    return line[len('Subject:') :].strip()
+                    return line.removeprefix('Subject:').strip()
 
         if self.alert_type:
             return self.alert_type.description
