@@ -31,7 +31,7 @@ require([
     'plugins/alert',
     'plugins/popover',
     'plugins/tooltip',
-    'libs/underscore'
+    'underscore'
 ], function (accordionMaker) {
     /** Enable slash to navigate to search, whereas escape removes focus from search */
     function addSearchFocusHandlers() {

@@ -3,10 +3,10 @@ define([
     'netmap/models',
     'netmap/graph_info_view',
     'plugins/fullscreen',
-    'libs/underscore',
-    'libs/backbone',
+    'underscore',
+    'backbone',
     'libs/backbone-eventbroker',
-    'libs/d3.min'
+    'd3'
 ], function (Graph, Models, GraphInfoView, Fullscreen) {
 
     var Transparent = 0.2;

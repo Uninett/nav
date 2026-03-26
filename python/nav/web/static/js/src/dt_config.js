@@ -2,7 +2,7 @@
  * DataTables 2.x configuration for legacy class name compatibility.
  * This ensures existing CSS continues to work after upgrading from 1.x.
  */
-define(['libs/datatables.min'], function () {
+define(['datatables'], function () {
     const DataTable = $.fn.DataTable;
 
     // Configure legacy class names for CSS compatibility

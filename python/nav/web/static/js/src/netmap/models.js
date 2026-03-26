@@ -1,7 +1,7 @@
 define([
     'plugins/csrf-utils',
-    'libs/underscore',
-    'libs/backbone'
+    'underscore',
+    'backbone'
 ], function (CsrfUtils) {
     /**
      * Models for Netmap

@@ -1,11 +1,11 @@
 define([
-    'libs/spin.min',
+    'spin',
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
     'moment',
-    'libs/handlebars',
+    'handlebars',
     'status/handlebars-helpers',
-    'libs/backbone',
+    'backbone',
     'libs/backbone-eventbroker'
 ], function (Spinner, Collections, EventTemplate, moment, Handlebars) {
 

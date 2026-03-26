@@ -6,6 +6,7 @@
 !.github/
 !.gitkeep
 !.mega-linter.yml
+!.npmrc
 !.pre-commit-config.yaml
 !.readthedocs.yaml
 !.sonarcloud.properties

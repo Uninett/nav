@@ -3,7 +3,7 @@ define([
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
     'libs/urijs/URI',
     'rickshaw-utils',
-    'libs/handlebars'
+    'handlebars'
 ], function (Rickshaw, Template, URI, RickshawUtils, Handlebars) {
 
     var template = Handlebars.compile(Template);

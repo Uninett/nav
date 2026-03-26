@@ -4,8 +4,8 @@ define([
     'libs-amd/text!resources/netmap/node_info.html',
     'libs-amd/text!resources/netmap/layer2_link_info.html',
     'libs-amd/text!resources/netmap/layer3_link_info.html',
-    'libs/handlebars',
-    'libs/backbone',
+    'handlebars',
+    'backbone',
     'jquery-ui'
 ], function (Collections, NetmapExtras ,NodeTemplate, LinkTemplate, VlanTemplate, Handlebars) {
 

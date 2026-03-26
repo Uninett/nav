@@ -1,4 +1,4 @@
-define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
+define(['libs/urijs/URI', 'spin'], function (URI, Spinner) {
 
     /*
     * Controller for a specific Navlet

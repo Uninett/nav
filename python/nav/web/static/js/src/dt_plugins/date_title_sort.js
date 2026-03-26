@@ -1,4 +1,4 @@
-define(['libs/datatables.min'], function () {
+define(['datatables'], function () {
     /* Custom sort on date in title - created for NAV */
     $.fn.DataTable.ext.type.order['title-date-pre'] = (data) => {
         if (/Never/.test(data)) {

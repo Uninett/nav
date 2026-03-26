@@ -4,7 +4,7 @@ define(function(require) {
     var CounterDisplay = require("plugins/counterdisplay");
     var JohnGauge = require("plugins/gauge");
     var Rickshaw = require("libs/rickshaw.min");
-    var _handlebars = require("libs/handlebars");
+    var _handlebars = require("handlebars");
 
     function SensorController($node, templates) {
         this.$node = $node;

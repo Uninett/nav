@@ -2,10 +2,10 @@ require([
     "plugins/table_utils",
     "plugins/tab_navigation",
     "plugins/jquery_ui_helpers",
-    "libs/spin.min",
+    "spin",
     "jquery",
     "jquery-ui",
-    "libs/datatables.min",
+    "datatables",
     "dt_config"
 ], function (TableUtil, TabNavigation, JUIHelpers, Spinner) {
 

@@ -1,4 +1,4 @@
-require(['libs/underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
+require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query

@@ -3,7 +3,7 @@
 define(function (require, exports, module) {
 
   // Needed for Backbone.Wreqr
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
 
   // Get the number of available addresses in a prefix (CIDR notation, e.g.
   // '10.0.0.0/8'), given all matching sub-prefixes

@@ -7,7 +7,7 @@
 
 define(function (require, exports, module) {
   var d3 = require("d3");
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
   var util = require("src/ipam/util");
   var d3tip = require("d3tip");
 

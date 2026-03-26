@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-  var _ = require("libs/underscore");
+  var _ = require("underscore");
   var Backbone = require("backbone");
   var debug = require("src/ipam/util").ipam_debug;
   var FSM = require("src/ipam/util").FSM;

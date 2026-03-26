@@ -1,4 +1,4 @@
-define(['libs/ol-debug'], function (ol) {
+define(['ol-debug'], function (ol) {
 
     var imagePath = NAV.imagePath + '/openlayers/';
     var primaryMarkerImage = imagePath + 'marker-blue.png';

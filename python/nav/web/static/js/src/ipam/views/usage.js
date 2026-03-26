@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-  const _ = require("libs/underscore");
+  const _ = require("underscore");
   require("backbone");
   const Marionette = require("marionette");
   const Radio = require("backbone.radio");

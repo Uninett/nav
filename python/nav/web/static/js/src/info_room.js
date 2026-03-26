@@ -12,7 +12,7 @@ require(
         "dt_plugins/modulesort",
         "jquery",
         "jquery-ui",
-        "libs/datatables.min",
+        "datatables",
         "dt_config",
         "plugins/lightbox"
     ],

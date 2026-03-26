@@ -1,6 +1,6 @@
 define(function(require) {
 
-    var DataTables = require('libs/datatables.min');
+    var DataTables = require('datatables');
     require('dt_config');
     var columnToggler = require('src/interface_browser_column_toggler');
     var filterController = require('src/interface_browser_filter_controller');

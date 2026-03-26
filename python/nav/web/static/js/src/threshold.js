@@ -1,4 +1,4 @@
-require(['libs/spin.min', 'jquery-ui'], function (Spinner) {
+require(['spin', 'jquery-ui'], function (Spinner) {
     /* The global variable metric is set in the base template of the threshold page */
 
     var $inputElement = $('#id_target'),

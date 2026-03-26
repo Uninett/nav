@@ -1,6 +1,6 @@
 define([
     'netmap/collections',
-    'libs/backbone',
+    'backbone',
     'libs/backbone-eventbroker'
 ], function (Collections) {
 

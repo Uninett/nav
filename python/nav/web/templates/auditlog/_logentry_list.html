@@ -32,7 +32,7 @@
 </style>
 
 <script type="text/javascript">
- require(['libs/urijs/URI', 'moment', 'libs/datatables.min', 'dt_config'], function(Uri, moment, DataTable) {
+ require(['libs/urijs/URI', 'moment', 'datatables', 'dt_config'], function(Uri, moment, DataTable) {
      var api_parameters = {{ auditlog_api_parameters|safe|default:'{}' }};
      var orderingFields = {
          0: 'timestamp',
