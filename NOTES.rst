@@ -10,21 +10,60 @@ please go to https://github.com/uninett/nav/milestones .
 
 Unreleased
 ==========
+
+Dependency changes
+------------------
+
+These Python modules are new requirements:
+
+* :mod:`django-allauth` (``[mfa,socialaccount]``)
+
+Python modules with changed version requirements:
+
+* :mod:`Markdown` (``3.3.6`` → ``3.8.1``)
+
+
+Two-factor and external authentication via django-allauth
+---------------------------------------------------------
+
+NAV now supports two-factor authentication (TOTP) and external login via
+OAuth2, OIDC, and SAML, using `django-allauth` as the underlying framework.
+
+See :doc:`/howto/allauth-and-oidc` for details on configuring external identity
+providers.
+
+
+Room and location aliases
+-------------------------
+
+Rooms and locations can now have multiple aliases (alternative names). Aliases
+are searchable throughout NAV — in the navbar, device history, maintenance
+search, network explorer, netmap, the REST API, and status widgets. They are
+also included in room/location detail pages, SeedDB list views, and the bulk
+import/export format.
+
 Changes to bulk import formats
 ------------------------------
 
-The Room and Location bulk import formats have changed. The column aliases has
-been added to both, so that the formats are now specified as::
+The Room and Location bulk import formats have changed. The column ``aliases``
+has been added to both, so that the formats are now specified as::
 
     roomid[:locationid:descr:aliases:position:attr=value:...]
 
-for rooms and
+for rooms and::
 
     locationid[:parent:descr:aliases]
 
 for locations.
 
-The aliases column supports the new NAV-wide ability to search for rooms and locations by alias.
+
+Auditlog improvements
+---------------------
+
+Auditlog entries can now be sorted and searched by actor, object, and target
+columns. Links to detail pages are shown when the referenced object still
+exists.
+
 
 NAV 5.17
 ========
