@@ -31,7 +31,7 @@ from typing import Iterator
 
 from nav.errors import GeneralException
 from nav.util import resource_files, resource_bytes
-from . import buildconf
+from nav import buildconf
 
 _logger = logging.getLogger(__name__)
 
@@ -70,18 +70,18 @@ def get_config_locations() -> Iterator[Path]:
         yield Path(location)
 
 
-def list_config_files_from_dir(dirname):
+def list_config_files_from_dir(dirname, suffix="conf"):
     return [
         os.path.join(dirname, f)
         for f in sorted(os.listdir(dirname))
         if os.path.isfile(os.path.join(dirname, f))
-        and f.endswith(".conf")
+        and f.endswith(f".{suffix}")
         and not f.startswith(".")
     ]
 
 
-def find_config_dir():
-    nav_conf = find_config_file('nav.conf')
+def find_config_dir(suffix="conf"):
+    nav_conf = find_config_file(f'nav.{suffix}')
     if nav_conf:
         return os.path.dirname(nav_conf)
 

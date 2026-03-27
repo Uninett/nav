@@ -1,0 +1,38 @@
+# Should NAV itself handle multi factor authentication (mfa)?
+[multi-factor-authentication]
+# Whether mfa should be enabled
+enabled = false
+
+# Whether mfa recovery codes can be generated and used. Default: yes
+## We recommend not changing this setting.
+#support-recovery-codes = true
+# The number of codes is hard-coded to 10
+
+
+# Configuration for "social" login providers bundled with django-allauth
+# See https://docs.allauth.org/en/latest/socialaccount/providers/index.html
+# for list. "oidc" and "SAML" have their own config sections
+# We have tested github and dataporten.
+
+# Example: github
+# [social.providers.github]
+# client_id = "not.optional"
+# secret = "not.optional"
+# scope = ["user:email"]  # optional, "user" scope is default and includes "user:email"
+
+
+# Configuration for OIDC login
+# [oidc]
+# module-path = "allauth.socialaccount.providers.openid_connect"
+#
+# Example: Feide OIDC (dataporten)
+# [oidc.idps.dataporten-oidc]  # The name after the dot is used in the URLs
+# name = "Feide OIDC"  # Shown in login screen
+# client_id = "not.optional"
+# secret = "not.optional"
+# server_url = "https://auth.dataporten.no/"  # NEVER optional
+# Feide OIDC does not support the standard OIDC scopes/claims
+# scope = ["userid-feide"]
+
+# [oidc.dataporten-oidc.settings]
+# uid_field = "https://n.feide.no/claims/eduPersonPrincipalName"

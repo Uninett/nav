@@ -46,7 +46,7 @@ from nav.db import get_connection_parameters
 import nav.buildconf
 from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
-from nav.web.auth.allauth import MFAConfigParser
+from nav.web.auth.allauth import MFAConfigParser, SocialConfigParser, OIDCConfigParser
 from nav.django.utils import get_os_version
 
 
@@ -385,9 +385,6 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = 'login'
 ACCOUNT_ALLOW_SIGNUPS = False
 ACCOUNT_MAX_EMAIL_ADDRESSES = 1
 
-# SOCIALACCOUNT_AUTO_SIGNUP = True
-# SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
-
 MFA_ADAPTER = "nav.web.auth.allauth.adapter.NAVMFAAdapter"
 MFA_TOTP_ISSUER = 'NAV'
 MFA_TOTP_TOLERANCE = 1
@@ -401,3 +398,20 @@ MFA_PASSKEY_SIGNUP_ENABLED = (
 MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = (
     _allauth_mfa_config.get_MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN_setting()
 )
+
+# SOCIALACCOUNT_AUTO_SIGNUP = True
+# SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
+
+SOCIALACCOUNT_PROVIDERS = {}
+
+_allauth_social_config = SocialConfigParser()
+_social_providers = _allauth_social_config.generate_SOCIALACCOUNT_PROVIDERS()
+if _social_providers:
+    SOCIALACCOUNT_PROVIDERS.update(_social_providers)
+    INSTALLED_APPS += tuple(_allauth_social_config.get_provider_import_paths())
+
+_allauth_oidc_parser = OIDCConfigParser()
+_oidc_providers = _allauth_oidc_parser.generate_SOCIALACCOUNT_PROVIDERS()
+if _oidc_providers:
+    SOCIALACCOUNT_PROVIDERS.update(_oidc_providers)
+    INSTALLED_APPS += tuple(_allauth_oidc_parser.get_provider_import_paths())

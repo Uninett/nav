@@ -13,4 +13,5 @@ LDAP, and authenticating against the header REMOTE_USER, set by the web server.
 
    mfa
    ldap
+   social-account
    remote_user

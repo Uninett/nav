@@ -54,6 +54,8 @@ dependencies = [
 
     "distro",
 
+    'tomli; python_version<"3.11"',
+
     # The following modules are really sub-requirements of Twisted, not of
     # NAV directly.  They may be optional from Twisted's point of view,
     # but they are required for parts of the Twisted library that NAV uses:
