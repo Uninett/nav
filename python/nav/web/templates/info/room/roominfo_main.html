@@ -14,10 +14,12 @@
           <th>Description</th>
           <td>{{ room.description }}</td>
         </tr>
-        <tr>
-          <th>Aliases</th>
-          <td>{{ room.aliases_string }}</td>
-        </tr>
+        {% if room.aliases %}
+          <tr>
+            <th>Aliases</th>
+            <td>{{ room.aliases_string }}</td>
+          </tr>
+        {% endif %}
         <tr>
           <th>Location</th>
           <td>
