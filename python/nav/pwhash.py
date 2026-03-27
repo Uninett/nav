@@ -23,18 +23,22 @@ import base64
 import re
 
 from django.utils import crypto
+from django.views.decorators.debug import sensitive_variables
 
 from nav import errors
 
 
+@sensitive_variables('password')
 def sha1(password, salt):
     return hashlib.sha1(password + salt).digest()
 
 
+@sensitive_variables('password')
 def md5(password, salt):
     return hashlib.md5(password + salt).digest()
 
 
+@sensitive_variables('password')
 def pbkdf2(password, salt):
     return crypto.pbkdf2(password, salt, iterations=10000)
 
@@ -69,6 +73,7 @@ class Hash(object):
 
     _hashmatch = re.compile(r'\{([^\}]+)\}([^\$]+)\$(.+)$')
 
+    @sensitive_variables('password')
     def __init__(self, method=DEFAULT_METHOD, salt=None, password=None):
         """Create a hash object.
 
@@ -97,6 +102,7 @@ class Hash(object):
         digest64 = base64.b64encode(self.digest).strip().decode('ASCII')
         return "{%s}%s$%s" % (self.method, self.salt, digest64)
 
+    @sensitive_variables('password')
     def update(self, password):
         """Update the hash with a new password."""
 
@@ -123,6 +129,7 @@ class Hash(object):
             self.salt = match.group(2)
             self.digest = base64.b64decode(match.group(3).encode('ASCII'))
 
+    @sensitive_variables('password')
     def verify(self, password):
         """Verify a password against this hash."""
         otherhash = self.__class__(
