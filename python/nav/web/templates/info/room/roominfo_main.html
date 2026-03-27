@@ -26,17 +26,17 @@
             <a href="{% url 'location-info' room.location.id %}">{{ room.location.description|default:room.location.id }}</a>
           </td>
         </tr>
-        <tr>
-          <th>Position</th>
-          <td class="position" data-roomname="{{ room.id }}">
-            {% if room.position %}
-              <div class="geo">
-                <span class="latitude">{{ room.latitude }}</span>
-                <span class="longitude">{{ room.longitude }}</span>
-              </div>
-            {% endif %}
-          </td>
-        </tr>
+        {% if room.position %}
+          <tr>
+              <th>Position</th>
+              <td class="position" data-roomname="{{ room.id }}">
+                <div class="geo">
+                  <span class="latitude">{{ room.latitude }}</span>
+                  <span class="longitude">{{ room.longitude }}</span>
+                </div>
+              </td>
+          </tr>
+        {% endif %}
         <tr>
           <th>Room summary</th>
           <td>
