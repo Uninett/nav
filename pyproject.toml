@@ -59,7 +59,7 @@ dependencies = [
     # but they are required for parts of the Twisted library that NAV uses:
     #
     # PyOpenSSL is required for TLS verification during PaloAlto API GET operations
-    "PyOpenSSL==23.3.0",
+    "PyOpenSSL==26.0.0",
     # service-identity is required to make TLS communication libraries shut up about potential MITM attacks
     "service-identity==21.1.0",
 ]
