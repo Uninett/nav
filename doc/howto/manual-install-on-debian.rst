@@ -8,14 +8,14 @@ This details what the Debian package does for you automatically.
 Adapt this if you can't use an official ``.deb`` or need to install on
 something that isn't Debian-based.
 
-.. note:: This howto is based on Debian 9 (Stretch).
+.. note:: This howto is based on Debian 13 (Trixie).
 
 1. OS dependencies
 ==================
 
 First get the following OS packages::
 
-  apt-get install -y python-pip python-wheel git postgresql apache2 libapache2-mod-wsgi libsnmp30
+  apt-get install -y python3-pip python3-wheel git postgresql apache2 libapache2-mod-wsgi-py3 libsnmp40
 
 
 2. Get the source
@@ -64,10 +64,17 @@ actually find :file:`nav.conf`::
 5. Build the docs
 =================
 
-If you like, you can build the complete HTML documentation thus::
+If you like, you can build the complete HTML documentation using::
 
     sphinx-build
 
+This requires `sphinx-rtd-theme` being installed separately which can be done like this::
+
+   pip install sphinx-rtd-theme
+
+Also it needs to be provided 'SOURCEDIR' and 'OUTPUTDIR' arguments for example::
+
+   sphinx-build doc/ build/sphinx/html/
 
 6. Initialize the database
 ==========================
@@ -77,6 +84,7 @@ In :file:`/etc/nav/db.conf` there should be an option called
 
     sudo -u postgres navsyncdb -c
 
+If using a virtual environment, the relevant path may need to be appended here.
 You should now have a database ``nav`` with a user ``nav``.
 
 
@@ -107,7 +115,7 @@ you've connected your GSM device to. Often, this device has a group ownership
 set to the ``dialout`` group, so the easieast route is to add the ``navcron`` user
 to the ``dialout`` group::
 
-  sudo addgroup navcron dialout
+  sudo adduser navcron dialout
 
 
 8. Ensure that a writeable uploads directory exists
@@ -151,7 +159,7 @@ It'll respond with something like:
 
 Take note of the path (:file:`/usr/share/nav/www`, without the ``static``
 subdir), as you'll need it in the next step and type :code:`yes` and hit
-:kbd:`Enter`.
+:kbd:`Enter`. Again, if using a virtual environment, the relevant path may need to be appended here.
 
 This will copy static files (css, javascript, images, fonts and similar) into
 that path.
@@ -167,7 +175,7 @@ Copy the file :file:`/etc/nav/apache/apache.conf.example` to
 * ``documentation_path`` is where Sphinx put the docs, in
   ``$SOURCE_CODE_DIRECTORY/build/sphinx/html/``.
 * ``nav_uploads_path`` is the upload path you created in step 8.
-* ``nav_python_base`` should be :file:`/usr/local/lib/python3.9/dist-packages` (or wherever the ``nav`` Python module was installed)
+* ``nav_python_base`` should be :file:`/usr/local/lib/python3.13/dist-packages` (or wherever the ``nav`` Python module was installed)
 
 We suggest creating a new Apache site config:
 Inside a ``VirtualHost``-directive, add:
