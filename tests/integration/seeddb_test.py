@@ -91,6 +91,22 @@ def test_adding_netbox_with_invalid_profiles_should_fail(db, client):
     assert not Netbox.objects.filter(ip=ip).exists()
 
 
+def test_when_adding_management_profile_with_pipe_in_name_then_it_should_fail(
+    db, client
+):
+    url = reverse('seeddb-management-profile-edit')
+    name = "namewith|pipe"
+
+    response = client.post(
+        url,
+        follow=True,
+        data={"name": name},
+    )
+
+    assert response.status_code == 200
+    assert 'Cannot contain the pipe character' in smart_str(response.content)
+
+
 @pytest.fixture()
 def netbox(management_profile):
     box = Netbox(

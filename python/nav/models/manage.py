@@ -40,6 +40,7 @@ from django.urls import reverse
 
 from nav import util
 from nav.bitvector import BitVector
+from nav.django.validators import validate_no_pipe
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.metrics.names import get_all_leaves_below
@@ -125,7 +126,7 @@ class ManagementProfile(models.Model):
     """
 
     id = models.AutoField(db_column='management_profileid', primary_key=True)
-    name = VarcharField(unique=True)
+    name = VarcharField(unique=True, validators=[validate_no_pipe])
     description = VarcharField(blank=True, null=True)
 
     PROTOCOL_DEBUG = 0
