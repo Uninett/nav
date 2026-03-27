@@ -27,7 +27,7 @@
     "spin.js": "2.3.2",
     "tablesort": "5.7.0",
     "underscore": "1.7.0",
-    "vue": "2.2.0"
+    "vue": "3.0.0"
   },
   "scripts": {
     "watch:sass": "webpack --config webpack.config.js --config-name sass --mode development --watch",
