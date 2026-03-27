@@ -78,6 +78,12 @@ def validate_hstore(value):
     return dictionary
 
 
+def validate_no_pipe(value: str) -> str:
+    """Validates that a string value does not contain the pipe character"""
+    if "|" in value:
+        raise ValidationError("Cannot contain the pipe character ('|')")
+
+
 def validate_aliases(aliases: list[str]) -> list[str]:
     """
     Validates a given list of aliases and raises a ValidationError if any of the
@@ -92,8 +98,7 @@ def validate_aliases(aliases: list[str]) -> list[str]:
         if not isinstance(item, str):
             raise ValidationError("All aliases must be strings.")
         stripped = item.strip()
-        if "|" in stripped:
-            raise ValidationError("Aliases cannot contain the pipe character ('|')")
+        validate_no_pipe(stripped)
         if len(stripped) > MAX_ALIAS_LENGTH:
             raise ValidationError(
                 f"Alias must be {MAX_ALIAS_LENGTH} characters or fewer."

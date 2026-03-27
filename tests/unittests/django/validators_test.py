@@ -2,6 +2,7 @@ import pytest
 from nav.django.validators import (
     is_valid_point_string,
     validate_hstore,
+    validate_no_pipe,
     ValidationError,
 )
 
@@ -54,3 +55,15 @@ class TestValidHStoreField(object):
         input = '{"a": "b"}'
         result = validate_hstore(input)
         assert result == {'a': 'b'}
+
+
+class TestValidateNoPipe:
+    def test_given_string_without_pipe_charactor_then_do_nothing(self):
+        input = "stringwithoutpipecharacter123"
+        result = validate_no_pipe(input)
+        assert result is None
+
+    def test_given_string_with_pipe_character_then_raise_validation_error(self):
+        input = "stringwith|pipe"
+        with pytest.raises(ValidationError):
+            validate_no_pipe(input)
