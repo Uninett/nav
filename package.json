@@ -26,7 +26,7 @@
     "select2": "4.1.0-rc.0",
     "spin.js": "2.3.2",
     "tablesort": "5.7.0",
-    "underscore": "1.7.0",
+    "underscore": "1.13.8",
     "vue": "2.2.0"
   },
   "scripts": {
