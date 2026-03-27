@@ -20,7 +20,7 @@ class SocialProviderHelperTest(TestCase):
         SECTION = "foo"
         DEFAULT_CONFIG = {SECTION: {}}
 
-    def test_if_providers_exist_get_providers_returns_value_of_subkey(self):
+    def test_when_providers_exist_then_get_providers_should_return_subkey_value(self):  # noqa: E501
         config = {
             "foo": {
                 "bar": 1,
@@ -31,14 +31,16 @@ class SocialProviderHelperTest(TestCase):
         result = mc.get_providers()
         self.assertEqual(result, 1)
 
-    def test_if_providers_does_not_exist_return_empty_dict(self):
+    def test_when_no_providers_exist_then_get_providers_should_return_empty_dict(self):  # noqa: E501
         mc = self.MyConfig()
         result = mc.get_providers()
         self.assertEqual(result, {})
 
 
 class SocialConfigParserTests(TestCase):
-    def test_generate_SOCIALACCOUNT_PROVIDERS_golden_path(self):
+    def test_when_providers_configured_then_generate_SOCIALACCOUNT_PROVIDERS_should_return_translated_config(  # noqa: E501
+        self,
+    ):
         config_string = """
 [social.providers.testprovider1]
 client_id = "not.optional"
@@ -75,14 +77,18 @@ foo = 1  # This is not a valid setting, just for tests!
         result = sc.generate_SOCIALACCOUNT_PROVIDERS()
         self.assertEqual(result, expected)
 
-    def test_if_no_config_generate_SOCIALACCOUNT_PROVIDERS_returns_empty_dict(self):
+    def test_when_no_config_then_generate_SOCIALACCOUNT_PROVIDERS_should_return_empty_dict(  # noqa: E501
+        self,
+    ):
         sc = SocialConfigParser()
         result = sc.generate_SOCIALACCOUNT_PROVIDERS()
         self.assertEqual(result, {})
 
 
 class OIDCConfigParserTests(TestCase):
-    def test_generate_SOCIALACCOUNT_PROVIDERS_golden_path(self):
+    def test_when_idps_configured_then_generate_SOCIALACCOUNT_PROVIDERS_should_return_translated_config(  # noqa: E501
+        self,
+    ):
         config_string = """
 [oidc.idps.testprovider1]
 name="Provider 1"
@@ -118,12 +124,14 @@ foo = 1  # This is not a valid setting, just for tests!
         result = sc.generate_SOCIALACCOUNT_PROVIDERS()
         self.assertEqual(result, expected)
 
-    def test_if_no_config_generate_SOCIALACCOUNT_PROVIDERS_returns_empty_dict(self):
+    def test_when_no_config_then_generate_SOCIALACCOUNT_PROVIDERS_should_return_empty_dict(  # noqa: E501
+        self,
+    ):
         sc = OIDCConfigParser()
         result = sc.generate_SOCIALACCOUNT_PROVIDERS()
         self.assertEqual(result, {})
 
-    def test_if_nouid_field_set_fall_back_to_sub(self):
+    def test_when_no_uid_field_set_then_it_should_fall_back_to_sub(self):
         config_string = """
 [oidc.idps.testprovider1]
 name="Provider 1"
