@@ -8,11 +8,6 @@ enabled = false
 #support-recovery-codes = true
 # The number of codes is hard-coded to 10
 
-# Whether passkeys (webauthn) is supported (Poorly supported on Linux!)
-#support-passkeys = false
-#support-passkey-signups = false
-#allow-insecure-origin = false
-
 
 # Configuration for "social" login providers bundled with django-allauth
 # See https://docs.allauth.org/en/latest/socialaccount/providers/index.html
