@@ -35,7 +35,7 @@ from nav.web.auth.allauth import MFAConfigParser
 from nav.django.utils import get_os_version
 
 
-# Changes to `True` by default in Django 5.0
+# Default changed to `True` in Django 5.0; kept explicit for clarity
 USE_TZ = False
 
 ALLOWED_HOSTS = ['*']
@@ -85,7 +85,7 @@ try:
     DATABASES = {
         'default': {
             'NAME': _name,
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.db.backends.postgresql',
             'HOST': _host,
             'PORT': _port,
             'USER': _user,

@@ -33,12 +33,11 @@ dependencies = [
     "feedparser==6.0.11",
     "dnspython<3.0.0,>=2.1.0",
 
-    "Django>=4.2,<4.3",
+    "Django>=5.2,<5.3",
     "django-filter>=2",
     "djangorestframework>=3.14",
     "django-htmx",
     "django-allauth[mfa,socialaccount]",
-    "pytz",
 
     "iso8601",
 
@@ -149,7 +148,7 @@ platforms = ["any"]
 where = ["python"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 include = [
     "python/nav/**/*.py",
