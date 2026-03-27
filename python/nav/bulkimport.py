@@ -20,7 +20,7 @@ import json
 
 from django.core.exceptions import ValidationError
 
-from nav.django.forms import validate_aliases
+from nav.django.validators import validate_aliases
 from nav.models.fields import PointField
 from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup

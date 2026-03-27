@@ -6,7 +6,7 @@ import json
 import pytest
 from django.urls import reverse
 
-from nav.django.forms import MAX_ALIAS_LENGTH
+from nav.django.validators import MAX_ALIAS_LENGTH
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints

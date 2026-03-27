@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from nav.django.forms import MAX_ALIAS_LENGTH
+from nav.django.validators import MAX_ALIAS_LENGTH
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase
 from nav import bulkimport, bulkparse

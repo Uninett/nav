@@ -21,7 +21,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from nav.django.forms import validate_aliases
+from nav.django.validators import validate_aliases
 from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
 from nav.web.seeddb.page.netbox.edit import get_sysname

@@ -4,12 +4,8 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 
-from nav.django.forms import (
-    MAX_ALIAS_LENGTH,
-    AliasListField,
-    AliasListWidget,
-    validate_aliases,
-)
+from nav.django.forms import AliasListField, AliasListWidget
+from nav.django.validators import MAX_ALIAS_LENGTH, validate_aliases
 
 
 class TestAliasListFieldClean:
