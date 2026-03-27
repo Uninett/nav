@@ -8,14 +8,16 @@ This details what the Debian package does for you automatically.
 Adapt this if you can't use an official ``.deb`` or need to install on
 something that isn't Debian-based.
 
-.. note:: This howto is based on Debian 9 (Stretch).
+.. note:: This howto is based on Debian 13 (Trixie).
 
 1. OS dependencies
 ==================
 
 First get the following OS packages::
 
-  apt-get install -y python-pip python-wheel git postgresql apache2 libapache2-mod-wsgi libsnmp30
+  (run apt-get update if needed)
+
+  apt-get install -y python3-pip python3-wheel git postgresql apache2 libapache2-mod-wsgi-py3 libsnmp40
 
 
 2. Get the source
@@ -107,7 +109,7 @@ you've connected your GSM device to. Often, this device has a group ownership
 set to the ``dialout`` group, so the easieast route is to add the ``navcron`` user
 to the ``dialout`` group::
 
-  sudo addgroup navcron dialout
+  sudo adduser navcron dialout
 
 
 8. Ensure that a writeable uploads directory exists
