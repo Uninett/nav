@@ -78,6 +78,16 @@ def validate_hstore(value):
     return dictionary
 
 
+def validate_hstore_no_pipe(value):
+    """
+    Validates that a hstore field does not have any keys or value containing the pipe
+    character
+    """
+    for k, v in value.items():
+        if "|" in k or "|" in v:
+            raise ValidationError("Cannot contain the pipe character ('|')")
+
+
 def validate_no_pipe(value: str) -> str:
     """Validates that a string value does not contain the pipe character"""
     if "|" in value:

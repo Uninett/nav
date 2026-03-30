@@ -23,6 +23,7 @@ from django.db.models import Q
 from django.urls import reverse
 
 from nav.django.forms import HStoreField
+from nav.django.validators import validate_hstore_no_pipe
 from nav.web.crispyforms import (
     FlatFieldset,
     FormColumn,
@@ -73,7 +74,9 @@ class NetboxModelForm(forms.ModelForm):
 
     ip = forms.CharField()
     function = forms.CharField(required=False)
-    data = HStoreField(label='Attributes', required=False)
+    data = HStoreField(
+        label='Attributes', required=False, validators=[validate_hstore_no_pipe]
+    )
     sysname = forms.CharField(required=False)
     virtual_instance = MyModelMultipleChoiceField(
         queryset=Netbox.objects.none(),

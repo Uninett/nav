@@ -91,6 +91,34 @@ def test_adding_netbox_with_invalid_profiles_should_fail(db, client):
     assert not Netbox.objects.filter(ip=ip).exists()
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        {
+            'ip': '10.254.254.253',
+            'room': 'myroom',
+            'category': 'GW',
+            'organization': 'myorg',
+            'data': ['{"a|b":"c|d"}'],
+        },
+    ],
+)
+def test_when_adding_netbox_with_pipe_in_attributes_then_it_should_fail(
+    db, client, data
+):
+    url = reverse('seeddb-netbox-edit')
+
+    response = client.post(
+        url,
+        follow=True,
+        data=data,
+    )
+
+    assert response.status_code == 200
+    assert 'Cannot contain the pipe character' in smart_str(response.content)
+    assert not Netbox.objects.filter(ip=data["ip"]).exists()
+
+
 def test_when_adding_management_profile_with_pipe_in_name_then_it_should_fail(
     db, client
 ):
