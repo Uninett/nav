@@ -7,7 +7,7 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from django.utils.encoding import smart_str
-from nav.models.manage import Interface, Netbox, NetboxInfo, Room
+from nav.models.manage import Interface, ManagementProfile, Netbox, NetboxInfo, Room
 from nav.models.cabling import Cabling, Patch
 from nav.web.auth.utils import set_account
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
@@ -101,6 +101,89 @@ def test_when_adding_management_profile_with_pipe_in_name_then_it_should_fail(
         url,
         follow=True,
         data={"name": name},
+    )
+
+    assert response.status_code == 200
+    assert 'Cannot contain the pipe character' in smart_str(response.content)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_HTTP_API),
+            "api_key": "keywith|pipe",
+            "service": "Palo Alto ARP",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_DEBUG),
+            "foo": "bar|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_SNMP),
+            "version": "2",
+            "community": "communitywith|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_SNMPV3),
+            "sec_level": "noAuthNoPriv",
+            "auth_protocol": "MD5",
+            "sec_name": "name|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_SNMPV3),
+            "sec_level": "authNoPriv",
+            "auth_protocol": "MD5",
+            "sec_name": "namewithoutpipe",
+            "auth_password": "password|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_SNMPV3),
+            "sec_level": "authPriv",
+            "auth_protocol": "MD5",
+            "sec_name": "namenopipe",
+            "auth_password": "passwordnopipe",
+            "priv_protocol": "DES",
+            "priv_password": "password|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_NAPALM),
+            "driver": "JunOS",
+            "username": "username|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_NAPALM),
+            "driver": "JunOS",
+            "username": "usernamenopipe",
+            "password": "password|pipe",
+        },
+        {
+            "name": "test",
+            "protocol": str(ManagementProfile.PROTOCOL_NAPALM),
+            "driver": "JunOS",
+            "username": "usernamenopipe",
+            "password": "passwordnopipe",
+            "private_key": "key|pipe",
+        },
+    ],
+)
+def test_when_adding_management_profile_with_pipe_in_attributes_then_it_should_fail(
+    db, client, data
+):
+    url = reverse('seeddb-management-profile-edit')
+
+    response = client.post(
+        url,
+        follow=True,
+        data=data,
     )
 
     assert response.status_code == 200

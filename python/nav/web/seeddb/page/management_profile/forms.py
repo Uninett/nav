@@ -15,6 +15,7 @@
 #
 from django import forms
 
+from nav.django.validators import validate_no_pipe
 from nav.models.manage import ManagementProfile
 from nav.web.seeddb.forms import get_single_layout
 
@@ -75,6 +76,7 @@ class HttpApiForm(ProtocolSpecificMixIn, forms.ModelForm):
         label="API key",
         help_text="Key/token to authenticate to the service",
         required=True,
+        validators=[validate_no_pipe],
     )
 
     service = forms.ChoiceField(
@@ -93,7 +95,7 @@ class DebugForm(ProtocolSpecificMixIn, forms.ModelForm):
         configuration_fields = ['foo']
         fields = []
 
-    foo = forms.CharField(required=True)
+    foo = forms.CharField(required=True, validators=[validate_no_pipe])
 
 
 class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
@@ -111,7 +113,7 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
             (1, '1'),
         )
     )
-    community = forms.CharField(required=True)
+    community = forms.CharField(required=True, validators=[validate_no_pipe])
     write = forms.BooleanField(
         required=False,
         help_text="Check if this community string enables write access",
@@ -164,6 +166,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
             "The username to authenticate as.  This is required even if noAuthPriv "
             "security mode is selected."
         ),
+        validators=[validate_no_pipe],
     )
     auth_password = forms.CharField(
         widget=forms.PasswordInput(render_value=True, attrs={"autocomplete": "off"}),
@@ -173,6 +176,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
             "authPriv security levels."
         ),
         required=False,
+        validators=[validate_no_pipe],
     )
     priv_protocol = forms.ChoiceField(
         label="Privacy protocol",
@@ -191,6 +195,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
             "security level."
         ),
         required=False,
+        validators=[validate_no_pipe],
     )
     write = forms.BooleanField(
         initial=False,
@@ -240,16 +245,22 @@ class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
         initial="JunOS",
         help_text="Which NAPALM driver to use",
     )
-    username = forms.CharField(required=True, help_text="User name to use for login")
+    username = forms.CharField(
+        required=True,
+        help_text="User name to use for login",
+        validators=[validate_no_pipe],
+    )
     password = forms.CharField(
         required=False,
         widget=forms.PasswordInput(render_value=True),
         help_text="Password to use for login",
+        validators=[validate_no_pipe],
     )
     private_key = forms.CharField(
         required=False,
         widget=forms.Textarea(),
         help_text="SSH private key to use for login",
+        validators=[validate_no_pipe],
     )
     use_keys = forms.BooleanField(
         required=False, help_text="Check to try the available keys in ~/.ssh/"
