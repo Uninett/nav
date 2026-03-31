@@ -13,7 +13,7 @@ jobs:
     if: github.event.workflow_run.conclusion != 'skipped' && github.repository_owner == 'Uninett'
 
     steps:
-      # Checking out the repo is necessary codecov/codecov-action@v5 to work properly
+      # Checking out the repo is necessary codecov/codecov-action@v6 to work properly
       # Codecov requires source code to process the coverage file and generate coverage
       # reports
       - name: Checkout Code
@@ -61,7 +61,7 @@ jobs:
           fi
 
       - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
