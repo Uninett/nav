@@ -65,8 +65,8 @@ class Message(models.Model):
         return '"%s" by %s' % (self.title, self.author)
 
 
-class MaintenanceTaskManager(models.Manager):
-    """Custom manager for MaintenanceTask objects"""
+class MaintenanceTaskQuerySet(models.QuerySet):
+    """Custom QuerySet for the MaintenanceTask model"""
 
     def current(self, relative_to=None):
         """Retrieves current maintenancen tasks
@@ -75,32 +75,30 @@ class MaintenanceTaskManager(models.Manager):
         not cancelled
         """
         now = relative_to or datetime.now()
-        return (
-            self.get_queryset()
-            .exclude(state=MaintenanceTask.STATE_CANCELED)
-            .filter(start_time__lte=now, end_time__gte=now)
+        return self.exclude(state=MaintenanceTask.STATE_CANCELED).filter(
+            start_time__lte=now, end_time__gte=now
         )
 
     def past(self, relative_to=None):
         """Retrieves past maintenance tasks"""
         now = relative_to or datetime.now()
-        return self.get_queryset().filter(end_time__lt=now)
+        return self.filter(end_time__lt=now)
 
     def future(self, relative_to=None):
         """Retrieves future maintenance tasks"""
         now = relative_to or datetime.now()
-        return self.get_queryset().filter(start_time__gt=now)
+        return self.filter(start_time__gt=now)
 
     def endless(self):
         """Retrieves tasks with an unspecified end time"""
-        return self.get_queryset().filter(end_time__gte=INFINITY)
+        return self.filter(end_time__gte=INFINITY)
 
 
 class MaintenanceTask(models.Model):
     """From NAV Wiki: The maintenance task created in the maintenance task
     tool."""
 
-    objects = MaintenanceTaskManager()
+    objects = MaintenanceTaskQuerySet.as_manager()
 
     STATE_SCHEDULED = 'scheduled'
     STATE_ACTIVE = 'active'
