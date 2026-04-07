@@ -38,7 +38,6 @@ dependencies = [
     "djangorestframework>=3.14",
     "django-htmx",
     "django-allauth[mfa,socialaccount]",
-    "pytz",
 
     "iso8601",
 
