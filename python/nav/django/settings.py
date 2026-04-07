@@ -211,13 +211,13 @@ EMAIL_HOST_PASSWORD = NAV_CONFIG.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = NAV_CONFIG.get('EMAIL_USE_TLS', 'False') == 'True'
 
 # Date formatting
+# Format strings are also defined in nav.django.formats.en for localization.
+FORMAT_MODULE_PATH = ['nav.django.formats']
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
 SHORT_TIME_FORMAT = 'H:i'  # Use template filter to access this
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 SHORT_DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, SHORT_TIME_FORMAT)
-USE_L10N = False
-
 TIME_ZONE = NAV_CONFIG.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = NAV_CONFIG.get('DOMAIN_SUFFIX', None)
 
