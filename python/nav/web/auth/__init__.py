@@ -45,7 +45,7 @@ def get_login_url(request: HttpRequest, path=None) -> str:
     if path == "/":
         default_new_url = LOGIN_URL
     else:
-        default_new_url = '{0}?origin={1}&noaccess'.format(LOGIN_URL, path)
+        default_new_url = '{0}?next={1}&noaccess'.format(LOGIN_URL, path)
     remote_loginurl = remote_user.CONFIG.get_loginurl(request)
     return remote_loginurl if remote_loginurl else default_new_url
 
