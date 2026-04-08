@@ -58,7 +58,7 @@ class TestValidHStoreField(object):
 
 
 class TestValidateNoPipe:
-    def test_given_string_without_pipe_charactor_then_do_nothing(self):
+    def test_given_string_without_pipe_character_then_do_nothing(self):
         input = "stringwithoutpipecharacter123"
         result = validate_no_pipe(input)
         assert result is None
