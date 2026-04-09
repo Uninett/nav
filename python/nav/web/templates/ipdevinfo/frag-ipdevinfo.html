@@ -88,8 +88,16 @@
             <tr>
               <th>Room</th>
               <td>
-                <a href="{% url 'room-info' netbox.room.id %}">
-                  {{ netbox.room }}</a></td>
+                {% if netbox.room.aliases %}
+                  <span class="nav-tooltip" data-align="center">
+                    <a href="{% url 'room-info' netbox.room.id %}" class="unstyled-tooltip" aria-describedby="aliases-tooltip">
+                      {{ netbox.room }}</a>
+                    <span id="aliases-tooltip" role="tooltip" class="medium">Aliases: {{ netbox.room.aliases_string }}</span>
+                  </span>
+                {% else %}
+                  <a href="{% url 'room-info' netbox.room.id %}">{{ netbox.room }}</a>
+                {% endif %}
+              </td>
             </tr>
 
             <tr>
