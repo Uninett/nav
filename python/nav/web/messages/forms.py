@@ -46,9 +46,10 @@ class MessageForm(ModelForm):
 
         # Since the m2m uses through, we need to fetch initial data manually
         initials = []
-        tasks = MessageToMaintenanceTask.objects.filter(message=self.instance)
-        for task in tasks.all():
-            initials.append(task.maintenance_task.pk)
+        if self.instance.pk:
+            tasks = MessageToMaintenanceTask.objects.filter(message=self.instance)
+            for task in tasks.all():
+                initials.append(task.maintenance_task.pk)
         self.initial['maintenance_tasks'] = initials
 
         # Classes for javascript plugin

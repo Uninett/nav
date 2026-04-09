@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.13"]
+        python-version: ["3.10", "3.11", "3.13"]
 
     steps:
       - uses: actions/checkout@v6
@@ -76,7 +76,7 @@ jobs:
       - name: "Set up PostgreSQL"
         uses: ankane/setup-postgres@v1
         with:
-          postgres-version: '13'  # minimum NAV requirement
+          postgres-version: '14'  # minimum for Django 5.2
           user: nav
       - name: "Check for Django warnings"
         run: python3 -m tox -e django-warnings

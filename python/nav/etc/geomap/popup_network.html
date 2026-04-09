@@ -1,6 +1,6 @@
 {% load geomap %}
 <div class="network-popup">
-  {% if network.subedges|length_is:"1" %}
+  {% if network.subedges|length == 1 %}
   {% else %}
   <table class="vertitable">
     <caption>

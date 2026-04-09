@@ -170,7 +170,7 @@
                 <th>Uplink{{ uplinks|pluralize }}</th>
                 <td>
                   {% if uplinks %}
-                    {% if uplinks|length_is:1 %}
+                    {% if uplinks|length == 1 %}
                       {% if uplinks.0.this %}
                         From <a href="{{ uplinks.0.this.get_absolute_url }}">
                         {{ uplinks.0.this }}</a><br/>
