@@ -608,6 +608,16 @@ select[multiple] {
 
 
 /* Allauth element styles */
+.mfa-panels {
+    section + section {
+        margin-top: 1.5rem;
+    }
+
+    .label.success {
+        color: white;
+    }
+}
+
 .allauth-actions {
     list-style: none;
     display: flex;
