@@ -3,33 +3,39 @@
 {% load allauth %}
 {% block content %}
     <h3>{% translate "Recovery Codes" %}</h3>
-    {% element p %}
-        {% blocktranslate %}Each code can be used once to sign in if you lose access to your authenticator app.{% endblocktranslate %}
-    {% endelement %}
+    <div class="alert-box info">
+        {% blocktranslate %}Store these codes in a safe place. Each can be used only once to sign in if you lose access to your authenticator app.{% endblocktranslate %}
+    </div>
     {% element p %}
         {% blocktranslate count unused_count=unused_codes|length %}There is {{ unused_count }} out of {{ total_count }} recovery codes available.{% plural %}There are {{ unused_count }} out of {{ total_count }} recovery codes available.{% endblocktranslate %}
     {% endelement %}
-    {% element field id="recovery_codes" type="textarea" disabled=True rows=unused_codes|length readonly=True %}
-        {% slot label %}
-            {% translate "Unused codes" %}
-        {% endslot %}
-        {% comment %} djlint:off {% endcomment %}
-    {% slot value %}{% for code in unused_codes %}{% if forloop.counter0 %}
-{% endif %}{{ code }}{% endfor %}{% endslot %}
-{% comment %} djlint:on {% endcomment %}
-{% endelement %}
-{% if unused_codes %}
-{% url 'mfa_download_recovery_codes' as download_url %}
-{% element button href=download_url %}
-{% translate "Download codes" %}
-{% endelement %}
-{% endif %}
-{% url 'mfa_generate_recovery_codes' as generate_url %}
-{% element button href=generate_url %}
-{% translate "Generate new codes" %}
-{% endelement %}
-{% url 'mfa_index' as mfa_index_url %}
-{% element button href=mfa_index_url tags="secondary" %}
-{% translate "Back to Two-Factor Authentication" %}
-{% endelement %}
+    {% if unused_codes %}
+        <style>.recovery-codes-list { font-family: monospace; list-style: none; margin: 0; columns: 2; }</style>
+        <ul class="recovery-codes-list">
+            {% for code in unused_codes %}
+                <li>{{ code }}</li>
+            {% endfor %}
+        </ul>
+        <button type="button"
+                class="button small secondary"
+                style="margin-top: 0.5rem;"
+                onclick="navigator.clipboard.writeText(this.dataset.text).then(() => this.textContent='{% trans "Copied!" %}')"
+                data-text="{% for code in unused_codes %}{{ code }}{% if not forloop.last %}&#10;{% endif %}{% endfor %}">{% translate "Copy all codes" %}</button>
+    {% endif %}
+    <div style="margin-top: 1.5rem;">
+        {% if unused_codes %}
+            {% url 'mfa_download_recovery_codes' as download_url %}
+            {% element button href=download_url %}
+                {% translate "Download codes" %}
+            {% endelement %}
+        {% endif %}
+        {% url 'mfa_generate_recovery_codes' as generate_url %}
+        {% element button href=generate_url %}
+            {% translate "Generate new codes" %}
+        {% endelement %}
+        {% url 'mfa_index' as mfa_index_url %}
+        {% element button href=mfa_index_url tags="secondary" %}
+            {% translate "Back" %}
+        {% endelement %}
+    </div>
 {% endblock content %}
