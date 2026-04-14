@@ -28,6 +28,13 @@ class TestGetStandardUrls(object):
         result = auth.get_login_url(request)
         assert result.startswith(raw_login_url)
 
+    def test_when_path_is_not_root_then_get_login_url_should_use_next_parameter(self):
+        r = RequestFactory()
+        request = r.get('/ipdevinfo/')
+        result = auth.get_login_url(request)
+        assert 'next=' in result
+        assert 'origin=' not in result
+
     def test_get_remote_login_url(self):
         r = RequestFactory()
         request = r.get('/')
