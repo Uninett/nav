@@ -21,7 +21,16 @@ fi
 # Make file_path relative to project root for the checker
 REL_PATH="${FILE_PATH#"$PROJECT_DIR"/}"
 
-output=$(python3 "$CHECKER" --files "$REL_PATH" 2>&1)
+# For untracked (new) files, check the entire file; for tracked files, only check the diff
+if ! git -C "$PROJECT_DIR" ls-files --error-unmatch "$REL_PATH" >/dev/null 2>&1; then
+  output=$(python3 "$CHECKER" --files "$REL_PATH" 2>&1)
+else
+  DIFF=$(git -C "$PROJECT_DIR" diff HEAD --unified=0 -- "$REL_PATH")
+  if [[ -z "$DIFF" ]]; then
+    exit 0
+  fi
+  output=$(echo "$DIFF" | python3 "$CHECKER" --stdin 2>&1)
+fi
 exit_code=$?
 
 if [[ $exit_code -ne 0 ]]; then

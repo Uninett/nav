@@ -167,6 +167,11 @@ def main():
         help="Check all test names in specific files (ignores git diff).",
     )
     parser.add_argument(
+        "--stdin",
+        action="store_true",
+        help="Read unified diff from stdin.",
+    )
+    parser.add_argument(
         "--format",
         choices=["plain", "markdown"],
         default="plain",
@@ -175,7 +180,9 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.files:
+    if args.stdin:
+        diff = sys.stdin.read()
+    elif args.files:
         diff = get_diff_files(args.files)
     elif args.base:
         diff = get_diff_base(args.base)
