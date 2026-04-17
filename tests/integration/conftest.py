@@ -1,5 +1,6 @@
 import importlib.util
 import io
+import os
 import re
 import shlex
 from itertools import cycle
@@ -7,6 +8,12 @@ from pathlib import Path
 from shutil import which
 import subprocess
 import time
+
+# Playwright's sync API runs an async event loop internally.  Django detects
+# this and raises SynchronousOnlyOperation for any ORM call, even in tests
+# that do not use Playwright.  This is the officially recommended workaround.
+# See https://github.com/microsoft/playwright-pytest/issues/29
+os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 import toml
 import pytest
