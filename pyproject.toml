@@ -68,7 +68,6 @@ dependencies = [
 
 [project.optional-dependencies]
 ldap = ["python-ldap==3.4.5"]  # optional for LDAP authentication, requires libldap (OpenLDAP) to build
-docs = ["sphinx_rtd_theme>=2.0.0"]
 
 [dependency-groups]
 dev = [
@@ -94,6 +93,7 @@ test = [
     "toml",
     "whisper>=0.9.9",
 ]
+docs = ["sphinx_rtd_theme>=2.0.0"]
 
 [project.urls]
 Homepage = "https://nav.uninett.no/"
