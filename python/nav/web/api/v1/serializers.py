@@ -16,14 +16,23 @@
 """Serializers for the NAV REST api"""
 
 from decimal import Decimal
+from datetime import datetime
+from typing import Union
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from nav.django.forms import validate_aliases
+from nav.models.profiles import Account
 from nav.web.api.v1.fields import DisplayNameWritableField
-from nav.models import manage, cabling, rack, profiles
+from nav.models import cabling, manage, msgmaint, profiles, rack
+from nav.models.fields import INFINITY
+from nav.web.maintenance.utils import (
+    ALLOWED_COMPONENTS,
+    COMPONENTS_WITH_INTEGER_PK,
+    get_components_from_keydict,
+)
 from nav.web.seeddb.page.netbox.edit import get_sysname
 
 
@@ -553,3 +562,144 @@ class NetboxEntitySerializer(serializers.ModelSerializer):
     class Meta(object):
         model = manage.NetboxEntity
         fields = '__all__'
+
+
+class ComponentSerializer(serializers.Serializer):
+    """Serializer for creating components of a MaintenanceTask"""
+
+    room = serializers.ListField(
+        child=serializers.CharField(),
+        allow_null=True,
+        required=False,
+    )
+    location = serializers.ListField(
+        child=serializers.CharField(),
+        allow_null=True,
+        required=False,
+    )
+    netbox = serializers.ListField(
+        child=serializers.IntegerField(),
+        allow_null=True,
+        required=False,
+    )
+    service = serializers.ListField(
+        child=serializers.IntegerField(),
+        allow_null=True,
+        required=False,
+    )
+    netboxgroup = serializers.ListField(
+        child=serializers.CharField(),
+        allow_null=True,
+        required=False,
+    )
+
+
+class RequestMaintenanceTaskSerializer(serializers.ModelSerializer):
+    """Serializer for creating a MaintenanceTask"""
+
+    end_time = serializers.DateTimeField(
+        default=INFINITY, required=False, allow_null=True
+    )
+    components = ComponentSerializer()
+
+    class Meta(object):
+        model = msgmaint.MaintenanceTask
+        fields = (
+            "start_time",
+            "end_time",
+            "description",
+            "author",
+            "components",
+        )
+
+    def validate_end_time(self, value):
+        if value is None:
+            return INFINITY
+        return value
+
+    def validate_author(self, value):
+        if not Account.objects.filter(login=value).exists():
+            raise serializers.ValidationError("No account with this login exists")
+        return value
+
+    def validate_components(self, value):
+        if not value:
+            raise serializers.ValidationError("No components selected")
+
+        components, component_errors = get_components_from_keydict(value)
+
+        if component_errors:
+            raise serializers.ValidationError(component_errors)
+
+        return components
+
+    def validate(self, data):
+        if data['start_time'] > data['end_time']:
+            raise serializers.ValidationError("End_time must be later than start_time")
+        return data
+
+    def create(self, validated_data: dict):
+        components = validated_data.pop("components", {})
+
+        task = msgmaint.MaintenanceTask(
+            start_time=validated_data['start_time'],
+            end_time=validated_data['end_time'],
+            description=validated_data['description'],
+            author=validated_data['author'],
+        )
+
+        if task.end_time <= datetime.now():
+            task.state = msgmaint.MaintenanceTask.STATE_PASSED
+        else:
+            task.state = msgmaint.MaintenanceTask.STATE_SCHEDULED
+
+        task.save()
+
+        self._add_maintenance_components(task, components)
+
+        return task
+
+    @staticmethod
+    def _add_maintenance_components(task: msgmaint.MaintenanceTask, components: list):
+        """Adds maintenance components to an existing maintenance task"""
+        for component in components:
+            table = component._meta.db_table
+            descr = str(component) if table in COMPONENTS_WITH_INTEGER_PK else None
+            msgmaint.MaintenanceComponent.objects.create(
+                maintenance_task=task,
+                key=table,
+                value=component.pk,
+                description=descr,
+            )
+
+
+class ResponseMaintenanceTaskSerializer(serializers.ModelSerializer):
+    """Serializer for returning a MaintenanceTask"""
+
+    components = serializers.SerializerMethodField()
+
+    class Meta(object):
+        model = msgmaint.MaintenanceTask
+        fields = '__all__'
+
+    def get_components(self, obj):
+        components = {}
+        for component_type in ALLOWED_COMPONENTS:
+            component_ids = self._get_component_ids_of_specific_model(
+                obj, component_type
+            )
+            if component_ids:
+                components[component_type] = component_ids
+        return components
+
+    @staticmethod
+    def _get_component_ids_of_specific_model(
+        task: msgmaint.MaintenanceTask, model_name: str
+    ) -> list[Union[int, str]]:
+        return [
+            int(component.value)
+            if model_name in COMPONENTS_WITH_INTEGER_PK
+            else component.value
+            for component in task.maintenance_components.all()
+            if component.key == model_name
+        ]

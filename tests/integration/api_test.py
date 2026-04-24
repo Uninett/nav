@@ -11,7 +11,9 @@ from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
-from nav.models.manage import NetboxEntity
+from nav.models.manage import NetboxEntity, NetboxGroup, Room
+from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
+from nav.models.service import Service
 
 
 ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
@@ -216,7 +218,6 @@ def test_get_new_room(db, api_client, token):
 
 def test_when_room_has_dot_in_id_the_api_should_still_find_it(db, api_client, token):
     create_token_endpoint(token, "room")
-    from nav.models.manage import Room
 
     room = Room(id="foo.bar", location_id="mylocation")
     room.save()
@@ -711,6 +712,560 @@ class TestNetboxEntityViewSet:
         assert response.data['id'] == netboxentity.id
 
 
+class TestMaintenanceTaskViewSetList:
+    def test_when_getting_list_of_tasks_then_return_tasks(
+        self, db, api_client, maintenance_endpoint, current_maintenance_task
+    ):
+        response = get(api_client, maintenance_endpoint)
+        assert response.status_code == 200
+        result_ids = [result["id"] for result in response.data["results"]]
+        assert current_maintenance_task.id in result_ids
+
+    def test_when_searching_by_description_then_return_matching_results(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        future_maintenance_task,
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[maintenance_endpoint]}?search={current_maintenance_task.description}"
+        )
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert future_maintenance_task.id not in ids
+
+    def test_when_filtering_by_id_then_return_matching_results(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        future_maintenance_task,
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[maintenance_endpoint]}?id={current_maintenance_task.id}"
+        )
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert future_maintenance_task.id not in ids
+
+    def test_when_filtering_by_description_then_return_matching_results(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        future_maintenance_task,
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[maintenance_endpoint]}?description={current_maintenance_task.description}"
+        )
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert future_maintenance_task.id not in ids
+
+    def test_when_filtering_by_author_then_return_matching_results(
+        self, db, api_client, maintenance_endpoint, current_maintenance_task
+    ):
+        other_task = MaintenanceTask.objects.create(
+            start_time=datetime.now(),
+            end_time=datetime.now() + timedelta(hours=1),
+            description="Other description",
+            author="otheruser",
+            state=MaintenanceTask.STATE_SCHEDULED,
+        )
+
+        response = api_client.get(
+            f"{ENDPOINTS[maintenance_endpoint]}?author={current_maintenance_task.author}"
+        )
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert other_task.id not in ids
+
+    def test_when_filtering_by_state_then_return_matching_results(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[maintenance_endpoint]}?state={current_maintenance_task.state}"
+        )
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert passed_maintenance_task.id not in ids
+
+    def test_when_filtering_by_current_true_then_return_ongoing_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?current=true")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert passed_maintenance_task.id not in ids
+
+    def test_when_filtering_by_current_false_then_return_not_ongoing_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+        future_maintenance_task,
+        canceled_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?current=false")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert passed_maintenance_task.id in ids
+        assert future_maintenance_task.id in ids
+        assert canceled_maintenance_task.id in ids
+        assert current_maintenance_task.id not in ids
+
+    def test_when_filtering_by_past_true_then_return_passed_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?past=true")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert passed_maintenance_task.id in ids
+        assert current_maintenance_task.id not in ids
+
+    def test_when_filtering_by_past_false_then_return_current_or_future_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+        future_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?past=false")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert future_maintenance_task.id in ids
+        assert current_maintenance_task.id in ids
+        assert passed_maintenance_task.id not in ids
+
+    def test_when_filtering_by_future_true_then_return_future_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        future_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?future=true")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert future_maintenance_task.id in ids
+        assert current_maintenance_task.id not in ids
+
+    def test_when_filtering_by_endless_true_then_return_tasks_with_end_time_infinite(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        endless_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?endless=true")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert endless_maintenance_task.id in ids
+        assert current_maintenance_task.id not in ids
+
+    def test_when_filtering_by_endless_false_then_return_finite_tasks(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        current_maintenance_task,
+        passed_maintenance_task,
+        future_maintenance_task,
+        endless_maintenance_task,
+    ):
+        response = api_client.get(f"{ENDPOINTS[maintenance_endpoint]}?endless=false")
+
+        assert response.status_code == 200
+
+        ids = [result['id'] for result in response.data['results']]
+        assert current_maintenance_task.id in ids
+        assert passed_maintenance_task.id in ids
+        assert future_maintenance_task.id in ids
+        assert endless_maintenance_task.id not in ids
+
+
+class TestMaintenanceTaskViewSetRetrieve:
+    def test_when_getting_specific_task_then_return_task(
+        self, db, api_client, maintenance_endpoint, current_maintenance_task
+    ):
+        response = get(api_client, maintenance_endpoint, id=current_maintenance_task.id)
+        assert response.status_code == 200
+        assert response.data["id"] == current_maintenance_task.id
+
+    def test_when_getting_specific_task_with_components_then_list_components(
+        self, db, api_client, maintenance_endpoint, current_maintenance_task, localhost
+    ):
+        response = get(api_client, maintenance_endpoint, id=current_maintenance_task.id)
+        assert response.status_code == 200
+        assert localhost.pk in response.data["components"]["netbox"]
+
+
+class TestMaintenanceTaskViewSetCreate:
+    def test_given_task_without_end_time_then_create_infinite_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        start_time = datetime.now()
+        data = {
+            "start_time": start_time.isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"room": ["myroom"]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.start_time == start_time
+        assert task.end_time == INFINITY
+
+    def test_given_task_end_time_none_then_create_infinite_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        start_time = datetime.now()
+        data = {
+            "start_time": start_time.isoformat(),
+            "end_time": None,
+            "description": "Test",
+            "author": admin_username,
+            "components": {"room": ["myroom"]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.start_time == start_time
+        assert task.end_time == INFINITY
+
+    def test_given_task_with_end_time_then_create_finite_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        start_time = datetime.now()
+        end_time = datetime.now() + timedelta(days=1)
+        data = {
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"room": ["myroom"]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.start_time == start_time
+        assert task.end_time == end_time
+
+    def test_given_task_with_end_time_in_past_then_create_passed_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        start_time = datetime.now() - timedelta(days=2)
+        end_time = datetime.now() - timedelta(days=1)
+        data = {
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"room": ["myroom"]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.state == MaintenanceTask.STATE_PASSED
+
+    def test_given_invalid_start_time_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": "invalid",
+                "description": "Test",
+                "author": admin_username,
+                "components": {"room": ["myroom"]},
+            },
+        )
+        assert response.status_code == 400
+        assert "Datetime has wrong format" in str(response.data["start_time"])
+
+    def test_given_invalid_end_time_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "end_time": "invalid",
+                "description": "Test",
+                "author": admin_username,
+                "components": {"room": ["myroom"]},
+            },
+        )
+        assert response.status_code == 400
+        assert "Datetime has wrong format" in str(response.data["end_time"])
+
+    def test_given_end_time_before_start_time_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": (datetime.now() + timedelta(days=1)).isoformat(),
+                "end_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": admin_username,
+                "components": {"room": ["myroom"]},
+            },
+        )
+        assert response.status_code == 400
+        assert "End_time must be later than start_time" in str(response.data)
+
+    def test_given_non_existent_author_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": "doesnotexist",
+                "components": {"room": ["myroom"]},
+            },
+        )
+        assert response.status_code == 400
+        assert "No account with this login exists" in str(response.data["author"])
+
+    def test_given_task_with_rooms_then_create_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        second_room = Room(id="secondroom", location_id="mylocation")
+        second_room.save()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"room": ["myroom", second_room.pk]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert "myroom" in component_pks
+        assert second_room.pk in component_pks
+
+    def test_given_task_with_netbox_then_create_task(
+        self,
+        db,
+        api_client,
+        maintenance_endpoint,
+        admin_username,
+        localhost,
+    ):
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"netbox": [localhost.id]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert localhost.id in component_pks
+
+    def test_given_task_with_location_then_create_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"location": ["mylocation"]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert "mylocation" in component_pks
+
+    def test_given_task_with_netboxgroup_then_create_task(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        netboxgroup = NetboxGroup.objects.first()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"netboxgroup": [netboxgroup.id]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert netboxgroup.id in component_pks
+
+    def test_given_task_with_service_then_create_task(
+        self, db, api_client, maintenance_endpoint, localhost, admin_username
+    ):
+        service = Service(netbox=localhost)
+        service.save()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "description": "Test",
+            "author": admin_username,
+            "components": {"service": [service.id]},
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 201
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert service.id in component_pks
+
+    def test_given_no_components_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": admin_username,
+                "components": {},
+            },
+        )
+        assert response.status_code == 400
+        assert "No components selected" in str(response.data["components"])
+
+    def test_given_non_existing_netbox_id_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": admin_username,
+                "components": {"netbox": [99999]},
+            },
+        )
+        assert response.status_code == 400
+        assert "netbox: no elements with the given identifiers found" in str(
+            response.data["components"]
+        )
+
+    def test_given_non_number_netbox_id_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": admin_username,
+                "components": {"netbox": ["notanumber"]},
+            },
+        )
+        assert response.status_code == 400
+        assert "A valid integer is required" in str(response.data["components"])
+
+    def test_given_non_string_room_id_then_return_400(
+        self, db, api_client, maintenance_endpoint, admin_username
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "author": admin_username,
+                "components": {"room": [{"wrong": "type"}]},
+            },
+        )
+        assert response.status_code == 400
+        assert "Not a valid string" in str(response.data["components"])
+
+
+class TestMaintenanceTaskViewSetDestroy:
+    def test_when_deleting_task_then_delete_task_and_components(
+        self, db, api_client, maintenance_endpoint, current_maintenance_task
+    ):
+        response = delete(
+            api_client, maintenance_endpoint, id=current_maintenance_task.id
+        )
+        assert response.status_code == 204
+        assert not MaintenanceTask.objects.filter(
+            id=current_maintenance_task.id
+        ).exists()
+        assert not MaintenanceComponent.objects.filter(
+            maintenance_task_id=current_maintenance_task.id
+        ).exists()
+
+
 # Helpers
 
 
@@ -914,3 +1469,77 @@ def netboxentity(db, localhost):
     netbox_entity.save()
     yield netbox_entity
     netbox_entity.delete()
+
+
+@pytest.fixture()
+def maintenance_endpoint(db, token):
+    endpoint = 'maintenance'
+    create_token_endpoint(token, endpoint)
+    return endpoint
+
+
+@pytest.fixture
+def current_maintenance_task(db, localhost):
+    task = MaintenanceTask(
+        start_time=datetime.now(),
+        end_time=datetime.now() + timedelta(hours=1),
+        description="Test task",
+        author="testuser",
+        state=MaintenanceTask.STATE_SCHEDULED,
+    )
+    task.save()
+    MaintenanceComponent.objects.create(
+        maintenance_task=task,
+        key=localhost._meta.db_table,
+        value=localhost.pk,
+        description=f"netbox {localhost.id}",
+    )
+    return task
+
+
+@pytest.fixture
+def passed_maintenance_task(db):
+    task = MaintenanceTask.objects.create(
+        start_time=datetime.now() - timedelta(days=2),
+        end_time=datetime.now() - timedelta(days=1),
+        description="Passed maintenance task",
+        author="testuser",
+        state=MaintenanceTask.STATE_PASSED,
+    )
+    yield task
+
+
+@pytest.fixture
+def future_maintenance_task(db):
+    task = MaintenanceTask.objects.create(
+        start_time=datetime.now() + timedelta(days=2),
+        end_time=datetime.now() + timedelta(days=3),
+        description="Future maintenance task",
+        author="testuser",
+        state=MaintenanceTask.STATE_SCHEDULED,
+    )
+    yield task
+
+
+@pytest.fixture
+def canceled_maintenance_task(db):
+    task = MaintenanceTask.objects.create(
+        start_time=datetime.now(),
+        end_time=datetime.now() + timedelta(days=1),
+        description="Canceled maintenance task",
+        author="testuser",
+        state=MaintenanceTask.STATE_CANCELED,
+    )
+    yield task
+
+
+@pytest.fixture
+def endless_maintenance_task(db):
+    task = MaintenanceTask.objects.create(
+        start_time=datetime.now(),
+        end_time=INFINITY,
+        description="Other description",
+        author="testuser",
+        state=MaintenanceTask.STATE_SCHEDULED,
+    )
+    yield task
