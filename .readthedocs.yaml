@@ -10,6 +10,10 @@ build:
     python: "3.11"
   apt_packages:
     - libsnmp40
-  jobs:
-    post_create_environment:
-      - pip install -e . -r doc/requirements.txt --constraint constraints.txt
+
+python:
+  install:
+    - method: uv
+      command: sync
+      groups:
+        - docs
