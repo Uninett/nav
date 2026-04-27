@@ -1,4 +1,5 @@
 from nav.models.event import (
+    AlertHistory,
     EventMixIn,
     ThresholdEvent,
     EventQueue,
@@ -99,6 +100,106 @@ def test_thresholdevent_should_lookup_thresholdrule(event):
         threvent = ThresholdEvent(event)
         assert threvent.rule is expected_rule
         assert threvent.metric == expected_metric
+
+
+class TestAlertHistoryGetShortDescription:
+    def test_when_sms_exists_it_should_return_sms_text(self, alert):
+        self._add_message(alert, type='sms', message='Switch down')
+
+        assert alert.get_short_description() == 'Switch down'
+
+    def test_when_stateless_alert_it_should_use_stateless_state(self, alert):
+        alert.end_time = None
+        self._add_message(alert, type='sms', state='x', message='Threshold exceeded')
+
+        assert alert.get_short_description() == 'Threshold exceeded'
+
+    def test_when_no_sms_but_email_with_subject_it_should_return_subject(self, alert):
+        self._add_message(
+            alert,
+            type='email',
+            message='Subject: Router gw1 is down\n\nDetails here...',
+        )
+
+        assert alert.get_short_description() == 'Router gw1 is down'
+
+    def test_when_email_subject_has_extra_whitespace_it_should_strip_it(self, alert):
+        self._add_message(
+            alert,
+            type='email',
+            message='Subject:   Router gw1 is down  \n\nBody text',
+        )
+
+        assert alert.get_short_description() == 'Router gw1 is down'
+
+    def test_when_email_has_no_subject_it_should_fall_through(self, alert):
+        self._add_message(
+            alert,
+            type='email',
+            message='Just a plain message body',
+        )
+        alert.alert_type = Mock(description='boxDown')
+
+        assert alert.get_short_description() != 'Just a plain message body'
+
+    def test_when_no_messages_it_should_return_alert_type_description(self, alert):
+        alert.alert_type = Mock(description='boxDown')
+
+        assert alert.get_short_description() == 'boxDown'
+
+    def test_when_no_messages_and_no_alert_type_it_should_return_empty_string(
+        self, alert
+    ):
+        alert.alert_type = None
+
+        assert alert.get_short_description() == ""
+
+    def test_when_sms_exists_it_should_be_preferred_over_email(self, alert):
+        self._add_message(alert, type='sms', message='Switch down')
+        self._add_message(
+            alert,
+            type='email',
+            message='Subject: Switch gw1 is down\n\nLong body...',
+        )
+
+        assert alert.get_short_description() == 'Switch down'
+
+    def test_when_language_specified_it_should_filter_by_language(self, alert):
+        self._add_message(alert, type='sms', language='en', message='Switch down')
+        self._add_message(alert, type='sms', language='nb', message='Svitsj nede')
+
+        assert alert.get_short_description(language='nb') == 'Svitsj nede'
+
+    @staticmethod
+    def _add_message(alert, type='sms', language='en', state='s', message='test'):
+        """Adds a mock message to the alert's message filter chain."""
+        msg = Mock()
+        msg.type = type
+        msg.language = language
+        msg.state = state
+        msg.message = message
+        alert._messages.append(msg)
+
+    @pytest.fixture
+    def alert(self):
+        alert = Mock(spec=AlertHistory)
+        alert.end_time = 'infinity'
+        alert.alert_type = None
+        alert._messages = []
+
+        def filter_side_effect(**kwargs):
+            result = Mock()
+            for msg in alert._messages:
+                if all(getattr(msg, k) == v for k, v in kwargs.items()):
+                    result.first.return_value = msg
+                    return result
+            result.first.return_value = None
+            return result
+
+        alert.messages = Mock()
+        alert.messages.filter.side_effect = filter_side_effect
+        alert.get_short_description = AlertHistory.get_short_description.__get__(alert)
+        return alert
 
 
 #
