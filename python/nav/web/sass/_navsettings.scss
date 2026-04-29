@@ -24,7 +24,7 @@ $xxlarge-only: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)}) and (m
 
 // Relative image path
 // Providing variables for all assets paths in this folder so that there will be no hard coding
-$assets-url: '../static' !global;
+$assets-url: '/static' !global;
 $image-path: '#{$assets-url}/images' !global;
 $image-path-partials: '#{$assets-url}/images' !global;
 $fa-font-path: '#{$assets-url}/fonts';
