@@ -4,14 +4,7 @@
   "version": "5",
   "private": true,
   "devDependencies": {
-    "css-loader": "^6.10.0",
-    "glob": "^10.3.10",
-    "mini-css-extract-plugin": "^2.8.0",
-    "sass": "^1.71.1",
-    "sass-loader": "^14.1.1",
-    "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4",
-    "webpack-remove-empty-scripts": "^1.0.4"
+    "sass": "^1.71.1"
   },
   "dependencies": {
     "backbone": "1.0.0",
@@ -30,7 +23,7 @@
     "vue": "2.2.0"
   },
   "scripts": {
-    "watch:sass": "webpack --config webpack.config.js --config-name sass --mode development --watch",
-    "build:sass": "webpack --config webpack.config.js --config-name sass --mode production"
+    "watch:sass": "cd python/nav/web && sass --silence-deprecation=import,global-builtin,new-global,slash-div,color-functions,function-units,if-function --watch sass/nav.scss:static/css/nav.css sass/nav/:static/css/nav/ sass/font-awesome/font-awesome.scss:static/css/font-awesome/font-awesome.css",
+    "build:sass": "cd python/nav/web && sass --silence-deprecation=import,global-builtin,new-global,slash-div,color-functions,function-units,if-function --style=compressed --no-source-map sass/nav.scss:static/css/nav.css sass/nav/:static/css/nav/ sass/font-awesome/font-awesome.scss:static/css/font-awesome/font-awesome.css"
   }
 }
