@@ -1,7 +1,7 @@
 name: Check test names
 
 on:
-  pull_request:
+  pull_request_target:
 
 permissions:
   pull-requests: write
@@ -15,11 +15,16 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Fetch PR head
+      run: git fetch origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+
     - name: Check new test names
       id: check
       run: |
-        base="origin/${{ github.event.pull_request.base.ref }}"
-        output=$(python3 checks/check_test_names.py --base "$base" --format markdown 2>&1) && has_violations=false || has_violations=true
+        merge_base=$(git merge-base HEAD refs/remotes/pull/head)
+        output=$(git diff "$merge_base" refs/remotes/pull/head --unified=0 | python3 checks/check_test_names.py --stdin --format markdown 2>&1) && has_violations=false || has_violations=true
         echo "$output"
         {
           echo "body<<BODY_EOF"
