@@ -72,6 +72,46 @@ define([
         }
     }
 
+    function handleTitleEditing(node) {
+        const header = node.querySelector('.subheader[data-set-title]');
+        if (!header) return;
+
+        header.addEventListener('click', function () {
+            const title = header.querySelector('.navlet-title');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = title.textContent;
+
+            header.hidden = true;
+            header.closest('.title-container').append(input);
+            input.focus();
+
+            input.addEventListener('blur', function () {
+                input.remove();
+                header.hidden = false;
+            });
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    const newTitle = input.value;
+                    const body = new URLSearchParams({
+                        'id': node.dataset.id,
+                        'preferences': JSON.stringify({ 'title': newTitle })
+                    });
+                    fetch(header.dataset.setTitle, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCsrfToken() },
+                        body: body
+                    }).then(response => {
+                        if (response.ok) title.textContent = newTitle;
+                    });
+                }
+                if (event.key === 'Enter' || event.key === 'Escape') {
+                    input.blur();
+                }
+            });
+        });
+    }
+
     function handleSelect2Initialization($swappedNode) {
         const $selectElements = $swappedNode.find('select');
 
@@ -94,6 +134,7 @@ define([
         handle: function (swappedNode) {
             const $swappedNode = $(swappedNode);
             handleNavletType($swappedNode);
+            handleTitleEditing(swappedNode);
             handleSelect2Initialization($swappedNode);
         },
     };
