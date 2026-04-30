@@ -1,6 +1,6 @@
 define(function (require, exports, module) {
 
-    var d3 = require('d3');
+    var d3 = require('d3v7');
 
     /*
      Gauge implementation in D3. Heavily inspired by JustGage - http://justgage.com/
@@ -32,21 +32,21 @@ define(function (require, exports, module) {
         var vis = d3.select(node).append('svg')
             .attr("width", width)
             .attr("height", radius)
-            .append("svg:g")
+            .append("g")
             .attr("transform", "translate(" + radius + "," + radius + ")");
         this.vis = vis;
 
         /* Create linear scale for start and end points */
-        this.myScale = d3.scale.linear().domain([min, max]).range([-90 * (pi/180), 90 * (pi/180)]);
+        this.myScale = d3.scaleLinear().domain([min, max]).range([-90 * (pi/180), 90 * (pi/180)]);
 
         /* Create linear scale for color transitions */
         this.color = this.createColorScale(min, max, thresholds, invertScale);
 
-        this.fontSizeScale = d3.scale.linear().domain([50, 150]).range([14, 30]);
-        this.smallfontSizeScale = d3.scale.linear().domain([50, 150]).range([8, 20]);
+        this.fontSizeScale = d3.scaleLinear().domain([50, 150]).range([14, 30]);
+        this.smallfontSizeScale = d3.scaleLinear().domain([50, 150]).range([8, 20]);
 
         /* Define arc */
-        this.arc = d3.svg.arc().outerRadius(radius).innerRadius(ir).startAngle(this.myScale(min));
+        this.arc = d3.arc().outerRadius(radius).innerRadius(ir).startAngle(this.myScale(min));
 
         /* Create background arc with gradient */
         var gradientId = this.createGradient(node);
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
     JohnGauge.prototype = {
         loadData: function (url) {
             var self = this;
-            d3.json(url, function (error, json) {
+            d3.json(url).then(function (json) {
                 var datapoints = json[0].datapoints,
                     value = datapoints[datapoints.length - 1][0] ||
                             datapoints[datapoints.length - 2][0];
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
                 config.colors.reverse();
             }
 
-            var scale = d3.scale.linear()
+            var scale = d3.scaleLinear()
                           .domain(domain)
                           .interpolate(d3.interpolateRgb)
                           .range(config.colors);

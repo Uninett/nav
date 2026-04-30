@@ -1,6 +1,6 @@
 define(function (require, exports, module) {
 
-    var d3 = require('d3');
+    var d3 = require('d3v7');
 
     /* Need a random id for the gradient */
     function guid() {
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         var self = this;
 
         // Specify scaling for y-axis
-        this.y = d3.scale.linear().domain([0, this.max]).range([this.height, 0]);
+        this.y = d3.scaleLinear().domain([0, this.max]).range([this.height, 0]);
 
         // Set data to zero, add group element
         var group = this.container.selectAll('g'),
@@ -85,17 +85,17 @@ define(function (require, exports, module) {
         createGradient: function () {
             /* Create gradient to indicate severity of value */
             var gradient = this.container
-                .append("svg:defs").append("svg:linearGradient")
+                .append("defs").append("linearGradient")
                 .attr("id", this.gradientId).attr("x1", "100%").attr("y1", "100%")
                 .attr("x2", "100%").attr("y2", "0%").attr('gradientUnits', 'userSpaceOnUse');
-            gradient.append("svg:stop").attr("offset", "0%").attr("stop-color", "lightgreen");
-            gradient.append("svg:stop").attr("offset", "50%").attr("stop-color", "yellow");
-            gradient.append("svg:stop").attr("offset", "100%").attr("stop-color", "red");
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", "lightgreen");
+            gradient.append("stop").attr("offset", "50%").attr("stop-color", "yellow");
+            gradient.append("stop").attr("offset", "100%").attr("stop-color", "red");
         },
         loadData: function() {
 
             var self = this;
-            d3.json(this.url, function (json, error) {
+            d3.json(this.url).then(function (json) {
                 var datapoints = json[0].datapoints,
                     value = datapoints[datapoints.length - 1][0] || datapoints[datapoints.length - 2][0];
 
