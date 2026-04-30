@@ -13,6 +13,10 @@ Usage:
 
     # Check specific files
     python checks/check_test_names.py --files tests/test_foo.py tests/test_bar.py
+
+    # Read unified diff from stdin
+    git diff HEAD --unified=0 -- tests/test_foo.py | \
+        python checks/check_test_names.py --stdin
 """
 
 import argparse
@@ -157,6 +161,11 @@ def format_markdown(violations, total):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--stdin",
+        action="store_true",
+        help="Read unified diff from stdin instead of running git.",
+    )
+    parser.add_argument(
         "--base",
         help="Base branch to diff against (e.g. master)."
         " If omitted, checks staged changes.",
@@ -175,7 +184,9 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.files:
+    if args.stdin:
+        diff = sys.stdin.read()
+    elif args.files:
         diff = get_diff_files(args.files)
     elif args.base:
         diff = get_diff_base(args.base)
