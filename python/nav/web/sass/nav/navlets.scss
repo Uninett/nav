@@ -79,6 +79,15 @@ $fullscreen-color: #EEE;
             font-size: 0.8em;
             margin-left: 0.3em;
         }
+        &[data-set-title] {
+            cursor: pointer;
+            i {
+                color: darkgrey;
+                &:hover {
+                    color: black;
+                }
+            }
+        }
     }
 }
 

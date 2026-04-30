@@ -7,7 +7,7 @@
             You need to log in to access this resource
         </div>
     {% endif %}
-    {% with redirect_url=request.GET.origin|default:redirect_field_value %}
+    {% with redirect_url=redirect_field_value %}
     {% if redirect_url %}
         <div class="alert-box secondary origin">
             After successfully logging in, you will be redirected to:<br/>
