@@ -8,6 +8,6 @@ pytest-playwright>=0.6.2
 pytest-timeout==2.3.1
 pytest-twisted==1.14.3
 pytidylib==0.3.2
-snmpsim>=1.0,!=1.1.6
+snmpsim>=1.0,!=1.1.6,!=1.2.2
 toml
 whisper>=0.9.9
