@@ -22,6 +22,10 @@ Review milestone for next release on GitHub
 
   * Please remember that the series branch must be merged to ``master`` for
     the related issues to be automatically closed by GitHub.
+  * For issues whose fix was merged only to a stable branch (and which
+    GitHub therefore did not auto-close), the helper script
+    :file:`tools/close_stable_fixed_issues.py` walks recently merged
+    stable-branch PRs and offers to close each linked issue interactively.
 
 * Unless any unfixed issues are showstoppers, untarget them from this milestone
   to remove clutter.
