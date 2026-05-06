@@ -69,6 +69,14 @@ class TOMLConfigParser(UserDict):
             return data[key]
         raise KeyError(key)
 
+    def get(self, key, default=None):
+        # UserDict.get() uses `key in self` which checks self.data directly,
+        # bypassing the SECTION filtering in __getitem__. Use __getitem__ instead.
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
     def read_file(self, fp):
         config = tomllib.load(fp)
         self._merge_with_default(config)

@@ -20,6 +20,7 @@
 from hashlib import md5
 import itertools
 import logging
+import secrets
 from datetime import datetime
 import re
 import json
@@ -347,6 +348,13 @@ class Account(AbstractBaseUser):
                 Account.objects.filter(pk=self.pk).update(password=self.password)
 
         return verified
+
+    def set_unusable_password(self):
+        # NAV locks accounts by prefixing password with '!'. Django's default
+        # set_unusable_password() also uses '!' as prefix, which would lock
+        # social login accounts. Set a random valid hash instead so the account
+        # stays active but has no guessable password.
+        self.password = str(nav.pwhash.Hash(password=secrets.token_hex(32)))
 
     @property
     def locked(self):
