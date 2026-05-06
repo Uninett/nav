@@ -18,10 +18,6 @@ The source code is available for download at [GitHub]({{ urls.github_releases }}
 
 New packages for Debian {{ debian_releases | join_and }} are available in our [APT repository]({{ urls.apt_repo }}).
 
-{% if patch == 0 -%}
-Please be sure to check the [release notes]({{ urls.release_notes_base }}#nav-{{ major }}-{{ minor }}) before upgrading, as there may be recommended changes to your config files.
-
-{% endif -%}
 {% for section, content in sections.items() %}
 ## {{ section }}
 

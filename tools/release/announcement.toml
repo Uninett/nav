@@ -1,5 +1,5 @@
 [debian]
-releases = ["12 (Bookworm)", "11 (Bullseye)", "13 (Trixie)"]
+releases = ["11 (Bullseye)", "12 (Bookworm)", "13 (Trixie)"]
 
 [urls]
 github_releases = "https://github.com/Uninett/nav/releases"
