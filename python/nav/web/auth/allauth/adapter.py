@@ -16,6 +16,18 @@ class NAVAccountAdapter(DefaultAccountAdapter):
         # Override with setting, otherwise default to super.
         return getattr(settings, "ACCOUNT_ALLOW_SIGNUPS", allow_signups)
 
+    def populate_username(self, request, user):
+        # NAV's login field is a VarcharField (TextField subclass) with no max_length.
+        # allauth's default generate_unique_username crashes on None max_length.
+        # populate_user already sets user.login from the social account uid.
+        from allauth.account import app_settings as account_settings
+        from allauth.account.utils import user_username
+
+        if account_settings.USER_MODEL_USERNAME_FIELD:
+            username = user_username(user)
+            if username:
+                user_username(user, username)
+
 
 class NAVSocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, sociallogin):
@@ -25,6 +37,37 @@ class NAVSocialAccountAdapter(DefaultSocialAccountAdapter):
         if socialaccount_app_settings.AUTO_SIGNUP:
             return True
         return get_account_adapter(request).is_open_for_signup(request)
+
+    def populate_user(self, request, sociallogin, data):
+        user = super().populate_user(request, sociallogin, data)
+        if not getattr(user, 'login', None):
+            user.login = sociallogin.account.uid
+        return user
+
+    def pre_social_login(self, request, sociallogin):
+        """Connect OIDC login to existing NAV account by uid before signup runs."""
+        from nav.models.profiles import Account
+
+        if sociallogin.is_existing:
+            return
+        uid = sociallogin.account.uid
+        if not uid:
+            return
+        try:
+            existing = Account.objects.get(login=uid)
+            sociallogin.connect(request, existing)
+        except Account.DoesNotExist:
+            pass
+
+    def save_user(self, request, sociallogin, form=None):
+        extra = sociallogin.account.extra_data
+        token = extra.get('id_token', extra)
+        userinfo = extra.get('userinfo', token)
+        user = sociallogin.user
+        user.login = sociallogin.account.uid
+        user.name = userinfo.get('name') or token.get('name', '')
+        user.ext_sync = 'oidc'
+        return super().save_user(request, sociallogin, form)
 
 
 class NAVMFAAdapter(DefaultMFAAdapter):
