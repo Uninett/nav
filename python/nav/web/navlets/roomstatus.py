@@ -21,7 +21,7 @@ from operator import attrgetter
 
 from django import forms
 
-from nav.models.event import AlertHistory, STATE_START, STATE_STATELESS
+from nav.models.event import AlertHistory
 
 from nav.web.navlets.status2 import Status2Widget
 
@@ -51,10 +51,7 @@ class RoomStatus(Status2Widget):
         for room, alertlist in groupby(alerts, attrgetter('netbox.room')):
             room.alerts = sorted(alertlist, key=attrgetter('start_time'))
             for alert in room.alerts:
-                state = STATE_START if alert.end_time is not None else STATE_STATELESS
-                alert.sms_message = alert.messages.get(
-                    type='sms', language='en', state=state
-                )
+                alert.short_description = alert.get_short_description()
             rooms.append(room)
 
         context['items'] = rooms
