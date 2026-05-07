@@ -1,1 +1,2 @@
 snowballstemmer<3.0.0  # incompatible with Sphinx 7.4.7?
+ipaddr>=2.2.0  # older versions fail to install on Py3 (legacy 0L literal)
