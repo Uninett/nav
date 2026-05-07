@@ -146,6 +146,9 @@ platforms = ["any"]
 [tool.setuptools.package-data]
 "nav.web" = ["static/**"]
 
+[tool.setuptools.exclude-package-data]
+"nav.web" = ["static/js/test/**"]
+
 [tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
