@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PostToolUse hook: check test naming conventions after Edit/Write on test files.
 # Gives Claude feedback (exit 2) so it can fix the names before committing.
 

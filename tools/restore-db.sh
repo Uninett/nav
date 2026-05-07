@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+set -e
 # This simple script is designed to run inside a devcontainer doing a full
 # database drop-and-restore cycle.  It expects the SQL schema to load to
 # be its input on stdin.
