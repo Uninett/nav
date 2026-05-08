@@ -12,7 +12,7 @@ fi
 
 # Find the project root (where checks/ lives)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null)}"
-CHECKER="$PROJECT_DIR/checks/check_test_names.py"
+CHECKER="$PROJECT_DIR/checks/check_tests.py"
 
 if [[ ! -f "$CHECKER" ]]; then
   exit 0
