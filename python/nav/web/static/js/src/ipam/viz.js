@@ -6,19 +6,39 @@
 // if it turns out to not work that well
 
 define(function (require, exports, module) {
-  var d3 = require("d3");
+  const d3 = require("d3v7");
   var _ = require("underscore");
   var util = require("src/ipam/util");
-  var d3tip = require("d3tip");
 
-  // === Tooltip (+ template)
-  var tip = d3tip()
-        .attr('class', 'd3-tip')
-        .offset([-10, 0])
-        .html(function(d) {
-          var fmt = _.template("<strong><%= prefix %></strong>: <%= addr %>");
-          return fmt({prefix: d.prefix, addr: d.max_addresses});
-        });
+  // Create a tooltip using the nav-tooltip component for SVG hover details
+  function createTooltip() {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'nav-tooltip';
+    wrapper.dataset.position = 'fixed';
+    wrapper.dataset.side = 'top';
+    wrapper.style.pointerEvents = 'none';
+
+    const tooltipEl = document.createElement('span');
+    tooltipEl.setAttribute('role', 'tooltip');
+    tooltipEl.className = 'small';
+    tooltipEl.dataset.initialized = 'true';
+    wrapper.appendChild(tooltipEl);
+
+    document.body.appendChild(wrapper);
+
+    return {
+      show: function(event, d) {
+        tooltipEl.innerHTML = '<strong>' + d.prefix + '</strong>: ' + d.max_addresses;
+        tooltipEl.classList.add('show');
+        const rect = event.target.getBoundingClientRect();
+        tooltipEl.style.top = (rect.top - tooltipEl.offsetHeight) + 'px';
+        tooltipEl.style.left = rect.left + 'px';
+      },
+      hide: function() {
+        tooltipEl.classList.remove('show');
+      }
+    };
+  }
 
 
   // Simple viewbox template
@@ -73,24 +93,22 @@ define(function (require, exports, module) {
       console.log("No data to display");
       return;
     }
-    // get bounds of mountElem to responsively set width
-    // var bounds = d3.select(mountElem).node().getBoundingClientRect();
 
     // normalize data
     var data = normalizeData(inData, opts);
 
     // === Drawing settings
     // [width, 0] makes the normalization step easier/prettier
-    var xScale = d3.scale.linear()
+    const xScale = d3.scaleLinear()
           .range([width, 0]);
 
-    var yScale = d3.scale.ordinal()
-          .rangeRoundBands([0, height], .1);
+    const yScale = d3.scaleBand()
+          .range([0, height])
+          .padding(0.1)
+          .round(true);
 
     // Adapt yScale to data dimensions to ensure consistent spacing
     yScale.domain(_.map(data, function(d) { return d.prefix; }));
-
-    var colors = d3.scale.category20();
 
     var svg;
     if (d3.select(mountElem).select("svg").empty()) {
@@ -108,7 +126,7 @@ define(function (require, exports, module) {
       d3.selectAll(".prefix").remove();
     }
 
-    svg.call(tip);
+    const tip = createTooltip();
 
     // Start drawing each prefix
     var prefixes = svg.selectAll(".graph-prefixes")
@@ -129,12 +147,12 @@ define(function (require, exports, module) {
 
     // Attach tooltip to prefix
     prefix
-      .on("mouseover", tip.show)
-      .on("mouseout", tip.hide);
+      .on("mouseover", function(event, d) { tip.show(event, d); })
+      .on("mouseout", function() { tip.hide(); });
 
     // Draw available addresses (main graph)
     var bar = prefix.append("rect")
-          .attr("height", yScale.rangeBand())
+          .attr("height", yScale.bandwidth())
           .style("stroke", function(d) {
             return "#ccc";
           })
@@ -150,7 +168,7 @@ define(function (require, exports, module) {
           });
 
     function getMaskHeight(d) {
-      return d.usage * yScale.rangeBand();
+      return d.usage * yScale.bandwidth();
     }
 
     // Add usage mask. TODO: BTW, there has got to be a better way of doing
@@ -159,12 +177,12 @@ define(function (require, exports, module) {
     prefix.append("rect")
       .attr("height", getMaskHeight)
       .attr("transform", function(d) {
-        return util.translate(0, yScale.rangeBand() - getMaskHeight(d));
+        return util.translate(0, yScale.bandwidth() - getMaskHeight(d));
       })
       .attr("x", function(d) { return xScale(d.delta1); })
       .attr("width", function(d) { return xScale(d.delta0) - xScale(d.delta1) - padding; })
       .style("fill", "steelblue")
-      .on("mouseover", function(d) { console.log(d); });
+      .on("mouseover", function(event, d) { console.log(d); });
   }
 
   // Simple percent vertical bar chart.
@@ -183,9 +201,9 @@ define(function (require, exports, module) {
     var data = util.normalize(inData, "value", opts.scaleFn);
 
     // === Drawing settings
-    var xScale = d3.scale.linear().range([width, 0]);
-    var yScale = d3.scale.ordinal().rangeRoundBands([0, height], .1);
-    var colors = d3.scale.category20();
+    const xScale = d3.scaleLinear().range([width, 0]);
+    const yScale = d3.scaleBand().range([0, height]).padding(0.1).round(true);
+    const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
     // === Drawing phase
     var svg = d3.select(mountElem)
@@ -208,7 +226,7 @@ define(function (require, exports, module) {
         }
         return d.fill;
       })
-      .attr("height", yScale.rangeBand())
+      .attr("height", yScale.bandwidth())
       .attr("width", function(d) { return xScale(d.delta0) - xScale(d.delta1); });
 
     // TODO: add tooltip
@@ -247,13 +265,13 @@ define(function (require, exports, module) {
     console.log(data);
 
     // Width is based on host octet (assumed  to be last octet)
-    var xScale = d3.scale.linear().range([width, 0]).domain([1, 32]);
-    var xOffset = d3.scale.linear().range([width, 0]).domain([255, 0]);
+    const xScale = d3.scaleLinear().range([width, 0]).domain([1, 32]);
+    const xOffset = d3.scaleLinear().range([width, 0]).domain([255, 0]);
 
     // Height is based on number of potential subnets (see rowHeight)
-    var yScale = d3.scale.linear().range([0, height]).domain([0, 1]);
+    const yScale = d3.scaleLinear().range([0, height]).domain([0, 1]);
 
-    var colors = d3.scale.category20();
+    const colors = d3.scaleOrdinal(d3.schemeCategory10);
     colors.domain(_.map(data, function(d){ return d.prefix; }));
 
 
