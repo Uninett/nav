@@ -46,6 +46,14 @@ class AuthorizationMiddleware(MiddlewareMixin):
     def process_view(
         self, request: HttpRequest, view_func, view_args, view_kwargs
     ) -> Optional[HttpResponse]:
+        if not hasattr(request, "htmx"):
+            raise ImproperlyConfigured(
+                "The NAV authorization middleware requires HTMX middleware "
+                "to be installed. Edit your MIDDLEWARE setting to insert "
+                "'django_htmx.middleware.HtmxMiddleware' before "
+                "'nav.web.auth.middleware.AuthorizationMiddleware'."
+            )
+
         # support the LoginRequiredMiddleware defined in Django 5.1
         explicit_login_required = getattr(view_func, "login_required", True)
         if explicit_login_required:

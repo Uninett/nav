@@ -116,6 +116,7 @@ class TestAuthorizationMiddleware(object):
         viewfunc = lambda request: None
         r = RequestFactory()
         fake_request = r.get('/')
+        fake_request.htmx = Mock()
         with patch(
             'nav.web.auth.middleware.authorize_request', return_value=True
         ) as ar:
@@ -134,6 +135,7 @@ class TestAuthorizationMiddleware(object):
         viewfunc = lambda request: None
         r = RequestFactory()
         fake_request = r.get('/')
+        fake_request.htmx = Mock()
         with patch('nav.web.auth.middleware.authorize_request', return_value=False):
             with patch('nav.web.auth.middleware.redirect_to_login') as rtl:
                 AuthorizationMiddleware(lambda x: x).process_view(
@@ -149,6 +151,7 @@ class TestAuthorizationMiddleware(object):
         viewfunc.login_required = False
         r = RequestFactory()
         fake_request = r.get('/')
+        fake_request.htmx = Mock()
         response = AuthorizationMiddleware(lambda x: x).process_view(
             fake_request,
             viewfunc,
@@ -156,6 +159,19 @@ class TestAuthorizationMiddleware(object):
             (),
         )
         assert response is None
+
+    def test_when_htmx_middleware_has_not_run_then_it_should_raise_exception(self):
+        viewfunc = lambda request: None
+        r = RequestFactory()
+        fake_request = r.get('/')
+
+        with pytest.raises(ImproperlyConfigured):
+            AuthorizationMiddleware(lambda x: x).process_view(
+                fake_request,
+                viewfunc,
+                (),
+                (),
+            )
 
 
 class TestRedirectToLogin:
