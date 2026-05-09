@@ -20,6 +20,7 @@ NAV that wants to make use of DHCP stats.
 
 import logging
 from collections import defaultdict
+from datetime import timedelta
 from dataclasses import dataclass
 from typing import Any, Iterable, Literal, Optional, Union
 
@@ -33,6 +34,7 @@ from nav.metrics.graphs import (
 )
 from nav.metrics.names import get_expanded_nodes, safe_name
 from nav.metrics.templates import metric_path_for_dhcp
+from nav.util import cachedfor
 
 
 _logger = logging.getLogger(__name__)
@@ -105,6 +107,7 @@ def fetch_graph_urls_for_prefixes(prefixes: list[IPy.IP]) -> list[str]:
     return graph_urls
 
 
+@cachedfor(timedelta(hours=1))
 def fetch_paths_from_graphite():
     """
     Fetches and returns all unique DHCP stat paths in Graphite when their
