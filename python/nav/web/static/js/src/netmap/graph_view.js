@@ -3,11 +3,11 @@ define([
     'netmap/models',
     'netmap/graph_info_view',
     'plugins/fullscreen',
+    'd3v7',
     'underscore',
     'backbone',
-    'libs/backbone-eventbroker',
-    'd3'
-], function (Graph, Models, GraphInfoView, Fullscreen) {
+    'libs/backbone-eventbroker'
+], function (Graph, Models, GraphInfoView, Fullscreen, d3) {
 
     var Transparent = 0.2;
     var TransitionDuration = 500;
@@ -41,15 +41,16 @@ define([
             this.h = $(window).height();
 
             // Initial d3 graph state
-            this.force = d3.layout.force()
-                .gravity(0.1)
-                .charge(-2500)
-                .linkDistance(250)
-                .size([this.w, this.h]);
+            this.force = d3.forceSimulation()
+                .force('charge', d3.forceManyBody().strength(-2500))
+                .force('link', d3.forceLink().distance(250))
+                .force('x', d3.forceX(this.w / 2).strength(0.1))
+                .force('y', d3.forceY(this.h / 2).strength(0.1))
+                .stop();
 
             this.forceEnabled = false;
-            this.nodes = this.force.nodes();
-            this.links = this.force.links();
+            this.nodes = [];
+            this.links = [];
             this.isLoadingForTheFirstTime = true;
 
             Backbone.EventBroker.register(this);
@@ -129,8 +130,7 @@ define([
             this.netmapView.baseZoom = zoomParts;
             this.trans = zoomParts[0];
             this.scale = zoomParts[1];
-            this.zoom.translate(this.trans);
-            this.zoom.scale(this.scale);
+            this.syncZoomState();
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
@@ -254,21 +254,21 @@ define([
             var self = this;
 
             // Set up zoom listener
-            this.zoom = d3.behavior.zoom().center([this.w / 2, this.h / 2]);
-            this.svg.call(this.zoom.on('zoom', function () {
-               self.zoomCallback.call(self);
+            this.zoom = d3.zoom();
+            this.svg.call(this.zoom.on('zoom', function (event) {
+               self.zoomCallback.call(self, event);
             }));
 
             // Set up node dragging listener
-            this.drag = d3.behavior.drag()
-                .on('dragstart', function (node) {
-                    self.dragStart.call(this, node, self);
+            this.drag = d3.drag()
+                .on('start', function (event, node) {
+                    self.dragStart.call(this, event, node, self);
                 })
-                .on('drag', function (node) {
-                    self.dragMove.call(this, node, self);
+                .on('drag', function (event, node) {
+                    self.dragMove.call(this, event, node, self);
                 })
-                .on('dragend', function (node) {
-                    self.dragEnd.call(this, node, self);
+                .on('end', function (event, node) {
+                    self.dragEnd.call(this, event, node, self);
                 });
 
             // Set up resize on window resize
@@ -330,19 +330,22 @@ define([
                 nodes = removeOrphanNodes(nodes, links);
             }
 
-            this.force.links(links).nodes(nodes);
+            this.force.nodes(nodes);
+            this.force.force('link').links(links);
 
             this.nodes = this.force.nodes();
-            this.links = this.force.links();
+            this.links = this.force.force('link').links();
 
             // Set fixed positions
             _.each(this.nodes, function (node) {
                 if (node.position) {
                     node.x = node.position.x;
                     node.y = node.position.y;
-                    node.fixed = true;
+                    node.fx = node.position.x;
+                    node.fy = node.position.y;
                 } else {
-                    node.fixed = false;
+                    node.fx = null;
+                    node.fy = null;
                 }
             });
         },
@@ -361,22 +364,23 @@ define([
             this.render();
             // Make sure the rendered nodes are evenly distributed
             this.forceEnabled = true;
-            this.force.start();
+            this.force.alpha(1).restart();
         },
 
         render: function () {
             var self = this;
 
-            this.link = this.linkGroup.selectAll('.link')
+            const linkUpdate = this.linkGroup.selectAll('.link')
                 .data(this.links, function (link) {
                     return link.source.id + '-' + link.target.id;
-                })
-                .style('opacity', 1);
+                });
 
-            this.link.enter()
+            linkUpdate.style('opacity', 1);
+
+            const linkEnter = linkUpdate.enter()
                 .append('line')
-                .on('click', function (link) {
-                    self.clickLink.call(this, link, self);
+                .on('click', function (event, link) {
+                    self.clickLink.call(this, event, link, self);
                 })
                 .attr('class', function (o) {
                     return 'link ' + linkSpeedAsString(findLinkMaxSpeed(o));
@@ -394,28 +398,31 @@ define([
                         return 'url(#bundlelinkend)';
                     }
                 })
-                .attr('opacity', 0)
-                .transition()
+                .attr('opacity', 0);
+
+            linkEnter.transition()
                 .duration(TransitionDuration)
                 .attr('opacity', 1);
 
+            this.link = linkUpdate.merge(linkEnter);
 
-            this.link.exit().transition()
+            linkUpdate.exit().transition()
                 .duration(TransitionDuration)
                 .style('opacity', 0)
                 .remove();
 
-            this.node = this.nodeGroup.selectAll('.node')
+            const nodeUpdate = this.nodeGroup.selectAll('.node')
                 .data(this.nodes, function (node) {
                     return node.id;
-                })
-                .style('opacity', 1);
+                });
 
-            var nodeElement = this.node.enter()
+            nodeUpdate.style('opacity', 1);
+
+            const nodeElement = nodeUpdate.enter()
                 .append('g')
                 .attr('class', 'node')
-                .on('click', function (node) {
-                    self.clickNode.call(this, node, self);
+                .on('click', function (event, node) {
+                    self.clickNode.call(this, event, node, self);
                 })
                 .call(this.drag);
 
@@ -441,7 +448,9 @@ define([
                 .duration(TransitionDuration)
                 .style('opacity', 1);
 
-            this.node.exit()
+            this.node = nodeUpdate.merge(nodeElement);
+
+            nodeUpdate.exit()
                 .transition()
                 .duration(TransitionDuration)
                 .style('opacity', 0)
@@ -450,8 +459,8 @@ define([
             this.linkGroup.selectAll('.linkload').remove();
 
             var gradient = this.linkGroup.selectAll('.linkload')
-                .data(this.links);
-            gradient.enter().append('linearGradient')
+                .data(this.links)
+                .enter().append('linearGradient')
                 .attr('class', 'linkload')
                 .attr('id', function (link) {
                     return 'linkload' + link.source.id + '-' + link.target.id;
@@ -529,8 +538,7 @@ define([
             this.netmapView.baseZoom = zoomParts;
             this.trans = zoomParts[0];
             this.scale = zoomParts[1];
-            this.zoom.translate(this.trans);
-            this.zoom.scale(this.scale);
+            this.syncZoomState();
 
             var selectedCategories = this.netmapView.get('categories');
             _.each(this.model.get('filter_categories'), function (category) {
@@ -554,7 +562,7 @@ define([
             if (statusOn) {
                 this.force.stop();
             } else {
-                this.force.resume();
+                this.force.alpha(0.3).restart();
             }
             this.forceEnabled = !this.forceEnabled;
         },
@@ -577,7 +585,7 @@ define([
 
             var dirtyNodes = _.map(
                 _.filter(this.force.nodes(), function (node) {
-                    return node.fixed && node.category && !node.is_elink_node;
+                    return node.fx != null && node.category && !node.is_elink_node;
                 }),
                 function (dirtyNode) {
                     return {
@@ -653,27 +661,38 @@ define([
             var zoomParts = this.netmapView.baseZoom;
             this.trans = zoomParts[0];
             this.scale = zoomParts[1];
-            this.zoom.translate(this.trans);
-            this.zoom.scale(this.scale);
+            this.syncZoomState();
             this.transformGraphTransition();
         },
 
         unfixNodes: function () {
 
             _.each(this.nodes, function (node) {
-                node.fixed = false;
+                node.fx = null;
+                node.fy = null;
             });
             if (this.forceEnabled) {
                 console.log("resume force");
-                this.force.resume();
+                this.force.alpha(0.3).restart();
             }
         },
 
         fixNodes: function () {
             console.log("Fixing nodes");
             _.each(this.nodes, function (node) {
-                node.fixed = true;
+                node.fx = node.x;
+                node.fy = node.y;
             });
+        },
+
+        /**
+         * Syncs the D3 zoom behavior state with this.trans and this.scale
+         * without dispatching zoom events.
+         */
+        syncZoomState: function () {
+            this.svg.node().__zoom = d3.zoomIdentity
+                .translate(+this.trans[0], +this.trans[1])
+                .scale(+this.scale);
         },
 
         /**
@@ -708,8 +727,7 @@ define([
             }
 
             this.trans = [(-(bounds.xCenter * this.scale) + (this.w / 2)), (-(bounds.yCenter * this.scale) + (this.h / 2))];
-            this.zoom.translate(this.trans);
-            this.zoom.scale(this.scale);
+            this.syncZoomState();
             this.transformGraphTransition();
         },
 
@@ -746,44 +764,43 @@ define([
 
         /* d3 callback functions  */
 
-        dragStart: function (node, self) {
-            d3.event.sourceEvent.stopPropagation();
+        dragStart: function (event, node, self) {
+            event.sourceEvent.stopPropagation();
             d3.select(this).insert('circle', 'image').attr('r', 20);
         },
 
-        dragMove: function(node, self) {
-            node.px += d3.event.dx;
-            node.py += d3.event.dy;
-            node.x += d3.event.dx;
-            node.y += d3.event.dy;
-            node.fixed = true;
+        dragMove: function(event, node, self) {
+            node.x += event.dx;
+            node.y += event.dy;
+            node.fx = node.x;
+            node.fy = node.y;
             self.tick();
         },
 
-        dragEnd: function (node, self) {
+        dragEnd: function (event, node, self) {
             d3.select(this).select('circle').remove();
             if (self.forceEnabled) {
-                self.force.resume();
+                self.force.alpha(0.3).restart();
             }
         },
 
-        zoomCallback: function () {
+        zoomCallback: function (event) {
 
-            this.trans = d3.event.translate;
-            this.scale = d3.event.scale;
+            this.trans = [event.transform.x, event.transform.y];
+            this.scale = event.transform.k;
             this.transformGraph();
             this.netmapView.set('zoom', this.trans.join(',') + ';' + this.scale);
         },
 
-        clickNode: function (node, self) {
-            if (d3.event.defaultPrevented) {
+        clickNode: function (event, node, self) {
+            if (event.defaultPrevented) {
                 return;
             }
             self.graphInfoView.setModel(node);
             self.graphInfoView.render();
         },
 
-        clickLink: function (link, self) {
+        clickLink: function (event, link, self) {
             self.graphInfoView.setModel(link);
             self.graphInfoView.render();
         }
