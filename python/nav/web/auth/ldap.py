@@ -19,7 +19,7 @@ Contains low-level ldap authentication functionality for NAV web.
 
 import logging
 from os.path import join
-from typing import Union, Optional
+from typing import Optional
 
 from django.views.decorators.debug import sensitive_variables
 
@@ -121,7 +121,7 @@ def open_ldap() -> "ldap.ldapobject.LDAPObject":
 
 
 @sensitive_variables('password')
-def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
+def authenticate(login: str, password: str) -> "LDAPUser | bool":
     """
     Attempt to authenticate the login name with password against the
     configured LDAP server.  If the user is authenticated, required

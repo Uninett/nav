@@ -15,8 +15,6 @@
 #
 """netbox related shadow classes"""
 
-from typing import Union
-
 from django.db.models import Q
 from django.db import transaction
 
@@ -32,7 +30,7 @@ class Netbox(Shadow):
     def __init__(self, *args, **kwargs):
         super(Netbox, self).__init__(*args, **kwargs)
         if args:
-            obj: Union[Netbox, manage.Netbox] = args[0]
+            obj: Netbox | manage.Netbox = args[0]
             self.snmp_up = getattr(obj, 'snmp_up', not obj.is_snmp_down())
             self.last_updated = getattr(
                 obj, 'last_updated', self._translate_last_jobs(obj)

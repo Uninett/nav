@@ -29,7 +29,7 @@ from ctypes import (
     c_ulong,
     c_uint64,
 )
-from typing import Optional, Union
+from typing import Optional
 
 from IPy import IP
 from pynetsnmp import netsnmp
@@ -89,8 +89,8 @@ class Snmp(object):
         self,
         host: str,
         community: str = "public",
-        version: Union[str, int] = "1",
-        port: Union[str, int] = 161,
+        version: str | int = "1",
+        port: str | int = 161,
         retries: int = 3,
         timeout: int = 1,
         # SNMPv3-only options

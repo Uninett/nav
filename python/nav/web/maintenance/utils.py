@@ -18,7 +18,7 @@ from calendar import HTMLCalendar
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from time import strftime
-from typing import Union, List, Iterator
+from typing import List, Iterator
 
 from django.db import models
 from django.db.models import IntegerField
@@ -95,7 +95,7 @@ class MissingComponent:
     """Represents a deleted component still associated with a task"""
 
     model_class: models.Model
-    pk: Union[int, str]
+    pk: int | str
     description: str
 
     @property
@@ -110,7 +110,7 @@ class MissingComponent:
         return f"{descr} (Component was deleted)"
 
 
-ComponentType = Union[Location, Room, Netbox, Service, NetboxGroup, MissingComponent]
+ComponentType = Location | Room | Netbox | Service | NetboxGroup | MissingComponent
 
 
 def component_to_trail(component: ComponentType) -> List[ComponentType]:
@@ -188,7 +188,7 @@ def get_component_name(model: models.Model):
 
 
 def get_components_from_keydict(
-    component_keys: dict[str, List[Union[int, str]]],
+    component_keys: dict[str, List[int | str]],
 ) -> tuple[List[ComponentType], List[str]]:
     """Fetches components from a dictionary of component keys, typically as created
     from POST data.
@@ -223,7 +223,7 @@ def get_components_from_keydict(
 def prefetch_and_group_components(
     component_type: models.Model,
     query_results: models.QuerySet,
-    group_by: Union[models.Model, None] = None,
+    group_by: models.Model | None = None,
 ):
     """
     Prefetches the related model and groups components by the related model name.
