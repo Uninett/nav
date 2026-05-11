@@ -15,13 +15,8 @@
 #
 """Utility functions for NAV TOML configuration file discovery and parsing."""
 
-try:
-    import tomllib
-except ImportError:
-    # Before Python 3.11
-    import tomli as tomllib
-
 import logging
+import tomllib
 from collections import UserDict
 from collections.abc import Mapping
 from copy import deepcopy

@@ -1,7 +1,4 @@
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
+import tomllib
 
 from unittest import TestCase
 from unittest.mock import patch
