@@ -17,7 +17,6 @@
 
 from decimal import Decimal
 from datetime import datetime
-from typing import Union
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -695,7 +694,7 @@ class ResponseMaintenanceTaskSerializer(serializers.ModelSerializer):
     @staticmethod
     def _get_component_ids_of_specific_model(
         task: msgmaint.MaintenanceTask, model_name: str
-    ) -> list[Union[int, str]]:
+    ) -> list[int | str]:
         return [
             int(component.value)
             if model_name in COMPONENTS_WITH_INTEGER_PK

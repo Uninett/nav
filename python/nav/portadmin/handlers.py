@@ -16,7 +16,7 @@
 """Interface definition for PortAdmin management handlers"""
 
 import time
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Optional, Sequence
 import logging
 from dataclasses import dataclass
 
@@ -34,7 +34,7 @@ class PoeState:
     `name` is a human readable name for the state
     """
 
-    state: Union[str, int]
+    state: str | int
     name: str
 
 

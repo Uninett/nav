@@ -21,7 +21,7 @@ NAV that wants to make use of DHCP stats.
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Iterable, Literal, Optional, Union
+from typing import Any, Iterable, Literal, Optional
 
 import IPy
 
@@ -312,8 +312,8 @@ class DhcpPath:
         server_name: str,
         allocation_type: Literal["range", "pool", "subnet"],
         group_name: Optional[str],
-        first_ip: Union[str, IPy.IP],
-        last_ip: Union[str, IPy.IP],
+        first_ip: str | IPy.IP,
+        last_ip: str | IPy.IP,
     ):
         """
         Instantiate me with path data sourced from an external source such as a
