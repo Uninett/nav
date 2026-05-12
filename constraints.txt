@@ -1,4 +1,3 @@
-snowballstemmer<3.0.0  # incompatible with Sphinx 7.4.7?
 # Bound the transitive paramiko range so pip-compile's backtracking resolver
 # doesn't enumerate versions across napalm/junos-eznc/ncclient/netmiko.
 paramiko>=4,<5
