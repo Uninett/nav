@@ -21,7 +21,7 @@ Build requirements
 To build NAV, you need at least the following:
 
  * Python >= 3.11.0
- * Sphinx >= 7.4 (for building this documentation)
+ * Sphinx >= 9.0 (for building this documentation)
 
 Additionally to build frontend assets (like CSS and JS), you will need:
 
