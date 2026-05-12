@@ -36,10 +36,15 @@ available tags, and ``git checkout x.y.z`` to checkout version ``x.y.z``.
 3. NAV/Python dependencies
 ==========================
 
+Note: Running `pip install` will most likely require you to be running in a virtual environemnt.
+A basic one can be created and activated like this::
+
+  python3 -m venv myenv
+  source myenv/bin/activate
+
 To install NAV's Python requirements::
 
   apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
-  pip install -r requirements.txt -c constraints.txt
 
 4. Install NAV itself
 =====================
@@ -70,7 +75,7 @@ If you like, you can build the complete HTML documentation using::
 
 This requires `sphinx-rtd-theme` being installed separately which can be done like this::
 
-   pip install sphinx-rtd-theme
+   pip install '.[docs]'
 
 Also it needs to be provided 'SOURCEDIR' and 'OUTPUTDIR' arguments for example::
 
