@@ -35,6 +35,7 @@ Disable with::
 
 
 .. _openidc_feide_howto_configuration:
+
 Feide Kundeportal configuration
 ===============================
 

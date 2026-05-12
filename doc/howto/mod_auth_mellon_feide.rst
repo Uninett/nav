@@ -41,6 +41,7 @@ Disable with::
     $ sudo a2dismod auth_mellon
 
 .. _mellon_feide_howto_configuration:
+
 Files needed
 ============
 

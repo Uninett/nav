@@ -24,6 +24,7 @@ How to get a token
 Tokens are administrated from the ``User and API Administration`` page in NAV.
 
 .. _classic-token:
+
 How to use the token
 --------------------
 
@@ -40,6 +41,7 @@ on NAV installations that do not have SSL enabled, you are potentially giving
 everyone access to the data.
 
 .. _jwt-token:
+
 JSON Web Tokens
 ------------------
 JSON Web Tokens (JWTs) must be :ref:`configured <jwt-configuration>` before they can be used.

@@ -28,6 +28,7 @@ only accepts tokens meant for it. Otherwise the NAV instance would accept all JW
 In other words, anyone using the same token issuer could generate tokens and gain access to your NAV instance.
 
 .. _local-jwt-configuration:
+
 Configuring local JWT token generation
 --------------------------------------
 Local JWT token generation is configured in the ``nav`` section of :file:`webfront/jwt.conf`.
