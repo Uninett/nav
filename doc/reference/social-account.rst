@@ -109,9 +109,9 @@ Overview of settings:
    # oauth_pkce_enabled = false
 
    [oidc.idps.some-unique-id]  # this id must be urlsafe
-   name = "Some Login System",  # Shown in the frontend
-   client_id = "your.service.id", # Get from idp
-   secret = "your.service.secret", # Get from idp
+   name = "Some Login System"  # Shown in the frontend
+   client_id = "your.service.id" # Get from idp
+   secret = "your.service.secret" # Get from idp
    server_url = "https://my.server.example.com"
 
    # [oidc.idps.some-unique-id.settings]  # optional settings
@@ -167,9 +167,9 @@ Using Feide OIDC (aka. dataporten) as an example
 .. code-block:: toml
 
    [oidc.idps.dataporten-oidc]
-   name = "Feide OIDC",  # Shown in the frontend
-   client_id = "your.service.id",  # Get from your Feide admin
-   secret = "your.service.secret",  # Get from your Feide admin
+   name = "Feide OIDC"  # Shown in the frontend
+   client_id = "your.service.id"  # Get from your Feide admin
+   secret = "your.service.secret"  # Get from your Feide admin
    server_url = "https://auth.dataporten.no/"
 
    # optional settings but needed for Feide OIDC
