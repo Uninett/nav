@@ -1,4 +1,5 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+set -e
 if [ ! -n "$1" ]; then
     echo "Need path to workspace"
     exit 1

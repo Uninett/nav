@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Helper script for Hudson CI setup
 # Prints a random port number > 9000 that appears to be unused.
 # Is only confirmed to work on a Debian system.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # -----------------------------------------------------------------------
 # Shell script snmp_forward.sh
 # Create an SNMP tunnel to remote Agent through a hop host
@@ -42,4 +42,3 @@ trap "echo A tunnel subprocess died, stopping all forwarding; kill -HUP -$PGID" 
 remote_tunnel &
 local_tunnel &
 wait  # Just wait for all background processes to die
-
