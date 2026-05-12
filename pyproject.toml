@@ -50,7 +50,7 @@ dependencies = [
 
     "requests",
 
-    "pyjwt>=2.6.0",
+    "pyjwt>=2.12,<3",
 
     "distro",
 

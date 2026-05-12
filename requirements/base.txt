@@ -46,7 +46,7 @@ service-identity==21.1.0
 
 requests
 
-pyjwt>=2.6.0
+pyjwt>=2.12,<3
 distro
 
 django-allauth[mfa,socialaccount]
