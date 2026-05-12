@@ -1,4 +1,4 @@
-name: Check test names
+name: Check tests
 
 on:
   pull_request_target:
@@ -7,9 +7,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  check-test-names:
+  check-tests:
     runs-on: ubuntu-latest
-    name: Check test naming convention
+    name: Check test quality
     steps:
     - uses: actions/checkout@v6
       with:
@@ -24,7 +24,7 @@ jobs:
       id: check
       run: |
         merge_base=$(git merge-base HEAD refs/remotes/pull/head)
-        output=$(git diff "$merge_base" refs/remotes/pull/head --unified=0 | python3 checks/check_test_names.py --stdin --format markdown 2>&1) && has_violations=false || has_violations=true
+        output=$(git diff "$merge_base" refs/remotes/pull/head --unified=0 | python3 checks/check_tests.py --stdin --format markdown 2>&1) && has_violations=false || has_violations=true
         echo "$output"
         {
           echo "body<<BODY_EOF"

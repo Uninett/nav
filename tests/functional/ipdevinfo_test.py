@@ -11,6 +11,7 @@ def test_when_loading_port_details_activity_graphs_should_load(authenticated_pag
         f"{base_url}/ipdevinfo/test-gsw.example.org/interface=1/#port-details-activity-graphs"
     )
 
+    page.wait_for_timeout(1000)
     activity_tab = page.locator("#port-details-activity-graphs")
     expect(activity_tab).to_be_visible()
 
