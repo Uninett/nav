@@ -26,7 +26,7 @@ dependencies = [
     "qrcode>7.4",
     "pyrad==2.1",
     "sphinx==9.0.4",
-    "sphinxcontrib-programoutput==0.17",
+    "sphinxcontrib-programoutput",
     "sphinxcontrib-django",
     "Markdown==3.8.1",
 
