@@ -126,8 +126,9 @@ class LdapBackend(ModelBackend):
         """Ensures the necessary local account details are synced from LDAP user
         details.
         """
-        nav_user.set_password(password)
-        nav_user.save()
+        if not nav_user.check_password(password):
+            nav_user.set_password(password)
+            nav_user.save()
         cls._sync_nav_account_admin_privileges_from_ldap(ldap_user, nav_user)
 
     @staticmethod
