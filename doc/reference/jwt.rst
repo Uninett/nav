@@ -1,7 +1,7 @@
 .. _jwt-configuration:
 
 Configuring JWT authentication
------------------------------
+------------------------------
 
 The NAV API supports authentication with JSON Web Tokens (JWT). JWT issuers that your NAV instance should
 accept tokens from can be configured in :file:`webfront/jwt.conf`. The public key for the issuer is required,
