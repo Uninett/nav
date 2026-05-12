@@ -29,7 +29,7 @@ django-htmx
 # REST framework
 iso8601
 
-pynetsnmp-2>=0.1.10
+pynetsnmp-2>=0.2.0
 
 napalm>=5.1.0,<5.2.0
 
