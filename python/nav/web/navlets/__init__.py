@@ -124,7 +124,7 @@ class Navlet(TemplateView):
         """
         Get template name based on navlet mode.
 
-        :param override_mode: Optional\; if provided, overrides the mode (VIEW or EDIT)
+        :param override_mode: Optional; if provided, overrides the mode (VIEW or EDIT)
             sent in the request. If None, uses self.mode. Used to enable the navlet to
             return the correct template in error situations.
         :return: The template name for the specified mode.
