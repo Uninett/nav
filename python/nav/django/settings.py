@@ -100,7 +100,7 @@ try:
     DATABASES = {
         'default': {
             'NAME': _name,
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django_psycopg_infinity.backends.postgresql',
             'HOST': _host,
             'PORT': _port,
             'USER': _user,
