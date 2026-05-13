@@ -11,6 +11,21 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.18.1] - 2026-05-13
+
+### Fixed
+
+- Fixed post-login redirect not returning users to the page they originally
+  requested ([#3954](https://github.com/Uninett/nav/issues/3954))
+- Fix unclickable edit button for widget titles on the dashboard.
+  ([#3980](https://github.com/Uninett/nav/issues/3980))
+- Fixed removal of all aliases from rooms/locations in SeedDB not being
+  persisted on save. ([#4002](https://github.com/Uninett/nav/issues/4002))
+- Fixed LDAP authentication unconditionally rehashing the password on every
+  login, which invalidated the Django session auth hash and broke MFA/TOTP
+  setup for LDAP users. ([#4003](https://github.com/Uninett/nav/issues/4003))
+
+
 ## [5.18.0] - 2026-03-30
 
 ### Security

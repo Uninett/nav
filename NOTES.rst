@@ -8,8 +8,8 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-Unreleased
-==========
+NAV 5.18
+========
 
 Dependency changes
 ------------------
@@ -21,6 +21,8 @@ These Python modules are new requirements:
 Python modules with changed version requirements:
 
 * :mod:`Markdown` (``3.3.6`` → ``3.8.1``)
+* :mod:`pynetsnmp-2` (``>=0.1.10`` → ``>=0.2.0``)
+* :mod:`pyjwt` (``>=2.6.0`` → ``>=2.12,<3``)
 
 
 Two-factor and external authentication via django-allauth

@@ -116,6 +116,9 @@ class AliasListWidget(forms.Widget):
     def value_from_datadict(self, data, files, name):
         return _parse_json_list(data.get(f'{name}_json', '[]'))
 
+    def value_omitted_from_data(self, data, files, name):
+        return f'{name}_json' not in data
+
 
 class AliasListField(forms.Field):
     """Form field for editing a list of alias strings"""

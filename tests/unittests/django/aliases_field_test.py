@@ -79,6 +79,19 @@ class TestAliasListWidgetValueFromDatadict:
         assert widget.value_from_datadict(data, {}, 'aliases') == []
 
 
+class TestAliasListWidgetValueOmittedFromData:
+    def test_when_json_key_present_it_should_return_false(self):
+        widget = AliasListWidget()
+        data = QueryDict(mutable=True)
+        data['aliases_json'] = '[]'
+        assert widget.value_omitted_from_data(data, {}, 'aliases') is False
+
+    def test_when_json_key_absent_it_should_return_true(self):
+        widget = AliasListWidget()
+        data = QueryDict(mutable=True)
+        assert widget.value_omitted_from_data(data, {}, 'aliases') is True
+
+
 class TestAliasListFieldPrepareValue:
     def test_when_value_is_list_then_it_should_return_it(self):
         field = AliasListField(required=False)
