@@ -1,6 +1,7 @@
 from mock import Mock, patch
 
 from nav.web.auth.backends import NAVRemoteUserBackend
+from nav.web.auth.ldap_auth_backend import LdapBackend
 from nav.models.profiles import Account
 
 
@@ -75,3 +76,54 @@ class TestNAVRemoteUserBackend:
             result = backend.user_can_authenticate(account)
             assert result == account.is_active == False  # noqa: E712
             auditlog.assert_called_once()
+
+
+@patch(
+    'nav.web.auth.ldap_auth_backend.LdapBackend._sync_nav_account_admin_privileges_from_ldap'
+)
+class TestLdapBackendSyncNavAccount:
+    def test_when_password_is_unchanged_then_sync_nav_account_should_not_rehash(
+        self, mock_sync_privs
+    ):
+        account = Account(login="testuser")
+        account.set_password("secret")
+        account.save = Mock()
+
+        LdapBackend._sync_nav_account(Mock(), account, "secret")
+
+        account.save.assert_not_called()
+
+    def test_when_password_is_changed_then_sync_nav_account_should_rehash_and_save(
+        self, mock_sync_privs
+    ):
+        account = Account(login="testuser")
+        account.set_password("old_secret")
+        account.save = Mock()
+
+        LdapBackend._sync_nav_account(Mock(), account, "new_secret")
+
+        account.save.assert_called_once()
+        assert account.check_password("new_secret")
+
+    def test_when_password_is_unchanged_then_sync_nav_account_should_preserve_session_auth_hash(  # noqa: E501
+        self, mock_sync_privs
+    ):
+        account = Account(login="testuser")
+        account.set_password("secret")
+        hash_before = account.get_session_auth_hash()
+
+        LdapBackend._sync_nav_account(Mock(), account, "secret")
+
+        assert account.get_session_auth_hash() == hash_before
+
+    def test_when_password_is_changed_then_sync_nav_account_should_change_session_auth_hash(  # noqa: E501
+        self, mock_sync_privs
+    ):
+        account = Account(login="testuser")
+        account.set_password("old_secret")
+        account.save = Mock()
+        hash_before = account.get_session_auth_hash()
+
+        LdapBackend._sync_nav_account(Mock(), account, "new_secret")
+
+        assert account.get_session_auth_hash() != hash_before
