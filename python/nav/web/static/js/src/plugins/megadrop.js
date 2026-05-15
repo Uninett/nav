@@ -3,8 +3,12 @@ require([], function () {
     $(function () {
         var megadropSelector = 'megadrop',
             megadropTogglerSelector = 'megadroptoggler',
+            mystuffTogglerSelector = 'mystufftoggler',
             $megadrop = $(document.getElementById(megadropSelector)),
             $megadroptoggler = $(document.getElementById(megadropTogglerSelector)),
+            $mystufftoggler = $(document.getElementById(mystuffTogglerSelector)),
+            $mystuffItem = $mystufftoggler.closest('li'),
+            $mystuffDropdown = $mystuffItem.find('.dropdown'),
             $caret = $megadroptoggler.find('i'),
             caretDownClass = 'fa-caret-down',
             caretUpClass = 'fa-caret-up',
@@ -22,6 +26,16 @@ require([], function () {
             });
         }
 
+        function hideMystuff() {
+            $mystuffDropdown.hide();
+            $mystuffItem.removeClass('open');
+        }
+
+        function showMystuff() {
+            $mystuffDropdown.show();
+            $mystuffItem.addClass('open');
+        }
+
         $megadroptoggler.click(function () {
             if ($megadrop.is(':visible')) {
                 hideMegaDrop();
@@ -30,18 +44,35 @@ require([], function () {
             }
         });
 
+        $mystufftoggler.click(function (e) {
+            if ($mystuffDropdown.is(':visible')) {
+                hideMystuff();
+            } else {
+                hideMegaDrop();
+                showMystuff();
+            }
+            e.stopPropagation();
+        });
+
         /*
             Hide megadrop when clicking outside it. See special case for
             top-bar dropdowns below
         */
         $(document).click(function (event) {
+            const $target = $(event.target);
             if ($megadrop.is(":visible")) {
-                var $target = $(event.target),
-                    clickIsOutsideMegadrop = $target.parents('#' + megadropSelector).length <= 0,
+                const clickIsOutsideMegadrop = $target.parents('#' + megadropSelector).length <= 0,
                     clickIsOnToggler = $target[0] === $megadroptoggler[0] || $target.parent()[0] === $megadroptoggler[0];
 
                 if (clickIsOutsideMegadrop && !clickIsOnToggler) {
                     hideMegaDrop();
+                }
+            }
+            if ($mystuffDropdown.is(':visible')) {
+                const clickIsOutsideMystuff = $target.closest('#' + mystuffTogglerSelector).length === 0
+                        && $target.closest('.has-dropdown').length === 0;
+                if (clickIsOutsideMystuff) {
+                    hideMystuff();
                 }
             }
         });

@@ -185,3 +185,10 @@ $driver-popover-progress-fg: $driver-popover-secondary-fg;
 .flatpickr-calendar {
   border-radius: 0;
 }
+
+/* Flip the 'My stuff' dropdown arrow when open */
+.top-bar-section .has-dropdown.open > a:after {
+  border-color: transparent transparent hsla(0, 0%, 100%, 0.4) transparent;
+  border-bottom-style: solid;
+  border-top-style: none;
+}
