@@ -28,6 +28,9 @@ from django.views import generic
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
 
+from allauth.mfa.models import Authenticator
+from django.db.models import Exists, OuterRef
+
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
@@ -46,7 +49,14 @@ DEFAULT_NAVPATH = {'navpath': [('Home', '/'), ('User Administration',)]}
 
 def account_list(request):
     """Controller for displaying the account list"""
-    accounts = Account.objects.all()
+    accounts = Account.objects.annotate(
+        activated_2fa=Exists(
+            Authenticator.objects.filter(
+                user=OuterRef('pk'),
+                type__in=[Authenticator.Type.TOTP, Authenticator.Type.WEBAUTHN],
+            )
+        )
+    )
     context = {
         'active': {'account_list': 1},
         'accounts': accounts,
