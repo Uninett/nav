@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 
 from django.contrib import messages
 from django.core.cache import cache
+from django.db.models import Exists, OuterRef
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
@@ -29,7 +30,6 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
 
 from allauth.mfa.models import Authenticator
-from django.db.models import Exists, OuterRef
 
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup, Privilege
