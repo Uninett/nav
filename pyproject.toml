@@ -215,3 +215,6 @@ showcontent = true
 directory = "fixed"
 name = "Fixed"
 showcontent = true
+
+[tool.uv]
+exclude-newer = "1 week"
