@@ -20,6 +20,8 @@ from collections import defaultdict
 
 from twisted.internet import defer
 
+from django.db.models import Count
+
 from nav.models import manage
 from nav.util import splitby
 from nav.mibs.bridge_mib import MultiBridgeMib
@@ -52,6 +54,16 @@ class Cam(Plugin):
     accessports = None
     blocking = None
     my_macs = None
+
+    _log_unmanaged_neighbor_macs = False
+
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+
+        cls._log_unmanaged_neighbor_macs = ipdevpoll_conf.getboolean(
+            'cam', 'log_unmanaged_neighbor_macs', fallback=False
+        )
 
     @classmethod
     @defer.inlineCallbacks
@@ -86,6 +98,8 @@ class Cam(Plugin):
             if netboxid == self.netbox.id
         )
         self._classify_ports()
+        if self._log_unmanaged_neighbor_macs:
+            yield self._promote_hybrid_ports()
         self._store_cam_records()
         self._store_adjacency_candidates()
 
@@ -158,6 +172,31 @@ class Cam(Plugin):
 
         self._logger.debug("up/downlinks: %r", sorted(self.linkports.keys()))
         self._logger.debug("access ports: %r", sorted(self.accessports.keys()))
+
+    async def _promote_hybrid_ports(self):
+        """Copies link ports with unmanaged neighbors into accessports.
+
+        This ensures CAM records are logged for ports whose only neighbor is an
+        unmanaged device (no management profiles), while still keeping them in
+        linkports so adjacency candidates are created as well.
+        """
+        hybrid = await db.run_in_thread(self._get_unmanaged_neighbor_linkports)
+        if hybrid:
+            self._logger.debug("hybrid ports (unmanaged neighbors): %r", sorted(hybrid))
+            for ifindex in hybrid:
+                self.accessports[ifindex] = self.linkports[ifindex]
+
+    def _get_unmanaged_neighbor_linkports(self):
+        return set(
+            manage.Interface.objects.filter(
+                netbox__id=self.netbox.id,
+                ifindex__in=self.linkports.keys(),
+                to_netbox__isnull=False,
+            )
+            .annotate(profile_count=Count('to_netbox__profiles'))
+            .filter(profile_count=0)
+            .values_list('ifindex', flat=True)
+        )
 
     def _store_cam_records(self):
         for port in self.accessports:
