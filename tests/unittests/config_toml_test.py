@@ -4,6 +4,23 @@ from nav.config.toml import TOMLConfigParser, merge_dict_with_defaults
 
 
 class TOMLConfigParserTest(TestCase):
+    def test_get_method_it_should_use_our_getitem_implementation_not_a_simulated_dict_get(  # noqa: E501
+        self,
+    ):
+        # UserDict was changed in Python 3.12 to not honor its own __getitem__.
+        class TestConfig(TOMLConfigParser):
+            SECTION = "foo"
+            DEFAULT_CONFIG = {
+                "foo": {
+                    "a": 1,
+                    "b": True,
+                },
+            }
+
+        tc = TestConfig()
+        result = tc.get("a")
+        self.assertEqual(result, 1)
+
     def test_merge_with_default_returns_the_combined_output(self):
         class TestConfig(TOMLConfigParser):
             DEFAULT_CONFIG = {
