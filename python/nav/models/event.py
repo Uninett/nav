@@ -194,12 +194,9 @@ class UnknownEventSubject(object):
             return fmt.format(self.netbox or "N/A", self.subid)
 
     def _get_description_from_message(self):
-        if not hasattr(self._alert, 'messages'):
+        if not hasattr(self._alert, 'get_short_description'):
             return
-
-        m = self._alert.messages.filter(type='sms', language='en')
-        if m:
-            return m[0].message
+        return self._alert.get_short_description() or None
 
 
 class EventMixIn(object):
@@ -761,6 +758,32 @@ class AlertHistory(models.Model, EventMixIn):
             ack.date = dt.datetime.now()
 
         ack.save()
+
+    def get_short_description(self, language='en'):
+        """Returns a short description of this alert from its messages.
+
+        Tries the following sources in order:
+        1. The SMS message (shortest formatted message)
+        2. The Subject line from the email message
+        3. The alert type description
+        """
+        state = STATE_START if self.end_time is not None else STATE_STATELESS
+        sms = self.messages.filter(type='sms', language=language, state=state).first()
+        if sms:
+            return sms.message
+
+        email = self.messages.filter(
+            type='email', language=language, state=state
+        ).first()
+        if email:
+            for line in email.message.splitlines():
+                if line.startswith('Subject:'):
+                    return line.removeprefix('Subject:').strip()
+
+        if self.alert_type:
+            return self.alert_type.description
+
+        return ""
 
     @transaction.atomic
     def save(self, *args, **kwargs):
