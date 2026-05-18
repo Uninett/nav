@@ -42,8 +42,8 @@ Paste Python traceback here...
 
 <!--
  - If the problem is with the web ui: Your OS, Browser and browser version [e.g. Windows, Chrome 64]
- - OS on the NAV server [e.g. Debian 10]
- - NAV version installed [e.g. 4.9.8]
+ - OS on the NAV server [e.g. Debian 12]
+ - NAV version installed [e.g. 5.18.1]
  - Method of installation [e.g. from Debian package]
 -->
 
