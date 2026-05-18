@@ -33,7 +33,7 @@ from nav.models.service import Service, ServiceProperty
 from nav.util import is_valid_ip
 from nav.web.servicecheckers import get_description
 
-from nav.bulkparse import BulkParseError
+from nav.bulkparse import BulkParseError, split_on_pipe
 
 
 def _get_aliases(aliases: str) -> list[str]:
@@ -135,7 +135,7 @@ class NetboxImporter(BulkImporter):
         if not profile_names:
             return
 
-        profiles = profile_names.split('|')
+        profiles = split_on_pipe(profile_names)
         profiles = [
             get_object_or_fail(ManagementProfile, name=name)
             for name in profiles
@@ -164,7 +164,7 @@ class NetboxImporter(BulkImporter):
     @staticmethod
     def _parse_data(datastring):
         if datastring:
-            items = (item.split('=', 1) for item in datastring.split('|'))
+            items = (item.split('=', 1) for item in split_on_pipe(datastring))
         else:
             items = []
         return dict(items) if items else dict()
