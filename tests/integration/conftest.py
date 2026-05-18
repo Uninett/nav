@@ -333,7 +333,7 @@ def _build_snmpsim_command(workspace):
     ]
 
     if which('uvx') and _uv_has_python('3.11'):
-        snmpsim_pkg = _installed_snmpsim_spec()
+        snmpsim_pkg = _get_installed_snmpsim_spec()
         return [
             'uvx',
             '--python=3.11',
@@ -371,7 +371,7 @@ def _uv_has_python(version):
     return result.returncode == 0
 
 
-def _installed_snmpsim_spec():
+def _get_installed_snmpsim_spec():
     """Returns a pip specifier for the locally installed snmpsim version.
 
     Falls back to an unpinned 'snmpsim' if the package is not installed.
