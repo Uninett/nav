@@ -217,3 +217,5 @@ showcontent = true
 
 [tool.uv]
 exclude-newer = "1 week"
+# pynetsnmp-2 is our own package
+exclude-newer-package = { pynetsnmp-2 = false }
