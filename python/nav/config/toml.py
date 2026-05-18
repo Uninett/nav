@@ -56,20 +56,9 @@ class TOMLConfigParser(UserDict):
         if not ok:
             self.data = self.DEFAULT_CONFIG
 
-    def __getitem__(self, key):
-        data = self.data
+        # Works in both Python <= 3.11 and Python >= 3.12
         if self.SECTION:
-            data = self.data.get(self.SECTION, {})
-        if key in data:
-            return data[key]
-        raise KeyError(key)
-
-    def get(self, key, default=None):
-        # needed for Python 3.12 and newer
-        try:
-            return self.__getitem__(key)
-        except KeyError:
-            return default
+            self.data = self.data[self.SECTION]
 
     def read_file(self, fp):
         config = tomllib.load(fp)
@@ -82,7 +71,11 @@ class TOMLConfigParser(UserDict):
         return self.data
 
     def _merge_with_default(self, configdict):
-        self.data = merge_dict_with_defaults(configdict, self.DEFAULT_CONFIG)
+        defaultconfig = self.DEFAULT_CONFIG
+        if self.SECTION:
+            configdict = configdict.get(self.SECTION, configdict)
+            defaultconfig = defaultconfig.get(self.SECTION, defaultconfig)
+        self.data = merge_dict_with_defaults(configdict, defaultconfig)
 
     def _read(self, filename):
         fqfn = find_config_file(filename)

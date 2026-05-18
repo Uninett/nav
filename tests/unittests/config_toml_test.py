@@ -3,6 +3,34 @@ from unittest import TestCase
 from nav.config.toml import TOMLConfigParser, merge_dict_with_defaults
 
 
+class TestTOMLConfigParserSectionConsistency:
+    def test_when_section_is_set_then_contains_should_find_section_keys(self):
+        parser = SectionConfig()
+        # __getitem__ finds it, but __contains__ does not
+        assert parser["alpha"] == 1
+        assert "alpha" in parser
+
+    def test_when_section_is_set_then_len_should_count_section_keys(self):
+        parser = SectionConfig()
+        assert len(parser) == 2
+
+    def test_when_section_is_set_then_iter_should_yield_section_keys(self):
+        parser = SectionConfig()
+        assert set(parser) == {"alpha", "beta"}
+
+    def test_when_section_is_set_then_keys_should_return_section_keys(self):
+        parser = SectionConfig()
+        assert set(parser.keys()) == {"alpha", "beta"}
+
+    def test_when_section_is_set_then_values_should_return_section_values(self):
+        parser = SectionConfig()
+        assert set(parser.values()) == {1, 2}
+
+    def test_when_section_is_set_then_items_should_return_section_items(self):
+        parser = SectionConfig()
+        assert dict(parser.items()) == {"alpha": 1, "beta": 2}
+
+
 class TOMLConfigParserTest(TestCase):
     def test_get_method_it_should_use_our_getitem_implementation_not_a_simulated_dict_get(  # noqa: E501
         self,
@@ -61,7 +89,7 @@ class TOMLConfigParserTest(TestCase):
         self.assertEqual(tc["a"], 1)
 
 
-class MergeDictWithDefaults(TestCase):
+class MergeDictWithDefaultsTests(TestCase):
     def test_golden_path(self):
         data = {
             1: 1,
@@ -142,3 +170,13 @@ class MergeDictWithDefaults(TestCase):
         }
         result = merge_dict_with_defaults(data, defaults)
         self.assertEqual(result, expected)
+
+
+class SectionConfig(TOMLConfigParser):
+    SECTION = "mysection"
+    DEFAULT_CONFIG = {
+        "mysection": {
+            "alpha": 1,
+            "beta": 2,
+        },
+    }
