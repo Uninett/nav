@@ -27,6 +27,7 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
+from nav.bulkparse import escape_pipe
 from nav.models import manage
 import nav.models.service
 
@@ -150,8 +151,13 @@ class Handlers(object):
             "devicegroup1:devicegroup2..]"
         )
         for box in manage.Netbox.objects.all():
-            profiles = '|'.join(box.profiles.values_list('name', flat=True))
-            data = '|'.join("%s=%s" % (k, v) for k, v in box.data.items())
+            profiles = '|'.join(
+                escape_pipe(name)
+                for name in box.profiles.values_list('name', flat=True)
+            )
+            data = '|'.join(
+                "%s=%s" % (escape_pipe(k), escape_pipe(v)) for k, v in box.data.items()
+            )
             line = [
                 box.room_id,
                 box.ip,
