@@ -102,7 +102,12 @@ class Identity(models.Model):
         ordering = ('last_changed',)
         verbose_name = 'identity'
         verbose_name_plural = 'identities'
-        unique_together = ('mac', 'interface')
+        constraints = [
+            models.UniqueConstraint(
+                fields=('mac', 'interface'),
+                name='identity_mac_swportid_key',  # UNIQUE
+            )
+        ]
 
 
 class Event(models.Model):

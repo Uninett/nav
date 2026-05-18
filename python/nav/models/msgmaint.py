@@ -184,7 +184,12 @@ class MaintenanceComponent(models.Model):
 
     class Meta(object):
         db_table = 'maint_component'
-        unique_together = (('maintenance_task', 'key', 'value'),)  # Primary key
+        constraints = [
+            models.UniqueConstraint(
+                fields=('maintenance_task', 'key', 'value'),
+                name='maint_component_pkey',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s=%s' % (self.key, self.value)
@@ -208,7 +213,12 @@ class MessageToMaintenanceTask(models.Model):
 
     class Meta(object):
         db_table = 'message_to_maint_task'
-        unique_together = (('message', 'maintenance_task'),)  # Primary key
+        constraints = [
+            models.UniqueConstraint(
+                fields=('message', 'maintenance_task'),
+                name='message_to_maint_task_pkey',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return 'Message %s, connected to task %s' % (

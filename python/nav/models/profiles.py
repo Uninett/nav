@@ -28,6 +28,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import HStoreField
 from django.core.cache import cache
 from django.db import models, transaction
+from django.db.models import UniqueConstraint
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.views.decorators.debug import sensitive_variables
@@ -995,7 +996,12 @@ class Operator(models.Model):
 
     class Meta(object):
         db_table = 'operator'
-        unique_together = (('type', 'match_field'),)
+        constraints = [
+            UniqueConstraint(
+                fields=('type', 'match_field'),
+                name='operator_operator_id_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s match on %s' % (self.get_type_display(), self.match_field)
@@ -1624,7 +1630,12 @@ class NetmapViewCategories(models.Model):
 
     class Meta(object):
         db_table = 'netmap_view_categories'
-        unique_together = (('view', 'category'),)  # Primary key
+        constraints = [
+            UniqueConstraint(
+                fields=('view', 'category'),
+                name='netmap_view_categories_pkey',  # PRIMARY KEY
+            )
+        ]
 
 
 class NetmapViewNodePosition(models.Model):
@@ -1760,7 +1771,12 @@ class AccountDashboardSubscription(models.Model):
 
     class Meta(object):
         db_table = 'account_dashboard_subscription'
-        unique_together = (('account', 'dashboard'),)
+        constraints = [
+            UniqueConstraint(
+                fields=('account', 'dashboard'),
+                name='unique_account_dashboard_subscription',  # UNIQUE
+            )
+        ]
 
 
 class AccountNavlet(models.Model):

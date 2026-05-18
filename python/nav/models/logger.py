@@ -94,7 +94,12 @@ class LogMessageType(models.Model):
 
     class Meta(object):
         db_table = '"logger"."log_message_type"'
-        unique_together = (('priority', 'facility', 'mnemonic'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('priority', 'facility', 'mnemonic'),
+                name='log_message_type_priority_facility_mnemonic_key',  # UNIQUE
+            )
+        ]
 
 
 class LogMessage(models.Model):

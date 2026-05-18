@@ -149,7 +149,12 @@ class ServiceProperty(models.Model):
 
     class Meta(object):
         db_table = 'serviceproperty'
-        unique_together = (('service', 'property'),)  # Primary key
+        constraints = [
+            models.UniqueConstraint(
+                fields=('service', 'property'),
+                name='serviceproperty_pkey',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s=%s, for %s' % (self.property, self.value, self.service)
