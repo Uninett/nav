@@ -1,12 +1,15 @@
+import importlib.metadata
 import importlib.util
 import io
+import os
 import re
 import shlex
+import subprocess
+import sys
+import time
 from itertools import cycle
 from pathlib import Path
 from shutil import which
-import subprocess
-import time
 
 import toml
 import pytest
@@ -297,26 +300,87 @@ def snmpsim():
     by the test that declares a dependency to this fixture. Data fixtures are loaded
     from the snmp_fixtures subdirectory.
     """
-    snmpsimd = which('snmpsim-command-responder')
-    assert snmpsimd, "Could not find snmpsimd.py"
     workspace = str(Path(__file__).resolve().parent.parent.parent)
-    proc = subprocess.Popen(
-        [
-            snmpsimd,
-            '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
-            '--log-level=error',
-            '--agent-udpv4-endpoint=127.0.0.1:1024',
-        ],
-        env={'HOME': workspace},
-    )
+    command = _build_snmpsim_command(workspace)
+    env = {**os.environ, 'HOME': workspace}
+    proc = subprocess.Popen(command, env=env)
 
     while not _lookfor('0100007F:0400', '/proc/net/udp'):
         print("Still waiting for snmpsimd to listen for queries")
-        proc.poll()
+        if proc.poll() is not None:
+            pytest.fail(
+                f"snmpsim process exited prematurely (exit code {proc.returncode})"
+            )
         time.sleep(0.1)
 
     yield
     proc.kill()
+
+
+def _build_snmpsim_command(workspace):
+    """Returns the command list to start snmpsim-command-responder.
+
+    Prefers running via uvx in an isolated Python 3.11 environment to avoid a
+    known performance regression in snmpsim on Python 3.13+
+    (https://github.com/lextudio/pysnmp/issues/223).  Falls back to a locally
+    installed snmpsim-command-responder if uvx is not available.
+    """
+    data_dir = f'{workspace}/tests/integration/snmp_fixtures'
+    snmpsim_args = [
+        f'--data-dir={data_dir}',
+        '--log-level=error',
+        '--agent-udpv4-endpoint=127.0.0.1:1024',
+    ]
+
+    if which('uvx') and _uv_has_python('3.11'):
+        snmpsim_pkg = _get_installed_snmpsim_spec()
+        return [
+            'uvx',
+            '--python=3.11',
+            f'--from={snmpsim_pkg}',
+            'snmpsim-command-responder',
+        ] + snmpsim_args
+
+    snmpsimd = which('snmpsim-command-responder')
+    if not snmpsimd:
+        pytest.skip("Neither uvx nor snmpsim-command-responder found")
+
+    if sys.version_info >= (3, 13):
+        import warnings
+
+        warnings.warn(
+            "Running snmpsim under Python 3.13+ without uvx. "
+            "This is known to be extremely slow due to a dbm.sqlite3 "
+            "performance regression "
+            "(https://github.com/lextudio/pysnmp/issues/223). "
+            "Expect many SNMP-dependent tests to fail with timeouts. "
+            "Install uv to run snmpsim in an isolated Python 3.11 "
+            "environment automatically.",
+            stacklevel=1,
+        )
+
+    return [snmpsimd] + snmpsim_args
+
+
+def _uv_has_python(version):
+    """Returns True if uv can find the given Python version."""
+    result = subprocess.run(
+        ['uv', 'python', 'find', version],
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+def _get_installed_snmpsim_spec():
+    """Returns a pip specifier for the locally installed snmpsim version.
+
+    Falls back to an unpinned 'snmpsim' if the package is not installed.
+    """
+    try:
+        version = importlib.metadata.version('snmpsim')
+        return f'snmpsim=={version}'
+    except importlib.metadata.PackageNotFoundError:
+        return 'snmpsim'
 
 
 @pytest.fixture()
