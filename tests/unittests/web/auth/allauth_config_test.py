@@ -24,7 +24,7 @@ class SocialProviderHelperTest(TestCase):
                 "xux": 2,
             },
         }
-        mc = self.MyConfig(default_config=config)
+        mc = self.MyConfig(config)
         result = mc.get_providers()
         self.assertEqual(result, 1)
 
@@ -52,7 +52,7 @@ secret = "not.optional2"
 foo = 1  # This is not a valid setting, just for tests!
 """
         config = tomllib.loads(config_string)
-        sc = SocialConfigParser(default_config=config)
+        sc = SocialConfigParser(config)
         expected = {
             "testprovider1": {
                 "APP": {
@@ -98,7 +98,7 @@ foo = 1  # This is not a valid setting, just for tests!
 """
         config = tomllib.loads(config_string)
         with patch.object(OIDCConfigParser, '_read', return_value=None):
-            sc = OIDCConfigParser(default_config=config)
+            sc = OIDCConfigParser(config)
         sc._merge_with_default(config)
         expected = {
             "openid_connect": {
@@ -138,7 +138,7 @@ server_url = "https://server1.example.com"
 """
         config = tomllib.loads(config_string)
         with patch.object(OIDCConfigParser, '_read', return_value=None):
-            sc = OIDCConfigParser(default_config=config)
+            sc = OIDCConfigParser(config)
         sc._merge_with_default(config)
         expected = {
             "provider_id": "testprovider1",
