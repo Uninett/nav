@@ -94,6 +94,20 @@ Section [netbox_filters]
   Allows you to specify the devices that WON'T be handled by this instance of
   ipdevpoll using a space separated list of group ids.
 
+Section [cam]
+-------------
+
+``log_unmanaged_neighbor_macs``
+  When set to ``yes``, switch ports whose only detected neighbor is an
+  unmanaged device (i.e. a device with no management profiles) will be treated
+  as *hybrid* ports: their CAM records are logged for Machine Tracker, and
+  adjacency candidates are still created for topology discovery.
+
+  The default value is ``no``.  See `GitHub issue #14
+  <https://github.com/Uninett/nav/issues/14>`_ for background on why this is
+  off by default.  The default may change to ``yes`` in a future release once
+  the feature has been validated in production environments.
+
 Section [linkstate]
 -------------------
 
