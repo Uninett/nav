@@ -22,21 +22,29 @@ class MFAConfigParser(TOMLConfigParser):
         }
     }
 
+    def _get_default(self, key):
+        return self.get(key, self.DEFAULT_CONFIG[self.SECTION][key])
+
     def is_mfa_enabled(self):
-        return self["enabled"]
+        key = "enabled"
+        return self._get_default(key)
 
     def are_recovery_codes_enabled(self):
-        return self["support-recovery-codes"]
+        key = "support-recovery-codes"
+        return self._get_default(key)
 
     def are_passkeys_enabled(self):
-        return self["support-passkeys"]
+        key = "support-passkeys"
+        return self._get_default(key)
 
     def are_passkey_signups_enabled(self):
-        return self["support-passkey-signups"]
+        key = "support-passkey-signups"
+        return self._get_default(key)
 
     def are_insecure_origins_allowed(self):
         # Set to True when developing
-        return self["allow-insecure-origin"]
+        key = "allow-insecure-origin"
+        return self._get_default(key)
 
     def get_MFA_SUPPORTED_TYPES_setting(self):
         methods = []
