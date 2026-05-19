@@ -57,6 +57,7 @@ CREATE TABLE Account (
     name varchar DEFAULT 'Noname',
     password varchar,
     ext_sync varchar,
+    is_active boolean NOT NULL DEFAULT true,
     preferences manage.hstore DEFAULT manage.hstore(''),
 
     CONSTRAINT account_pkey PRIMARY KEY(id),

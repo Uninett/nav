@@ -115,6 +115,7 @@ class Account(AbstractBaseUser):
     email = models.EmailField(null=True, blank=True)  # Not currently used by NAV
     password = VarcharField()
     ext_sync = VarcharField(blank=True)
+    is_active = models.BooleanField(default=True)
     preferences = HStoreField(default=dict)
 
     organizations = models.ManyToManyField(
@@ -350,19 +351,11 @@ class Account(AbstractBaseUser):
 
     @property
     def locked(self):
-        return not self.password or self.password.startswith('!')
-
-    @property
-    def is_active(self):
-        """Returns True if this account is active (i.e. not locked)"""
-        return not self.locked
+        return not self.is_active
 
     @locked.setter
     def locked(self, value):
-        if not value:
-            self.password = self.password.removeprefix("!")
-        elif not self.password.startswith('!'):
-            self.password = '!' + self.password
+        self.is_active = not value
 
     @property
     def password_hash(self):
@@ -373,11 +366,8 @@ class Account(AbstractBaseUser):
 
     @property
     def unlocked_password(self):
-        """Returns the raw password value, but with any lock status stripped"""
-        if not self.locked:
-            return self.password or ''
-        else:
-            return self.password[1:] if self.password else ''
+        """Returns the raw password value"""
+        return self.password or ''
 
     def get_email_addresses(self):
         return self.alert_addresses.filter(type__name=AlertSender.EMAIL)
