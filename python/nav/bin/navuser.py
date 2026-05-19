@@ -50,7 +50,7 @@ def listusers(args):
         attrs = []
         if account.ext_sync:
             attrs.append(account.ext_sync)
-        if account.locked:
+        if not account.is_active:
             attrs.append('locked')
         attrs = '[%s]' % ','.join(attrs) if attrs else ''
         print(msg.format(login=account.login, name=account.name, attrs=attrs).strip())
@@ -147,8 +147,8 @@ def verify(args):
 
 
 def lock(args):
-    args.login.locked = True
-    if args.login.locked:
+    args.login.is_active = False
+    if not args.login.is_active:
         args.login.save()
         print("User %s locked" % args.login.login, file=sys.stderr)
     else:
@@ -157,8 +157,8 @@ def lock(args):
 
 
 def unlock(args):
-    args.login.locked = False
-    if args.login.locked:
+    args.login.is_active = True
+    if not args.login.is_active:
         print("Cannot unlock %s" % args.login.login, file=sys.stderr)
         sys.exit(1)
     else:
