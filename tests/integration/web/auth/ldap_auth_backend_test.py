@@ -76,7 +76,7 @@ class TestAuthenticate:
         self, mock_authenticate, db, ldap_synced_account, non_admin_ldap_user
     ):
         mock_authenticate.return_value = non_admin_ldap_user
-        ldap_synced_account.locked = True
+        ldap_synced_account.is_active = False
         ldap_synced_account.save()
 
         with pytest.raises(PermissionDenied):

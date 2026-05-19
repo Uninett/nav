@@ -50,7 +50,7 @@ def listusers(args):
         attrs = []
         if account.ext_sync:
             attrs.append(account.ext_sync)
-        if account.locked:
+        if not account.is_active:
             attrs.append('locked')
         attrs = '[%s]' % ','.join(attrs) if attrs else ''
         print(msg.format(login=account.login, name=account.name, attrs=attrs).strip())
@@ -147,23 +147,23 @@ def verify(args):
 
 
 def lock(args):
-    args.login.locked = True
-    if args.login.locked:
-        args.login.save()
-        print("User %s locked" % args.login.login, file=sys.stderr)
-    else:
-        print("Cannot lock %s" % args.login.login, file=sys.stderr)
+    if not args.login.is_active:
+        print("Cannot lock %s, already locked" % args.login.login, file=sys.stderr)
         sys.exit(1)
+
+    args.login.is_active = False
+    args.login.save()
+    print("User %s locked" % args.login.login, file=sys.stderr)
 
 
 def unlock(args):
-    args.login.locked = False
-    if args.login.locked:
-        print("Cannot unlock %s" % args.login.login, file=sys.stderr)
+    if args.login.is_active:
+        print("Cannot unlock %s, already unlocked" % args.login.login, file=sys.stderr)
         sys.exit(1)
-    else:
-        args.login.save()
-        print("User %s unlocked" % args.login.login, file=sys.stderr)
+
+    args.login.is_active = True
+    args.login.save()
+    print("User %s unlocked" % args.login.login, file=sys.stderr)
 
 
 ##########################

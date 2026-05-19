@@ -70,7 +70,7 @@ class TestNAVRemoteUserBackend:
     def test_user_can_authenticate_if_user_is_not_active_returns_False_and_adds_auditlog(  # noqa: E501
         self,
     ):
-        account = Account(login="blbl", password="!")
+        account = Account(login="blbl", is_active=False)
         backend = NAVRemoteUserBackend()
         with patch('nav.web.auth.backends.LogEntry.add_log_entry') as auditlog:
             result = backend.user_can_authenticate(account)
