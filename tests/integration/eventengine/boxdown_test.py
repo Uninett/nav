@@ -5,14 +5,17 @@ import os
 import pytest
 
 from nav.config import find_config_file
-from nav.eventengine import get_eventengine_output
+from nav.eventengine import EventEngineProcess
 from nav.models.manage import Netbox
 from nav.models.event import EventQueue as Event
 
 
 def test_eventengine_should_declare_box_down(host_going_down, eventengine_test_config):
     post_fake_boxdown(host_going_down)
-    get_eventengine_output(6)
+    with EventEngineProcess() as engine:
+        engine.wait_for_condition(
+            lambda: host_going_down.get_unresolved_alerts("boxState").count() > 0
+        )
     states = host_going_down.get_unresolved_alerts("boxState")
     assert states.count() > 0, "netbox has not been marked as down"
 

@@ -7,7 +7,7 @@ import logging
 import pytest
 
 
-from nav.eventengine import unresolved, get_eventengine_output
+from nav.eventengine import unresolved, EventEngineProcess
 from nav.eventengine.engine import EventEngine
 from nav.eventengine.plugins.juniperalertcount import JuniperAlertCountHandler
 from nav.models.fields import INFINITY
@@ -24,7 +24,16 @@ class TestBlackBox:
     ):
         count = 2
         post_fake_yellow_alarm_start_event(netbox_having_new_alarm_count, count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    netbox_having_new_alarm_count.get_unresolved_alerts(
+                        "juniperYellowAlarmState"
+                    )
+                    .filter(variables__isnull=False)
+                    .exists()
+                )
+            )
         alert = (
             netbox_having_new_alarm_count.get_unresolved_alerts(
                 "juniperYellowAlarmState"
@@ -44,7 +53,16 @@ class TestBlackBox:
         new_count = 3
         post_fake_yellow_alarm_start_event(netbox_having_new_alarm_count, old_count)
         post_fake_yellow_alarm_start_event(netbox_having_new_alarm_count, new_count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    netbox_having_new_alarm_count.get_unresolved_alerts(
+                        "juniperYellowAlarmState"
+                    )
+                    .filter(variables__isnull=False)
+                    .exists()
+                )
+            )
         alerts = netbox_having_new_alarm_count.get_unresolved_alerts(
             "juniperYellowAlarmState"
         ).filter(variables__isnull=False)
@@ -61,7 +79,15 @@ class TestBlackBox:
     ):
         post_fake_yellow_alarm_start_event(netbox_having_new_alarm_count)
         post_fake_yellow_alarm_end_event(netbox_having_new_alarm_count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    not Event.objects.filter(
+                        netbox=netbox_having_new_alarm_count,
+                        event_type_id="juniperYellowAlarmState",
+                    ).exists()
+                )
+            )
         assert not netbox_having_new_alarm_count.get_unresolved_alerts(
             "juniperYellowAlarmState"
         ).exists(), "an unresolved alert exists after posting end event"
@@ -72,7 +98,16 @@ class TestBlackBox:
     ):
         count = 2
         post_fake_red_alarm_start_event(netbox_having_new_alarm_count, count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    netbox_having_new_alarm_count.get_unresolved_alerts(
+                        "juniperRedAlarmState"
+                    )
+                    .filter(variables__isnull=False)
+                    .exists()
+                )
+            )
         alert = (
             netbox_having_new_alarm_count.get_unresolved_alerts("juniperRedAlarmState")
             .filter(variables__isnull=False)
@@ -90,7 +125,16 @@ class TestBlackBox:
         new_count = 3
         post_fake_red_alarm_start_event(netbox_having_new_alarm_count, old_count)
         post_fake_red_alarm_start_event(netbox_having_new_alarm_count, new_count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    netbox_having_new_alarm_count.get_unresolved_alerts(
+                        "juniperRedAlarmState"
+                    )
+                    .filter(variables__isnull=False)
+                    .exists()
+                )
+            )
         alerts = netbox_having_new_alarm_count.get_unresolved_alerts(
             "juniperRedAlarmState"
         ).filter(variables__isnull=False)
@@ -107,7 +151,15 @@ class TestBlackBox:
     ):
         post_fake_red_alarm_start_event(netbox_having_new_alarm_count)
         post_fake_red_alarm_end_event(netbox_having_new_alarm_count)
-        get_eventengine_output(6)
+        with EventEngineProcess() as engine:
+            engine.wait_for_condition(
+                lambda: (
+                    not Event.objects.filter(
+                        netbox=netbox_having_new_alarm_count,
+                        event_type_id="juniperRedAlarmState",
+                    ).exists()
+                )
+            )
         assert not netbox_having_new_alarm_count.get_unresolved_alerts(
             "juniperRedAlarmState"
         ), "an unresolved alert exists after posting end event"

@@ -4,19 +4,16 @@ various pping integration tests
 
 import os
 import getpass
+import threading
+import time
 from shutil import which
-from subprocess import STDOUT, check_output, CalledProcessError
+from subprocess import PIPE, STDOUT, Popen, TimeoutExpired
 
 import pytest
 
 from nav.models.manage import Netbox, NetboxProfile
 from nav.models.event import EventQueue
 from nav.config import find_config_file
-
-TIMEOUT_COMMAND_LINE = "/usr/bin/timeout"
-
-
-BINDIR = './python/nav/bin'
 
 
 #
@@ -41,98 +38,103 @@ def get_root_method():
         assert False, "cannot become root"
 
 
-def timeout_command_line_program_exists():
-    return os.access(TIMEOUT_COMMAND_LINE, os.X_OK)
+class PpingProcess:
+    """Runs pping as a background subprocess with output capture."""
+
+    def __init__(self):
+        self._process = None
+        self._output_lines = []
+        self._reader_thread = None
+
+    def __enter__(self):
+        pping = which("pping")
+        assert pping, "Cannot find pping in PATH"
+        cmd = get_root_method() + [pping, "-f"]
+        self._process = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        self._reader_thread = threading.Thread(target=self._read_output, daemon=True)
+        self._reader_thread.start()
+        return self
+
+    def __exit__(self, *exc_info):
+        self._process.terminate()
+        try:
+            self._process.wait(timeout=5)
+        except TimeoutExpired:
+            self._process.kill()
+            self._process.wait()
+        self._reader_thread.join(timeout=5)
+        print(self.get_output())
+
+    def _read_output(self):
+        for line in self._process.stdout:
+            self._output_lines.append(line.decode("utf-8", errors="replace"))
+
+    def get_output(self):
+        return "".join(self._output_lines)
+
+    def wait_for_condition(self, condition, timeout=30, interval=0.5):
+        """Poll *condition()* until it returns True or *timeout* is reached."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self._process.poll() is not None:
+                break
+            if condition():
+                return True
+            time.sleep(interval)
+        return False
 
 
 #
 # Actual tests begin here
 #
-@pytest.mark.timeout(20)
-@pytest.mark.skipif(
-    not timeout_command_line_program_exists(),
-    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
-)
+@pytest.mark.timeout(60)
 @pytest.mark.skipif(
     not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_localhost_should_work(localhost, pping_test_config):
-    output = get_pping_output()
+    with PpingProcess() as pping:
+        pping.wait_for_condition(lambda: "hosts checked" in pping.get_output())
+    output = pping.get_output()
     assert "hosts checked" in output
-    assert (
-        "{sysname} ({ip}) marked as down".format(
-            sysname=localhost.sysname, ip=localhost.ip
-        )
-        not in output
-    )
+    assert f"{localhost.sysname} ({localhost.ip}) marked as down" not in output
 
 
-@pytest.mark.timeout(20)
-@pytest.mark.skipif(
-    not timeout_command_line_program_exists(),
-    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
-)
+@pytest.mark.timeout(60)
 @pytest.mark.skipif(
     not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_nonavailable_host_should_fail(
     host_expected_to_be_down, pping_test_config
 ):
-    expected = "{sysname} ({ip}) marked as down".format(
-        sysname=host_expected_to_be_down.sysname, ip=host_expected_to_be_down.ip
+    expected = (
+        f"{host_expected_to_be_down.sysname}"
+        f" ({host_expected_to_be_down.ip}) marked as down"
     )
-    output = get_pping_output()
-    assert expected in output
+    with PpingProcess() as pping:
+        pping.wait_for_condition(lambda: expected in pping.get_output())
+    assert expected in pping.get_output()
 
 
-@pytest.mark.timeout(20)
-@pytest.mark.skipif(
-    not timeout_command_line_program_exists(),
-    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
-)
+@pytest.mark.timeout(60)
 @pytest.mark.skipif(
     not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_should_post_event_when_host_is_unreachable(
     host_expected_to_be_down, pping_test_config
 ):
-    get_pping_output()
+    with PpingProcess() as pping:
+        pping.wait_for_condition(
+            lambda: EventQueue.objects.filter(
+                netbox=host_expected_to_be_down,
+                event_type_id='boxState',
+                state=EventQueue.STATE_START,
+            ).exists()
+        )
     assert EventQueue.objects.filter(
         netbox=host_expected_to_be_down,
         event_type_id='boxState',
         state=EventQueue.STATE_START,
     ), "The expected boxState start event was not found on the event queue"
-
-
-########################
-#                      #
-# fixtures and helpers #
-#                      #
-########################
-
-
-def get_pping_output(timeout=5):
-    """
-    Runs pping in foreground mode, kills it after timeout seconds and
-    returns the combined stdout+stderr output from the process.
-
-    Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
-    """
-    pping = which("pping")
-    assert pping, "Cannot find pping in PATH"
-    cmd = get_root_method() + [TIMEOUT_COMMAND_LINE, str(timeout), pping, "-f"]
-    try:
-        output = check_output(cmd, stderr=STDOUT)
-    except CalledProcessError as error:
-        if error.returncode == 124:  # timeout
-            # this is the normal case, since we need to kill pping after the timeout
-            print(error.output.decode('utf-8'))
-            return error.output.decode('utf-8')
-        print(error.output.decode('utf-8'))
-        raise
-    else:
-        print(output)
-        assert False, "pping exited unexpectedly"
 
 
 @pytest.fixture()
