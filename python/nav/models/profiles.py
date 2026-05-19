@@ -116,6 +116,7 @@ class Account(AbstractBaseUser):
     password = VarcharField()
     ext_sync = VarcharField(blank=True)
     preferences = HStoreField(default=dict)
+    is_active = models.BooleanField(default=True)
 
     organizations = models.ManyToManyField(
         Organization,
@@ -351,11 +352,6 @@ class Account(AbstractBaseUser):
     @property
     def locked(self):
         return not self.password or self.password.startswith('!')
-
-    @property
-    def is_active(self):
-        """Returns True if this account is active (i.e. not locked)"""
-        return not self.locked
 
     @locked.setter
     def locked(self, value):
