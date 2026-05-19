@@ -37,11 +37,13 @@
 
   </div> {# End of column #}
 
-  <div class="medium-6 column">
-    <div class="mapwrapper">
-      <div id="room_map"></div>
+  {% if not hide_map %}
+    <div class="medium-6 column">
+      <div class="mapwrapper">
+        <div id="room_map"></div>
+      </div>
     </div>
-  </div>
+  {% endif %}
 
 </div>
 {% include "webfront/_lightbox_gallery.html" with images=images gallery_id="location-gallery" title="Images for this location" %}

@@ -120,6 +120,7 @@ def locationinfo(request, locationid):
             "navpath": navpath,
             "images": location.images.all(),
             "title": create_title(navpath),
+            "hide_map": not any(room.position for room in location.rooms.all()),
         },
     )
 
