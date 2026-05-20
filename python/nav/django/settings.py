@@ -46,7 +46,7 @@ from nav.db import get_connection_parameters
 import nav.buildconf
 from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
-from nav.web.auth.allauth import MFAConfigParser, SocialConfigParser, OIDCConfigParser
+from nav.web.auth.allauth.models import read_authentication_config
 from nav.django.utils import get_os_version
 
 
@@ -394,14 +394,13 @@ MFA_ADAPTER = "nav.web.auth.allauth.adapter.NAVMFAAdapter"
 MFA_TOTP_ISSUER = 'NAV'
 MFA_TOTP_TOLERANCE = 1
 
-_allauth_mfa_config = MFAConfigParser()
-MFA_SUPPORTED_TYPES = _allauth_mfa_config.get_MFA_SUPPORTED_TYPES_setting()
-MFA_PASSKEY_LOGIN_ENABLED = _allauth_mfa_config.get_MFA_PASSKEY_LOGIN_ENABLED_setting()
-MFA_PASSKEY_SIGNUP_ENABLED = (
-    _allauth_mfa_config.get_MFA_PASSKEY_SIGNUP_ENABLED_setting()
-)
+_auth_config = read_authentication_config()
+
+MFA_SUPPORTED_TYPES = _auth_config.mfa.get_MFA_SUPPORTED_TYPES_setting()
+MFA_PASSKEY_LOGIN_ENABLED = _auth_config.mfa.get_MFA_PASSKEY_LOGIN_ENABLED_setting()
+MFA_PASSKEY_SIGNUP_ENABLED = _auth_config.mfa.get_MFA_PASSKEY_SIGNUP_ENABLED_setting()
 MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = (
-    _allauth_mfa_config.get_MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN_setting()
+    _auth_config.mfa.get_MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN_setting()
 )
 
 # SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -409,14 +408,12 @@ MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = (
 
 SOCIALACCOUNT_PROVIDERS = {}
 
-_allauth_social_config = SocialConfigParser()
-_social_providers = _allauth_social_config.generate_SOCIALACCOUNT_PROVIDERS()
+_social_providers = _auth_config.social.generate_SOCIALACCOUNT_PROVIDERS()
 if _social_providers:
     SOCIALACCOUNT_PROVIDERS.update(_social_providers)
-    INSTALLED_APPS += tuple(_allauth_social_config.get_provider_import_paths())
+    INSTALLED_APPS += tuple(_auth_config.social.get_provider_import_paths())
 
-_allauth_oidc_parser = OIDCConfigParser()
-_oidc_providers = _allauth_oidc_parser.generate_SOCIALACCOUNT_PROVIDERS()
+_oidc_providers = _auth_config.oidc.generate_SOCIALACCOUNT_PROVIDERS()
 if _oidc_providers:
     SOCIALACCOUNT_PROVIDERS.update(_oidc_providers)
-    INSTALLED_APPS += tuple(_allauth_oidc_parser.get_provider_import_paths())
+    INSTALLED_APPS += tuple(_auth_config.oidc.get_provider_import_paths())
