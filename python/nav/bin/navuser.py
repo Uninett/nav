@@ -105,6 +105,14 @@ def adminify(args):
 
 def passwd(args):
     account = args.login
+
+    if account.is_default_account():
+        print(
+            "It is not possible to set a password for the default account.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     if sys.stdin.isatty():
         if account.password and not args.noverify:
             password = getpass('(current) NAV password: ', stream=sys.stderr)
