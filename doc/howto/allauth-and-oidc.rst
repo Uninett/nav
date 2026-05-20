@@ -2,9 +2,9 @@
 Authenticating with OIDC/OAuth2 by using a local settings file
 ==============================================================
 
-.. info::
+.. note::
    If the config described in the reference documentation :doc:`External web
-   authentication (OAuth2, OIDC) <../reference/social-account>`_ is
+   authentication (OAuth2, OIDC) <../reference/social-account>` is
    insufficient for your needs, you can *instead* use a local settings file.
    Don't use both, and make an issue about your issue so that we can improve
    the proper config file.

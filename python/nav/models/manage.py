@@ -551,13 +551,14 @@ class Netbox(models.Model):
         return self.power_supplies_or_fans.filter(physical_class='fan').order_by('name')
 
     def get_system_metrics(self):
-        """Gets a list of available Graphite metrics related to this Netbox,
+        """
+        Gets a list of available Graphite metrics related to this Netbox,
         except for ports and sensors, which are seen as separate.
 
         :returns: A list of dicts describing the metrics, e.g.:
                   {id:"nav.devices.some-gw.cpu.cpu1.loadavg1min",
-                   group="cpu",
-                   suffix="cpu1.loadavg1min"}
+                  group="cpu",
+                  suffix="cpu1.loadavg1min"}
 
         """
         ports_exclude = metric_prefix_for_ports(self.sysname)
@@ -2172,11 +2173,12 @@ class Interface(models.Model):
         return self.time_since_activity_cache[interval]
 
     def get_port_metrics(self):
-        """Gets a list of available Graphite metrics related to this Interface.
+        """
+        Gets a list of available Graphite metrics related to this Interface.
 
         :returns: A list of dicts describing the metrics, e.g.:
                   {id:"nav.devices.some-gw.ports.gi1_1.ifInOctets",
-                   suffix:"ifInOctets"}
+                  suffix:"ifInOctets"}
 
         """
         base = metric_prefix_for_interface(self.netbox, self.ifname)

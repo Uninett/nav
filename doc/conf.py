@@ -42,7 +42,7 @@ extensions = [
 templates_path = ['templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The encoding of source files.
 # source_encoding = 'utf-8'
@@ -52,7 +52,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = 'NAV'
-copyright = '2012-2021 Uninett AS, 2022-2026 Sikt'
+copyright = '2012-2021 Uninett AS, 2022-%Y Sikt'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -236,8 +236,8 @@ latex_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'django': (
-        'https://docs.djangoproject.com/en/4.2/',
-        'https://docs.djangoproject.com/en/4.2/_objects/',
+        'https://docs.djangoproject.com/en/5.2/',
+        'https://docs.djangoproject.com/en/5.2/objects.inv',
     ),
 }
 
