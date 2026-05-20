@@ -373,7 +373,7 @@ class cachedfor(object):
         self.max_age = max_age
         self.value = None
         self.func = None
-        self.updated = datetime.datetime.min
+        self.updated = datetime.datetime.now() - max_age
 
     def __call__(self, func):
         self.func = func
