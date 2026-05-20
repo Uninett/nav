@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.db.models import Model, Q, QuerySet
 from nav.models.manage import Netbox, Module, Location, NetboxGroup, Room, Device
 
@@ -100,7 +98,7 @@ def _get_component_query(component_type: Model, query: Q):
 
 
 def _prefetch_and_group_components(
-    component_type: Model, query_results: QuerySet, group_by: Union[Model, None] = None
+    component_type: Model, query_results: QuerySet, group_by: Model | None = None
 ):
     """
     Prefetches related objects and groups the results by the specified group_by model.

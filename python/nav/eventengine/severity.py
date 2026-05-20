@@ -54,14 +54,14 @@ _logger = logging.getLogger(__name__)
 class Expression(typing.NamedTuple):
     """An alert attribute matching expression"""
 
-    attr: typing.Union[str, callable]
+    attr: str | typing.Callable
     value: typing.Any
 
 
 SeverityModifier = typing.Callable[[int], int]
-Expressions = typing.Union[tuple[Expression], tuple]
+Expressions = tuple[Expression] | tuple
 Rule = tuple[Expressions, SeverityModifier]
-AlertObject = typing.Union[event.EventQueue, event.AlertQueue, event.AlertHistory]
+AlertObject = event.EventQueue | event.AlertQueue | event.AlertHistory
 
 #
 # Class definitions
@@ -109,7 +109,7 @@ class SeverityRules(tuple):
             return cls.load(conf)
 
     @classmethod
-    def load(cls, string_or_stream: typing.Union[str, typing.IO]) -> 'SeverityRules':
+    def load(cls, string_or_stream: str | typing.IO) -> 'SeverityRules':
         """Instantiates a new SeverityRules object from YAML rule definitions"""
         raw_data = yaml.safe_load(string_or_stream) or {}
         rules = cls._parse_raw_severity_rules(raw_data)
@@ -188,7 +188,7 @@ class SeverityRules(tuple):
                 yield from cls._parse_rule_sublist(expr, ruledef.get("rules", []))
 
     @staticmethod
-    def _parse_modifier(value: typing.Union[str, int]) -> SeverityModifier:
+    def _parse_modifier(value: str | int) -> SeverityModifier:
         """Parses a severity modifier expression and returns a modifier callable. The
         callable will take a severity value as an argument, and returns a modified
         severity value.
