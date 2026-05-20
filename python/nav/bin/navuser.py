@@ -148,22 +148,22 @@ def verify(args):
 
 def lock(args):
     args.login.is_active = False
-    if not args.login.is_active:
-        args.login.save()
-        print("User %s locked" % args.login.login, file=sys.stderr)
-    else:
+    if args.login.is_active:
         print("Cannot lock %s" % args.login.login, file=sys.stderr)
         sys.exit(1)
+    else:
+        args.login.save()
+        print("User %s locked" % args.login.login, file=sys.stderr)
 
 
 def unlock(args):
     args.login.is_active = True
-    if not args.login.is_active:
-        print("Cannot unlock %s" % args.login.login, file=sys.stderr)
-        sys.exit(1)
-    else:
+    if args.login.is_active:
         args.login.save()
         print("User %s unlocked" % args.login.login, file=sys.stderr)
+    else:
+        print("Cannot unlock %s" % args.login.login, file=sys.stderr)
+        sys.exit(1)
 
 
 ##########################
