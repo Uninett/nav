@@ -58,7 +58,7 @@ class TOMLConfigParser(UserDict):
 
         # Works in both Python <= 3.11 and Python >= 3.12
         if self.SECTION:
-            self.data = self.data.get(self.SECTION, {})
+            self.data = self.data.get(self.SECTION, self.data)
 
     def read_file(self, fp):
         config = tomllib.load(fp)
