@@ -15,6 +15,8 @@ class TestLoginNotRequiredBackport:
 
         r = RequestFactory()
         fake_request = r.get('/accounts/dataporten/login/callback/')
+        # Ensure the middleware check works
+        fake_request.htmx = True
         response = AuthorizationMiddleware(lambda x: x).process_view(
             fake_request,
             allauth_view,
