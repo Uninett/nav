@@ -7,21 +7,19 @@ from nav.config.toml import TOMLConfigParser, merge_dict_with_defaults
 class SectionConfig(TOMLConfigParser):
     SECTION = "mysection"
     DEFAULT_CONFIG = {
-        "mysection": {
-            "alpha": 1,
-            "beta": 2,
-        },
+        "alpha": 1,
+        "beta": 2,
     }
 
 
 class TestTOMLConfigParserWhenSectionIsSet(TestCase):
     # There was a backwards incompatible change to UserDict in Python 3.12,
     # so for maximum paranoia make sure they don't change things *again*
-    def test_when_no_params_then_self_should_be_the_same_as_the_default_section_dict(
+    def test_when_no_params_then_self_should_be_the_same_as_the_default(
         self,
     ):
         parser = SectionConfig()
-        self.assertEqual(parser, parser.DEFAULT_CONFIG[parser.SECTION])
+        self.assertEqual(parser, parser.DEFAULT_CONFIG)
 
     def test_then_contains_should_find_section_keys(self):
         parser = SectionConfig()
@@ -65,6 +63,46 @@ class TestTOMLConfigParserWhenSectionIsSet(TestCase):
 
         config = TestConfig({"bar": {"a": 3}})
         self.assertEqual(config["a"], 3)
+
+    def test_merge_with_default_returns_the_combined_output(self):
+        config = SectionConfig()
+        config._merge_with_default({"beta": False, "gamma": "foo"})
+        expected = {
+            "alpha": 1,
+            "beta": False,
+            "gamma": "foo",
+        }
+        self.assertEqual(config.data, expected)
+
+    def test_given_an_existing_filename_as_parameter_then_should_merge_default_and_contents_of_file(  # noqa: E501
+        self,
+    ):
+        tomlconfig = b"""
+[mysection]
+beta = true
+gamma = "foo"
+"""
+        with NamedTemporaryFile() as TF:
+            TF.write(tomlconfig)
+            TF.flush()
+            filename = TF.name
+            config = SectionConfig(config_file=filename)
+            self.assertEqual(config.USED_CONFIG_FILE, filename)
+
+        expected = {
+            "alpha": 1,
+            "beta": True,
+            "gamma": "foo",
+        }
+        self.assertEqual(config, expected)
+
+    def test_given_a_nonexisting_filename_as_parameter_then_should_be_default(
+        self,
+    ):
+        filename = "vfcgnhjgbvfgnhjgvfgnhjgvfgnhjgvfgnhjmgvfbnhmjgvf"
+        config = SectionConfig(config_file=filename)
+        self.assertEqual(config.USED_CONFIG_FILE, filename)
+        self.assertEqual(config, config.DEFAULT_CONFIG)
 
 
 class SectionLessConfig(TOMLConfigParser):

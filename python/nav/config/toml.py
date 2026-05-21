@@ -36,6 +36,10 @@ class TOMLConfigParser(UserDict):
 
     TOML as of 1.1 does not support null values so if null is needed define it
     in the DEFAULT_CONFIG.
+
+    Note that if a config parser has SECTION set to a none-empty string, that
+    section-name is not stored in the dict or deefault dict, for simplicity of
+    access.
     """
 
     SECTION: str = ""  # optional, for parsers specialized for a single section
@@ -50,15 +54,13 @@ class TOMLConfigParser(UserDict):
             config_file = self.DEFAULT_CONFIG_FILE
         self.USED_CONFIG_FILE = config_file
 
-        self.data = self.DEFAULT_CONFIG
+        self.data = deepcopy(self.DEFAULT_CONFIG)
         if config:
+            if self.SECTION:
+                config = config[self.SECTION]
             self.data = config
-        else:
+        elif config_file:
             self._read(config_file)
-
-        # Works in both Python <= 3.11 and Python >= 3.12
-        if self.SECTION:
-            self.data = self.data.get(self.SECTION, self.data)
 
     def read_file(self, fp):
         config = tomllib.load(fp)
@@ -72,22 +74,21 @@ class TOMLConfigParser(UserDict):
 
     def _merge_with_default(self, configdict):
         defaultconfig = self.DEFAULT_CONFIG
-        if self.SECTION:
-            configdict = configdict.get(self.SECTION, configdict)
-            defaultconfig = defaultconfig.get(self.SECTION, defaultconfig)
+        if self.SECTION in configdict:
+            configdict = configdict[self.SECTION]
         self.data = merge_dict_with_defaults(configdict, defaultconfig)
 
     def _read(self, filename):
         fqfn = find_config_file(filename)
         if not fqfn:
             _logger.warning('Config file "%s" not found!', filename)
-            return None
+            return
         try:
             with open(fqfn, "rb") as F:
                 self.read_file(F)
+            return
         except OSError:
-            return None
-        return filename
+            pass
 
 
 def merge_dict_with_defaults(data, defaults):
