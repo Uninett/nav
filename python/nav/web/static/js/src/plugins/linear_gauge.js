@@ -103,6 +103,8 @@ define(function (require, exports, module) {
                     value = new Number(value).toFixed(self.precision);
                 }
                 self.update(value);
+            }).catch(function (error) {
+                console.error("Failed to load linear gauge data:", error);
             });
     /*
              var value = Math.floor(Math.random() * (this.max + 1));

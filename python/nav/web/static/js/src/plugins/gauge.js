@@ -89,6 +89,8 @@ define(function (require, exports, module) {
                     value = datapoints[datapoints.length - 1][0] ||
                             datapoints[datapoints.length - 2][0];
                 self.refresh(value);
+            }).catch(function (error) {
+                console.error("Failed to load gauge data:", error);
             });
         },
         refresh: function (inputValue) {
