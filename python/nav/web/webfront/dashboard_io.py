@@ -81,10 +81,10 @@ def validate_dashboard_data(data):
                     f"Widget {i} field {field!r} must be {dtype.__name__}, "
                     f"got {type(widget[field]).__name__}"
                 )
-        if widget["column"] > data["num_columns"]:
+        if widget["column"] < 1 or widget["column"] > data["num_columns"]:
             raise ValueError(
-                f"Widget {i} column {widget["column"]} exceeds "
-                f"num_columns {data["num_columns"]}"
+                f"Widget {i} column {widget['column']} out of range "
+                f"(1..{data['num_columns']})"
             )
         sanitized = {k: v for k, v in widget.items() if k in WIDGET_FIELDS}
         sanitized_widgets.append(sanitized)
