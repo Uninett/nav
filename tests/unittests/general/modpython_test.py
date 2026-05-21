@@ -6,7 +6,7 @@ from nav.models import profiles
 from nav.web.modpython import ModPythonAuthorizationMiddleware
 
 
-PLAIN_ACCOUNT = profiles.Account(id=101, login='tim', password='wizard', locked=False)
+PLAIN_ACCOUNT = profiles.Account(id=101, login='tim', password='wizard')
 
 
 class TestModPythonAuthorizationMiddleware:

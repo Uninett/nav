@@ -21,16 +21,14 @@ from nav.web.webfront.views import _logout_helper
 from nav.models import profiles
 
 
-PLAIN_ACCOUNT = profiles.Account(id=101, login='tim', password='wizard', locked=False)
-ANOTHER_PLAIN_ACCOUNT = profiles.Account(
-    id=102, login='tom', password='pa$$w0rd', locked=False
+PLAIN_ACCOUNT = profiles.Account(id=101, login='tim', password='wizard')
+ANOTHER_PLAIN_ACCOUNT = profiles.Account(id=102, login='tom', password='pa$$w0rd')
+SUDO_ACCOUNT = profiles.Account(id=1337, login='bofh', password='alakazam')
+LOCKED_ACCOUNT = profiles.Account(
+    id=42, login='evil', password='haxxor', is_active=False
 )
-SUDO_ACCOUNT = profiles.Account(
-    id=1337, login='bofh', password='alakazam', locked=False
-)
-LOCKED_ACCOUNT = profiles.Account(id=42, login='evil', password='haxxor', locked=True)
 DEFAULT_ACCOUNT = profiles.Account(
-    id=profiles.Account.DEFAULT_ACCOUNT, login='anonymous', password='bah', locked=False
+    id=profiles.Account.DEFAULT_ACCOUNT, login='anonymous', password='bah'
 )
 
 

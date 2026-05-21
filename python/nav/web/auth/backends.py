@@ -27,8 +27,6 @@ class NAVRemoteUserBackend(RemoteUserBackend):
 
     def configure_user(self, request, user, created=True):
         if created:
-            # for the sake of Account.locked
-            user.set_password(remote_user.fake_password(32))
             user.ext_sync = 'REMOTE_USER'
             user.save()
 

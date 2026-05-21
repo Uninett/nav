@@ -120,7 +120,7 @@ def add_warnings_for_account(account, request):
     :type request: HttpRequest
     """
     if account.id == Account.DEFAULT_ACCOUNT:
-        if account.locked:
+        if not account.is_active:
             messages.warning(
                 request,
                 "This account represents all non-logged in users. Be wary of making "
@@ -133,10 +133,10 @@ def add_warnings_for_account(account, request):
                 " so it can be used to log in. Please LOCK this account immediately",
             )
     else:
-        if account.locked:
+        if not account.is_active:
             messages.warning(request, "This account is locked and cannot log in.")
 
-    if not account.locked and account.has_plaintext_password():
+    if account.is_active and account.has_plaintext_password():
         messages.warning(
             request,
             "This account's password is stored in plain text. Its password should be "

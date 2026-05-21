@@ -110,7 +110,7 @@ def ensure_account(request):
 
     Translates Django's AnonymousUser to NAV's default_account
     """
-    if hasattr(request, "user") and request.user.id and not request.user.locked:
+    if hasattr(request, "user") and request.user.id and request.user.is_active:
         set_account(request, request.user, cycle_session_id=False)
         return
 
@@ -119,7 +119,7 @@ def ensure_account(request):
     )
     account = Account.objects.get(id=account_id)
 
-    if account.locked and not account.is_default_account():
+    if not account.is_active and not account.is_default_account():
         # logout of locked account
         clear_session(request)
 

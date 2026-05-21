@@ -40,7 +40,7 @@
               <td>
                   {% if account.ext_sync %}<span class="label info" title="This account is managed externally via {{ account.ext_sync }}">{{ account.ext_sync }}</span>{% endif %}
 
-                  {% if account.locked %}
+                  {% if not account.is_active %}
                       <i class="fa fa-lock warning" title="This account is locked: It cannot be used to log in."></i>
                   {% elif account.has_plaintext_password %}
                       <i class="fa fa-warning warning" title="This account uses an insecure plaintext password. It should be reset."></i>
