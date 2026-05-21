@@ -36,18 +36,18 @@ available tags, and ``git checkout x.y.z`` to checkout version ``x.y.z``.
 3. NAV/Python dependencies
 ==========================
 
-Note: Running `pip install` will most likely require you to be running in a virtual environemnt.
-A basic one can be created and activated like this::
-
-  python3 -m venv myenv
-  source myenv/bin/activate
-
 To install NAV's Python requirements::
 
   apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
 
 4. Install NAV itself
 =====================
+
+Note: Running `pip install` will most likely require you to be running in a virtual environemnt.
+A basic one can be created and activated like this::
+
+  python3 -m venv myenv
+  source path/to/myenv
 
 ::
 
