@@ -289,7 +289,7 @@ def import_dashboard(request):
     try:
         blob = request.FILES["file"].read()
         data = json.loads(blob.decode("utf-8"))
-        result = import_from_dict(account, data)
+        result = import_from_dict(account, data, on_conflict="create_new")
         dashboard_url = reverse("dashboard-index-id", args=(result.dashboard.id,))
         return HttpResponseClientRedirect(dashboard_url)
     except ValueError:
