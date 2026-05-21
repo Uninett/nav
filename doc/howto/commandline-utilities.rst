@@ -46,6 +46,40 @@ These handler plugins are currently available from :program:`servicemon`:
 .. program-output:: python3 -c 'from nav.statemon import checkermap; checkermap.parsedir(); print("\n".join(sorted(checkermap.checkers.keys())))'
 
 
+-------------------------
+:command:`navdashboard`
+-------------------------
+
+Manages dashboards from the command line — list, export and import.
+Designed for scripted/automated deployment.  The
+``--on-conflict replace`` mode updates a dashboard in place, preserving its ID
+and subscriber references.
+
+Usage
+~~~~~
+.. program-output:: navdashboard --help
+
+Recipes
+~~~~~~~
+
+List all dashboards::
+
+  navdashboard list
+
+Export a dashboard by name for a given user::
+
+  navdashboard export --user admin --name "My Dashboard"
+
+Import a dashboard from a JSON file, replacing any existing dashboard with the
+same name, and make it shared::
+
+  navdashboard import --user admin --file dashboard.json --on-conflict replace --shared
+
+Copy a dashboard from one user to another via a pipe::
+
+  navdashboard export --user alice --name "My Dashboard" | navdashboard import --user bob --file -
+
+
 ----------------
 :command:`navdf`
 ----------------
