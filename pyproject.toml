@@ -52,6 +52,8 @@ dependencies = [
 
     "pyjwt>=2.12,<3",
 
+    "pydantic>=2.0",
+
     "distro",
 
     # The following modules are really sub-requirements of Twisted, not of
