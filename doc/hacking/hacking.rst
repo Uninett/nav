@@ -471,14 +471,14 @@ To run integration tests (including functional browser tests):
 
 .. code-block:: console
 
-   $ tox run -e integration-py311-django42
+   $ tox run -e integration-py311-django52
    ...
 
 To run only the functional browser tests:
 
 .. code-block:: console
 
-   $ tox run -e integration-py311-django42 -- tests/functional
+   $ tox run -e integration-py311-django52 -- tests/functional
    ...
 
 

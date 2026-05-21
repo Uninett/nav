@@ -36,33 +36,31 @@ class TOMLConfigParser(UserDict):
 
     TOML as of 1.1 does not support null values so if null is needed define it
     in the DEFAULT_CONFIG.
+
+    Note that if a config parser has SECTION set to a none-empty string, that
+    section-name is not stored in the dict or deefault dict, for simplicity of
+    access.
     """
 
     SECTION: str = ""  # optional, for parsers specialized for a single section
     DEFAULT_CONFIG: dict = {}
     DEFAULT_CONFIG_FILE: str = ""
+    USED_CONFIG_FILE: str = ""
 
-    def __init__(
-        self, default_config: Optional[dict] = None, default_config_file: str = ""
-    ):
+    def __init__(self, config: Optional[dict] = None, config_file: str = ""):
         super().__init__()
-        if default_config is not None:
-            self.DEFAULT_CONFIG = default_config
         # NOTE: a single filename!
-        if default_config_file:
-            self.DEFAULT_CONFIG_FILE = default_config_file
+        if not config_file:
+            config_file = self.DEFAULT_CONFIG_FILE
+        self.USED_CONFIG_FILE = config_file
 
-        ok = self._read(self.DEFAULT_CONFIG_FILE)
-        if not ok:
-            self.data = self.DEFAULT_CONFIG
-
-    def __getitem__(self, key):
-        data = self.data
-        if self.SECTION:
-            data = self.data.get(self.SECTION, {})
-        if key in data:
-            return data[key]
-        raise KeyError(key)
+        self.data = deepcopy(self.DEFAULT_CONFIG)
+        if config:
+            if self.SECTION:
+                config = config[self.SECTION]
+            self.data = config
+        elif config_file:
+            self._read(config_file)
 
     def read_file(self, fp):
         config = tomllib.load(fp)
@@ -75,19 +73,22 @@ class TOMLConfigParser(UserDict):
         return self.data
 
     def _merge_with_default(self, configdict):
-        self.data = merge_dict_with_defaults(configdict, self.DEFAULT_CONFIG)
+        defaultconfig = self.DEFAULT_CONFIG
+        if self.SECTION in configdict:
+            configdict = configdict[self.SECTION]
+        self.data = merge_dict_with_defaults(configdict, defaultconfig)
 
     def _read(self, filename):
         fqfn = find_config_file(filename)
         if not fqfn:
             _logger.warning('Config file "%s" not found!', filename)
-            return None
+            return
         try:
             with open(fqfn, "rb") as F:
                 self.read_file(F)
+            return
         except OSError:
-            return None
-        return filename
+            pass
 
 
 def merge_dict_with_defaults(data, defaults):

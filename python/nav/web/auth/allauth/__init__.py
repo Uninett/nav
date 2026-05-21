@@ -13,30 +13,36 @@ class MFAConfigParser(TOMLConfigParser):
     SECTION = "multi-factor-authentication"
     DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
     DEFAULT_CONFIG = {
-        SECTION: {
-            "enabled": False,
-            "support-recovery-codes": True,
-            "support-passkeys": False,
-            "support-passkey-signups": False,
-            "allow-insecure-origin": False,
-        }
+        "enabled": False,
+        "support-recovery-codes": True,
+        "support-passkeys": False,
+        "support-passkey-signups": False,
+        "allow-insecure-origin": False,
     }
 
+    def _get_default(self, key):
+        return self.get(key, self.DEFAULT_CONFIG[key])
+
     def is_mfa_enabled(self):
-        return self["enabled"]
+        key = "enabled"
+        return self._get_default(key)
 
     def are_recovery_codes_enabled(self):
-        return self["support-recovery-codes"]
+        key = "support-recovery-codes"
+        return self._get_default(key)
 
     def are_passkeys_enabled(self):
-        return self["support-passkeys"]
+        key = "support-passkeys"
+        return self._get_default(key)
 
     def are_passkey_signups_enabled(self):
-        return self["support-passkey-signups"]
+        key = "support-passkey-signups"
+        return self._get_default(key)
 
     def are_insecure_origins_allowed(self):
         # Set to True when developing
-        return self["allow-insecure-origin"]
+        key = "allow-insecure-origin"
+        return self._get_default(key)
 
     def get_MFA_SUPPORTED_TYPES_setting(self):
         methods = []
@@ -133,9 +139,7 @@ class SocialConfigParser(SocialProviderHelper, TOMLConfigParser):
     _subkey = "providers"
     SECTION = "social"
     DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
-    DEFAULT_CONFIG = {
-        SECTION: {},
-    }
+    DEFAULT_CONFIG = {}
 
     def translate_entry_for_provider(self, provider: str):
         provider_config = self.get_provider_config(provider)
@@ -204,9 +208,7 @@ class OIDCConfigParser(SocialProviderHelper, TOMLConfigParser):
     _module_path = "allauth.socialaccount.providers.openid_connect"
     SECTION = "oidc"
     DEFAULT_CONFIG_FILE = "webfront/authentication.toml"
-    DEFAULT_CONFIG = {
-        SECTION: {},
-    }
+    DEFAULT_CONFIG = {}
 
     def translate_entry_for_provider(self, provider: str) -> dict:
         provider_config = self.get_provider_config(provider)

@@ -8,6 +8,20 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+Unreleased
+==========
+
+Dependency changes
+------------------
+
+.. IMPORTANT:: NAV 5.19 requires PostgreSQL to be at least version *14*.
+
+.. IMPORTANT:: NAV 5.19 no longer supports Python versions older than *3.11*.
+
+Python modules with changed version requirements:
+
+* :mod:`Django` (``>=5.2,<5.3``)
+
 NAV 5.18
 ========
 
