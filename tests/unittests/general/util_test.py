@@ -236,29 +236,23 @@ class TestCachedFor:
         assert second == 2
 
     def test_cachedfor_should_not_raise_when_validity_duration_is_not_too_big(self):
-        state = 0
         validity_duration = (self.NOW - datetime.min) - timedelta(seconds=1)
 
         with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
 
             @cachedfor(validity_duration)
-            def inc():
-                nonlocal state
-                state += 1
-                return state
+            def foo():
+                return
 
     def test_cachedfor_should_raise_when_validity_duration_is_too_big(self):
-        state = 0
         validity_duration = (self.NOW - datetime.min) + timedelta(seconds=1)
 
         with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
             with pytest.raises(OverflowError):
 
                 @cachedfor(validity_duration)
-                def inc():
-                    nonlocal state
-                    state += 1
-                    return state
+                def foo():
+                    return
 
     @staticmethod
     def frozen_datetime(start_time):
