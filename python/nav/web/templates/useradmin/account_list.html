@@ -24,10 +24,11 @@
         </caption>
         <thead>
           <tr>
-            <th>Login</th>
-            <th>Name</th>
-            <th>Status</th>
-            <th># of groups</th>
+            <th scope="col">Login</th>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            {% if show_2fa_column %}<th scope="col">2FA</th>{% endif %}
+            <th scope="col"># of groups</th>
           </tr>
         </thead>
         <tbody>
@@ -50,13 +51,20 @@
                       <i class="fa fa-warning warning" title="This account has a password hashed with an older, deprecated method. Its password has probably not been changed in a long time - or, in the case of an LDAP user, they might not have logged in in a long time."></i>
                   {% endif %}
               </td>
+              {% if show_2fa_column %}
+              <td>
+                {% if account.activated_2fa %}
+                  <i class="fa fa-shield" title="2FA is activated"></i>
+                {% endif %}
+              </td>
+              {% endif %}
               <td>{{ account.groups.all|length }}</td>
             </tr>
           {% endfor %}
         </tbody>
         <tfoot>
           <tr>
-            <th colspan="4">{{ accounts|length }} accounts</th>
+            <th scope="col" colspan="{% if show_2fa_column %}5{% else %}4{% endif %}">{{ accounts|length }} accounts</th>
           </tr>
         </tfoot>
       </table>
