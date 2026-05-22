@@ -190,66 +190,69 @@ class TestTimer:
             assert isinstance(t, util.Timer)
 
 
-year2000 = datetime.fromisoformat("2000-01-01T00:00:00.000000")
-
-
-@pytest.mark.parametrize(
-    "start_time,max_age,valid_exceptions",
-    [
-        (year2000, timedelta(seconds=1), ()),
-        (year2000, (year2000 - datetime.min) + timedelta(seconds=1), (OverflowError)),
-    ],
-)
 class TestCachedFor:
-    def test_cachedfor_should_hit_cache_when_age_less_than_max_age(
-        self, start_time, max_age, valid_exceptions
-    ):
+    NOW = datetime.fromisoformat("2000-01-01T00:00:00.000000")
+
+    def test_cachedfor_should_hit_cache_when_age_less_than_validity_duration(self):
         state = 0
+        validity_duration = timedelta(seconds=1)
+        age = validity_duration / 2
 
-        with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
-            try:
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
 
-                @cachedfor(max_age)
-                def inc():
-                    nonlocal state
-                    state += 1
-                    return state
-            except valid_exceptions:
-                return
+            @cachedfor(validity_duration)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
 
             first = inc()
 
-        with patch(
-            "nav.util.datetime.datetime", self.frozen_datetime(start_time + max_age / 2)
-        ):
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW + age)):
             second = inc()
 
-        assert first == second == 1
+        assert first == 1
+        assert second == 1
 
-    def test_cachedfor_should_miss_cache_when_age_greater_than_max_age(
-        self, start_time, max_age, valid_exceptions
-    ):
+    def test_cachedfor_should_miss_cache_when_age_greater_than_validity_duration(self):
         state = 0
+        validity_duration = timedelta(seconds=1)
+        age = validity_duration * 2
 
-        with patch("nav.util.datetime.datetime", self.frozen_datetime(start_time)):
-            try:
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
 
-                @cachedfor(max_age)
-                def inc():
-                    nonlocal state
-                    state += 1
-                    return state
-            except valid_exceptions:
-                return
+            @cachedfor(validity_duration)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
 
             first = inc()
 
-        with patch(
-            "nav.util.datetime.datetime", self.frozen_datetime(start_time + max_age * 2)
-        ):
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW + age)):
             second = inc()
 
-        assert first + 1 == second == 2
+        assert first == 1
+        assert second == 2
+
+    def test_cachedfor_should_not_raise_when_validity_duration_is_not_too_big(self):
+        validity_duration = (self.NOW - datetime.min) - timedelta(seconds=1)
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+
+            @cachedfor(validity_duration)
+            def foo():
+                return
+
+    def test_cachedfor_should_raise_when_validity_duration_is_too_big(self):
+        validity_duration = (self.NOW - datetime.min) + timedelta(seconds=1)
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+            with pytest.raises(OverflowError):
+
+                @cachedfor(validity_duration)
+                def foo():
+                    return
 
     @staticmethod
     def frozen_datetime(start_time):
