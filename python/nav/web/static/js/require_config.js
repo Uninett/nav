@@ -14,7 +14,6 @@ var require = {
         "status": "src/status2",
         "d3": "libs/d3-3.5.5.min",  // rickshaw needs the d3 target defined
         "d3v7": "libs/d3-7.8.3.min",
-        "d3tip": "libs/d3tip.min",
         "ol-debug": "libs/ol-debug-4.6.5",
         "openlayers": "libs/openlayers-2.12.min",
         "datatables": "libs/datatables-2.2.2.min",
