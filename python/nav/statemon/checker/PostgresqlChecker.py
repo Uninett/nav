@@ -16,7 +16,7 @@
 #
 """PostgreSQL service checker"""
 
-import psycopg2
+import psycopg
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
@@ -45,14 +45,14 @@ class PostgresqlChecker(AbstractChecker):
         # Build keywords from arguments
         for name, value in self.args.items():
             if name in ('user', 'password', 'database'):
-                # Must convert to str here because psycopg2 complains
+                # Must convert to str here because psycopg complains
                 # if keywords are unicode. ("Keywords must be strings")
                 kwargs[str(name)] = value
 
         (kwargs['host'], kwargs['port']) = self.get_address()
 
         try:
-            psycopg2.connect(**kwargs)
+            psycopg.connect(**kwargs)
         except Exception as err:  # noqa: BLE001
             # Get first line of exception message
             msg = str(err).split('\n')[0]

@@ -27,7 +27,7 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-import psycopg2
+import psycopg
 from django.db.transaction import atomic
 from django.contrib.sessions.models import Session
 from django.utils import timezone
@@ -61,7 +61,7 @@ def main():
                 )
             cleaned = True
 
-        except psycopg2.Error as error:
+        except psycopg.Error as error:
             print("The PostgreSQL backend produced an error", file=sys.stderr)
             print(error, file=sys.stderr)
             connection.rollback()
@@ -150,7 +150,7 @@ def validate_sql(sql, args):
     cursor = connection.cursor()
     try:
         cursor.execute(sql, args)
-    except psycopg2.DataError as error:
+    except psycopg.DataError as error:
         raise ValueError(error)
     finally:
         connection.rollback()

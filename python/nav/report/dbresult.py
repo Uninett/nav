@@ -15,7 +15,7 @@
 #
 """Represents the meta information and result from a database query."""
 
-import psycopg2
+import psycopg
 
 from nav import db
 
@@ -55,14 +55,14 @@ class DatabaseResult(object):
             # Total count of the rows returned.
             self.rowcount = len(self.result)
 
-        except psycopg2.ProgrammingError as error:
+        except psycopg.ProgrammingError as error:
             self.error = (
                 "There was an unhandled SQL error! There may be "
                 "something wrong with the definition of the '{}' "
                 "report: {}".format(report_config.title, error)
             )
 
-        except psycopg2.DataError as error:
+        except psycopg.DataError as error:
             self.error = (
                 "Data error! Some of your input data is of an invalid type: {}".format(
                     error
