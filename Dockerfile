@@ -125,7 +125,7 @@ RUN --mount=type=cache,target=/source/.cache,sharing=locked \
 
 ARG CUSTOM_PIP=ipython
 RUN --mount=type=cache,target=/source/.cache,sharing=locked \
-    uv pip install ${CUSTOM_PIP}
+    uv pip install ${CUSTOM_PIP} tox
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
