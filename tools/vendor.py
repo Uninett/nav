@@ -30,6 +30,15 @@ CONFIG = ROOT / "python/nav/web/static/js/require_config.js"
 NODE = ROOT / "node_modules"
 VERSION_RE = re.compile(r"-(\d+\.\d+[\d.a-zA-Z-]*?)(\.min)?\.js$")
 
+# Packages whose dist file can't be resolved automatically from
+# package.json fields (jsdelivr, unpkg, browser, main).
+# Map npm name to the dist path relative to the package in node_modules.
+OVERRIDES = {
+    "driver.js": "dist/driver.js.iife.min.js",
+    "jquery-ui": "dist/jquery-ui.min.js",
+    "requirejs": "require.js",
+}
+
 
 def _load_json(path):
     with open(path) as f:
@@ -38,6 +47,43 @@ def _load_json(path):
 
 def get_deps():
     return _load_json(ROOT / "package.json").get("dependencies", {})
+
+
+def _minified_variants(path):
+    """Return .min.js and -min.js variants of a .js path."""
+    if path.endswith(".min.js"):
+        return ()
+    base = path.removesuffix(".js")
+    return (base + ".min.js", base + "-min.js")
+
+
+def _resolve_from_override(npm_name):
+    """Check OVERRIDES for a manually specified dist path.
+
+    Returns the path string if the override exists on disk, or None.
+    """
+    path = OVERRIDES.get(npm_name)
+    if path and (NODE / npm_name / path).exists():
+        return path
+    return None
+
+
+def _resolve_from_package(npm_name, pkg):
+    """Find the dist file by inspecting package.json fields.
+
+    Checks jsdelivr, unpkg, browser, and main fields in order, preferring
+    minified variants. Returns the path string, or None.
+    """
+    for field in ("jsdelivr", "unpkg", "browser", "main"):
+        path = pkg.get(field)
+        if not isinstance(path, str) or not path.endswith(".js"):
+            continue
+        for min_path in _minified_variants(path):
+            if (NODE / npm_name / min_path).exists():
+                return min_path
+        if (NODE / npm_name / path).exists():
+            return path
+    return None
 
 
 def resolve_source(npm_name):
@@ -49,32 +95,27 @@ def resolve_source(npm_name):
     if not pkg_path.exists():
         return None, None
     pkg = _load_json(pkg_path)
-    for field in ("jsdelivr", "unpkg", "browser", "main"):
-        path = pkg.get(field)
-        if not isinstance(path, str) or not path.endswith(".js"):
-            continue
-        # Check both .min.js and -min.js naming conventions
-        for min_path in (
-            path.removesuffix(".js") + ".min.js",
-            path.removesuffix(".js") + "-min.js",
-        ):
-            if (NODE / npm_name / min_path).exists():
-                return min_path, pkg["version"]
-        if (NODE / npm_name / path).exists():
-            return path, pkg["version"]
-    return None, None
+    version = pkg.get("version")
+    source = _resolve_from_override(npm_name) or _resolve_from_package(npm_name, pkg)
+    return source, version
 
 
 GENERIC_STEMS = {"cdn", "index", "dist", "main", "umd", "bundle"}
+
+_STRIP_SUFFIXES = (".min", "-min", ".iife", ".esm", ".cjs", ".umd", ".js")
 
 
 def _derive_name(npm_name, source_path):
     """Derive a short library name from the dist file, or fall back to npm name.
 
-    'dist/jquery.min.js' -> 'jquery'
-    'cdn.min.js'         -> falls back to npm_name
+    'dist/jquery.min.js'          -> 'jquery'
+    'dist/driver.js.iife.min.js'  -> 'driver'
+    'cdn.min.js'                  -> falls back to npm_name
     """
-    stem = Path(source_path).stem.removesuffix(".min").removesuffix("-min").lower()
+    stem = Path(source_path).stem
+    for suffix in _STRIP_SUFFIXES:
+        stem = stem.removesuffix(suffix)
+    stem = stem.lower()
     if stem in GENERIC_STEMS:
         return npm_name
     return stem
@@ -146,13 +187,17 @@ def _check_node_modules():
 def cmd_list():
     _check_node_modules()
     managed_files = set()
+    unresolved = []
     rows = []
     for npm_name, version in sorted(get_deps().items()):
         source, _ = resolve_source(npm_name)
-        name = _derive_name(npm_name, source) if source else npm_name
+        path = source or OVERRIDES.get(npm_name)
+        name = _derive_name(npm_name, path) if path else npm_name
         local = find_old_file(name)
         if local:
             managed_files.add(local)
+        else:
+            unresolved.append(npm_name)
         rows.append((npm_name, version, local or "(not synced)"))
     for f in sorted(LIBS.glob("*.js")):
         if f.name not in managed_files and VERSION_RE.search(f.name):
@@ -166,6 +211,9 @@ def cmd_list():
     print(f"  {'-' * w0}  {'-' * w1}  {'-' * max(len(r[2]) for r in rows)}")
     for name, version, local in rows:
         print(f"  {name:<{w0}}  {version:<{w1}}  {local}")
+    if unresolved:
+        print(f"\nHint: {len(unresolved)} package(s) not synced. Run 'sync' or add")
+        print("an entry to OVERRIDES in tools/vendor.py if auto-resolution fails.")
 
 
 def cmd_check():
@@ -254,7 +302,8 @@ def cmd_add(name, version=None):
         print(f"Added: {new}")
         print(f'Add to require_config.js: "{alias}": "libs/{ref}",')
     else:
-        print("Could not resolve dist file. Copy manually from node_modules/")
+        print("Could not resolve dist file automatically.")
+        print("Add an entry to OVERRIDES in tools/vendor.py and re-run.")
 
 
 def cmd_remove(npm_name):
