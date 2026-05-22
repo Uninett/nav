@@ -75,7 +75,7 @@ services:
     restart: on-failure:5
 
   postgres:
-    image: "postgres:13"
+    image: "postgres:14"
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     restart: on-failure:5
