@@ -42,7 +42,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 
 ## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
-    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main' > /etc/apt/sources.list.d/nodesource.list && \
+    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main' > /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install -y nodejs
 
