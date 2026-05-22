@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from nav import util
-from nav.util import IPRange, first_true, cachedfor
+from nav.util import cachedfor, first_true, IPRange
 from IPy import IP
 
 
