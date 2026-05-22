@@ -35,6 +35,31 @@ from nav.models.manage import (
 )
 
 
+def escape_pipe(val: str):
+    """
+    Add escape characters to any backslashes and
+    pipe symbols in the provided string
+    """
+    return str(val).replace('\\', '\\\\').replace('|', '\\|')
+
+
+def split_on_pipe(val: str):
+    """Split provided string on all unescaped pipe characters"""
+    parts = []
+    current = []
+    it = iter(val)
+    for c in it:
+        if c == '\\':
+            current.append(next(it, c))
+        elif c == '|':
+            parts.append(''.join(current))
+            current = []
+        else:
+            current.append(c)
+    parts.append(''.join(current))
+    return parts
+
+
 class BulkParser:
     """Abstract base class for bulk parsers"""
 
@@ -210,7 +235,7 @@ class NetboxBulkParser(BulkParser):
     def _validate_data(datastring):
         try:
             if datastring:
-                items = (item.split('=', 1) for item in datastring.split('|'))
+                items = (item.split('=', 1) for item in split_on_pipe(datastring))
                 if items:
                     dict(items)
         except ValueError:

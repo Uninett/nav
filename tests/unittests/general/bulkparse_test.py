@@ -3,6 +3,40 @@
 import pytest
 
 from nav import bulkparse
+from nav.bulkparse import escape_pipe, split_on_pipe
+
+
+class TestEscapePipe:
+    def test_when_pipe_in_string_then_it_should_be_escaped(self):
+        assert escape_pipe('a|b') == 'a\\|b'
+
+    def test_given_plain_string_then_it_should_be_unchanged(self):
+        assert escape_pipe('hello') == 'hello'
+
+    def test_given_backslash_in_string_then_it_should_be_escaped(self):
+        assert escape_pipe('a\\b') == 'a\\\\b'
+
+    def test_given_backslash_before_pipe_then_both_should_be_escaped(self):
+        assert escape_pipe('a\\|b') == 'a\\\\\\|b'
+
+
+class TestSplitOnPipe:
+    def test_given_no_pipe_then_it_should_return_single_element_list(self):
+        assert split_on_pipe('hello') == ['hello']
+
+    def test_given_unescaped_pipes_then_it_should_split_on_them(self):
+        assert split_on_pipe('a|b|c') == ['a', 'b', 'c']
+
+    def test_when_pipe_is_escaped_then_it_should_not_be_a_split_point(self):
+        assert split_on_pipe('a\\|b|c') == ['a|b', 'c']
+
+    def test_given_empty_string_then_it_should_return_list_with_empty_string(self):
+        assert split_on_pipe('') == ['']
+
+    def test_given_escaped_values_should_restore_originals(self):
+        values = ['foo|bar', 'testing', 'a\\b', 'a\\|b', 'a\\\\|b']
+        joined = '|'.join(escape_pipe(v) for v in values)
+        assert split_on_pipe(joined) == values
 
 
 class TestBulkParser(object):
