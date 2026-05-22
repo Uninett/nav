@@ -99,7 +99,7 @@ RUN --mount=type=cache,target=/source/.cache,sharing=locked \
 USER nav
 ENV VIRTUAL_ENV /opt/venvs/nav
 ENV PATH=/opt/venvs/nav/bin:$PATH
-RUN python3.11 -m venv /opt/venvs/nav
+RUN python3 -m venv /opt/venvs/nav
 RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     pip install uv && uv pip install --upgrade setuptools wheel build
 
