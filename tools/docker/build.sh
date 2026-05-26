@@ -8,7 +8,7 @@ if [[ ! -f "/source/pyproject.toml" ]]; then
 fi
 
 cd /source
-pip install -e .
+uv pip install -e .
 make sassbuild
 
 if [[ ! -f "/etc/nav/nav.conf" ]]; then

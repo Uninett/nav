@@ -42,7 +42,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 
 ## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
-    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main' > /etc/apt/sources.list.d/nodesource.list && \
+    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main' > /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
     apt-get install -y nodejs
 
@@ -97,10 +97,11 @@ RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     mkdir -p /etc/nav && chown nav /etc/nav && \
     chown -R nav /source/.cache
 USER nav
+ENV VIRTUAL_ENV /opt/venvs/nav
 ENV PATH=/opt/venvs/nav/bin:$PATH
-RUN python3.11 -m venv /opt/venvs/nav
+RUN python3 -m venv /opt/venvs/nav
 RUN --mount=type=cache,target=/source/.cache,sharing=locked \
-    pip install --upgrade setuptools wheel pip-tools build
+    pip install uv && uv pip install --upgrade setuptools wheel build
 
 #################################################################################
 ### COPYing the requirements file to pip-install Python requirements may bust ###
@@ -119,12 +120,12 @@ COPY tests/requirements.txt /test-requirements.txt
 COPY doc/requirements.txt /doc-requirements.txt
 RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     cd /opt/venvs/nav && \
-    pip-compile --resolver=backtracking --output-file ./requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt ; \
-    pip install -r ./requirements.txt.lock
+    uv pip compile --output-file ./requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt ; \
+    uv pip install -r ./requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython
 RUN --mount=type=cache,target=/source/.cache,sharing=locked \
-    pip install ${CUSTOM_PIP}
+    uv pip install ${CUSTOM_PIP} tox
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
