@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     if args.interval:
-        expiry = "NOW() - interval %s" % nav.db.escape(args.interval)
+        expiry = "NOW() - interval {}".format(nav.db.escape_literal(args.interval))
     elif args.datetime:
         expiry = args.datetime
 

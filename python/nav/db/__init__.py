@@ -26,6 +26,7 @@ import sys
 import time
 
 import psycopg
+from psycopg import sql
 
 import nav
 from nav import config
@@ -76,6 +77,18 @@ class ConnectionObject(nav.CacheableObject):
         cursor.execute('SELECT 1')
         # If we got this far withouth exceptions, we did OK
         return 1
+
+
+def escape_literal(string: str):
+    """Escape a string for use in SQL statements as a parameter.
+
+    Not to be used for what psycopg calls identifiers: table names, index names
+    etc. See https://www.psycopg.org/psycopg3/docs/api/sql.html
+
+    ..warning:: You should be using parameterized queries if you can!
+
+    """
+    return sql.Literal(string).as_string()
 
 
 def get_connection_parameters(script_name='default', database='nav'):
