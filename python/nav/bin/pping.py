@@ -108,6 +108,20 @@ class Pinger(object):
                         netbox.ip,
                     )
                     self.down.append(netbox.netboxid)
+            elif netbox.up != 'y' and netbox.netboxid not in self.down:
+                # The database says this box is down, but we think it's up. Mark
+                # it down and clear its replies, so that we re-announce it as up
+                # in this cycle if it still answers. We deliberately never do the
+                # opposite (trust the database when it says up): two pping
+                # instances with different reachability would then flip-flop the
+                # box's state forever.
+                _logger.info(
+                    "Database and internal pping state of %s are out of sync, "
+                    "re-announcing its state",
+                    netbox.ip,
+                )
+                self.down.append(netbox.netboxid)
+                self.replies[netbox.netboxid].reset_all_to(-1)
             if netbox.netboxid not in self.replies:
                 self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
                 if netbox.up != 'y':
