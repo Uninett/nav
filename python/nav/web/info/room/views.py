@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Viev functions for the roominfo subsystem"""
+"""View functions for the roominfo subsystem"""
 
 import datetime
 import logging
@@ -147,6 +147,7 @@ def roominfo(request, roomid):
             "navpath": navpath,
             "title": create_title(navpath),
             "images": images,
+            "hide_map": not bool(room.position),
         },
     )
 
