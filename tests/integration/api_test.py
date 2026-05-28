@@ -13,6 +13,7 @@ from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
 from nav.models.manage import NetboxEntity, NetboxGroup, Room
 from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
+from nav.models.profiles import Account
 from nav.models.service import Service
 
 
@@ -125,6 +126,37 @@ def test_ordering_should_not_crash(db, api_client, token):
     response = api_client.get('/api/1/room/?ordering=whatever')
 
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize("name, url", ENDPOINTS.items())
+def test_when_default_user_has_password_set_then_can_access_api(
+    db, api_client, token, serializer_models, name, url
+):
+    """
+    It was possible using the navuser script to set a password for the default account
+    which lead to the default user not being able to access the API
+
+    By changing to using the `is_active` flag in
+    https://github.com/Uninett/nav/pull/4023 this was fixed
+
+    This has been fixed in https://github.com/Uninett/nav/pull/4033
+    This issue is described in https://github.com/Uninett/nav/issues/3964
+    """
+    default_user = Account.objects.get(pk=Account.DEFAULT_ACCOUNT)
+    default_user.set_password("test")
+    default_user.save()
+
+    create_token_endpoint(token, name)
+    if name in ['arp', 'cam']:
+        # ARP and CAM wants filters
+        response = api_client.get("{}?active=1".format(url))
+    else:
+        response = api_client.get(url)
+    if name == 'jwt_refresh':
+        # JWT refresh endpoint only accepts POST requests
+        assert response.status_code == 405
+    else:
+        assert response.status_code == 200
 
 
 # Account specific tests
