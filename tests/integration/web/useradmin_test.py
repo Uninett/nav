@@ -3,6 +3,8 @@ from django.urls import reverse
 import pytest
 from allauth.mfa.models import Authenticator
 
+from nav.models.profiles import Account
+
 
 def test_given_no_authenticator_then_activated_2fa_is_false(
     db, client, non_admin_account, mfa_globally_enabled
@@ -57,6 +59,24 @@ def test_when_operating_as_user_then_it_should_not_crash(db, client, admin_accou
         },
     )
     assert response.status_code == 200
+
+
+def test_when_creating_new_user_then_user_should_be_active(db, client, admin_account):
+    response = client.post(
+        reverse('useradmin-account_new'),
+        follow=True,
+        data={
+            "login": "abc",
+            "name": "abc",
+            "password1": "@e!B>zm5f!}q;5%",
+            "password2": "@e!B>zm5f!}q;5%",
+            "submit_account": "Create account",
+        },
+    )
+
+    assert response.status_code == 200
+    account = Account.objects.get(login="abc")
+    assert account.is_active
 
 
 @pytest.fixture

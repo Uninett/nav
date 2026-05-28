@@ -139,7 +139,7 @@ class AccountForm(forms.ModelForm):
 
     class Meta(object):
         model = Account
-        exclude = ('password', 'ext_sync', 'organizations', 'preferences')
+        exclude = ('password', 'ext_sync', 'organizations', 'preferences', 'is_active')
 
 
 class ExternalAccountForm(AccountForm):
