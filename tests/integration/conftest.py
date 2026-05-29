@@ -440,3 +440,10 @@ def non_admin_account(db):
     account.save()
     yield account
     account.delete()
+
+
+@pytest.fixture()
+def default_account(db):
+    from nav.models.profiles import Account
+
+    return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
