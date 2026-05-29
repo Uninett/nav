@@ -165,6 +165,10 @@ def lock(args):
 
 
 def unlock(args):
+    if args.login.is_default_account():
+        print("It is not possible to unlock the default account.", file=sys.stderr)
+        sys.exit(1)
+
     if args.login.is_active:
         print("Cannot unlock %s, already unlocked" % args.login.login, file=sys.stderr)
         sys.exit(1)
