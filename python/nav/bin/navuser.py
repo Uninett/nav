@@ -30,9 +30,9 @@ bootstrap_django(__file__)
 from nav.models.profiles import Account, AccountGroup
 
 
-def main():
+def main(argv=None):
     """Main program"""
-    args = parse_args()
+    args = parse_args(argv)
 
     args.func(args)
 
@@ -188,7 +188,7 @@ def usergetter(login):
         raise argparse.ArgumentTypeError("No such user account: %s" % login)
 
 
-def parse_args():
+def parse_args(argv=None):
     """Builds an ArgumentParser and returns parsed program arguments"""
     parser = argparse.ArgumentParser(
         description="Lists and manipulates NAV web user accounts"
@@ -268,7 +268,7 @@ def parse_args():
         'login', type=usergetter, help="The login name of the user"
     )
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 if __name__ == '__main__':
