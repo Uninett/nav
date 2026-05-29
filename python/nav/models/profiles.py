@@ -304,7 +304,7 @@ class Account(AbstractBaseUser):
 
     def has_old_style_password_hash(self):
         """Returns True if this account has an old-style, insecure password hash"""
-        return self.unlocked_password.startswith("md5")
+        return self.password.startswith("md5")
 
     def has_plaintext_password(self):
         """Returns True if this account appears to contain a plain-text password"""
@@ -353,13 +353,8 @@ class Account(AbstractBaseUser):
     def password_hash(self):
         """Returns the Account's password as a Hash object"""
         stored_hash = nav.pwhash.Hash()
-        stored_hash.set_hash(self.unlocked_password)
+        stored_hash.set_hash(self.password or '')
         return stored_hash
-
-    @property
-    def unlocked_password(self):
-        """Returns the raw password value"""
-        return self.password or ''
 
     def get_email_addresses(self):
         return self.alert_addresses.filter(type__name=AlertSender.EMAIL)
