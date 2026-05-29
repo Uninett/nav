@@ -70,10 +70,12 @@ class SearchProvider(object):
         self.fetch_results()
 
     def fetch_results(self):
-        """Fetches and returns results based on ``self.query``.
+        """
+        Fetches and returns results based on ``self.query``.
 
         :returns: A list of :py:class:`nav.web.info.searchproviders.SearchResult`
-        instances.
+            instances.
+
         """
         raise NotImplementedError
 

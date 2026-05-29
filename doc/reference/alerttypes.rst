@@ -199,12 +199,12 @@ Registers the state of a device
 
    * - Alert type name
      - Description
+   * - ``deviceRMA``
+     - RMA event for device.
    * - ``deviceInIPOperation``
      - The device is now in operation with an active IP address
    * - ``deviceInStack``
      - The device is now in operation as a chassis module
-   * - ``deviceRMA``
-     - RMA event for device.
    * - ``deviceNewModule``
      - The device has been found as a module.
    * - ``deviceNewChassis``
@@ -283,6 +283,154 @@ Tells us whether an access point has disassociated or associated from the contro
 
 
 
+*weathergoose_airflow* events
+-----------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_airflow events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateAirflowTRAP``
+     - Climate Air Flow Sensor Trap
+   * - ``cmClimateAirflowCLEAR``
+     - Climate Air Flow Sensor Clear Trap
+   * - ``cmClimateAirflowNOTIFY``
+     - Climate Air Flow Sensor Trap
+   * - ``gstClimateAirflowCLEAR``
+     - Climate Air Flow Sensor Clear Trap
+   * - ``gstClimateAirflowNOTIFY``
+     - Climate Air Flow Sensor Trap
+
+
+
+
+*weathergoose_sound* events
+---------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_sound events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateSoundTRAP``
+     - Climate Sound Sensor Trap
+   * - ``cmClimateSoundCLEAR``
+     - Climate Sound Sensor Clear Trap
+   * - ``cmClimateSoundNOTIFY``
+     - Climate Sound Sensor Trap
+   * - ``gstClimateSoundCLEAR``
+     - Climate Sound Sensor Clear Trap
+   * - ``gstClimateSoundNOTIFY``
+     - Climate Sound Sensor Trap
+
+
+
+
+*weathergoose_humidity* events
+------------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_humidity events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateHumidityTRAP``
+     - Climate Humidity Sensor Trap
+   * - ``cmClimateHumidityCLEAR``
+     - Climate Humidity Sensor Clear Trap
+   * - ``cmClimateHumidityNOTIFY``
+     - Climate Humidity Sensor Trap
+   * - ``gstClimateHumidityCLEAR``
+     - Climate Humidity Sensor Clear Trap
+   * - ``gstClimateHumidityNOTIFY``
+     - Climate Humidity Sensor Trap
+
+
+
+
+*weathergoose_light* events
+---------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_light events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateLightTRAP``
+     - Climate Light Sensor Trap
+   * - ``cmClimateLightCLEAR``
+     - Climate Light Sensor Clear Trap
+   * - ``cmClimateLightNOTIFY``
+     - Climate Light Sensor Trap
+   * - ``gstClimateLightCLEAR``
+     - Climate Light Sensor Clear Trap
+   * - ``gstClimateLightNOTIFY``
+     - Climate Light Sensor Trap
+
+
+
+
+*weathergoose_temperature* events
+---------------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_temperature events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateTempCTRAP``
+     - Climate Temperature Sensor Trap
+   * - ``cmClimateTempCCLEAR``
+     - Climate Temperature Sensor Clear Trap
+   * - ``cmClimateTempCNOTIFY``
+     - Climate Temperature Sensor Trap
+   * - ``cmTempSensorTempCNOTIFY``
+     - Remote Temp Sensor - Temperature Trap
+   * - ``cmTempSensorTempCCLEAR``
+     - Remote Temp Sensor - Temperature Clear Trap
+   * - ``gstTempSensorTempCCLEAR``
+     - Remote Temp Sensor - Temperature Clear Trap
+   * - ``gstClimateTempCNOTIFY``
+     - Climate Temperature Sensor Trap
+   * - ``gstTempSensorTempCNOTIFY``
+     - Remote Temp Sensor - Temperature Trap
+   * - ``gstClimateTempCCLEAR``
+     - Climate Temperature Sensor Clear Trap
+
+
+
+
+*hobbitServiceState* events
+---------------------------
+Hobbit service state
+
+.. list-table:: Alerts associated with hobbitServiceState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``hobbitServiceUp``
+     - Hobbit recovered from RED service state
+   * - ``hobbitServiceDown``
+     - Hobbit RED service state
+   * - ``hobbitServiceWarning``
+     - Hobbit yellow service state
+
+
+
+
 *snmpAgentState* events
 -----------------------
 Tells us whether the SNMP agent on a device is down or up.
@@ -301,38 +449,20 @@ Tells us whether the SNMP agent on a device is down or up.
 
 
 
-*chassisState* events
----------------------
-The state of this chassis has changed
+*upsPowerState* events
+----------------------
+UPS running on battery or utility power
 
-.. list-table:: Alerts associated with chassisState events
+.. list-table:: Alerts associated with upsPowerState events
    :widths: 25 75
    :header-rows: 1
 
    * - Alert type name
      - Description
-   * - ``chassisDown``
-     - This chassis is no longer visible in the stack
-   * - ``chassisUp``
-     - This chassis is visible in the stack again
-
-
-
-
-*aggregateLinkState* events
----------------------------
-The state of this aggregated link changed
-
-.. list-table:: Alerts associated with aggregateLinkState events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``linkDegraded``
-     - This aggregate link has been degraded
-   * - ``linkRestored``
-     - This aggregate link has been restored
+   * - ``upsOnBatteryPower``
+     - Ups running on battery power
+   * - ``upsOnUtilityPower``
+     - Ups running on utility power
 
 
 
@@ -369,6 +499,42 @@ Reports state changes in fan units
      - A fan unit has entered a non-OK state
    * - ``fanOK``
      - A fan unit has returned to an OK state
+
+
+
+
+*chassisState* events
+---------------------
+The state of this chassis has changed
+
+.. list-table:: Alerts associated with chassisState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``chassisDown``
+     - This chassis is no longer visible in the stack
+   * - ``chassisUp``
+     - This chassis is visible in the stack again
+
+
+
+
+*aggregateLinkState* events
+---------------------------
+The state of this aggregated link changed
+
+.. list-table:: Alerts associated with aggregateLinkState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``linkDegraded``
+     - This aggregate link has been degraded
+   * - ``linkRestored``
+     - This aggregate link has been restored
 
 
 
@@ -425,149 +591,3 @@ Tells us if a Juniper device has any open red alarms.
      - The Juniper device has some red alarms.
    * - ``juniperRedAlarmOff``
      - The Juniper device has no red alarms.
-
-
-
-
-*weathergoose_temperature* events
----------------------------------
-
-
-.. list-table:: Alerts associated with weathergoose_temperature events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``cmClimateTempCTRAP``
-     - Climate Temperature Sensor Trap
-   * - ``cmClimateTempCCLEAR``
-     - Climate Temperature Sensor Clear Trap
-   * - ``cmClimateTempCNOTIFY``
-     - Climate Temperature Sensor Trap
-   * - ``cmTempSensorTempCNOTIFY``
-     - Remote Temp Sensor - Temperature Trap
-   * - ``cmTempSensorTempCCLEAR``
-     - Remote Temp Sensor - Temperature Clear Trap
-   * - ``gstClimateTempCNOTIFY``
-     - Climate Temperature Sensor Trap
-   * - ``gstTempSensorTempCNOTIFY``
-     - Remote Temp Sensor - Temperature Trap
-   * - ``gstClimateTempCCLEAR``
-     - Climate Temperature Sensor Clear Trap
-   * - ``gstTempSensorTempCCLEAR``
-     - Remote Temp Sensor - Temperature Clear Trap
-
-
-
-
-*weathergoose_humidity* events
-------------------------------
-
-
-.. list-table:: Alerts associated with weathergoose_humidity events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``cmClimateHumidityTRAP``
-     - Climate Humidity Sensor Trap
-   * - ``cmClimateHumidityCLEAR``
-     - Climate Humidity Sensor Clear Trap
-   * - ``cmClimateHumidityNOTIFY``
-     - Climate Humidity Sensor Trap
-   * - ``gstClimateHumidityNOTIFY``
-     - Climate Humidity Sensor Trap
-   * - ``gstClimateHumidityCLEAR``
-     - Climate Humidity Sensor Clear Trap
-
-
-
-
-*weathergoose_airflow* events
------------------------------
-
-
-.. list-table:: Alerts associated with weathergoose_airflow events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``cmClimateAirflowTRAP``
-     - Climate Air Flow Sensor Trap
-   * - ``cmClimateAirflowCLEAR``
-     - Climate Air Flow Sensor Clear Trap
-   * - ``cmClimateAirflowNOTIFY``
-     - Climate Air Flow Sensor Trap
-   * - ``gstClimateAirflowNOTIFY``
-     - Climate Air Flow Sensor Trap
-   * - ``gstClimateAirflowCLEAR``
-     - Climate Air Flow Sensor Clear Trap
-
-
-
-
-*weathergoose_light* events
----------------------------
-
-
-.. list-table:: Alerts associated with weathergoose_light events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``cmClimateLightTRAP``
-     - Climate Light Sensor Trap
-   * - ``cmClimateLightCLEAR``
-     - Climate Light Sensor Clear Trap
-   * - ``cmClimateLightNOTIFY``
-     - Climate Light Sensor Trap
-   * - ``gstClimateLightNOTIFY``
-     - Climate Light Sensor Trap
-   * - ``gstClimateLightCLEAR``
-     - Climate Light Sensor Clear Trap
-
-
-
-
-*weathergoose_sound* events
----------------------------
-
-
-.. list-table:: Alerts associated with weathergoose_sound events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``cmClimateSoundTRAP``
-     - Climate Sound Sensor Trap
-   * - ``cmClimateSoundCLEAR``
-     - Climate Sound Sensor Clear Trap
-   * - ``cmClimateSoundNOTIFY``
-     - Climate Sound Sensor Trap
-   * - ``gstClimateSoundNOTIFY``
-     - Climate Sound Sensor Trap
-   * - ``gstClimateSoundCLEAR``
-     - Climate Sound Sensor Clear Trap
-
-
-
-
-*upsPowerState* events
-----------------------
-UPS running on battery or utility power
-
-.. list-table:: Alerts associated with upsPowerState events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``upsOnBatteryPower``
-     - Ups running on battery power
-   * - ``upsOnUtilityPower``
-     - Ups running on utility power

@@ -25,8 +25,8 @@ dependencies = [
     "Pillow>3.3.2",
     "qrcode>7.4",
     "pyrad==2.1",
-    "sphinx==7.4.7",
-    "sphinxcontrib-programoutput==0.17",
+    "sphinx==9.0.4",
+    "sphinxcontrib-programoutput",
     "sphinxcontrib-django",
     "Markdown==3.8.1",
 

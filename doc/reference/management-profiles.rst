@@ -132,6 +132,7 @@ Alternate port
 .. _`NETCONF`: https://en.wikipedia.org/wiki/NETCONF
 
 .. _http-rest-api-management-profile:
+
 HTTP APIs
 --------------
 As of NAV 5.12, HTTP API profiles are used to configure access to
