@@ -16,17 +16,5 @@ require([
                 thresholds: thresholds
             });
         }
-
-        $('#add-to-dashboard-button').on('click', function (event) {
-            event.preventDefault();
-            var $button = $(this);
-            var request = $.post($button.data('dashboardUrl'));
-            request.done(function() {
-                $button.removeClass('secondary').addClass('success');
-            });
-            request.fail(function() {
-                $button.removeClass('secondary').addClass('failure');
-            });
-        });
     });
 });
