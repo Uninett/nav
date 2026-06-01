@@ -99,13 +99,7 @@
                 hx-on::send-error="this.outerHTML='{{ fetch_error_html|escapejs }}'"
                 hx-on::response-error="this.outerHTML='{{ fetch_error_html|escapejs }}'"
           ><i class="fa fa-spinner fa-spin"></i> Fetching...</span>
-          <button class="tiny secondary"
-                  hx-post="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
-                  hx-swap="outerHTML"
-                  hx-on::response-error="this.classList.remove('secondary'); this.classList.add('failure')"
-                  hx-on::send-error="this.classList.remove('secondary'); this.classList.add('failure')">
-            Add to dashboard
-          </button>
+          {% include 'ipdevinfo/_add_to_dashboard_button.html' %}
           {% include 'custom_crispy_templates/flat_form.html' %}
         {% else %}
           <h4>Gauge display ranges</h4>
@@ -120,13 +114,7 @@
                  data-min="{{sensor.get_display_range.0}}"
                  data-max="{{sensor.get_display_range.1}}"
             ></div>
-            <button class="tiny secondary"
-                    hx-post="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
-                    hx-swap="outerHTML"
-                    hx-on::response-error="this.classList.remove('secondary'); this.classList.add('failure')"
-                    hx-on::send-error="this.classList.remove('secondary'); this.classList.add('failure')">
-              Add to dashboard
-            </button>
+            {% include 'ipdevinfo/_add_to_dashboard_button.html' %}
           </div>
           {% include 'custom_crispy_templates/flat_form.html' %}
         {% endif %}

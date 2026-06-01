@@ -1,0 +1,7 @@
+<button class="tiny secondary"
+        hx-post="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
+        hx-swap="outerHTML"
+        hx-on::response-error="this.classList.remove('secondary'); this.classList.add('failure')"
+        hx-on::send-error="this.classList.remove('secondary'); this.classList.add('failure')">
+  Add to dashboard
+</button>
