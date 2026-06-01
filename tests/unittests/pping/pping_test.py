@@ -20,9 +20,9 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from nav.bin.pping import Pinger
 from nav.statemon.circbuf import CircBuf
 from nav.statemon.netbox import Netbox
-from nav.bin.pping import Pinger
 
 
 class TestPingerUpdateHostList(TestCase):
