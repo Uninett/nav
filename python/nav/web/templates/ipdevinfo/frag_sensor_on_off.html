@@ -1,0 +1,7 @@
+{% if state == 'on' %}
+  <div class="on alert-box with-icon {{ sensor.alert_type_class }}">{{ sensor.on_message }}</div>
+{% elif state == 'off' %}
+  <div class="off alert-box with-icon success">{{ sensor.off_message }}</div>
+{% else %}
+  <div class="alert-box secondary"><i class="fa fa-info-circle"></i> No recent data</div>
+{% endif %}
