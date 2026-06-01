@@ -4,7 +4,6 @@
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/watchdog.css"/>
-  <script type="text/javascript">require(['src/watchdog']);</script>
 {% endblock %}
 
 {% block base_content %}
@@ -26,7 +25,7 @@
     <div class="medium-6 column">
       <h4>NAV by the numbers</h4>
       {% include 'watchdog/frag_overview.html' %}
-      
+
     </div>
     {# .column #}
   </div> {# .row #}
