@@ -2,8 +2,9 @@
 
 import pytest
 
+from nav.auditlog.models import LogEntry
 from nav.bin.navuser import main
-from nav.models.profiles import Account
+from nav.models.profiles import Account, AccountGroup
 from nav.web.auth.utils import default_account
 from .utils import run_cli
 
@@ -68,8 +69,18 @@ class TestAddCommand:
         assert account
         assert account.name == "Test User"
 
+    def test_when_adding_user_then_it_should_add_log_entry(self, db):
+        code = run_cli(main, "add", "test")
+        assert code == 0
+        account = Account.objects.get(login="test")
+        log_entry = LogEntry.objects.filter(
+            verb='create-account', object_pk=account.pk
+        ).first()
+        assert log_entry
+        assert "via navuser" in log_entry.summary
+
     def test_when_user_with_login_already_exists_then_it_should_print_error(
-        self, db, unlocked_account, capsys
+        self, unlocked_account, capsys
     ):
         code = run_cli(main, "add", unlocked_account.login)
         assert code != 0
@@ -87,9 +98,18 @@ class TestRemoveCommand:
         assert f"User {unlocked_account.login} has been removed" in output
         assert not Account.objects.filter(login=unlocked_account.login).exists()
 
-    def test_when_removing_non_existing_user_then_it_should_print_error(
-        self, db, capsys
+    def test_when_removing_user_then_it_should_add_log_entry(
+        self, unlocked_account, db
     ):
+        code = run_cli(main, "remove", unlocked_account.login)
+        assert code == 0
+        log_entry = LogEntry.objects.filter(
+            verb='delete-account', object_pk=unlocked_account.pk
+        ).first()
+        assert log_entry
+        assert "via navuser" in log_entry.summary
+
+    def test_when_removing_non_existing_user_then_it_should_print_error(self, capsys):
         code = run_cli(main, "remove", "doesnotexist")
         assert code != 0
         output = capsys.readouterr().err
@@ -106,6 +126,20 @@ class TestAdminCommand:
         assert f"User {non_admin_account.login} was made an admin" in output
         assert non_admin_account.is_admin()
 
+    def test_when_making_user_admin_then_it_should_add_log_entry(
+        self, non_admin_account, db
+    ):
+        code = run_cli(main, "admin", "--add", non_admin_account.login)
+        assert code == 0
+
+        admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        log_entry = LogEntry.objects.filter(
+            verb='edit-account-add-group', object_pk=non_admin_account.pk
+        ).first()
+        assert log_entry
+        assert f"group {admin.name}" in log_entry.summary
+        assert "via navuser" in log_entry.summary
+
     def test_when_removing_admin_rights_from_user_then_it_should_succeed(
         self, db, admin_account, capsys
     ):
@@ -114,6 +148,20 @@ class TestAdminCommand:
         output = capsys.readouterr().err
         assert f"User {admin_account.login} is no longer an admin" in output
         assert not admin_account.is_admin()
+
+    def test_when_removing_admin_rights_from_user_then_it_should_add_log_entry(
+        self, admin_account, db
+    ):
+        code = run_cli(main, "admin", "--remove", admin_account.login)
+        assert code == 0
+
+        admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        log_entry = LogEntry.objects.filter(
+            verb='edit-account-remove-group', object_pk=admin_account.pk
+        ).first()
+        assert log_entry
+        assert f"group {admin.name}" in log_entry.summary
+        assert "via navuser" in log_entry.summary
 
 
 class TestLockCommand:
@@ -126,6 +174,18 @@ class TestLockCommand:
         assert f"User {unlocked_account.login} locked" in output
         unlocked_account.refresh_from_db()
         assert not unlocked_account.is_active
+
+    def test_when_locking_account_then_it_should_add_log_entry(
+        self, unlocked_account, db
+    ):
+        code = run_cli(main, "lock", unlocked_account.login)
+        assert code == 0
+
+        log_entry = LogEntry.objects.filter(
+            verb='lock-account', object_pk=unlocked_account.pk
+        ).first()
+        assert log_entry
+        assert "via navuser" in log_entry.summary
 
     def test_when_locking_already_locked_account_then_it_should_print_error(
         self, db, locked_account, capsys
@@ -148,6 +208,18 @@ class TestUnlockCommand:
         assert f"User {locked_account.login} unlocked" in output
         locked_account.refresh_from_db()
         assert locked_account.is_active
+
+    def test_when_unlocking_account_then_it_should_add_log_entry(
+        self, locked_account, db
+    ):
+        code = run_cli(main, "unlock", locked_account.login)
+        assert code == 0
+
+        log_entry = LogEntry.objects.filter(
+            verb='unlock-account', object_pk=locked_account.pk
+        ).first()
+        assert log_entry
+        assert "via navuser" in log_entry.summary
 
     def test_when_unlocking_already_unlocked_account_then_it_should_print_error(
         self, db, unlocked_account, capsys
