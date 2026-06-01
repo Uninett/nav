@@ -2,29 +2,29 @@
   <tbody>
     <tr>
       <th title="A regular count of the IP Devices">IP Devices</th>
-      <td><span id="netbox-count">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-netbox' %}</td>
     </tr>
     <tr>
       <th title="An estimation of all the arp records">Estimated Arp records</th>
-      <td><span id="arp-count">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-arp' %}</td>
     </tr>
     <tr>
       <th title="A estimation of all the arp records">Estimated Cam records</th>
-      <td><span id="cam-count">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-cam' %}</td>
     </tr>
     <tr>
       <th title="All the distinct serial numbers">Serial numbers</th>
-      <td><span id="serial-numbers">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-serial-numbers' %}</td>
     </tr>
     <tr>
       <th title="Current active ip-addresses. The split of version 4
                  and version 6 can be seen after the main number.">
         Active IPs (v4/v6)</th>
-      <td><span id="active-addresses">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-active-addresses' %}</td>
     </tr>
     <tr>
       <th title="The on-disk size of the NAV PostgreSQL database">Database size</th>
-      <td><span id="db-size">Fetching...</span></td>
+      <td>{% include 'watchdog/_loading_cell.html' with route='watchdog-db-size' %}</td>
     </tr>
   </tbody>
 </table>

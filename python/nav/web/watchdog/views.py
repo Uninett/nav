@@ -1,26 +1,26 @@
 #
 # Copyright (C) 2014, 2019 Uninett AS
+# Copyright (C) 2026 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
-# NAV is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License version 3 as published by
-# the Free Software Foundation.
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 3 as published by the Free
+# Software Foundation.
 #
 # This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-# more details.  You should have received a copy of the GNU General Public
-# License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
 
 from django.shortcuts import render
-from django.http import JsonResponse
 from django.db import connection
 
 from nav.models.fields import INFINITY
-from nav.models.manage import Arp, Device
+from nav.models.manage import Arp, Device, Netbox
 from nav.web.utils import create_title
 from nav.watchdog.util import get_statuses
 
@@ -38,34 +38,56 @@ def render_index(request):
     return render(request, "watchdog/base.html", context)
 
 
-def get_active_addresses(_):
-    """Get active addresses on the network"""
+def get_netbox(request):
+    """Returns a fragment with the total number of registered IP devices"""
+    return render(
+        request,
+        "watchdog/frag_count.html",
+        {"count": Netbox.objects.count()},
+    )
+
+
+def get_serial_numbers(request):
+    """Returns a fragment with the number of distinct device serial numbers"""
+    return render(
+        request,
+        "watchdog/frag_count.html",
+        {"count": Device.objects.distinct("serial").count()},
+    )
+
+
+def get_arp_count(request):
+    """Returns a fragment with an estimated count of ARP records"""
+    return _render_count_estimate(request, "arp")
+
+
+def get_cam_count(request):
+    """Returns a fragment with an estimated count of CAM records"""
+    return _render_count_estimate(request, "cam")
+
+
+def get_active_addresses(request):
+    """Returns a fragment with counts of currently active IP addresses"""
     active = Arp.objects.filter(end_time=INFINITY)
-    num_active = active.count()
-    num_active_ipv6 = active.extra(where=["family(ip)=6"]).count()
-    num_active_ipv4 = active.extra(where=["family(ip)=4"]).count()
-    return JsonResponse(
-        {"active": num_active, "ipv6": num_active_ipv6, "ipv4": num_active_ipv4}
-    )
-
-
-def get_cam_and_arp(_request):
-    """Get cam and arp numbers"""
-    cursor = connection.cursor()
-    return JsonResponse(
+    return render(
+        request,
+        "watchdog/frag_active_addresses.html",
         {
-            "cam": get_cam(cursor),
-            "arp": get_arp(cursor),
-            "oldest_cam": get_oldest_cam_date(cursor),
-            "oldest_arp": get_oldest_arp_date(cursor),
-        }
+            "active": active.count(),
+            "ipv4": active.extra(where=["family(ip)=4"]).count(),
+            "ipv6": active.extra(where=["family(ip)=6"]).count(),
+        },
     )
 
 
-def get_database_size(_request):
-    """Gets the size of the PostgreSQL database"""
+def get_database_size(request):
+    """Returns a fragment with the on-disk size of the NAV PostgreSQL database"""
     cursor = connection.cursor()
-    return JsonResponse({"size": get_postgres_db_size(cursor)})
+    return render(
+        request,
+        "watchdog/frag_db_size.html",
+        {"size": get_postgres_db_size(cursor)},
+    )
 
 
 #
@@ -73,24 +95,17 @@ def get_database_size(_request):
 #
 
 
-def get_cam(cursor):
-    """Gets number of cam records"""
-    return get_tuple_count_estimate(cursor, "cam")
-
-
-def get_oldest_cam_date(cursor):
-    """Returns the date of the oldest closed CAM record"""
-    return get_oldest_start_time_date(cursor, "cam")
-
-
-def get_arp(cursor):
-    """Gets number of arp records"""
-    return get_tuple_count_estimate(cursor, "arp")
-
-
-def get_oldest_arp_date(cursor):
-    """Returns the date of the oldest closed ARP record"""
-    return get_oldest_start_time_date(cursor, "arp")
+def _render_count_estimate(request, table):
+    """Renders an estimate-count fragment for arp/cam-shaped tables"""
+    cursor = connection.cursor()
+    return render(
+        request,
+        "watchdog/frag_count_estimate.html",
+        {
+            "count": get_tuple_count_estimate(cursor, table),
+            "oldest": get_oldest_start_time_date(cursor, table),
+        },
+    )
 
 
 def get_tuple_count_estimate(cursor, table):
@@ -126,8 +141,3 @@ def get_postgres_db_size(cursor):
     cursor.execute(query)
     row = cursor.fetchone()
     return row[0] if row else None
-
-
-def get_serial_numbers(_):
-    """Get number of distinct serial numbers in NAV"""
-    return JsonResponse({"count": Device.objects.distinct("serial").count()})

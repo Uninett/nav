@@ -23,11 +23,17 @@ from nav.web.watchdog import views
 urlpatterns = [
     path('', views.render_index, name='watchdog-index'),
     path(
-        'active_addresses',
+        'active-addresses/',
         views.get_active_addresses,
         name='watchdog-active-addresses',
     ),
-    path('serial_numbers', views.get_serial_numbers, name='watchdog-serial-numbers'),
-    path('cam_and_arp', views.get_cam_and_arp, name='watchdog-cam-and-arp'),
-    path('db_size', views.get_database_size, name='watchdog-db-size'),
+    path(
+        'serial-numbers/',
+        views.get_serial_numbers,
+        name='watchdog-serial-numbers',
+    ),
+    path('netbox/', views.get_netbox, name='watchdog-netbox'),
+    path('cam/', views.get_cam_count, name='watchdog-cam'),
+    path('arp/', views.get_arp_count, name='watchdog-arp'),
+    path('db-size/', views.get_database_size, name='watchdog-db-size'),
 ]
