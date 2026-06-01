@@ -69,3 +69,30 @@ def test_nav_runs_without_error_without_arguments():
         print(fail.decode('utf-8'))
 
     assert retcode == 0
+
+
+def test_given_default_account_for_navuser_passwd_then_exit_with_error():
+    """
+    Verifies that navuser passwd cannot set a password for the default user
+
+    Added in regards to: https://github.com/Uninett/nav/issues/3964
+    """
+    params = [BINDIR + "/navuser.py", "passwd", "default"]
+    proc = subprocess.Popen(
+        params,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+    )
+    (done, fail) = proc.communicate()
+    retcode = proc.wait()
+
+    if done:
+        print(done.decode('utf-8'))
+    if fail:
+        print(fail.decode('utf-8'))
+
+    assert retcode != 0
+    assert (
+        "It is not possible to set a password for the default account."
+        in done.decode('utf-8')
+    )

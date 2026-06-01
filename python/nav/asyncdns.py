@@ -141,8 +141,9 @@ class Resolver(object):
     def _save_result(self, result):
         name, response = result
         if isinstance(response, Exception):
-            self.results[name] = response
-        else:
+            if not self.results[name]:
+                self.results[name] = response
+        elif isinstance(self.results[name], list):
             self.results[name].extend(response)
 
     @staticmethod
