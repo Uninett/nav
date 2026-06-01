@@ -855,12 +855,6 @@ class NetboxPrefix(models.Model):
 
     class Meta(object):
         db_table = 'netboxprefix'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('netbox', 'prefix'),
-                name='???',  # UNIQUE
-            )
-        ]
 
     def __str__(self):
         return '%s at %s' % (self.netbox.sysname, self.prefix.net_address)
