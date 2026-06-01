@@ -1,7 +1,11 @@
-<button class="tiny secondary"
+<button class="tiny secondary add-to-dashboard-button"
         hx-post="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}"
         hx-swap="outerHTML"
-        hx-on::response-error="this.classList.remove('secondary'); this.classList.add('failure')"
-        hx-on::send-error="this.classList.remove('secondary'); this.classList.add('failure')">
-  Add to dashboard
+        hx-disabled-elt="this"
+        hx-request='{"timeout": 10000}'
+        hx-on::response-error="this.classList.remove('secondary'); this.classList.add('alert')"
+        hx-on::send-error="this.classList.remove('secondary'); this.classList.add('alert')"
+        hx-on::timeout="this.classList.remove('secondary'); this.classList.add('alert')">
+  <span class="button-text">Add to dashboard</span>
+  <span class="htmx-indicator"><i class="fa fa-spinner fa-spin"></i> Adding...</span>
 </button>

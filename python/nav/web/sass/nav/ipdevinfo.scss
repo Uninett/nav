@@ -235,3 +235,16 @@ table.module td div.portcell span.oplayer {
     height: 100%;
     width: 100%;
 }
+
+.add-to-dashboard-button {
+    // toggle between the button's resting label and the in-flight spinner
+    // based on htmx's auto-added .htmx-request class.
+    .htmx-indicator {
+        display: none;
+        opacity: 1; // override htmx's default opacity-based indicator
+    }
+    &.htmx-request {
+        .button-text { display: none; }
+        .htmx-indicator { display: inline; }
+    }
+}
