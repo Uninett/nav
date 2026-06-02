@@ -2,7 +2,7 @@
 Running just the database and graphite in Docker for development
 ================================================================
 
-Instead of running everything including nav and a live rebuild of the docs via
+Instead of running everything including NAV and a live rebuild of the docs via
 ``docker compose``, it is possible to just run the database and graphite via
 ``docker compose``.
 
@@ -18,7 +18,7 @@ Make-helpers
 
 This sets up the docker containers and the virtualenv. The virtualenv used is
 the one in ``.venv``, so if there alreday is a ``.venv`` (for instance from
-using the heavy docker compose workflow). move it out of the way first.
+using the heavy docker compose workflow). Move it out of the way first.
 
 ``make local-up``
 -----------------
@@ -30,7 +30,7 @@ Starts docker compose with the right config.
 
 Shuts down the correct docker compose.
 
-How to configure nav
+How to configure NAV
 ====================
 
 The etc-files are in ``.venv/etc/nav``.
@@ -44,14 +44,14 @@ You can run tox directly, even for integration tests!
 
         $ tox
 
-How to run nav
+How to run NAV
 ==============
 
 ::
 
         $ django-admin runserver
 
-Starts nav, on port 8000.
+Starts NAV, on port 8000.
 
 Troubleshooting
 ===============
