@@ -1,3 +1,5 @@
+.. _devcontainers:
+
 =======================================
 Using devcontainers for NAV development
 =======================================
