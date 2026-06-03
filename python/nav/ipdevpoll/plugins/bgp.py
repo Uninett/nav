@@ -17,11 +17,13 @@
 
 from twisted.internet.defer import inlineCallbacks
 
+from nav.enterprise.ids import VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
+from nav.ipdevpoll.utils import get_arista_vrf_instances
 from nav.models import manage
 
-from nav.mibs.bgp4_mib import BGP4Mib
+from nav.mibs.bgp4_mib import BGP4Mib, MultiBGP4Mib
 from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
 from nav.mibs.cisco_bgp4_mib import CiscoBGP4Mib
 
@@ -34,6 +36,14 @@ class BGP(Plugin):
         """This will only be useful on routers"""
         daddy_says_ok = super(BGP, cls).can_handle(netbox)
         return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
+
+    def is_arista(self):
+        """Returns True if this is an Arista device"""
+        return (
+            self.netbox.type
+            and self.netbox.type.get_enterprise_id()
+            == VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
+        )
 
     @inlineCallbacks
     def handle(self):
@@ -70,8 +80,15 @@ class BGP(Plugin):
 
     @inlineCallbacks
     def _get_supported_mib(self):
-        for mibclass in (BGP4V2JuniperMib, CiscoBGP4Mib, BGP4Mib):
+        for mibclass, multi_mibclass in (
+            (BGP4V2JuniperMib, None),
+            (CiscoBGP4Mib, None),
+            (BGP4Mib, MultiBGP4Mib),
+        ):
             mib = mibclass(self.agent)
             support = yield mib.is_supported()
             if support:
+                if multi_mibclass and self.is_arista():
+                    instances = yield get_arista_vrf_instances(self.agent)
+                    return multi_mibclass(self.agent, instances=instances)
                 return mib
