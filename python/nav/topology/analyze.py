@@ -306,11 +306,10 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             return False
 
     def connect_ports(self, i, j, *, source_tag):
-        """Add connection between a and b to result.
+        """Add connection between i and j to result.
 
-        If a or b are of type Port they are removed from the input
-        graph, as they are now completely processed
-
+        If i or j are of type Port they are removed from the input
+        graph, as they are now completely processed.
         """
         self.stats.record_resolution(source_tag, i, j)
         if isinstance(i, Port):
