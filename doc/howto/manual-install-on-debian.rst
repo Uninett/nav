@@ -8,14 +8,14 @@ This details what the Debian package does for you automatically.
 Adapt this if you can't use an official ``.deb`` or need to install on
 something that isn't Debian-based.
 
-.. note:: This howto is based on Debian 9 (Stretch).
+.. note:: This howto is based on Debian 13 (Trixie).
 
 1. OS dependencies
 ==================
 
 First get the following OS packages::
 
-  apt-get install -y python-pip python-wheel git postgresql apache2 libapache2-mod-wsgi libsnmp30
+   apt-get install -y python3-pip python3-wheel git postgresql apache2 libapache2-mod-wsgi-py3 libsnmp40
 
 
 2. Get the source
@@ -23,8 +23,8 @@ First get the following OS packages::
 
 Get the source::
 
-  git clone https://github.com/Uninett/nav.git
-  cd nav
+   git clone https://github.com/Uninett/nav.git
+   cd nav
 
 You might want to choose your version now, otherwise you'll be installing the
 bleeding edge `master` branch. All release versions have git tags, so you can
@@ -38,16 +38,21 @@ available tags, and ``git checkout x.y.z`` to checkout version ``x.y.z``.
 
 To install NAV's Python requirements::
 
-  apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
-  pip install -r requirements.txt -c constraints.txt
+   apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
 
 4. Install NAV itself
 =====================
 
+Note: Running ``pip install`` will most likely require you to be running in a virtual environment.
+A basic one can be created and activated like this::
+
+   python3 -m venv path/to/myenv
+   source path/to/myenv/bin/activate
+
 ::
 
-  pip install .
-  nav config install /etc/nav
+   pip install .
+   nav config install /etc/nav
 
 .. tip::
 
@@ -59,15 +64,22 @@ To install NAV's Python requirements::
 The configuration files are now found in :file:`/etc/nav/`. Verify that NAV can
 actually find :file:`nav.conf`::
 
-  nav config where
+   nav config where
 
 5. Build the docs
 =================
 
-If you like, you can build the complete HTML documentation thus::
+If you like, you can build the complete HTML documentation using::
 
-    sphinx-build
+   sphinx-build
 
+This requires `sphinx-rtd-theme` being installed separately which can be done like this::
+
+   pip install '.[docs]'
+
+Also it needs the 'SOURCEDIR' and 'OUTPUTDIR' arguments, for example::
+
+   sphinx-build doc/ build/sphinx/html/
 
 6. Initialize the database
 ==========================
@@ -75,7 +87,12 @@ If you like, you can build the complete HTML documentation thus::
 In :file:`/etc/nav/db.conf` there should be an option called
 ``userpw_nav``. Choose a password and append it here, then run::
 
-    sudo -u postgres navsyncdb -c
+   sudo -u postgres navsyncdb -c
+
+If your virtual environment is activated (as per step 4), this works as-is. If not,
+use the full path to the script instead::
+
+   sudo -u postgres path/to/myenv/bin/navsyncdb -c
 
 You should now have a database ``nav`` with a user ``nav``.
 
@@ -85,17 +102,17 @@ You should now have a database ``nav`` with a user ``nav``.
 
 Create a ``navcron`` user and a corresponding group for NAV to run as::
 
-  sudo addgroup --system nav
-  sudo adduser --system --home /usr/share/nav \
-               --shell /bin/sh --ingroup nav navcron
+   sudo addgroup --system nav
+   sudo adduser --system --home /usr/share/nav \
+                --shell /bin/sh --ingroup nav navcron
 
 You should also make sure `navcron` has permission to write log files, pid
 files and various other state information. You can configure the log and pid
 file directories in :file:`nav.conf`. Then make sure these directories exist
 and are writable for the ``navcron`` user::
 
-  sudo chown -R navcron:nav /path/to/log/directory
-  sudo chown -R navcron:nav /path/to/pid/directory
+   sudo chown -R navcron:nav /path/to/log/directory
+   sudo chown -R navcron:nav /path/to/pid/directory
 
 
 Sending SMS messages using a locally attached GSM device
@@ -104,10 +121,10 @@ Sending SMS messages using a locally attached GSM device
 If you want to use NAV's SMS functionality in conjunction with Gammu, you
 should make sure the ``navcron`` user is allowed to write to the serial device
 you've connected your GSM device to. Often, this device has a group ownership
-set to the ``dialout`` group, so the easieast route is to add the ``navcron`` user
+set to the ``dialout`` group, so the easiest route is to add the ``navcron`` user
 to the ``dialout`` group::
 
-  sudo addgroup navcron dialout
+   sudo adduser navcron dialout
 
 
 8. Ensure that a writeable uploads directory exists
@@ -120,12 +137,12 @@ them).
 
 We suggest::
 
-  mkdir -p /usr/share/nav/var/uploads
-  chown navcron:nav /usr/share/nav/var/uploads
+   mkdir -p /usr/share/nav/var/uploads
+   chown navcron:nav /usr/share/nav/var/uploads
 
 Then, ensure you set this option in :file:`nav.conf`::
 
-  UPLOAD_DIR=/usr/share/nav/var/uploads
+   UPLOAD_DIR=/usr/share/nav/var/uploads
 
 
 9. Install the static resources
@@ -133,7 +150,11 @@ Then, ensure you set this option in :file:`nav.conf`::
 
 Run::
 
-    django-admin collectstatic --settings=nav.django.settings
+   django-admin collectstatic --settings=nav.django.settings
+
+Like in step 6, if your virtual environment is not activated, use the full path::
+
+   path/to/myenv/bin/django-admin collectstatic --settings=nav.django.settings
 
 It'll respond with something like:
 
@@ -167,7 +188,7 @@ Copy the file :file:`/etc/nav/apache/apache.conf.example` to
 * ``documentation_path`` is where Sphinx put the docs, in
   ``$SOURCE_CODE_DIRECTORY/build/sphinx/html/``.
 * ``nav_uploads_path`` is the upload path you created in step 8.
-* ``nav_python_base`` should be :file:`/usr/local/lib/python3.11/dist-packages` (or wherever the ``nav`` Python module was installed)
+* ``nav_python_base`` should be :file:`/usr/local/lib/python3.13/dist-packages` (or wherever the ``nav`` Python module was installed)
 
 We suggest creating a new Apache site config:
 Inside a ``VirtualHost``-directive, add:
@@ -188,10 +209,10 @@ server can actually be reached under.
 Then, disable the default Apache site, enable the ``nav`` site, and enable
 ``mod_wsgi``, before restarting Apache::
 
-  a2dissite 000-default
-  a2ensite nav
-  a2enmod wsgi
-  systemctl reload apache2
+   a2dissite 000-default
+   a2ensite nav
+   a2enmod wsgi
+   systemctl reload apache2
 
 You should now be able to browse the NAV web interface.
 
