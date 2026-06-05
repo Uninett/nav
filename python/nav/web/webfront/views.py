@@ -66,6 +66,7 @@ from nav.web.webfront import (
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
 )
+from nav.web.webfront.dashboard_io import import_from_dict
 from nav.web.webfront.forms import (
     LoginForm,
     NavbarLinkFormSet,
@@ -273,21 +274,6 @@ def export_dashboard(request, did):
     return response
 
 
-dashboard_fields = {
-    'name': str,
-    'num_columns': int,
-    'widgets': list,
-    'version': int,
-}
-
-widget_fields = {
-    'navlet': str,
-    'column': int,
-    'preferences': dict,
-    'order': int,
-}
-
-
 @require_POST
 def import_dashboard(request):
     """Receive an uploaded dashboard file and store in database"""
@@ -301,36 +287,10 @@ def import_dashboard(request):
         )
 
     try:
-        # Ensure file is interpreted as utf-8 regardless of locale
         blob = request.FILES['file'].read()
         data = json.loads(blob.decode("utf-8"))
-        if not isinstance(data, dict):
-            raise ValueError()
-        for field, dtype in dashboard_fields.items():
-            if field not in data:
-                raise ValueError()
-            if not isinstance(data[field], dtype):
-                raise ValueError()
-        dashboard = AccountDashboard(account=account, name=data['name'])
-        dashboard.num_columns = data['num_columns']
-        widgets = []
-        for widget in data['widgets']:
-            if not isinstance(widget, dict):
-                raise ValueError()
-            for field, dtype in widget_fields.items():
-                if field not in widget:
-                    raise ValueError()
-                if not isinstance(widget[field], dtype):
-                    raise ValueError()
-                if widget['column'] > dashboard.num_columns:
-                    raise ValueError()
-            widget = {k: v for k, v in widget.items() if k in widget_fields}
-            widgets.append(widget)
-        dashboard.save()
-        for widget in widgets:
-            dashboard.widgets.create(account=account, **widget)
-        dashboard.save()
-        dashboard_url = reverse('dashboard-index-id', args=(dashboard.id,))
+        result = import_from_dict(account, data, on_conflict="create_new")
+        dashboard_url = reverse("dashboard-index-id", args=(result.dashboard.id,))
         return HttpResponseClientRedirect(dashboard_url)
     except ValueError:
         _logger.exception('Failed to parse dashboard file for import')

@@ -1698,7 +1698,6 @@ class AccountDashboard(models.Model):
         data = {
             'name': self.name,
             'num_columns': self.num_columns,
-            'account': self.account_id,
             'widgets': [],
             'version': 1,
         }
