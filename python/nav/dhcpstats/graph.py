@@ -1,8 +1,8 @@
 from collections import defaultdict
-from datetime import timedelta
 from typing import Any
 import logging
 
+from django.core.cache import cache
 import IPy
 
 from nav.dhcpstats.common import DhcpPath
@@ -14,10 +14,13 @@ from nav.metrics.graphs import (
 )
 from nav.metrics.names import get_expanded_nodes, safe_name
 from nav.metrics.templates import metric_path_for_dhcp
-from nav.util import cachedfor
 
 
 _logger = logging.getLogger(__name__)
+
+
+DHCP_PATHS_CACHE_KEY = "dhcpstats:graphite_paths"
+DHCP_PATHS_CACHE_DURATION = 3600
 
 
 def fetch_graph_urls_for_prefixes(prefixes: list[IPy.IP]) -> list[str]:
@@ -83,12 +86,20 @@ def fetch_graph_urls_for_prefixes(prefixes: list[IPy.IP]) -> list[str]:
     return graph_urls
 
 
-@cachedfor(timedelta(hours=1))
 def fetch_paths_from_graphite():
     """
     Fetches and returns all unique DHCP stat paths in Graphite when their
     trailing metric_name path segment has been removed.
     """
+    return cache.get_or_set(
+        DHCP_PATHS_CACHE_KEY,
+        _fetch_paths_from_graphite,
+        timeout=DHCP_PATHS_CACHE_DURATION,
+    )
+
+
+def _fetch_paths_from_graphite():
+    """Actual implementation of fetch_paths_from_graphite()"""
     wildcard = metric_path_for_dhcp(
         ip_version=safe_name("{4,6}"),
         server_name=safe_name("*"),
