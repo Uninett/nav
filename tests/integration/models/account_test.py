@@ -1,14 +1,18 @@
-import unittest
-from nav.models.profiles import Account
+import pytest
+from django.db.utils import IntegrityError
 
 
-class AccountTest(unittest.TestCase):
-    def setUp(self):
-        self.admin_user = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
-        self.default_user = Account.objects.get(pk=Account.DEFAULT_ACCOUNT)
+def test_is_admin_should_return_true_when_user_is_admin(db, admin_account):
+    assert admin_account.is_admin()
 
-    def test_is_admin_returns_true_if_administrator(self):
-        self.assertTrue(self.admin_user.is_admin())
 
-    def test_is_admin_returns_false_if_default_account(self):
-        self.assertFalse(self.default_user.is_admin())
+def test_is_admin_should_return_false_when_user_is_default_user(db, default_account):
+    assert not default_account.is_admin()
+
+
+def test_when_setting_is_active_true_for_default_account_then_it_should_fail(
+    db, default_account
+):
+    default_account.is_active = True
+    with pytest.raises(IntegrityError):
+        default_account.save()
