@@ -57,7 +57,7 @@ from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
 from nav.oids import get_enterprise_id
-import nav.dhcpstats.common
+import nav.dhcpstats.graph
 
 
 _logger = logging.getLogger(__name__)
