@@ -27,14 +27,17 @@ update_nav_conf() {
 
 update_graphite_conf() {
   GRAPHITE_CONF="${NAV_CONFIG_DIR}/graphite.conf"
+  CARBON_HOST="${CARBON_HOST:-graphite}"
+  CARBON_PORT="${CARBON_PORT:-2003}"
+  GRAPHITEWEB_BASE="${GRAPHITEWEB_BASE:-http://graphite:8000/}"
   echo "Updating $GRAPHITE_CONF"
   cat > "$GRAPHITE_CONF" <<EOF
 [carbon]
-host=graphite
-port=2003
+host=${CARBON_HOST}
+port=${CARBON_PORT}
 
 [graphiteweb]
-base=http://graphite:8000/
+base=${GRAPHITEWEB_BASE}
 EOF
 }
 
