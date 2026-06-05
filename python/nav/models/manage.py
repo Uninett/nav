@@ -1534,7 +1534,7 @@ class Prefix(models.Model):
         range/pool/subnet intersects this prefix.
         """
         prefix = IPy.IP(self.net_address)
-        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes([prefix])
+        return nav.dhcpstats.graph.fetch_graph_urls_for_prefixes([prefix])
 
 
 class Vlan(models.Model):
@@ -1642,7 +1642,7 @@ class Vlan(models.Model):
         range/pool/subnet intersects this vlan.
         """
         prefixes = [IPy.IP(prefix.net_address) for prefix in self.prefixes.all()]
-        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes(prefixes)
+        return nav.dhcpstats.graph.fetch_graph_urls_for_prefixes(prefixes)
 
 
 class NetType(models.Model):
