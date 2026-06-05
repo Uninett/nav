@@ -20,12 +20,13 @@ from dataclasses import dataclass
 
 from django.db import transaction
 
-from nav.models.profiles import AccountDashboard, AccountNavlet
+from nav.models.profiles import Account, AccountDashboard, AccountNavlet
 
 DASHBOARD_FIELDS = {
     "name": str,
     "num_columns": int,
     "widgets": list,
+    # version is reserved for forward compatibility; currently always 1
     "version": int,
 }
 
@@ -37,10 +38,21 @@ WIDGET_FIELDS = {
 }
 
 
+class ConflictMode(str, enum.Enum):
+    """Strategy for resolving name collisions during dashboard import."""
+
+    ERROR = "error"
+    REPLACE = "replace"
+    RENAME = "rename"
+    CREATE_NEW = "create_new"
+
+
 class ImportAction(str, enum.Enum):
     """Describes what an import operation actually did."""
 
     CREATED = "created"
+    REPLACED = "replaced"
+    RENAMED = "renamed"
 
 
 @dataclass
@@ -49,6 +61,10 @@ class ImportResult:
 
     dashboard: AccountDashboard
     action: ImportAction
+
+
+class DashboardConflictError(ValueError):
+    """Raised when a dashboard name conflict prevents import."""
 
 
 def validate_dashboard_data(data: dict):
@@ -101,28 +117,118 @@ def validate_dashboard_data(data: dict):
 
 
 @transaction.atomic
-def import_from_dict(account, data):
-    """Import a dashboard from a data dict, always creating a new dashboard.
+def import_from_dict(
+    account: Account,
+    data: dict,
+    on_conflict: str = ConflictMode.ERROR,
+    name_override: str | None = None,
+):
+    """Import a dashboard from a data dict.
 
     Args:
         account: The Account that will own the dashboard.
         data: Dashboard data dict (as produced by ``to_json_dict()``).
+        on_conflict: Conflict resolution strategy when a dashboard with the
+            same name already exists for the account.
+        name_override: If given, use this name instead of the one in *data*.
 
     Returns:
         An ``ImportResult`` with the dashboard and the action taken.
     """
     data = validate_dashboard_data(data)
+    name = name_override if name_override is not None else data["name"]
+    if not name.strip():
+        raise ValueError("Dashboard name must not be empty")
 
+    dashboard, action = _resolve_or_create_dashboard(
+        account, name, data["num_columns"], on_conflict
+    )
+    _create_widgets(dashboard, account, data["widgets"])
+    return ImportResult(dashboard=dashboard, action=action)
+
+
+def list_dashboards(account=None):
+    """Return a queryset of dashboards, optionally filtered by account."""
+    qs = AccountDashboard.objects.select_related("account").order_by(
+        "account__login", "id"
+    )
+    if account is not None:
+        qs = qs.filter(account=account)
+    return qs
+
+
+def _resolve_or_create_dashboard(account, name, num_columns, on_conflict):
+    """Find or create the target dashboard based on the conflict strategy.
+
+    Returns a (dashboard, action) tuple.
+    """
+    on_conflict = ConflictMode(on_conflict)
+
+    if on_conflict is ConflictMode.CREATE_NEW:
+        return _create_dashboard(account, name, num_columns), ImportAction.CREATED
+
+    if on_conflict is ConflictMode.RENAME:
+        original_name = name
+        name = _find_unique_name(account, name)
+        action = ImportAction.RENAMED if name != original_name else ImportAction.CREATED
+        return _create_dashboard(account, name, num_columns), action
+
+    existing = AccountDashboard.objects.filter(account=account, name=name)
+    count = existing.count()
+
+    if on_conflict is ConflictMode.ERROR:
+        if count > 0:
+            raise DashboardConflictError(
+                f"Dashboard {name!r} already exists for user {account.login!r}"
+            )
+        return _create_dashboard(account, name, num_columns), ImportAction.CREATED
+
+    # ConflictMode.REPLACE
+    if count == 0:
+        return _create_dashboard(account, name, num_columns), ImportAction.CREATED
+    if count > 1:
+        raise DashboardConflictError(
+            f"Ambiguous: {count} dashboards named {name!r} "
+            f"exist for user {account.login!r}"
+        )
+    dashboard = existing.first()
+    dashboard.num_columns = num_columns
+    dashboard.save()
+    dashboard.widgets.all().delete()
+    return dashboard, ImportAction.REPLACED
+
+
+def _create_dashboard(account, name, num_columns):
+    """Create a new dashboard."""
     dashboard = AccountDashboard(
         account=account,
-        name=data["name"],
-        num_columns=data["num_columns"],
+        name=name,
+        num_columns=num_columns,
     )
     dashboard.save()
-    for widget in data["widgets"]:
+    return dashboard
+
+
+def _create_widgets(dashboard, account, widgets):
+    """Create widget rows for a dashboard."""
+    for widget in widgets:
         AccountNavlet.objects.create(
             dashboard=dashboard,
             account=account,
             **widget,
         )
-    return ImportResult(dashboard=dashboard, action=ImportAction.CREATED)
+
+
+def _find_unique_name(account, name):
+    """Append a numeric suffix to make the name unique for this account."""
+    if not AccountDashboard.objects.filter(account=account, name=name).exists():
+        return name
+    counter = 2
+    while True:
+        candidate = f"{name} ({counter})"
+        exists = AccountDashboard.objects.filter(
+            account=account, name=candidate
+        ).exists()
+        if not exists:
+            return candidate
+        counter += 1
