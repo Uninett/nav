@@ -9,8 +9,8 @@ import pytest
 
 from nav.dhcpstats.common import DhcpPath
 from nav.dhcpstats.graph import (
+    _fetch_paths_from_graphite,
     drop_groups_not_in_prefixes,
-    fetch_paths_from_graphite,
     group_paths,
     range_str,
 )
@@ -277,7 +277,7 @@ def test_fetch_paths_from_graphite_should_warn_when_paths_from_graphite_are_bad(
         "nav.dhcpstats.graph.get_expanded_nodes", lambda *args, **kwargs: [path]
     )
     with caplog.at_level(logging.WARNING):
-        fetch_paths_from_graphite()
+        _fetch_paths_from_graphite()  # Uses underscored version to bypass caching
         assert re.search(log_pattern, caplog.text, flags=re.IGNORECASE)
 
 
