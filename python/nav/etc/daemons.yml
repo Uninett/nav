@@ -16,7 +16,12 @@ daemons:
     pping:
         description: Pings all IP devices for status monitoring.
         command: pping
-        privileged: true
+        # Linux exposes unprivileged ICMP datagram sockets via the
+        # net.ipv4.ping_group_range sysctl; if the NAV user's gid is in range,
+        # pping can run without root. On non-Linux systems (FreeBSD, macOS),
+        # pping still needs root to open ICMP sockets — set this to `true`
+        # there. See doc/howto/generic-install-from-source.rst.
+        privileged: false
 
     servicemon:
         description: Monitors configured services.

@@ -119,10 +119,6 @@ class PacketV4(Packet):
     ICMP_ECHO = 8
     ICMP_TIME_EXCEEDED = 11
 
-    # IPv4 RAW sockets include the IP header in the received datagram.  This
-    # packet slice chops of the first 20 octets to get at the ICMP datagram
-    packet_slice = slice(20, None)
-
 
 class PacketV6(Packet):
     """An ICMPv6 packet.
