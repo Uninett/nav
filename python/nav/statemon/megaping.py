@@ -41,16 +41,14 @@ def make_sockets():
     """
     try:
         socketv6 = socket.socket(
-            socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp')
+            socket.AF_INET6, socket.SOCK_RAW, socket.IPPROTO_ICMPV6
         )
     except Exception:  # noqa: BLE001
         _logger.error("Could not create v6 socket")
         raise
 
     try:
-        socketv4 = socket.socket(
-            socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp')
-        )
+        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
     except Exception:  # noqa: BLE001
         _logger.error("Could not create v4 socket")
         raise
