@@ -46,13 +46,15 @@ _logger = logging.getLogger('nav.pping')
 def main():
     args = make_argparser().parse_args()
 
-    if os.getuid() != 0:
-        print("Must be started as root")
+    try:
+        sockets = megaping.make_sockets()
+    except PermissionError as error:
+        print(f"Cannot open ICMP sockets: {error}", file=sys.stderr)
         sys.exit(1)
 
-    socket = megaping.make_sockets()  # make raw sockets while we have root
-    nav.daemon.switchuser(NAV_CONFIG['NAV_USER'])
-    start(args.foreground, socket)
+    if os.geteuid() == 0:
+        nav.daemon.switchuser(NAV_CONFIG['NAV_USER'])
+    start(args.foreground, sockets)
 
 
 def make_argparser():
