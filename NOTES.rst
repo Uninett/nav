@@ -22,6 +22,34 @@ Python modules with changed version requirements:
 
 * :mod:`Django` (``>=5.2,<5.3``)
 
+
+Unprivileged ``pping``
+----------------------
+
+NAV's parallel pinger (``pping``) no longer needs to start as ``root`` on
+Linux. The shipped :file:`daemons.yml` now sets ``privileged: false`` for
+``pping``, which means ``nav start pping`` will launch the daemon directly
+as the configured ``NAV_USER`` instead of as ``root``. (Previously ``pping``
+started as ``root``, opened raw ICMP sockets, then dropped privileges to
+``NAV_USER`` — the end state is the same, only the startup path has
+changed.)
+
+For this to work, the kernel's ``net.ipv4.ping_group_range`` sysctl must
+cover the ``NAV_USER``'s gid (Linux 2.6.39+ for IPv4, 3.11+ for IPv6).
+Alternatively, the ``pping`` process must run with the ``CAP_NET_RAW``
+Linux capability granted by some other mechanism on your system.
+
+On non-Linux systems (FreeBSD, macOS), or on Linux installations where
+neither of the above is in place, ``pping`` will fail at startup with a
+descriptive error. To restore the previous behavior, edit
+:file:`daemons.yml` and set ``privileged: true`` for ``pping`` — the
+daemon will then start as ``root`` and drop privileges as before.
+
+Operators upgrading from earlier versions whose :file:`daemons.yml` is
+customized in place will not see this change automatically; only fresh
+installations or those that adopt the shipped default will be affected.
+
+
 NAV 5.18
 ========
 
