@@ -12,15 +12,13 @@ class TestSensor:
     def test_thresholds_returns_all_sensors_that_are_thresholds_for_current_sensor(
         self, db, sensor, threshold_sensor1, threshold_sensor2
     ):
-        threshold_sensors = sensor.thresholds
-        expected_threshold_sensors = Sensor.objects.filter(
-            threshold_for_oid=sensor.oid
-        ).all()
+        threshold_sensors = sensor.thresholds.all()
+        expected_threshold_sensors = Sensor.objects.filter(threshold_for=sensor).all()
         assert set(threshold_sensors) == set(expected_threshold_sensors)
 
 
 @pytest.fixture
-def threshold_sensor1(db, localhost):
+def threshold_sensor1(db, localhost, sensor):
     sensor = Sensor(
         netbox=localhost,
         oid="1.2.4",
@@ -31,7 +29,7 @@ def threshold_sensor1(db, localhost):
         name="threshold_sensor1",
         internal_name="threshold_sensor1",
         mib="testmib",
-        threshold_for_oid="1.2.3",
+        threshold_for=sensor,
     )
     sensor.save()
     yield sensor
@@ -40,7 +38,7 @@ def threshold_sensor1(db, localhost):
 
 
 @pytest.fixture
-def threshold_sensor2(db, localhost):
+def threshold_sensor2(db, localhost, sensor):
     sensor = Sensor(
         netbox=localhost,
         oid="1.2.5",
@@ -51,7 +49,7 @@ def threshold_sensor2(db, localhost):
         name="threshold_sensor2",
         internal_name="threshold_sensor2",
         mib="testmib",
-        threshold_for_oid="1.2.3",
+        threshold_for=sensor,
     )
     sensor.save()
     yield sensor
