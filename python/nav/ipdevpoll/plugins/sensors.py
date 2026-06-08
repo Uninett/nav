@@ -129,12 +129,17 @@ class Sensors(Plugin):
                 sensor.on_state_sys = row.get('on_state')
                 sensor.threshold_type = row.get('threshold_type')
                 sensor.threshold_alert_type = row.get('threshold_alert_type')
-                sensor.threshold_for_oid = row.get('threshold_for_oid')
                 if ifindex:
                     iface = self.containers.factory(ifindex, shadows.Interface)
                     iface.netbox = self.netbox
                     iface.ifindex = ifindex
                     sensor.interface = iface
+                if threshold_for_oid := row.get('threshold_for_oid'):
+                    threshold_for_sensor = self.containers.factory(
+                        threshold_for_oid, shadows.Sensor
+                    )
+                    threshold_for_sensor.oid = threshold_for_oid
+                    sensor.threshold_for = threshold_for_sensor
                 sensors.append(sensors)
         return sensors
 

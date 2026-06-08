@@ -2621,7 +2621,13 @@ class Sensor(models.Model):
     threshold_alert_type = models.IntegerField(
         db_column='threshold_alert_type', choices=ALERT_TYPE_CHOICES, null=True
     )
-    threshold_for_oid = VarcharField(db_column='threshold_for_oid', null=True)
+    threshold_for = models.ForeignKey(
+        'Sensor',
+        on_delete=models.CASCADE,
+        db_column='threshold_for_id',
+        null=True,
+        related_name="thresholds",
+    )
 
     class Meta(object):
         db_table = 'sensor'
@@ -2740,29 +2746,6 @@ class Sensor(models.Model):
                 'alert_type': self.alert_type_class,
             }
         return {}
-
-    @property
-    def threshold_for(self):
-        """Returns the sensor this is a threshold for.
-        Returns None if no such sensor exists.
-        """
-        if not self.threshold_for_oid:
-            return None
-        try:
-            return self.__class__.objects.get(
-                netbox=self.netbox, oid=self.threshold_for_oid, mib=self.mib
-            )
-        except self.DoesNotExist:
-            _logger.error("Could not find sensor with oid %s", self.threshold_for_oid)
-            return None
-
-    @property
-    def thresholds(self):
-        """Returns list of all threshold-sensors for this sensor"""
-        thresholds = self.__class__.objects.filter(
-            netbox=self.netbox, threshold_for_oid=self.oid, mib=self.mib
-        )
-        return list(thresholds)
 
 
 class PowerSupplyOrFan(models.Model):
