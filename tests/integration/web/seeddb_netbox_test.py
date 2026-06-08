@@ -6,12 +6,14 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
 
-from nav.models.manage import ManagementProfile, NetboxType, Vendor
+from nav.models.manage import ManagementProfile, Netbox, NetboxType, Vendor
 from nav.Snmp.errors import SnmpError
 from nav.web.seeddb.page.netbox.edit import (
     get_snmp_read_only_variables,
+    netbox_do_save,
     snmp_write_test,
 )
+from nav.web.seeddb.page.netbox.forms import NetboxModelForm
 
 
 class TestCheckConnectivityView:
@@ -501,6 +503,64 @@ class TestSnmpWriteTest:
         assert result['status'] is False
         assert result['custom_error'] == 'UnicodeDecodeError'
         assert result['error_message'] == "Could not decode SNMP response"
+
+
+class TestNetboxModelFormSave:
+    """Regression tests for `NetboxModelForm` save behaviour."""
+
+    def test_when_adding_a_new_netbox_then_save_should_not_raise(self, db):
+        """Regression for the Django 5.2 crash where `save()` filtered on the
+        unsaved netbox instance: "Model instances passed to related filters
+        must be saved."
+        """
+        form = NetboxModelForm(self._post_data())
+        assert form.is_valid(), form.errors
+        netbox = netbox_do_save(form)
+        assert netbox.pk is not None
+        assert not Netbox.objects.filter(master=netbox).exists()
+
+    def test_when_adding_with_virtual_instances_then_they_should_be_saved(
+        self, db, existing_orphan_netbox
+    ):
+        """A new master netbox should have its selected virtual instances
+        re-pointed at it during creation.
+        """
+        form = NetboxModelForm(
+            self._post_data(
+                ip='127.0.0.43',
+                sysname='regression-master-netbox.example.org',
+                virtual_instance=[existing_orphan_netbox.pk],
+            )
+        )
+        assert form.is_valid(), form.errors
+        master = netbox_do_save(form)
+        existing_orphan_netbox.refresh_from_db()
+        assert existing_orphan_netbox.master_id == master.pk
+
+    @staticmethod
+    def _post_data(**overrides):
+        data = {
+            'ip': '127.0.0.42',
+            'room': 'myroom',
+            'category': 'SRV',
+            'organization': 'myorg',
+            'sysname': 'regression-test-netbox.example.org',
+        }
+        data.update(overrides)
+        return data
+
+
+@pytest.fixture
+def existing_orphan_netbox(db):
+    netbox = Netbox(
+        ip='127.0.0.50',
+        sysname='regression-orphan-netbox.example.org',
+        room_id='myroom',
+        category_id='SRV',
+        organization_id='myorg',
+    )
+    netbox.save()
+    return netbox
 
 
 @pytest.fixture()

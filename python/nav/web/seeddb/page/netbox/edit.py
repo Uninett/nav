@@ -393,6 +393,7 @@ def netbox_do_save(form):
 
     netbox = form.save(commit=False)  # Prevents saving m2m relationships
     netbox.save()
+    form.save_virtual_instances(netbox)
 
     # Save the function field
     function = form.cleaned_data['function']
