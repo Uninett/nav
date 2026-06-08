@@ -48,95 +48,39 @@ SENSOR_COLUMNS = {
     },
 }
 
+THRESHOLD_LEVELS = {
+    "HighAlarm": {
+        "label": "High Alarm",
+        "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+        "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+    },
+    "LowAlarm": {
+        "label": "Low Alarm",
+        "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+        "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+    },
+    "HighWarning": {
+        "label": "High Warning",
+        "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+        "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+    },
+    "LowWarning": {
+        "label": "Low Warning",
+        "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+        "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+    },
+}
+
 THRESHOLD_COLUMNS = {
-    "jnxDomCurrentRxLaserPower": {
-        "jnxDomCurrentRxLaserPowerHighAlarmThreshold": {
-            "name": "{ifc} RX Laser Power High Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentRxLaserPowerLowAlarmThreshold": {
-            "name": "{ifc} RX Laser Power Low Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentRxLaserPowerHighWarningThreshold": {
-            "name": "{ifc} RX Laser Power High Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-        "jnxDomCurrentRxLaserPowerLowWarningThreshold": {
-            "name": "{ifc} RX Laser Power Low Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-    },
-    "jnxDomCurrentTxLaserBiasCurrent": {
-        "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold": {
-            "name": "{ifc} TX Laser Bias Current High Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold": {
-            "name": "{ifc} TX Laser Bias Current Low Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold": {
-            "name": "{ifc} TX Laser Bias Current High Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-        "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold": {
-            "name": "{ifc} TX Laser Bias Current Low Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-    },
-    "jnxDomCurrentTxLaserOutputPower": {
-        "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold": {
-            "name": "{ifc} TX Laser Output Power High Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold": {
-            "name": "{ifc} TX Laser Output Power Low Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold": {
-            "name": "{ifc} TX Laser Output Power High Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-        "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold": {
-            "name": "{ifc} TX Laser Output Power Low Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-    },
-    "jnxDomCurrentModuleTemperature": {
-        "jnxDomCurrentModuleTemperatureHighAlarmThreshold": {
-            "name": "{ifc} Module Temperature High Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentModuleTemperatureLowAlarmThreshold": {
-            "name": "{ifc} Module Temperature Low Alarm Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
-        },
-        "jnxDomCurrentModuleTemperatureHighWarningThreshold": {
-            "name": "{ifc} Module Temperature High Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-        "jnxDomCurrentModuleTemperatureLowWarningThreshold": {
-            "name": "{ifc} Module Temperature Low Warning Threshold",
-            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
-            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
-        },
-    },
+    sensor_column: {
+        f"{sensor_column}{level}Threshold": {
+            "name": f"{config['name']} {attrs['label']} Threshold",
+            "threshold_type": attrs["threshold_type"],
+            "threshold_alert_type": attrs["threshold_alert_type"],
+        }
+        for level, attrs in THRESHOLD_LEVELS.items()
+    }
+    for sensor_column, config in SENSOR_COLUMNS.items()
 }
 
 
