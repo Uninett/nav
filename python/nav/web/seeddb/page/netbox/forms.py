@@ -215,21 +215,19 @@ class NetboxModelForm(forms.ModelForm):
         if msg:
             raise IPExistsException(msg)
 
-    def save(self, commit=True):
-        netbox = super(NetboxModelForm, self).save(commit)
-        instances = self.cleaned_data.get('virtual_instance')
+    def save_virtual_instances(self, netbox):
+        """Reconcile the netbox's virtual instances against the form selection.
 
-        # Clean up instances
+        Must be called on a saved netbox: Django 5.2 refuses related-field
+        lookups against unsaved model instances.
+        """
+        instances = self.cleaned_data.get('virtual_instance') or []
         Netbox.objects.filter(master=netbox).exclude(pk__in=instances).update(
             master=None
         )
-
-        # Add new instances
         for instance in instances:
             instance.master = netbox
             instance.save()
-
-        return netbox
 
 
 class NetboxFilterForm(forms.Form):
