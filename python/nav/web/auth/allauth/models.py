@@ -97,10 +97,10 @@ class SocialProviderEntry(BaseModel):
     Example:
 
     [social.providers.dataporten]
-    client_id = "for this specific provider, this is a uuid"
+    client-id = "for this specific provider, this is a uuid"
     secret = "for this specific provider, this is a uuid"
     scope = ["userid-feide"]  # to get the Feide id
-    module_path = "allauth.socialaccount.providers.dataporten'
+    module-path = "allauth.socialaccount.providers.dataporten"
     """
 
     model_config = HYPHENATED
