@@ -23,15 +23,15 @@ Using a provider bundled with django-allauth
 Have a look at the list of providers at `django-allauth's provider list
 <https://docs.allauth.org/en/latest/socialaccount/providers/index.html>`_.
 
-You will ineed, at minimum:
+You will need, at minimum:
 
-* ``module_path``, which is the full name of the module (for instance
+* ``module-path``, which is the full name of the module (for instance
   ``allauth.socialaccount.providers.github`` for GitHub)
 * the provider id (``github`` for GitHub, this is always a valid python module
   name. You can assume the provider id is the same as the part after the last
   full stop in the module name for any provider bundled with allauth itself.).
   This is used in the authentication file section name.
-* ``client_id``, which you get from the provider
+* ``client-id``, which you get from the provider
 * ``secret``, which you also get from the provider
 
 Note that the bundled "openid" provider needs extra tables, NAV does not ship
