@@ -1,4 +1,3 @@
-from unittest import TestCase
 from mock import patch, Mock
 
 from twisted.internet.defer import succeed
@@ -6,13 +5,7 @@ from twisted.internet.defer import succeed
 from nav.mibs.juniper_dom_mib import JuniperDomMib, SENSOR_COLUMNS, THRESHOLD_COLUMNS
 
 
-class TestJuniperDomMIB(TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
+class TestJuniperDomMIB:
     def test_handle_sensor_column_returns_correct_amount_of_sensor_dicts(self):
         rows_for_column = {"0": "interface 0", "1": "interface 1"}
 
@@ -24,7 +17,7 @@ class TestJuniperDomMIB(TestCase):
             column = "jnxDomCurrentRxLaserPower"
             deferred_result = mib.handle_sensor_column(column, SENSOR_COLUMNS[column])
             result = deferred_result.result
-        self.assertEqual(len(result), len(rows_for_column))
+        assert len(result) == len(rows_for_column)
 
     def test_handle_threshold_column_returns_correct_amount_of_sensor_dicts(self):
         rows_for_column = {"0": "interface 0", "1": "interface 1"}
@@ -43,4 +36,4 @@ class TestJuniperDomMIB(TestCase):
                 SENSOR_COLUMNS[sensor_column],
             )
             result = deferred_result.result
-        self.assertEqual(len(result), len(rows_for_column), result)
+        assert len(result) == len(rows_for_column), result
