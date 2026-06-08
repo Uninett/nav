@@ -19,7 +19,7 @@ enabled = false
 # client_id = "not.optional"
 # secret = "not.optional"
 # scope = ["user:email"]  # optional, "user" scope is default and includes "user:email"
-# module_path "allauth.socialaccount.providers.github"  # not optional
+# module_path = "allauth.socialaccount.providers.github"  # not optional
 #
 # If using the providers that are supplied by allauth itself, the module_path
 # points to a directory in the allauth source tree.
