@@ -3,7 +3,7 @@ External web authentication (OAuth2, OIDC)
 ==========================================
 
 It is possible to log in to the NAV web UI with an external identity provider
-like OAuth2 or OIDC with depending on the HTTP header ``REMOTE_USER``.
+like OAuth2 or OIDC without depending on the HTTP header ``REMOTE_USER``.
 
 NAV uses the 3rd party django app ``django-allauth`` for this.
 
@@ -23,10 +23,16 @@ Using a provider bundled with django-allauth
 Have a look at the list of providers at `django-allauth's provider list
 <https://docs.allauth.org/en/latest/socialaccount/providers/index.html>`_.
 
-You will need the name of the module (for instance
-``allauth.socialaccount.providers.github`` for GitHub), the provider id
-(``github`` for GitHub, this is always a valid python module name) and at
-minimum a ``client_id`` and a ``secret``.
+You will ineed, at minimum:
+
+* ``module_path``, which is the full name of the module (for instance
+  ``allauth.socialaccount.providers.github`` for GitHub)
+* the provider id (``github`` for GitHub, this is always a valid python module
+  name. You can assume the provider id is the same as the part after the last
+  full stop in the module name for any provider bundled with allauth itself.).
+  This is used in the authentication file section name.
+* ``client_id``, which you get from the provider
+* ``secret``, which you also get from the provider
 
 Note that the bundled "openid" provider needs extra tables, NAV does not ship
 with them by default.
@@ -46,7 +52,7 @@ is all you need.
 
 .. code-block:: toml
 
-   [social.providers.github
+   [social.providers.github]
    module-path = "allauth.socialaccount.providers.github"
    client_id = "your.service.id"
    secret = "your.service.secret"
