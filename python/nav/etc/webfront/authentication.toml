@@ -19,11 +19,21 @@ enabled = false
 # client_id = "not.optional"
 # secret = "not.optional"
 # scope = ["user:email"]  # optional, "user" scope is default and includes "user:email"
+# module_path "allauth.socialaccount.providers.github"  # not optional
+#
+# If using the providers that are supplied by allauth itself, the module_path
+# points to a directory in the allauth source tree.
+# So: the github code is in allauth/socialaccount/providers/github/.
+# The part after the last full stop is used after "providers" in the
+# section name.
 
 
 # Configuration for OIDC login
 # [oidc]
 # module-path = "allauth.socialaccount.providers.openid_connect"
+#
+# OIDC uses only one module_path but you can replace it with your own code
+# if necessary, which is why it is made available as a setting here.
 #
 # Example: Feide OIDC (dataporten)
 # [oidc.idps.dataporten-oidc]  # The name after the dot is used in the URLs
