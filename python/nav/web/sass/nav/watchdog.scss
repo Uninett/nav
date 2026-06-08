@@ -5,9 +5,6 @@
     }
     li {
         padding: 0.2em;
-        .label.alert {
-            cursor: pointer;
-        }
         &:nth-child(odd) {
             background-color: #F9F9F9;
         }
@@ -15,6 +12,15 @@
     .label {
         line-height: 1.4em;
         width: 60px;
+    }
+    summary {
+        cursor: pointer;
+        // restore native disclosure triangle (normalize.scss forces `display: block`)
+        display: list-item;
+        list-style-position: inside;
+        &:hover {
+            background-color: #EFEFEF;
+        }
     }
     .wd-test-description {
         i {

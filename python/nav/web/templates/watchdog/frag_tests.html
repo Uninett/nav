@@ -3,31 +3,46 @@
 <ul class="watchdog-tests no-bullet">
   {% for test in tests %}
   <li>
+    {% if test.errors %}
+      <details>
+        <summary>
+          {{ test.name }}
+          <span class="nav-tooltip wd-test-description">
+            <i class="fa fa-info-circle" aria-describedby="test-tooltip-{{ test.name }}"></i>
+            <span id="test-tooltip-{{ test.name }}" role="tooltip">
+              {{ test.description }}
+            </span>
+          </span>
+          <span class="label {{ test.status|map_to_class }} right">
+            <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
+          </span>
+        </summary>
+        <ul>
+          {% for error in test.errors %}
+          <li style="list-style-type: circle">
+            <small>
+              {% if error.obj.get_absolute_url %}
+                <a href="{{ error.obj.get_absolute_url }}">{{ error }}</a>
+              {% else %}
+                {{ error }}
+              {% endif %}
+            </small>
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% else %}
       {{ test.name }}
       <span class="nav-tooltip wd-test-description">
-          <i class="fa fa-info-circle" aria-describedby="test-tooltip-{{ test.name }}"></i>
-          <span id="test-tooltip-{{ test.name }}" role="tooltip">
-              {{ test.description }}
-          </span>
+        <i class="fa fa-info-circle" aria-describedby="test-tooltip-{{ test.name }}"></i>
+        <span id="test-tooltip-{{ test.name }}" role="tooltip">
+          {{ test.description }}
+        </span>
       </span>
-    <span class="label {{ test.status|map_to_class }} right">
-      <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
-    </span>
-
-    <ul class="hidden">
-      {% for error in test.errors %}
-      <li style="list-style-type: circle">
-        <small>
-	  {% if error.obj.get_absolute_url %}
-	    <a href="{{ error.obj.get_absolute_url }}">{{ error }}</a>
-	  {% else %}
-	    {{ error }}
-	  {% endif %}
-	</small>
-      </li>
-      {% endfor %}
-    </ul>
-
+      <span class="label {{ test.status|map_to_class }} right">
+        <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
+      </span>
+    {% endif %}
   </li>
   {% empty %}
     <p class="alert-box success">Everything is running smoothly</p>

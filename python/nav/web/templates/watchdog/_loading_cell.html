@@ -1,0 +1,6 @@
+<span hx-get="{% url route %}"
+      hx-trigger="load"
+      hx-swap="outerHTML"
+      hx-on::send-error="this.innerHTML='<i class=&quot;fa fa-exclamation-triangle&quot;></i> Error fetching data'"
+      hx-on::response-error="this.innerHTML='<i class=&quot;fa fa-exclamation-triangle&quot;></i> Error fetching data'"
+><i class="fa fa-spinner fa-spin"></i> Fetching...</span>
