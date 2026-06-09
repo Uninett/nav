@@ -8,7 +8,6 @@ require([], function () {
             $megadroptoggler = $(document.getElementById(megadropTogglerSelector)),
             $mystufftoggler = $(document.getElementById(mystuffTogglerSelector)),
             $mystuffItem = $mystufftoggler.closest('li'),
-            $mystuffDropdown = $mystuffItem.find('.dropdown'),
             $caret = $megadroptoggler.find('i'),
             caretDownClass = 'fa-caret-down',
             caretUpClass = 'fa-caret-up',
@@ -27,12 +26,10 @@ require([], function () {
         }
 
         function hideMystuff() {
-            $mystuffDropdown.hide();
             $mystuffItem.removeClass('open');
         }
 
         function showMystuff() {
-            $mystuffDropdown.show();
             $mystuffItem.addClass('open');
         }
 
@@ -45,7 +42,7 @@ require([], function () {
         });
 
         $mystufftoggler.click(function (e) {
-            if ($mystuffDropdown.is(':visible')) {
+            if ($mystuffItem.hasClass('open')) {
                 hideMystuff();
             } else {
                 hideMegaDrop();
@@ -68,7 +65,7 @@ require([], function () {
                     hideMegaDrop();
                 }
             }
-            if ($mystuffDropdown.is(':visible')) {
+            if ($mystuffItem.hasClass('open')) {
                 const clickIsOutsideMystuff = $target.closest('#' + mystuffTogglerSelector).length === 0
                         && $target.closest('.has-dropdown').length === 0;
                 if (clickIsOutsideMystuff) {
