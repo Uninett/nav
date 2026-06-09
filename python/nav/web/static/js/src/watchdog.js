@@ -28,7 +28,7 @@ require([], function () {
             }
         });
 
-        doRequest(dbSizeElement, '/watchdog/db_size/', function(data) {
+        doRequest(dbSizeElement, '/watchdog/db_size', function(data) {
             dbSizeElement.innerHTML = data.size;
         });
 
