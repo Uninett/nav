@@ -88,6 +88,16 @@
             <td>{{sensor.display_maximum_sys}}</td>
           </tr>
         {% endif %}
+        {% if sensor.threshold_for %}
+        <tr>
+          <th>Threshold for</th>
+            <td>
+              <a href="{% url 'sensor-details' sensor.threshold_for.id %}">
+                {{sensor.threshold_for.name}}
+              </a>
+            </td>
+        </tr>
+        {% endif %}
       </table>
     </div>
     <div class="large-6 column">
