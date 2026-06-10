@@ -218,24 +218,69 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         self.result.add_edges_from(self.get_single_edges_from_ports())
 
     def _remove_aggregates(self):
-        """Removes from the graph LAG ports whose aggregated (physical) ports
-        have already had their topology discovered.
-        """
-        removeable = []
-        for aggregator, aggregated in self.aggregates.items():
-            if aggregator in self.graph:
-                if any(port in self.result for port in aggregated):
-                    removeable.append(aggregator)
+        """Removes from the graph aggregate ports whose member interfaces have
+        already had their topology discovered.
 
-        if removeable:
-            for port in sorted(removeable, key=str):
+        An aggregate can sit several layers above the interfaces that actually
+        carry the discovery data: an aggregator over logical units, each unit
+        stacked above a physical port. Which layer exposes the resolving
+        LLDP/CDP data varies between vendors — it may be the physical port, an
+        intermediate logical interface, or (not handled here) the aggregate
+        itself. Because the mapping from `get_aggregate_mapping` is flat (one
+        entry per layer), membership is resolved by walking it transitively, so
+        the aggregate is suppressed as soon as *any* interface beneath it has
+        resolved, whatever layer that happens to be on. Checking only the
+        direct members would miss a member resolved further down the stack and
+        leave the aggregate for the CAM phase to resolve in isolation — the
+        #4029 failure, where Juniper exposes the data on the physical ports two
+        layers below the ``ae`` interface.
+        """
+        removable = {}
+        for aggregator in self.aggregates:
+            if aggregator not in self.graph:
+                continue
+            resolved = [
+                port
+                for port in self._aggregate_members(aggregator)
+                if port in self.result
+            ]
+            if resolved:
+                removable[aggregator] = resolved
+
+        if removable:
+            for port in sorted(removable, key=str):
                 _logger.debug(
-                    "Ignoring aggregate %s [%s]",
+                    "Ignoring aggregate %s (resolved via %s)",
                     port,
-                    ', '.join(str(s) for s in self.aggregates[port]),
+                    ', '.join(str(s) for s in sorted(removable[port], key=str)),
                 )
-            self.graph.remove_nodes_from(removeable)
-            self.stats.aggregates["removed"] += len(removeable)
+            self.graph.remove_nodes_from(removable)
+            self.stats.aggregates["removed"] += len(removable)
+
+    def _aggregate_members(self, aggregator):
+        """Returns the transitive set of interfaces aggregated under aggregator.
+
+        Follows the flat aggregate/stack mapping to arbitrary depth, so an
+        interface reached through several layers — a physical port beneath a
+        logical unit beneath the aggregate, and so on — counts as a member. The
+        accumulated set of members doubles as the visited set, keeping the walk
+        safe against cycles, which the database schema does not prevent in
+        device-reported data.
+
+        Both intermediate and leaf interfaces are returned, and the caller
+        treats them alike: a resolution at any layer of the stack establishes
+        the aggregate's topology, so it should suppress the aggregate without
+        caring which layer the vendor happened to expose the data on.
+        """
+        members = set()
+        queue = list(self.aggregates.get(aggregator, ()))
+        while queue:
+            member = queue.pop()
+            if member in members:
+                continue
+            members.add(member)
+            queue.extend(self.aggregates.get(member, ()))
+        return members
 
     def _reduce_discovery_protocol(self, sourcetype):
         bucket = getattr(self.stats, sourcetype)
