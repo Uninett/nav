@@ -1,0 +1,2 @@
+Subject: Ping probe failed on {{ netbox.sysname }}
+{{ description }}
