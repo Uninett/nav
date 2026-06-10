@@ -192,3 +192,15 @@ $driver-popover-progress-fg: $driver-popover-secondary-fg;
   border-bottom-style: solid;
   border-top-style: none;
 }
+
+/*
+  Reveal the 'My stuff' dropdown when megadrop.js toggles the .open class.
+  Foundation hides the dropdown with the "clip" technique (1px box, overflow
+  hidden) rather than display:none, so un-clip it here.
+*/
+.top-bar-section .has-dropdown.open > .dropdown {
+  height: auto;
+  width: auto;
+  overflow: visible;
+  clip: auto;
+}
