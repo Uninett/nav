@@ -10,6 +10,8 @@ class WebSecurityConfigParser(NavConfigParserDefaultSection):
 [security]
 needs_tls=no
 allow_frames=self
+proxy_tls_terminated=no
+csrf_trusted_origins=
 """
     FRAMES_OPTION = 'allow_frames'
     FRAMES_DEFAULT = 'self'
@@ -25,3 +27,6 @@ allow_frames=self
         if frames_flag == 'none':
             return 'DENY'
         return 'SAMEORIGIN'
+
+    def get_csrf_trusted_origins(self):
+        return self.get('csrf_trusted_origins').split()
