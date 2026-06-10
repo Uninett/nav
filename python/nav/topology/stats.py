@@ -48,6 +48,11 @@ Fields, in order:
 * ``(<N> lldp, <N> cdp, <N> cam)`` — how many of those links were resolved
   by each source. LLDP and CDP each count mutual-pair matches; "cam" sums
   the two CAM heuristics (single-dataless-destination and return-path).
+* ``<N> aggregates suppressed`` — LAG/aggregate ports dropped from the
+  candidate graph because a member interface had already resolved, so the
+  aggregate was not resolved from its own candidates. Membership is walked
+  transitively through the aggregate/stack hierarchy, so this counts
+  members resolved at any layer below the aggregate (see issue #4029).
 * ``<N> updated`` — rows in the ``interface`` table whose topology
   columns actually changed value. The Django ORM update returns this
   count; rows whose proposed value matched the existing value are
@@ -138,6 +143,7 @@ class ReducerStats:
             self.cam["resolved_single_dataless"] + self.cam["resolved_return_path"]
         )
         total_links = lldp_links + cdp_links + cam_links
+        suppressed = self.aggregates["removed"]
         updated = self.save["rows_actually_updated"]
         cleared_nt = self.save["cleared_nontouched"]
         cleared_ms = self.save["cleared_mismatched_state"]
@@ -154,6 +160,7 @@ class ReducerStats:
             f"{candidates} candidates ({admin_down} admin-down) → "
             f"{total_links} links "
             f"({lldp_links} lldp, {cdp_links} cdp, {cam_links} cam); "
+            f"{suppressed} aggregates suppressed; "
             f"{updated} updated, "
             f"{cleared_nt} cleared (nontouched), "
             f"{cleared_ms} cleared (mismatched-state); "
