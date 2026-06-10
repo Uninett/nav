@@ -472,6 +472,32 @@ class TestHaSrgChangeHandler:
         assert event.varmap["new_state"] == "ACTIVE"
 
 
+class TestPingProbeHandler:
+    def test_handler_should_post_event_on_trap_indicating_ping_probe_failed(
+        db, localhost_using_legacy_db, mock_ping_probe_failed_trap
+    ):
+        sysloghandler.initialize()
+        accepted = sysloghandler.handleTrap(trap=mock_ping_probe_failed_trap)
+
+        assert accepted
+
+        event = EventQueue.objects.filter(
+            source_id="snmptrapd",
+            target_id="eventEngine",
+            netbox_id=localhost_using_legacy_db,
+            event_type_id="pingProbe",
+            state="s",
+        ).first()
+
+        assert event
+        assert event.varmap["alerttype"] == "pingProbeFailed"
+        assert (
+            event.varmap["description"]
+            == "PING_PROBE_FAILED: pingCtlOwnerIndex = PROACT-SWE, pingCtlTestName = "
+            + "PING-LO0"
+        )
+
+
 @pytest.fixture
 def mock_ineligible_trap(db, localhost_using_legacy_db):
     trap = SNMPTrap(
@@ -500,6 +526,35 @@ def mock_ineligible_trap(db, localhost_using_legacy_db):
             ".1.3.6.1.4.1.2636.3.35.1.2.1.3.15.2": "BACKUP",
             ".1.3.6.1.4.1.2636.3.35.1.2.1.3.15.3": "INELIGIBLE",
             ".1.3.6.1.4.1.2636.3.35.1.2.1.3.15.4": "Control plane down",
+        },
+    )
+    return trap
+
+
+@pytest.fixture
+def mock_ping_probe_failed_trap(db, localhost_using_legacy_db):
+    trap = SNMPTrap(
+        src="127.0.0.1",
+        agent="127.0.0.1",
+        type=None,
+        genericType=None,
+        snmpTrapOID="1.3.6.1.4.1.2636.4.12.0.1",
+        uptime=666,
+        community="ping",
+        version=2,
+        varbinds={
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.2.15": "PING_PROBE_FAILED",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.3.15": "\x07\xe9\x06\x15\n)#\x00+\x00\x00",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.4.15": "7",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.5.15": "4",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.6.15": "14804",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.7.15": "rmopd",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.8.15": "test-trd-fw1",
+            ".1.3.6.1.4.1.2636.3.35.1.1.1.9.15": "PING_PROBE_FAILED: pingCtlOwnerIndex = PROACT-SWE, pingCtlTestName = PING-LO0",  # noqa: E501
+            ".1.3.6.1.4.1.2636.3.35.1.2.1.2.52.1": "test-owner",
+            ".1.3.6.1.4.1.2636.3.35.1.2.1.3.52.1": "PROACT-SWE",
+            ".1.3.6.1.4.1.2636.3.35.1.2.1.2.52.2": "test-name",
+            ".1.3.6.1.4.1.2636.3.35.1.2.1.3.52.2": "PING-LO0",
         },
     )
     return trap

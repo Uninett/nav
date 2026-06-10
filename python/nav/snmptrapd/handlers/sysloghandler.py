@@ -84,6 +84,9 @@ def handleTrap(trap, config=None):
     if event_name == "JSRPD_HA_SRG_STATE_CHANGE":
         return _handle_ha_srg_change_trap(netbox, trap_attributes, message)
 
+    if event_name == "PING_PROBE_FAILED":
+        return _handle_ping_probe_failed_trap(netbox, message)
+
     _logger.debug(
         "jnxSyslogTrap from %s ignored since it has for us irrelevant event name '%s'",
         netbox.sysname,
@@ -195,6 +198,28 @@ def _post_ha_srg_state_change_event(
         return True
 
 
+def _handle_ping_probe_failed_trap(netbox: AgentNetbox, message: str):
+    """Handles ping probe failed traps"""
+
+    event = Event(
+        source="snmptrapd",
+        target="eventEngine",
+        netboxid=netbox.netboxid,
+        eventtypeid="pingProbe",
+        state="s",
+    )
+    event["alerttype"] = "pingProbeFailed"
+    event["description"] = message or ""
+
+    try:
+        event.post()
+    except nav.errors.GeneralException:
+        _logger.exception("Unexpected exception while posting event")
+        return False
+    else:
+        return True
+
+
 def verify_event_type():
     """
     Safe way of verifying that the event- and alarmtypes exist in the
@@ -228,6 +253,19 @@ def verify_event_type():
     'High-availability services-redundancy-group state backup'
     WHERE NOT EXISTS (
     SELECT * FROM alerttype WHERE alerttype = 'haSrgStateBackup'));
+
+    INSERT INTO eventtype (
+    SELECT 'pingProbe',
+    'Tells us the result of a ping probe.','y'
+    WHERE NOT EXISTS (
+    SELECT * FROM eventtype WHERE eventtypeid = 'pingProbe'));
+
+    INSERT INTO alertType (
+    SELECT nextval('alerttype_alerttypeid_seq'), 'pingProbe',
+    'pingProbeFailed',
+    'Ping probe failed'
+    WHERE NOT EXISTS (
+    SELECT * FROM alerttype WHERE alerttype = 'pingProbeFailed'));
     """
 
     queries = sql.split(";")
