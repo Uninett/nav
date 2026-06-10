@@ -1,4 +1,5 @@
 import os
+import sys
 
 for key, value in {
     "DJANGO_SETTINGS_MODULE": "nav.django.settings",
@@ -8,3 +9,19 @@ for key, value in {
     "PGPASSWORD": "nav",
 }.items():
     os.environ.setdefault(key, value)
+
+# macOS ships a 2006-era libtidy; prefer Homebrew's modern version
+# so that pytidylib (used by integration tests) gets consistent results.
+if sys.platform == "darwin":
+    import ctypes.util
+    from pathlib import Path
+
+    _find_library = ctypes.util.find_library
+    def _patched_find_library(name):
+        if name == "tidy":
+            for prefix in ("/opt/homebrew", "/usr/local"):
+                _tidy = Path(prefix) / "opt/tidy-html5/lib/libtidy.dylib"
+                if _tidy.exists():
+                    return str(_tidy)
+        return _find_library(name)
+    ctypes.util.find_library = _patched_find_library
