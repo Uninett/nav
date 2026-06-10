@@ -98,6 +98,7 @@ class TestSummaryLine:
         stats.cdp["pairs_matched"] = 47
         stats.cam["resolved_single_dataless"] = 12
         stats.cam["resolved_return_path"] = 71
+        stats.aggregates["removed"] = 9
         stats.save["rows_actually_updated"] = 14
         stats.save["cleared_nontouched"] = 3
         stats.save["cleared_mismatched_state"] = 0
@@ -113,6 +114,7 @@ class TestSummaryLine:
         assert "582 lldp" in line
         assert "47 cdp" in line
         assert "83 cam" in line  # 12 + 71 resolved via cam
+        assert "9 aggregates suppressed" in line
         assert "14 updated" in line
         assert "3 cleared (nontouched)" in line
         assert "0 cleared (mismatched-state)" in line
