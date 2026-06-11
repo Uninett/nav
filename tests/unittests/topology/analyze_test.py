@@ -16,6 +16,7 @@
 import networkx as nx
 
 from nav.topology.analyze import AdjacencyReducer, Box, Port
+from nav.topology.stats import ReducerStats
 
 
 class TestAdjecencyReducer(object):
@@ -220,3 +221,70 @@ class TestAdjecencyReducer(object):
         assert not result.has_edge(self.switch_port_b, self.switch_port_a)
         assert result.out_degree(self.switch_port_a) == 1
         assert self.switch_port_b not in result
+
+    def test_when_lldp_pair_matches_then_stats_should_count_one_pairs_matched(self):  # noqa: E501
+        graph = nx.MultiDiGraph()
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_b, self.switch_port_b)
+        graph.add_edge(self.switch_port_a, self.switch_port_b, "lldp")
+        graph.add_edge(self.switch_port_b, self.switch_port_a, "lldp")
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, stats=stats)
+        reducer.reduce()
+        assert stats.lldp["pairs_matched"] == 1
+        assert stats.lldp["unmatched_dropped"] == 0
+
+    def test_when_lldp_edge_is_unmatched_then_stats_should_count_one_dropped(self):
+        graph = nx.MultiDiGraph()
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_b, self.switch_port_b)
+        graph.add_edge(self.switch_port_a, self.switch_port_b, "lldp")
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, stats=stats)
+        reducer.reduce()
+        assert stats.lldp["unmatched_dropped"] == 1
+        assert stats.lldp["pairs_matched"] == 0
+
+    def test_when_lldp_edge_is_self_loop_then_stats_should_count_one_self_loop(self):
+        graph = nx.MultiDiGraph()
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_port_a, self.switch_port_a, "lldp")
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, stats=stats)
+        reducer.reduce()
+        assert stats.lldp["self_loops"] == 1
+
+    def test_when_cam_resolves_via_single_dataless_then_stats_should_count_it(self):  # noqa: E501
+        graph = nx.MultiDiGraph()
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, stats=stats)
+        reducer.reduce()
+        assert stats.cam["resolved_single_dataless"] == 1
+
+    def test_when_cam_resolves_via_return_path_then_stats_should_count_it(self):
+        graph = nx.MultiDiGraph(name="simple case cam")
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_b, self.switch_port_b)
+        graph.add_edge(self.switch_port_a, self.switch_b, "cam")
+        graph.add_edge(self.switch_port_b, self.switch_a, "cam")
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, stats=stats)
+        reducer.reduce()
+        assert stats.cam["resolved_return_path"] == 1
+
+    def test_when_aggregate_is_removed_then_stats_should_count_one_removed(self):
+        aggregator = Port((self.switch_a_id, 99))
+        aggregator.name = "agg"
+        graph = nx.MultiDiGraph()
+        graph.add_edge(self.switch_a, aggregator)
+        graph.add_edge(self.switch_a, self.switch_port_a)
+        graph.add_edge(self.switch_b, self.switch_port_b)
+        graph.add_edge(self.switch_port_a, self.switch_port_b, "lldp")
+        graph.add_edge(self.switch_port_b, self.switch_port_a, "lldp")
+        aggregates = {aggregator: {self.switch_port_a}}
+        stats = ReducerStats()
+        reducer = AdjacencyReducer(graph, aggregates=aggregates, stats=stats)
+        reducer.reduce()
+        assert stats.aggregates["removed"] == 1

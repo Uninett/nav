@@ -21,6 +21,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from nav.topology.analyze import Port
+from nav.topology.stats import NullStats
 
 from nav.models.manage import Interface, Netbox
 
@@ -29,21 +30,29 @@ _logger = logging.getLogger(__name__)
 
 
 @transaction.atomic()
-def update_layer2_topology(links):
+def update_layer2_topology(links, stats=None):
     """Updates the layer 2 topology in the NAV database.
 
     :param links: a list of edges from an adjacency graph
+    :param stats: optional `ReducerStats` collector for per-run instrumentation.
 
     """
-    for source, dest in links:
-        _update_interface_topology(source, dest)
+    stats = stats or NullStats()
+
+    stats.save["links_proposed"] = len(links)
+
+    with stats.time_phase("save.update"):
+        for source, dest in links:
+            _update_interface_topology(source, dest, stats=stats)
 
     touched_ifc_ids = [source[1] for source, _dest in links]
-    _clear_topology_for_nontouched(touched_ifc_ids)
-    _clear_topology_for_mismatched_state_links()
+    with stats.time_phase("save.clear_nontouched"):
+        _clear_topology_for_nontouched(touched_ifc_ids, stats=stats)
+    with stats.time_phase("save.clear_mismatched_state"):
+        _clear_topology_for_mismatched_state_links(stats=stats)
 
 
-def _update_interface_topology(source_node, dest_node):
+def _update_interface_topology(source_node, dest_node, stats=None):
     """Updates topology information for the source_node Interface.
 
     The interface's topology will _only_ be updated if its netbox is up, it is
@@ -51,6 +60,8 @@ def _update_interface_topology(source_node, dest_node):
     differs from what we want to set it to.
 
     """
+    stats = stats or NullStats()
+
     _netboxid, interfaceid = source_node
     ifc = Interface.objects.filter(
         id=interfaceid,
@@ -65,15 +76,18 @@ def _update_interface_topology(source_node, dest_node):
         kwargs = {'to_netbox': int(dest_node), 'to_interface': None}
 
     ifc = ifc.exclude(**kwargs)
-    ifc.update(**kwargs)
+    updated = ifc.update(**kwargs)
+    stats.save["rows_actually_updated"] += updated
 
 
-def _clear_topology_for_nontouched(touched_ifc_ids):
+def _clear_topology_for_nontouched(touched_ifc_ids, stats=None):
     """Clears topology information for all interfaces that are administratively
     up, except for those in the touched_ifc_ids list and those who currently
     have no associated topology information.
 
     """
+    stats = stats or NullStats()
+
     up_or_disabled = Q(ifoperstatus=Interface.OPER_UP) | Q(
         ifadminstatus=Interface.ADM_DOWN
     )
@@ -82,10 +96,11 @@ def _clear_topology_for_nontouched(touched_ifc_ids):
     )
     nontouched_ifcs = up_or_disabled_ifcs.exclude(id__in=touched_ifc_ids)
     clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True)
-    clearable_ifcs.update(to_netbox=None, to_interface=None)
+    cleared = clearable_ifcs.update(to_netbox=None, to_interface=None)
+    stats.save["cleared_nontouched"] += cleared
 
 
-def _clear_topology_for_mismatched_state_links():
+def _clear_topology_for_mismatched_state_links(stats=None):
     """
     Clears topology for all interfaces that are down, but where the link
     partner is still up.
@@ -93,6 +108,8 @@ def _clear_topology_for_mismatched_state_links():
     This is a clear indication that the topology for an Interface has gone
     stale.
     """
+    stats = stats or NullStats()
+
     mismatched = Interface.objects.filter(
         ifoperstatus=Interface.OPER_DOWN,
         to_interface__ifoperstatus=Interface.OPER_UP,
@@ -101,3 +118,4 @@ def _clear_topology_for_mismatched_state_links():
     if count > 0:
         _logger.debug("deleting stale topology for %d operDown interfaces", count)
     mismatched.update(to_netbox=None, to_interface=None)
+    stats.save["cleared_mismatched_state"] += count
