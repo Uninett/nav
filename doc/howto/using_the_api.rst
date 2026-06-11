@@ -112,6 +112,7 @@ The available endpoints is listed if you go to the root of the api -
 - "room": "http://<host>/api/room/"
 - "netbox": "http://<host>/api/netbox/"
 - "interface": "http://<host>/api/interface/"
+- "organization": "http://<host>/api/organization/"
 - "prefix": "http://<host>/api/prefix/"
 - "prefix_usage": "http://<host>/api/prefix/usage"
 - "prefix_routed": "http://<host>/api/prefix/routed"

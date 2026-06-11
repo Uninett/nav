@@ -28,6 +28,7 @@ router.register(r'accountgroup', views.AccountGroupViewSet, basename='accountgro
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
 router.register(r'location', views.LocationViewSet)
+router.register(r'organization', views.OrganizationViewSet)
 router.register(
     r'management-profile',
     views.ManagementProfileViewSet,
