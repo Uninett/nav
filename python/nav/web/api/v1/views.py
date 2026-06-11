@@ -157,6 +157,7 @@ def get_endpoints(request=None, version=1):
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
         'interface': reverse_lazy('{}interface-list'.format(prefix), **kwargs),
         'location': reverse_lazy('{}location-list'.format(prefix), **kwargs),
+        'organization': reverse_lazy('{}organization-list'.format(prefix), **kwargs),
         'management_profile': reverse_lazy(
             '{}management-profile-list'.format(prefix), **kwargs
         ),
@@ -392,6 +393,27 @@ class LocationViewSet(
     serializer_class = serializers.LocationSerializer
     filterset_fields = ('id', 'parent', 'description')
     search_fields = ('description', 'aliases')
+    lookup_value_regex = '[^/]+'
+
+
+class OrganizationViewSet(NAVAPIMixin, viewsets.ModelViewSet):
+    """Lists all organizations
+
+    Search
+    ------
+    Searches in *description*
+
+    Filters
+    -------
+    - id
+    - parent
+    - description
+    """
+
+    queryset = manage.Organization.objects.all()
+    serializer_class = serializers.OrganizationSerializer
+    filterset_fields = ('id', 'parent', 'description')
+    search_fields = ('description',)
     lookup_value_regex = '[^/]+'
 
 

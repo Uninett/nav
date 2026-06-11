@@ -44,6 +44,10 @@ TEST_DATA = {
         'description': 'ÅÆØ descr',
         'aliases': ['roomalias1', 'roomalias2'],
     },
+    'organization': {
+        'id': 'testorg',
+        'description': 'Test Organization',
+    },
     'vlan': {
         'net_type': 'scope',
     },
@@ -90,7 +94,9 @@ def test_unauthenticated_user_can_access_api_root(db):
     assert response.status_code == 200
 
 
-@pytest.mark.parametrize("endpoint", ['account', 'location', 'room', 'vlan'])
+@pytest.mark.parametrize(
+    "endpoint", ['account', 'location', 'organization', 'room', 'vlan']
+)
 def test_delete(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response_create = create(api_client, endpoint, TEST_DATA.get(endpoint))
@@ -102,7 +108,9 @@ def test_delete(db, api_client, token, endpoint):
     assert response_get.status_code == 404
 
 
-@pytest.mark.parametrize("endpoint", ['account', 'netbox', 'location', 'room', 'vlan'])
+@pytest.mark.parametrize(
+    "endpoint", ['account', 'netbox', 'location', 'organization', 'room', 'vlan']
+)
 def test_create(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response = create(api_client, endpoint, TEST_DATA.get(endpoint))
@@ -558,6 +566,123 @@ def test_when_filtering_by_room_alias_then_it_should_return_matching_results(
     room_ids = [room_id_function(r) for r in response.data["results"]]
     assert 'myroom' in room_ids
     assert 'anotherroom' not in room_ids
+
+
+class TestOrganizationViewSet:
+    def test_when_organization_does_not_exist_then_give_404(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        response = api_client.get('{}doesnotexist/'.format(ENDPOINTS['organization']))
+        assert response.status_code == 404
+
+    def test_when_organization_exists_then_it_should_be_retrievable(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        response = api_client.get(
+            '{}{}/'.format(ENDPOINTS['organization'], TEST_DATA['organization']['id'])
+        )
+        assert response.status_code == 200
+
+    def test_when_organization_has_dot_in_id_the_api_should_still_find_it(
+        self, db, api_client, token
+    ):
+        from nav.models.manage import Organization
+
+        create_token_endpoint(token, 'organization')
+        org = Organization(id='foo.bar')
+        org.save()
+        response = api_client.get(f"/api/1/organization/{org.id}/")
+        assert response.status_code == 200
+
+    def test_when_patching_organization_then_it_should_return_200(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        response = api_client.patch(
+            '{}{}/'.format(ENDPOINTS['organization'], TEST_DATA['organization']['id']),
+            {'description': 'Updated description'},
+            format='json',
+        )
+        assert response.status_code == 200
+
+    def test_when_filtering_by_id_then_return_matching_results(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        create(api_client, 'organization', {'id': 'otherog', 'description': 'Other'})
+
+        response = api_client.get(
+            '{}?id={}'.format(
+                ENDPOINTS['organization'], TEST_DATA['organization']['id']
+            )
+        )
+        assert response.status_code == 200
+        ids = [obj['id'] for obj in response.data['results']]
+        assert TEST_DATA['organization']['id'] in ids
+        assert 'otherog' not in ids
+
+    def test_when_filtering_by_description_then_return_matching_results(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        create(api_client, 'organization', {'id': 'otherog', 'description': 'Other'})
+
+        description = TEST_DATA['organization']['description']
+        response = api_client.get(
+            '{}?description={}'.format(ENDPOINTS['organization'], description)
+        )
+        assert response.status_code == 200
+        ids = [obj['id'] for obj in response.data['results']]
+        assert TEST_DATA['organization']['id'] in ids
+        assert 'otherog' not in ids
+
+    def test_when_searching_by_description_then_return_matching_results(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        create(api_client, 'organization', {'id': 'otherog', 'description': 'Other'})
+
+        description = TEST_DATA['organization']['description']
+        response = api_client.get(
+            '{}?search={}'.format(ENDPOINTS['organization'], description)
+        )
+        assert response.status_code == 200
+        ids = [obj['id'] for obj in response.data['results']]
+        assert TEST_DATA['organization']['id'] in ids
+        assert 'otherog' not in ids
+
+    def test_when_filtering_by_parent_then_return_matching_results(
+        self, db, api_client, token
+    ):
+        create_token_endpoint(token, 'organization')
+        create(api_client, 'organization', TEST_DATA['organization'])
+        create(
+            api_client,
+            'organization',
+            {
+                'id': 'childorg',
+                'description': 'Child org',
+                'parent': TEST_DATA['organization']['id'],
+            },
+        )
+        create(api_client, 'organization', {'id': 'otherog', 'description': 'Other'})
+
+        response = api_client.get(
+            '{}?parent={}'.format(
+                ENDPOINTS['organization'], TEST_DATA['organization']['id']
+            )
+        )
+        assert response.status_code == 200
+        ids = [obj['id'] for obj in response.data['results']]
+        assert 'childorg' in ids
+        assert 'otherog' not in ids
 
 
 def test_validate_vlan(db, api_client, token):

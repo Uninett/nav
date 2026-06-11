@@ -124,6 +124,16 @@ or ``netboxgroup``.
 
 DELETE: Delete maintenance task with given id.
 
+api/organization/[<id>]
+-----------------------
+
+Provides access to NAVs organization data
+
+:Search: description
+
+:Filters: id, parent, description
+
+
 api/netbox/[<id>]
 -----------------
 
