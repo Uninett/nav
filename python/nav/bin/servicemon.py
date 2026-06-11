@@ -108,17 +108,19 @@ class Controller:
                 self._runqueue.enq(checker)
                 sleep(pause)
 
-            wait = self._looptime - (time.time() - start)
-            _logger.debug("Waiting %i seconds.", wait)
+            elapsed = time.time() - start
+            wait = self._looptime - elapsed
             if wait <= 0:
-                _logger.critical(
-                    "Only superman can do this. Humans cannot wait for %i seconds.",
-                    wait,
+                _logger.warning(
+                    "Checker enqueueing took %0.3fs, longer than looptime %0.3fs; "
+                    "starting next round immediately",
+                    elapsed,
+                    self._looptime,
                 )
-                wait %= self._looptime
-                sleep(wait)
+                wait = 0.0
             else:
-                sleep(wait)
+                _logger.debug("Waiting %0.3f seconds.", wait)
+            sleep(wait)
 
     def signalhandler(self, signum, _):
         if signum == signal.SIGTERM:
