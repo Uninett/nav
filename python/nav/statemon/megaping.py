@@ -34,28 +34,45 @@ _logger = logging.getLogger(__name__)
 
 
 def make_sockets():
-    """Makes and returns the raw IPv6 and IPv4 ICMP sockets.
+    """Open ICMP sockets for IPv6 and IPv4.
 
-    This needs to run as root before dropping privileges.
-
+    Tries unprivileged SOCK_DGRAM/IPPROTO_ICMP first (works on Linux when
+    the caller's gid is within net.ipv4.ping_group_range, no CAP_NET_RAW
+    required), then falls back to SOCK_RAW which needs either root or
+    CAP_NET_RAW.
     """
-    try:
-        socketv6 = socket.socket(
-            socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp')
-        )
-    except Exception:  # noqa: BLE001
-        _logger.error("Could not create v6 socket")
-        raise
+    return [
+        _open_icmp_socket(socket.AF_INET6, socket.IPPROTO_ICMPV6),
+        _open_icmp_socket(socket.AF_INET, socket.IPPROTO_ICMP),
+    ]
 
-    try:
-        socketv4 = socket.socket(
-            socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp')
-        )
-    except Exception:  # noqa: BLE001
-        _logger.error("Could not create v4 socket")
-        raise
 
-    return [socketv6, socketv4]
+def _open_icmp_socket(family, proto):
+    """Open an ICMP socket, trying SOCK_DGRAM before SOCK_RAW.
+
+    Raises PermissionError if neither kind opens. The error message names
+    all three Linux options so an operator troubleshooting an unexpected
+    failure knows which knob fits their constraints.
+    """
+    last_error = None
+    for kind in (socket.SOCK_DGRAM, socket.SOCK_RAW):
+        try:
+            return socket.socket(family, kind, proto)
+        except OSError as error:
+            last_error = error
+            _logger.debug(
+                "could not open socket(family=%s, kind=%s, proto=%s): %s",
+                family,
+                kind,
+                proto,
+                error,
+            )
+    raise PermissionError(
+        f"could not open ICMP socket (family={family}, proto={proto}). "
+        "On Linux, either add this user's gid to net.ipv4.ping_group_range, "
+        "grant CAP_NET_RAW to the python binary, or run as root. "
+        f"Last OS error: {last_error}"
+    )
 
 
 class Host(object):
@@ -188,18 +205,14 @@ class MegaPing(object):
         self._elapsedtime = 0
 
         # Initialize the sockets
-        if sockets is not None:
-            self._sock6 = sockets[0]
-            self._sock4 = sockets[1]
-        else:
-            try:
-                sockets = make_sockets()
-            except Exception:  # noqa: BLE001
-                _logger.error("Tried to create sockets without being root!")
-
-            self._sock6 = sockets[0]
-            self._sock4 = sockets[1]
-            _logger.info("No sockets passed as argument, creating own")
+        if sockets is None:
+            sockets = make_sockets()
+        self._sock6 = sockets[0]
+        self._sock4 = sockets[1]
+        # IPv4 SOCK_RAW delivers the 20-byte IP header along with the ICMP
+        # datagram; SOCK_DGRAM/IPPROTO_ICMP delivers only the ICMP payload.
+        # IPv6 never includes the IPv6 header in either kind of socket.
+        self._sock4_header_len = 20 if self._sock4.type == socket.SOCK_RAW else 0
 
     def set_hosts(self, ips):
         """
@@ -309,7 +322,10 @@ class MegaPing(object):
 
     def _process_response(self, raw_pong, sender, is_ipv6, arrival):
         # Extract header info and payload
+        sock = self._sock6 if is_ipv6 else self._sock4
         packet_class = PacketV6 if is_ipv6 else PacketV4
+        if not is_ipv6:
+            raw_pong = raw_pong[self._sock4_header_len :]
         try:
             pong = packet_class(raw_pong)
         except Exception as error:  # noqa: BLE001
@@ -321,7 +337,14 @@ class MegaPing(object):
             _logger.debug("Packet from %s was not an echo reply, but %s", sender, pong)
             return
 
-        if not pong.id == self._pid:
+        # SOCK_DGRAM/IPPROTO_ICMP sockets are demultiplexed by the kernel: it
+        # rewrites the icmp_id field of outgoing packets to the socket's local
+        # port and only delivers incoming replies whose id matches. The
+        # delivered pong.id therefore equals that port, not our pid — so we
+        # skip the check entirely and let the cookie comparison below confirm
+        # the reply belongs to a request we sent. SOCK_RAW receives every
+        # ICMP packet on the host and still needs explicit id-based filtering.
+        if sock.type == socket.SOCK_RAW and pong.id != self._pid:
             _logger.debug(
                 "packet from %r doesn't match our id (%s): %r (raw packet: %r)",
                 sender,
