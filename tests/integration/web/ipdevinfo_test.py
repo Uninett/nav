@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils.encoding import smart_str
@@ -14,6 +15,7 @@ from nav.models.manage import (
     Device,
     NetboxProfile,
     IpdevpollJobLog,
+    Sensor,
 )
 from nav.web.ipdevinfo.utils import get_module_view
 
@@ -271,11 +273,67 @@ class TestPoeHintModals:
         assert 'id="poe-classification-hint"' in smart_str(response.content)
 
 
+class TestSensorDetailsViews:
+    """200-check coverage for the htmx-driven sensor-details endpoints.
+
+    Previously the sensor-details web layer had no test coverage at all,
+    which would let a URL-pattern or import regression slip through CI
+    unnoticed (cf. the trailing-slash bug that hid in the watchdog views
+    for several releases).
+    """
+
+    def test_when_logged_in_then_sensor_details_should_respond_with_200(
+        self, client, boolean_sensor
+    ):
+        url = reverse('sensor-details', args=[boolean_sensor.pk])
+        response = client.get(url)
+        assert response.status_code == 200
+
+    def test_when_logged_in_then_sensor_on_off_state_should_respond_with_200(
+        self, client, boolean_sensor
+    ):
+        url = reverse('sensor-on-off-state', args=[boolean_sensor.pk])
+        with patch('nav.web.ipdevinfo.views.get_metric_data', return_value=[]):
+            response = client.get(url)
+        assert response.status_code == 200
+
+    def test_when_posting_with_sensor_id_then_add_user_navlet_sensor_should_respond_with_200(  # noqa: E501
+        self, client, boolean_sensor
+    ):
+        url = reverse('add-user-navlet-sensor')
+        response = client.post(f"{url}?sensor_id={boolean_sensor.pk}")
+        assert response.status_code == 200
+
+    def test_when_getting_then_add_user_navlet_sensor_should_respond_with_400(
+        self, client
+    ):
+        url = reverse('add-user-navlet-sensor')
+        response = client.get(url)
+        assert response.status_code == 400
+
+
 ###
 #
 # Fixtures
 #
 ###
+
+
+@pytest.fixture()
+def boolean_sensor(db, netbox):
+    """A minimal boolean sensor attached to the test netbox."""
+    return Sensor.objects.create(
+        netbox=netbox,
+        oid='.1.3.6.1.4.1.1.1',
+        unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
+        data_scale=Sensor.SCALE_UNITS,
+        precision=0,
+        human_readable='Example boolean sensor',
+        name='example-boolean',
+        internal_name='example-boolean',
+        mib='EXAMPLE-MIB',
+        on_state_sys=1,
+    )
 
 
 @pytest.fixture()
