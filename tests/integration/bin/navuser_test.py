@@ -4,6 +4,7 @@ import pytest
 
 from nav.bin.navuser import main
 from nav.models.profiles import Account
+from nav.web.auth.utils import default_account
 from .utils import run_cli
 
 
@@ -157,6 +158,17 @@ class TestUnlockCommand:
         assert f"Cannot unlock {unlocked_account.login}, already unlocked" in output
         unlocked_account.refresh_from_db()
         assert unlocked_account.is_active
+
+    def test_when_unlocking_default_account_then_it_should_print_error(
+        self, db, capsys
+    ):
+        account = default_account()
+        code = run_cli(main, "unlock", account.login)
+        assert code != 0
+        output = capsys.readouterr().err
+        assert "It is not possible to unlock the default account." in output
+        account.refresh_from_db()
+        assert not account.is_active
 
 
 # Fixtures
