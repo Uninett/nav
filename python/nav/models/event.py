@@ -463,7 +463,12 @@ class EventQueueVar(models.Model):
 
     class Meta(object):
         db_table = 'eventqvar'
-        unique_together = (('event_queue', 'variable'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('event_queue', 'variable'),
+                name='eventqvar_eventqid_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s=%s' % (self.variable, self.value)
@@ -577,7 +582,12 @@ class AlertType(models.Model):
 
     class Meta(object):
         db_table = 'alerttype'
-        unique_together = (('event_type', 'name'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('event_type', 'name'),
+                name='alerttype_eventalert_unique',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s, of event type %s' % (self.name, self.event_type)
@@ -602,7 +612,12 @@ class AlertQueueMessage(models.Model):
 
     class Meta(object):
         db_table = 'alertqmsg'
-        unique_together = (('alert_queue', 'type', 'language'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('alert_queue', 'type', 'language'),
+                name='alertqmsg_alertqid_msgtype_language_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s message in language %s' % (self.type, self.language)
@@ -625,7 +640,12 @@ class AlertQueueVariable(models.Model):
 
     class Meta(object):
         db_table = 'alertqvar'
-        unique_together = (('alert_queue', 'variable'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('alert_queue', 'variable'),
+                name='alertqvar_alertqid_var_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s=%s' % (self.variable, self.value)
@@ -819,7 +839,12 @@ class AlertHistoryMessage(models.Model):
 
     class Meta(object):
         db_table = 'alerthistmsg'
-        unique_together = (('alert_history', 'state', 'type', 'language'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('alert_history', 'state', 'type', 'language'),
+                name='alerthistmsg_alerthistid_state_msgtype_language_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s message in language %s' % (self.type, self.language)
@@ -849,7 +874,12 @@ class AlertHistoryVariable(models.Model):
 
     class Meta(object):
         db_table = 'alerthistvar'
-        unique_together = (('alert_history', 'state', 'variable'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('alert_history', 'state', 'variable'),
+                name='alerthistvar_alerthistid_state_var_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s=%s' % (self.variable, self.value)

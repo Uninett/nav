@@ -42,7 +42,12 @@ class Cabling(models.Model):
 
     class Meta(object):
         db_table = 'cabling'
-        unique_together = (('room', 'jack'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('room', 'jack'),
+                name='cabling_roomid_jack_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return 'jack %s, in room %s' % (self.jack, self.room.id)
@@ -86,7 +91,12 @@ class Patch(models.Model):
 
     class Meta(object):
         db_table = 'patch'
-        unique_together = (('interface', 'cabling'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('interface', 'cabling'),
+                name='patch_interfaceid_cablingid_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s, patched to %s' % (self.interface, self.cabling)

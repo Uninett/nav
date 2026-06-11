@@ -199,7 +199,12 @@ class NetboxProfile(models.Model):
 
     class Meta(object):
         db_table = 'netbox_profile'
-        unique_together = (('netbox', 'profile'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'profile'),
+                name='netbox_profile_netboxid_profileid_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return self.netbox.sysname
@@ -621,7 +626,12 @@ class NetboxInfo(models.Model):
 
     class Meta(object):
         db_table = 'netboxinfo'
-        unique_together = (('netbox', 'key', 'variable', 'value'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'key', 'variable', 'value'),
+                name='netboxinfo_netboxid_key_var_val_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s="%s"' % (self.variable, self.value)
@@ -744,7 +754,12 @@ class NetboxEntity(models.Model):
 
     class Meta:
         db_table = 'netboxentity'
-        unique_together = (('netbox', 'index'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'source', 'index'),
+                name='netboxentity_netboxid_source_index_unique',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         klass = (self.get_physical_class_display() or '').capitalize()
@@ -840,7 +855,6 @@ class NetboxPrefix(models.Model):
 
     class Meta(object):
         db_table = 'netboxprefix'
-        unique_together = (('netbox', 'prefix'),)
 
     def __str__(self):
         return '%s at %s' % (self.netbox.sysname, self.prefix.net_address)
@@ -943,7 +957,12 @@ class Module(models.Model):
         db_table = 'module'
         verbose_name = 'module'
         ordering = ('netbox', 'module_number', 'name')
-        unique_together = (('netbox', 'name'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'name'),
+                name='module_netboxid_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '{name} at {netbox}'.format(
@@ -1051,7 +1070,12 @@ class Memory(models.Model):
 
     class Meta(object):
         db_table = 'mem'
-        unique_together = (('netbox', 'type', 'device'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'type', 'device'),
+                name='mem_netboxid_memtype_device_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         if self.used is not None and self.size is not None and self.size != 0:
@@ -1333,7 +1357,12 @@ class NetboxCategory(models.Model):
 
     class Meta(object):
         db_table = 'netboxcategory'
-        unique_together = (('netbox', 'category'),)  # Primary key
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'category'),
+                name='netboxcategory_pkey',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s in category %s' % (self.netbox, self.category)
@@ -1356,7 +1385,12 @@ class NetboxType(models.Model):
 
     class Meta(object):
         db_table = 'type'
-        unique_together = (('vendor', 'name'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('vendor', 'name'),
+                name='type_vendorid_typename_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s (%s from %s)' % (self.name, self.description, self.vendor)
@@ -1763,7 +1797,12 @@ class SwPortVlan(models.Model):
 
     class Meta(object):
         db_table = 'swportvlan'
-        unique_together = (('interface', 'vlan'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('interface', 'vlan'),
+                name='swportvlan_interfaceid_vlanid_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s, on vlan %s' % (self.interface, self.vlan)
@@ -1844,7 +1883,12 @@ class SwPortBlocked(models.Model):
 
     class Meta(object):
         db_table = 'swportblocked'
-        unique_together = (('interface', 'vlan'),)  # Primary key
+        constraints = [
+            models.UniqueConstraint(
+                fields=('interface', 'vlan'),
+                name='swportblocked_uniq',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%d, at %s' % (self.vlan, self.interface)
@@ -1890,9 +1934,12 @@ class AdjacencyCandidate(models.Model):
 
     class Meta(object):
         db_table = 'adjacency_candidate'
-        unique_together = (
-            ('netbox', 'interface', 'to_netbox', 'to_interface', 'source'),
-        )
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'interface', 'to_netbox', 'to_interface', 'source'),
+                name='adjacency_candidate_uniq',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%s:%s %s candidate %s:%s' % (
@@ -1922,7 +1969,12 @@ class NetboxVtpVlan(models.Model):
 
     class Meta(object):
         db_table = 'netbox_vtpvlan'
-        unique_together = (('netbox', 'vtp_vlan'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'vtp_vlan'),
+                name='netbox_vtpvlan_netboxid_vtpvlan_key',  # UNIQUE
+            )
+        ]
 
     def __str__(self):
         return '%d, at %s' % (self.vtp_vlan, self.netbox)
@@ -1952,9 +2004,6 @@ class Cam(models.Model):
 
     class Meta(object):
         db_table = 'cam'
-        unique_together = (
-            ('netbox', 'sysname', 'module', 'port', 'mac', 'start_time'),
-        )
 
     def __str__(self):
         return '%s, %s' % (self.mac, self.netbox)
@@ -2973,7 +3022,12 @@ class POEGroup(models.Model):
 
     class Meta(object):
         db_table = 'poegroup'
-        unique_together = (('netbox', 'index'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('netbox', 'index'),
+                name='poegroup_netboxid_index_key',  # UNIQUE
+            )
+        ]
         ordering = ('index',)
 
 
@@ -3040,5 +3094,10 @@ class POEPort(models.Model):
 
     class Meta(object):
         db_table = 'poeport'
-        unique_together = (('poegroup', 'index'),)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('poegroup', 'index'),
+                name='poeport_poegroupid_index_key',  # UNIQUE
+            )
+        ]
         ordering = ('index',)
