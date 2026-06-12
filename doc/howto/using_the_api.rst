@@ -106,16 +106,32 @@ Available endpoints
 The available endpoints is listed if you go to the root of the api -
 ``/api/``. These endpoints are:
 
+- "account": "http://<host>/api/account/"
+- "accountgroup": "http://<host>/api/accountgroup/"
 - "alert": "http://<host>/api/alert/"
 - "arp": "http://<host>/api/arp/"
+- "auditlog": "http://<host>/api/auditlog/"
+- "cabling": "http://<host>/api/cabling/"
 - "cam": "http://<host>/api/cam/"
-- "room": "http://<host>/api/room/"
-- "netbox": "http://<host>/api/netbox/"
 - "interface": "http://<host>/api/interface/"
+- "jwt_refresh": "http://<host>/api/jwt-refresh"
+- "location": "http://<host>/api/location/"
+- "maintenance": "http://<host>/api/maintenance/"
+- "management_profile": "http://<host>/api/management-profile/"
+- "module": "http://<host>/api/module/"
+- "netbox": "http://<host>/api/netbox/"
+- "netboxentity": "http://<host>/api/netboxentity/"
 - "organization": "http://<host>/api/organization/"
+- "patch": "http://<host>/api/patch/"
 - "prefix": "http://<host>/api/prefix/"
-- "prefix_usage": "http://<host>/api/prefix/usage"
 - "prefix_routed": "http://<host>/api/prefix/routed"
+- "prefix_usage": "http://<host>/api/prefix/usage"
+- "rack": "http://<host>/api/rack/"
+- "room": "http://<host>/api/room/"
+- "servicehandler": "http://<host>/api/servicehandler/"
+- "unrecognized_neighbor": "http://<host>/api/unrecognized-neighbor/"
+- "vendor": "http://<host>/api/vendor/"
+- "vlan": "http://<host>/api/vlan/"
 
 These endpoints will give list output limited by page size and any optional
 search or filter parameters (more about that below).
