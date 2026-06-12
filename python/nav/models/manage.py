@@ -628,8 +628,8 @@ class NetboxInfo(models.Model):
         db_table = 'netboxinfo'
         constraints = [
             models.UniqueConstraint(
-                fields=('netbox', 'key', 'variable', 'value'),
-                name='netboxinfo_netboxid_key_var_val_key',  # UNIQUE
+                fields=('netbox', 'key', 'variable'),
+                name='netboxinfo_uniq',  # UNIQUE
             )
         ]
 
