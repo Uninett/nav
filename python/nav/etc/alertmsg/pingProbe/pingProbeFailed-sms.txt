@@ -1,1 +1,1 @@
-Ping probe failed on {{ netbox.sysname }}
+Ping probe failed on {{ netbox.sysname }}: {{ description }}
