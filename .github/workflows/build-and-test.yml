@@ -8,9 +8,116 @@ on:
   schedule: # Run daily at 08:00 CEST (06:00 UST)
     - cron: '0 6 * * *'
 
+permissions:
+  pull-requests: write
+
 jobs:
+  vendor-check:
+    name: Check vendored JS libraries
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    outputs:
+      result: ${{ steps.gate.outputs.result }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check if package.json changed
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            changed=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+              --paginate -q '.[].filename' | grep -c '^package\.json$' || true)
+          else
+            changed=$(gh api repos/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }} \
+              --paginate -q '.files[].filename' | grep -c '^package\.json$' || true)
+          fi
+          if [ "$changed" -gt 0 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v6
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          node-version: 18
+
+      - uses: actions/setup-python@v6
+        if: steps.filter.outputs.changed == 'true'
+        with:
+          python-version: "3.11"
+
+      - name: Install npm dependencies
+        if: steps.filter.outputs.changed == 'true'
+        run: npm install --legacy-peer-deps
+
+      - name: Check vendored libraries are in sync
+        id: check
+        if: steps.filter.outputs.changed == 'true'
+        run: python3 tools/vendor.py check --no-untracked
+
+      - name: Show what needs updating
+        if: failure()
+        run: |
+          python3 tools/vendor.py sync
+          echo "### Changed files" >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat python/nav/web/static/js/libs/ >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat python/nav/web/static/js/require_config.js >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post PR comment on failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '## Vendored JS libraries are out of sync',
+              '',
+              'This PR updates `package.json` but the vendored library files',
+              'in `python/nav/web/static/js/libs/` have not been updated to',
+              'match.',
+              '',
+              '**The test suite has been skipped because its results would not',
+              'be meaningful until the vendored libraries are synced.**',
+              '',
+              'To fix this, run:',
+              '```',
+              'npm install --legacy-peer-deps',
+              'python tools/vendor.py sync',
+              'git add python/nav/web/static/js/libs/ python/nav/web/static/js/require_config.js',
+              'git commit -m "Sync vendored JS libraries"',
+              '```',
+              '',
+              'See `tools/vendor.py --help` for more options.',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Set gate result
+        id: gate
+        if: always()
+        run: |
+          if [ "${{ steps.filter.outputs.changed }}" != "true" ]; then
+            echo "result=skipped" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.check.outcome }}" = "success" ]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+          fi
+
   build-and-test:
     name: "Test on Python ${{ matrix.python-version}}"
+    needs: vendor-check
+    if: >-
+      always() && (
+        needs.vendor-check.outputs.result != 'failure'
+        || github.event_name == 'schedule'
+      )
     runs-on: ubuntu-latest
 
     strategy:
@@ -107,6 +214,12 @@ jobs:
 
   javascript:
     name: "Test Javascript code"
+    needs: vendor-check
+    if: >-
+      always() && (
+        needs.vendor-check.outputs.result != 'failure'
+        || github.event_name == 'schedule'
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
