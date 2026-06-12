@@ -15,8 +15,11 @@
 import time
 import pytest
 
+from datetime import datetime, timedelta
+from unittest.mock import patch
+
 from nav import util
-from nav.util import IPRange, first_true
+from nav.util import cachedfor, first_true, IPRange
 from IPy import IP
 
 
@@ -185,3 +188,77 @@ class TestTimer:
     def test_when_used_as_context_variable_it_should_return_self(self):
         with util.Timer() as t:
             assert isinstance(t, util.Timer)
+
+
+class TestCachedFor:
+    NOW = datetime.fromisoformat("2000-01-01T00:00:00.000000")
+
+    def test_cachedfor_should_hit_cache_when_age_less_than_validity_duration(self):
+        state = 0
+        validity_duration = timedelta(seconds=1)
+        age = validity_duration / 2
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+
+            @cachedfor(validity_duration)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
+
+            first = inc()
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW + age)):
+            second = inc()
+
+        assert first == 1
+        assert second == 1
+
+    def test_cachedfor_should_miss_cache_when_age_greater_than_validity_duration(self):
+        state = 0
+        validity_duration = timedelta(seconds=1)
+        age = validity_duration * 2
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+
+            @cachedfor(validity_duration)
+            def inc():
+                nonlocal state
+                state += 1
+                return state
+
+            first = inc()
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW + age)):
+            second = inc()
+
+        assert first == 1
+        assert second == 2
+
+    def test_cachedfor_should_not_raise_when_validity_duration_is_not_too_big(self):
+        validity_duration = (self.NOW - datetime.min) - timedelta(seconds=1)
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+
+            @cachedfor(validity_duration)
+            def foo():
+                return
+
+    def test_cachedfor_should_raise_when_validity_duration_is_too_big(self):
+        validity_duration = (self.NOW - datetime.min) + timedelta(seconds=1)
+
+        with patch("nav.util.datetime.datetime", self.frozen_datetime(self.NOW)):
+            with pytest.raises(OverflowError):
+
+                @cachedfor(validity_duration)
+                def foo():
+                    return
+
+    @staticmethod
+    def frozen_datetime(start_time):
+        class _datetime(datetime):
+            @classmethod
+            def now(cls):
+                return start_time
+
+        return _datetime
