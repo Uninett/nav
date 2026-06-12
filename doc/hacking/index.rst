@@ -8,7 +8,8 @@
    hacking
    hacking-with-pycharm
    using-devcontainers
-   using-docker
+   using-lightweight-docker
+   using-heavyweight-docker
    javascript
    release-procedure
    writing-a-servicemon-plugin
