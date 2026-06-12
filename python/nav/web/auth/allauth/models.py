@@ -92,7 +92,16 @@ class MFAConfig(BaseModel):
 
 
 class SocialProviderEntry(BaseModel):
-    """A single social-login provider entry from ``[social.providers.<id>]``."""
+    """A single social-login provider entry from ``[social.providers.<id>]``.
+
+    Example:
+
+    [social.providers.dataporten]
+    client-id = "for this specific provider, this is a uuid"
+    secret = "for this specific provider, this is a uuid"
+    scope = ["userid-feide"]  # to get the Feide id
+    module-path = "allauth.socialaccount.providers.dataporten"
+    """
 
     model_config = HYPHENATED
 
