@@ -426,7 +426,7 @@ class ReportConfig(object):
     def escaped_sql(self):
         """Returns an 'escaped' version of the configured SQL statement.
         Wildcard signs, '%' are doubles, as to not interfer with parameter
-        references when feeding the psycopg2 driver.
+        references when feeding the psycopg driver.
 
         """
         if self.sql:

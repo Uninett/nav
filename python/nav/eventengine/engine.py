@@ -30,7 +30,7 @@ import time
 from functools import wraps
 import errno
 
-from psycopg2 import OperationalError
+from psycopg import OperationalError
 from django.db import connection, DatabaseError, transaction
 
 from nav.eventengine import export

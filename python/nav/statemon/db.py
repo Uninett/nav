@@ -29,9 +29,8 @@ import queue
 import time
 import threading
 
-import psycopg2
-from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
-from psycopg2.errorcodes import lookup as pg_err_lookup
+import psycopg
+from psycopg.errors import InFailedSqlTransaction
 
 from nav.db import get_connection_string
 from nav.util import synchronized
@@ -78,7 +77,7 @@ class _DB(threading.Thread):
         """Connects to the NAV database"""
         try:
             conn_str = get_connection_string(script_name='servicemon')
-            self.db = psycopg2.connect(conn_str)
+            self.db = psycopg.connect(conn_str)
             atexit.register(self.close)
 
             _logger.info("Successfully (re)connected to NAVdb")
@@ -93,7 +92,7 @@ class _DB(threading.Thread):
         try:
             if self.db:
                 self.db.close()
-        except psycopg2.InterfaceError:
+        except psycopg.InterfaceError:
             # ignore "already-closed" type errors
             pass
 
@@ -116,19 +115,18 @@ class _DB(threading.Thread):
             try:
                 cursor = self.db.cursor()
                 cursor.execute('SELECT 1')
-            except psycopg2.InternalError as err:
-                if err.pgcode == IN_FAILED_SQL_TRANSACTION:
-                    _logger.critical("Rolling back aborted transaction...")
-                    self.db.rollback()
-                else:
-                    _logger.critical(
-                        "PostgreSQL reported an internal error "
-                        "I don't know how to handle: %s "
-                        "(code=%s)",
-                        pg_err_lookup(err.pgcode),
-                        err.pgcode,
-                    )
-                    raise
+            except InFailedSqlTransaction:
+                _logger.critical("Rolling back aborted transaction...")
+                self.db.rollback()
+            except psycopg.InternalError as err:
+                _logger.critical(
+                    "PostgreSQL reported an internal error "
+                    "I don't know how to handle: %s "
+                    "(code=%s)",
+                    err.name,
+                    err.code,
+                )
+                raise
         except Exception:  # noqa: BLE001
             if self.db is not None:
                 _logger.critical(
@@ -200,7 +198,7 @@ class _DB(threading.Thread):
                     self.db.commit()
                 except Exception:  # noqa: BLE001
                     _logger.critical("Failed to commit")
-        except psycopg2.IntegrityError:
+        except psycopg.IntegrityError:
             _logger.critical(
                 "Database integrity error, throwing away update", exc_info=True
             )
