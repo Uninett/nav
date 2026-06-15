@@ -206,6 +206,33 @@ class TestDeleteDashboardView:
         assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
 
 
+class TestRenameDashboardView:
+    """Tests for the rename_dashboard view which allows renaming dashboards"""
+
+    def test_given_dashboard_id_with_valid_new_name_then_render_confirmation(
+        self, db, client, admin_account
+    ):
+        dashboard = create_dashboard(account=admin_account)
+        url = reverse("rename-dashboard", args=(dashboard.pk,))
+        response = client.post(url, data={"dashboard-name": "New name"})
+
+        assert response.status_code == 200
+        assert 'New name' in smart_str(response.content)
+
+    def test_given_dashboard_id_with_empty_new_name_then_show_error_message(
+        self, db, client, admin_account
+    ):
+        dashboard = create_dashboard(account=admin_account)
+        old_name = dashboard.name
+        url = reverse("rename-dashboard", args=(dashboard.pk,))
+        response = client.post(url, data={"dashboard-name": ""})
+
+        assert response.status_code == 200
+        assert "Dashboard name must not be empty" in smart_str(response.content)
+        dashboard.refresh_from_db()
+        assert dashboard.name == old_name
+
+
 class TestDashboardIndexView:
     def test_given_no_dashboard_id_then_return_default_dashboard(
         self, db, client, admin_account
