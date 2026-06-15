@@ -11,7 +11,15 @@ from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
-from nav.models.manage import NetboxEntity, NetboxGroup, Room
+from nav.models.manage import (
+    GwPortPrefix,
+    Interface,
+    NetboxEntity,
+    NetboxGroup,
+    Prefix,
+    Room,
+    Vlan,
+)
 from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
 from nav.models.profiles import Account
 from nav.models.service import Service
@@ -869,6 +877,63 @@ class TestNetboxEntityViewSet:
         assert response.data['id'] == netboxentity.id
 
 
+class TestGwPortPrefixViewSet:
+    def test_when_getting_list_then_it_should_return_gwportprefixes(
+        self, db, api_client, gwportprefix_endpoint, gwportprefix
+    ):
+        response = get(api_client, gwportprefix_endpoint)
+        assert response.status_code == 200
+        gw_ips = [r['gw_ip'] for r in response.data['results']]
+        assert str(gwportprefix.gw_ip) in gw_ips
+
+    def test_when_getting_specific_entry_by_gw_ip_then_it_should_return_200(
+        self, db, api_client, gwportprefix_endpoint, gwportprefix
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[gwportprefix_endpoint]}{gwportprefix.gw_ip}/"
+        )
+        assert response.status_code == 200
+        assert response.data['gw_ip'] == str(gwportprefix.gw_ip)
+
+    def test_when_getting_nonexistent_gw_ip_then_it_should_return_404(
+        self, db, api_client, gwportprefix_endpoint
+    ):
+        response = api_client.get(f"{ENDPOINTS[gwportprefix_endpoint]}10.255.255.255/")
+        assert response.status_code == 404
+
+    def test_when_filtering_by_interface_then_it_should_return_matching_results(
+        self, db, api_client, gwportprefix_endpoint, gwportprefix
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[gwportprefix_endpoint]}?interface={gwportprefix.interface_id}"
+        )
+        assert response.status_code == 200
+        gw_ips = [r['gw_ip'] for r in response.data['results']]
+        assert str(gwportprefix.gw_ip) in gw_ips
+
+    def test_when_filtering_by_interface_netbox_then_it_should_return_matching_results(
+        self, db, api_client, gwportprefix_endpoint, gwportprefix
+    ):
+        response = api_client.get(
+            f"{ENDPOINTS[gwportprefix_endpoint]}?interface__netbox={gwportprefix.interface.netbox_id}"
+        )
+        assert response.status_code == 200
+        gw_ips = [r['gw_ip'] for r in response.data['results']]
+        assert str(gwportprefix.gw_ip) in gw_ips
+
+    def test_when_filtering_by_virtual_then_it_should_return_matching_results(
+        self, db, api_client, gwportprefix_endpoint, gwportprefix
+    ):
+        response = api_client.get(f"{ENDPOINTS[gwportprefix_endpoint]}?virtual=False")
+        assert response.status_code == 200
+        gw_ips = [r['gw_ip'] for r in response.data['results']]
+        assert str(gwportprefix.gw_ip) in gw_ips
+
+    def test_it_should_be_readonly(self, db, api_client, gwportprefix_endpoint):
+        response = api_client.post(ENDPOINTS[gwportprefix_endpoint], {}, format='json')
+        assert response.status_code == 405
+
+
 class TestMaintenanceTaskViewSetList:
     def test_when_getting_list_of_tasks_then_return_tasks(
         self, db, api_client, maintenance_endpoint, current_maintenance_task
@@ -1626,6 +1691,42 @@ def netboxentity(db, localhost):
     netbox_entity.save()
     yield netbox_entity
     netbox_entity.delete()
+
+
+@pytest.fixture()
+def gwportprefix_endpoint(db, token):
+    endpoint = 'gwportprefix'
+    create_token_endpoint(token, endpoint)
+    return endpoint
+
+
+@pytest.fixture()
+def gwportprefix(db, localhost):
+    vlan = Vlan(net_type_id='lan')
+    vlan.save()
+    prefix = Prefix(net_address='10.0.0.0/24', vlan=vlan)
+    prefix.save()
+    interface = Interface(
+        netbox=localhost,
+        ifindex=10,
+        ifname='Vlan10',
+        ifdescr='Vlan10',
+        iftype=1,
+        speed=1000,
+    )
+    interface.save()
+    gwpp = GwPortPrefix(
+        interface=interface,
+        prefix=prefix,
+        gw_ip='10.0.0.1',
+        virtual=False,
+    )
+    gwpp.save()
+    yield gwpp
+    gwpp.delete()
+    interface.delete()
+    prefix.delete()
+    vlan.delete()
 
 
 @pytest.fixture()

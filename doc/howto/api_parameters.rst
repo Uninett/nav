@@ -124,6 +124,16 @@ or ``netboxgroup``.
 
 DELETE: Delete maintenance task with given id.
 
+api/gwportprefix/[<gw_ip>]
+--------------------------
+
+Provides read-only access to NAVs gateway port prefix data
+
+:Search: None
+
+:Filters: interface, interface__netbox, prefix, virtual
+
+
 api/organization/[<id>]
 -----------------------
 

@@ -51,6 +51,7 @@ router.register(
     views.UnrecognizedNeighborViewSet,
     basename='unrecognized-neighbor',
 )
+router.register(r'gwportprefix', views.GwPortPrefixViewSet, basename='gwportprefix')
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 router.register(r'module', views.ModuleViewSet, basename='module')
 router.register(r'netboxentity', views.NetboxEntityViewSet, basename='netboxentity')

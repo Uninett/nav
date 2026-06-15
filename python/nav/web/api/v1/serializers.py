@@ -515,6 +515,37 @@ class PrefixSerializer(serializers.ModelSerializer):
         return instance
 
 
+class InlineInterfaceSerializer(serializers.ModelSerializer):
+    """Flat interface serializer for inline use"""
+
+    class Meta(object):
+        model = manage.Interface
+        fields = (
+            'id',
+            'ifindex',
+            'netbox',
+        )
+
+
+class InlinePrefixSerializer(serializers.ModelSerializer):
+    """Flat prefix serializer for inline use"""
+
+    class Meta(object):
+        model = manage.Prefix
+        fields = ('id', 'net_address', 'vlan')
+
+
+class GwPortPrefixSerializer(serializers.ModelSerializer):
+    """Serializer for the GwPortPrefix model"""
+
+    interface = InlineInterfaceSerializer(read_only=True)
+    prefix = InlinePrefixSerializer(read_only=True)
+
+    class Meta(object):
+        model = manage.GwPortPrefix
+        fields = '__all__'
+
+
 class PrefixUsageSerializer(serializers.Serializer):
     """Serializer for prefix usage queries"""
 
