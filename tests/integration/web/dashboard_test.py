@@ -215,6 +215,64 @@ def test_when_saving_dashboard_with_blank_name_then_it_should_fail(
         create_dashboard(account=admin_account, name=name)
 
 
+class TestAddDashboardView:
+    """Tests for the add_dashboard view which allows adding dashboards"""
+
+    @pytest.mark.parametrize("name", ["New name", "  New name  "])
+    def test_given_valid_name_then_create_dashboard_with_stripped_name(
+        self, db, client, admin_account, name
+    ):
+        url = reverse("add-dashboard")
+        response = client.post(url, data={"dashboard-name": name})
+
+        assert response.status_code == 200
+        dashboard_id = json.loads(smart_str(response.content))["dashboard_id"]
+        assert AccountDashboard.objects.get(pk=dashboard_id).name == "New name"
+
+    @pytest.mark.parametrize("name", ["", "      ", "\t", "\n"])
+    def test_given_empty_name_then_show_error_message(
+        self, db, client, admin_account, name
+    ):
+        count = AccountDashboard.objects.filter(account=admin_account).count()
+        url = reverse("add-dashboard")
+        response = client.post(url, data={"dashboard-name": name})
+
+        assert response.status_code == 400
+        assert "Dashboard name must not be empty" in smart_str(response.content)
+        assert AccountDashboard.objects.filter(account=admin_account).count() == count
+
+
+class TestRenameDashboardView:
+    """Tests for the rename_dashboard view which allows renaming dashboards"""
+
+    @pytest.mark.parametrize("name", ["New name", "  New name  "])
+    def test_given_dashboard_id_with_valid_new_name_then_save_stripped_name(
+        self, db, client, admin_account, name
+    ):
+        dashboard = create_dashboard(account=admin_account)
+        url = reverse("rename-dashboard", args=(dashboard.pk,))
+        response = client.post(url, data={"dashboard-name": name})
+
+        assert response.status_code == 200
+        assert 'New name' in smart_str(response.content)
+        dashboard.refresh_from_db()
+        assert dashboard.name == "New name"
+
+    @pytest.mark.parametrize("name", ["", "      ", "\t", "\n"])
+    def test_given_dashboard_id_with_empty_new_name_then_show_error_message(
+        self, db, client, admin_account, name
+    ):
+        dashboard = create_dashboard(account=admin_account)
+        old_name = dashboard.name
+        url = reverse("rename-dashboard", args=(dashboard.pk,))
+        response = client.post(url, data={"dashboard-name": name})
+
+        assert response.status_code == 400
+        assert "Dashboard name must not be empty" in smart_str(response.content)
+        dashboard.refresh_from_db()
+        assert dashboard.name == old_name
+
+
 class TestDashboardIndexView:
     def test_given_no_dashboard_id_then_return_default_dashboard(
         self, db, client, admin_account

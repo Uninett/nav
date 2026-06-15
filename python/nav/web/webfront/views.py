@@ -66,7 +66,7 @@ from nav.web.webfront import (
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
 )
-from nav.web.webfront.dashboard_io import import_from_dict
+from nav.web.webfront.dashboard_io import clean_dashboard_name, import_from_dict
 from nav.web.webfront.forms import (
     LoginForm,
     NavbarLinkFormSet,
@@ -571,7 +571,10 @@ def set_default_dashboard(request, did):
 @require_POST
 def add_dashboard(request):
     """Add a new dashboard to this user"""
-    name = request.POST.get('dashboard-name', 'New dashboard')
+    try:
+        name = clean_dashboard_name(request.POST.get('dashboard-name', 'New dashboard'))
+    except ValueError as error:
+        return HttpResponse(str(error), status=400)
     account = get_account(request)
     dashboard = AccountDashboard(account=account, name=name)
     dashboard.save()
@@ -620,7 +623,10 @@ def rename_dashboard(request, did):
     """Rename this dashboard"""
     account = get_account(request)
     dash = get_object_or_404(AccountDashboard, pk=did, account=account)
-    dash.name = request.POST.get('dashboard-name', dash.name)
+    try:
+        dash.name = clean_dashboard_name(request.POST.get('dashboard-name', dash.name))
+    except ValueError as error:
+        return HttpResponse(str(error), status=400)
     dash.save()
     return HttpResponse('Dashboard renamed to «{}»'.format(dash.name))
 
