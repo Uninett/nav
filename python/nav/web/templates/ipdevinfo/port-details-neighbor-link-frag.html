@@ -1,0 +1,12 @@
+{% comment %}
+Renders `iface`'s resolved neighbor: remote port and device as separate links
+(device named once), or just the device when no remote port. Empty if unresolved.
+{% endcomment %}
+{% if iface.to_interface %}
+  <a href="{{ iface.to_interface.get_absolute_url }}">{{ iface.to_interface.ifname }}</a>
+  on
+  <a href="{{ iface.to_netbox.get_absolute_url }}">{{ iface.to_netbox }}</a>
+{% elif iface.to_netbox %}
+  <a href="{{ iface.to_netbox.get_absolute_url }}">{{ iface.to_netbox }}</a>
+  <em>(remote port unknown)</em>
+{% endif %}

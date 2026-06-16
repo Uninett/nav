@@ -1,0 +1,37 @@
+{% load port_info %}
+{% comment %}
+Recursively renders one node of an interface's layered aggregate/stack hierarchy
+(Interface.get_layered_topology). Expects `node`. Connectors are drawn in CSS;
+the current interface is marked "you are here"; each node's relation to its
+parent is shown via title + sr-only text (topology_relation_label filter).
+{% endcomment %}
+{% with relabel=node.relation|topology_relation_label up=node.interface.is_oper_up %}
+<li class="topology-node{% if node.relation %} rel-{{ node.relation }}{% endif %}"{% if relabel %} title="{{ relabel }}"{% endif %}>
+  {% if node.is_current %}
+    {# "You are here": the interface this details page is for. #}
+    <span class="topology-current-interface" aria-current="true">
+      <i class="fa fa-map-marker-alt" title="The interface shown on this page"></i>
+      {% if up %}{{ node.interface.ifname }}{% else %}<del>{{ node.interface.ifname }}</del> <em>(Down)</em>{% endif %}{% if relabel %} <span class="sr-only">({{ relabel }})</span>{% endif %}
+      {# Spell out N/A only for the current interface, sparing other nodes the noise. #}
+      {% if node.interface.to_netbox %}
+        &rarr; {% include 'ipdevinfo/port-details-neighbor-link-frag.html' with iface=node.interface %}
+      {% else %}
+        &rarr; <em>N/A</em>
+      {% endif %}
+    </span>
+  {% else %}
+    <a href="{{ node.interface.get_absolute_url }}">{% if up %}{{ node.interface.ifname }}{% else %}<del>{{ node.interface.ifname }}</del>{% endif %}</a>{% if not up %} <em>(Down)</em>{% endif %}{% if relabel %} <span class="sr-only">({{ relabel }})</span>{% endif %}
+    {% if node.interface.to_netbox %}
+      &rarr; {% include 'ipdevinfo/port-details-neighbor-link-frag.html' with iface=node.interface %}
+    {% endif %}
+  {% endif %}
+
+  {% if node.members %}
+    <ul class="inside">
+      {% for member in node.members %}
+        {% include 'ipdevinfo/port-details-topology-tree-frag.html' with node=member %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+</li>
+{% endwith %}

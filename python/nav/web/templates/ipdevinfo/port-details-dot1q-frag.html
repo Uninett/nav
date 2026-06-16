@@ -1,0 +1,58 @@
+{% load port_info %}
+{% load report %}
+<table class="vertitable full-width">
+  <caption>Vlan (802.1Q)</caption>
+
+  <tr>
+    <th>Trunk</th>
+    <td>{{ port.trunk|yesno:"Yes,No,N/A" }}</td>
+  </tr>
+
+  {% if port.trunk %}
+      <tr>
+          <th>Allowed trunk VLANs</th>
+          <td>
+              <ul style="margin-left: 0; list-style-type: none; max-height: 10em; overflow: auto;">
+                  {% for range in port.get_allowed_vlan_ranges %}
+                  <li>{{ range }}</li>
+                  {% endfor %}
+              </ul>
+          </td>
+      </tr>
+  {% endif %}
+
+  <tr>
+    <th>Configured VLAN</th>
+    <td>
+      {{ port.vlan|default:"N/A" }}
+      {% if detention.status == 'quarantined' %}
+        (Quarantined by <a href="{% url 'arnold-details' detention.id %}" title="Link to detention">Arnold</a>)
+      {% endif %}
+    </td>
+  </tr>
+
+  <tr class="align-top">
+    <th>Detected VLANs</th>
+    <td>
+      {% with port.get_sorted_vlans as swportvlans %}
+        {% if swportvlans %}
+          <ul class="no-bullet limit-size">
+            {% for swportvlan in swportvlans %}
+              <li>
+                <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
+                   title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
+                <a href="{% report 'swporttrunk' vlanid=swportvlan.vlan.id %}">
+                  {{ swportvlan.vlan }}
+                </a>
+
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          N/A
+        {% endif %}
+      {% endwith %}
+    </td>
+  </tr>
+
+</table>
