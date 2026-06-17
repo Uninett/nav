@@ -360,5 +360,6 @@ class MegaPing(object):
         Unreachable hosts will have roundtriptime = -1
         """
         return [
-            (host.ip, host.reply if host.reply else -1) for host in self._hosts.values()
+            (host.ip, host.reply if host.reply is not None else -1)
+            for host in self._hosts.values()
         ]
