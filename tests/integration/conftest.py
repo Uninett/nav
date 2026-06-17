@@ -447,3 +447,115 @@ def default_account(db):
     from nav.models.profiles import Account
 
     return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
+
+
+@pytest.fixture()
+def netbox_factory(db):
+    """Returns a factory for minimal Netboxes.
+
+    ``myorg``/``myroom`` and the categories are pre-seeded reference data,
+    referenced by id as the other fixtures do.
+    """
+    from nav.models.manage import Netbox
+
+    def _make(sysname, ip, category="SW"):
+        box = Netbox(
+            ip=ip,
+            sysname=sysname,
+            organization_id="myorg",
+            room_id="myroom",
+            category_id=category,
+        )
+        box.save()
+        return box
+
+    return _make
+
+
+@pytest.fixture()
+def interface_factory(db):
+    """Returns a factory for Interfaces with ifindex and oper status set.
+
+    The topology walk sorts by ``ifindex`` (a NULL would raise on the sort) and
+    the templates strike out interfaces that are not operationally up, so both
+    are always set. When ``to_interface`` is given, ``to_netbox`` is derived
+    from it, mirroring how the topology detector records a resolved neighbour.
+    """
+    from nav.models.manage import Interface
+
+    def _make(netbox, ifname, ifindex, oper_up=True, to_interface=None):
+        interface = Interface(
+            netbox=netbox,
+            ifname=ifname,
+            ifdescr=ifname,
+            ifindex=ifindex,
+            ifoperstatus=Interface.OPER_UP if oper_up else Interface.OPER_DOWN,
+            to_netbox=to_interface.netbox if to_interface else None,
+            to_interface=to_interface,
+        )
+        interface.save()
+        return interface
+
+    return _make
+
+
+@pytest.fixture()
+def juniper_aggregate_factory(netbox_factory, interface_factory):
+    """Returns a factory that builds an ``ae0`` MLAG and returns its objects.
+
+    ``ae0`` and its logical unit ``ae0.0`` both bundle the units ``xe-0/2/2.0``
+    and ``xe-0/2/3.0``, which stack over the physical ports ``xe-0/2/2`` and
+    ``xe-0/2/3``. The physicals uplink to two different distribution switches,
+    so the aggregate has no single neighbour of its own. ifindexes are chosen so
+    ``ae0`` sorts first among ``sw``'s roots.
+
+    With ``down_member=True``, ``xe-0/2/3`` is left operationally down; only the
+    physical members carry oper status, so a strike-through test can pin the
+    down state to a single interface.
+    """
+    from nav.models.manage import InterfaceAggregate, InterfaceStack
+
+    def _build(down_member=False):
+        sw = netbox_factory("sw.example.org", "10.0.0.1")
+        dist_a = netbox_factory("dist-a.example.org", "10.0.0.2")
+        dist_b = netbox_factory("dist-b.example.org", "10.0.0.3")
+
+        remote_a = interface_factory(dist_a, "xe-0/0/1", 1)
+        remote_b = interface_factory(dist_b, "xe-0/0/1", 1)
+
+        ae0 = interface_factory(sw, "ae0", 10)
+        ae0_0 = interface_factory(sw, "ae0.0", 11)
+        unit2 = interface_factory(sw, "xe-0/2/2.0", 20)
+        unit3 = interface_factory(sw, "xe-0/2/3.0", 21)
+        phys2 = interface_factory(sw, "xe-0/2/2", 30, to_interface=remote_a)
+        phys3 = interface_factory(
+            sw, "xe-0/2/3", 31, oper_up=not down_member, to_interface=remote_b
+        )
+
+        # Both the aggregate and its logical unit bundle the units (parallel
+        # parents -- the DAG that drives root suppression of ae0.0).
+        for aggregator in (ae0, ae0_0):
+            for unit in (unit2, unit3):
+                InterfaceAggregate(aggregator=aggregator, interface=unit).save()
+
+        # The unit stacks above each unit, and each unit above its physical.
+        for unit in (unit2, unit3):
+            InterfaceStack(higher=ae0_0, lower=unit).save()
+        InterfaceStack(higher=unit2, lower=phys2).save()
+        InterfaceStack(higher=unit3, lower=phys3).save()
+
+        return {
+            "sw": sw,
+            "dist_a": dist_a,
+            "dist_b": dist_b,
+            "ae0": ae0,
+            "ae0_0": ae0_0,
+            "unit2": unit2,
+            "unit3": unit3,
+            "phys2": phys2,
+            "phys3": phys3,
+            "remote_a": remote_a,
+            "remote_b": remote_b,
+        }
+
+    return _build
