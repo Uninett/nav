@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -357,3 +358,78 @@ def netbox(db, management_profile):
     interface.save()
 
     return box
+
+
+def _interface_details_url(interface):
+    return reverse(
+        'ipdevinfo-interface-details',
+        kwargs={
+            'netbox_sysname': interface.netbox.sysname,
+            'port_id': interface.id,
+        },
+    )
+
+
+class TestPortDetailsTopology:
+    def test_when_viewing_aggregate_then_the_page_should_render_the_topology_tree(
+        self, client, juniper_aggregate_factory
+    ):
+        topo = juniper_aggregate_factory()
+        response = client.get(_interface_details_url(topo["ae0"]))
+        content = smart_str(response.content)
+        assert response.status_code == 200
+        assert 'topology-tree' in content
+        assert 'aria-current="true"' in content
+        assert topo["dist_a"].sysname in content
+        assert topo["dist_b"].sysname in content
+        assert 'topology-legend' in content
+        assert 'Layered below (ifStack)' in content
+
+    def test_when_aggregate_has_no_neighbour_then_the_current_node_should_show_na(
+        self, client, juniper_aggregate_factory
+    ):
+        topo = juniper_aggregate_factory()
+        response = client.get(_interface_details_url(topo["ae0"]))
+        content = smart_str(response.content)
+        # The N/A must belong to the current (aggregate) node: only its branch
+        # emits the "&rarr; <em>N/A</em>" arrow sequence, so anchor on that.
+        assert re.search(
+            r'topology-current-interface.*?&rarr;\s*<em>N/A</em>', content, re.S
+        )
+
+    def test_when_viewing_lone_port_with_neighbour_then_no_legend_should_be_shown(
+        self, client, netbox_factory, interface_factory
+    ):
+        peer = netbox_factory("peer.example.org", "10.4.0.2")
+        remote = interface_factory(peer, "GigabitEthernet0/2", 1)
+        box = netbox_factory("cisco-sw.example.org", "10.4.0.1")
+        port = interface_factory(box, "GigabitEthernet1/0/1", 1, to_interface=remote)
+
+        response = client.get(_interface_details_url(port))
+        content = smart_str(response.content)
+        assert response.status_code == 200
+        assert 'aria-current="true"' in content
+        assert peer.sysname in content
+        assert 'topology-legend' not in content
+
+    def test_when_viewing_lone_port_without_neighbour_then_it_should_show_na(
+        self, client, netbox_factory, interface_factory
+    ):
+        box = netbox_factory("cisco-sw2.example.org", "10.5.0.1")
+        port = interface_factory(box, "GigabitEthernet1/0/2", 1)
+
+        response = client.get(_interface_details_url(port))
+        content = smart_str(response.content)
+        assert response.status_code == 200
+        assert '<em>N/A</em>' in content
+        assert 'topology-legend' not in content
+
+    def test_when_a_member_is_down_then_only_that_member_should_be_struck_through(
+        self, client, juniper_aggregate_factory
+    ):
+        topo = juniper_aggregate_factory(down_member=True)
+        response = client.get(_interface_details_url(topo["ae0"]))
+        content = smart_str(response.content)
+        assert '(Down)' in content
+        assert '<del>xe-0/2/3</del>' in content  # the down physical member
+        assert '<del>xe-0/2/2</del>' not in content  # the up physical is not struck
