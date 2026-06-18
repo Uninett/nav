@@ -286,6 +286,7 @@ INSTALLED_APPS = (
     'django_filters',
     'django_htmx',
     'rest_framework',
+    'drf_spectacular',
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
@@ -308,6 +309,22 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
     'UNAUTHENTICATED_USER': 'nav.web.auth.utils.default_account',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'NAV REST API',
+    'DESCRIPTION': (
+        'Auto-generated OpenAPI specification for the Network Administration '
+        'Visualized (NAV) REST API.'
+    ),
+    'VERSION': nav.buildconf.VERSION,
+    # The schema endpoint is exposed separately; don't inline it as a path.
+    'SERVE_INCLUDE_SCHEMA': False,
+    # The API is mounted both at /api/ and /api/<version>/. This hook keeps only
+    # the versioned endpoints, de-duplicating the double mount and excluding
+    # internal app APIs.
+    'PREPROCESSING_HOOKS': ['nav.web.api.schema.public_schema_filter'],
 }
 
 # Classes that implement a search engine for the web navbar

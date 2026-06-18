@@ -46,6 +46,15 @@ from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.serializers import ValidationError
 
 from oidc_auth.authentication import JSONWebTokenAuthentication
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
+from drf_spectacular.types import OpenApiTypes
+from rest_framework import serializers as drf_serializers
 import jwt
 
 from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME, LOCAL_JWT_IS_CONFIGURED
@@ -97,6 +106,14 @@ class IPParseError(exceptions.ParseError):
     )
 
 
+@extend_schema(
+    responses=OpenApiResponse(
+        OpenApiTypes.OBJECT,
+        description="Mapping of endpoint names to their absolute URLs.",
+    ),
+    summary="API root",
+    tags=["meta"],
+)
 @api_view(('GET',))
 @renderer_classes((JSONRenderer, BrowsableAPIRenderer))
 def api_root(request):
@@ -234,6 +251,20 @@ class NAVAPIMixin(APIView):
     ordering = ('id',)
 
 
+@extend_schema_view(
+    list=extend_schema(responses=serializers.ServiceHandlerSerializer(many=True)),
+    retrieve=extend_schema(
+        responses=serializers.ServiceHandlerSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+                description="Service handler type name.",
+            )
+        ],
+    ),
+)
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
     """List all service handlers"""
 
@@ -461,6 +492,60 @@ class NetboxFilterClass(FilterSet):
         fields = ('sysname', 'room', 'organization', 'category', 'room__location')
 
 
+# Query parameters that several viewsets handle manually in get_queryset();
+# drf-spectacular cannot infer them, so declare them here for reuse.
+_IP_PARAM = OpenApiParameter(
+    name="ip",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.QUERY,
+    description="Single IP address or subnet range (e.g. 10.0.42.0/24).",
+)
+
+_MACHINETRACKER_PARAMS = [
+    OpenApiParameter(
+        name="active",
+        type=OpenApiTypes.BOOL,
+        location=OpenApiParameter.QUERY,
+        description=(
+            "List only records that are still active. Overrides starttime/endtime."
+        ),
+    ),
+    OpenApiParameter(
+        name="starttime",
+        type=OpenApiTypes.DATETIME,
+        location=OpenApiParameter.QUERY,
+        description=(
+            "ISO8601 timestamp. Without endtime: active records at that time."
+        ),
+    ),
+    OpenApiParameter(
+        name="endtime",
+        type=OpenApiTypes.DATETIME,
+        location=OpenApiParameter.QUERY,
+        description="ISO8601 timestamp. Must be combined with starttime.",
+    ),
+    OpenApiParameter(
+        name="mac",
+        type=OpenApiTypes.STR,
+        location=OpenApiParameter.QUERY,
+        description="MAC address, supports prefix filtering (e.g. aa:aa:aa).",
+    ),
+]
+
+
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            _IP_PARAM,
+            OpenApiParameter(
+                name="type__name",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Type name; prefix with ^ for starts-with match.",
+            ),
+        ]
+    )
+)
 class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all netboxes.
 
@@ -803,6 +888,7 @@ class MachineTrackerViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         )
 
 
+@extend_schema_view(list=extend_schema(parameters=_MACHINETRACKER_PARAMS))
 class CamViewSet(MachineTrackerViewSet):
     """Lists CAM records.
 
@@ -844,6 +930,7 @@ class CamViewSet(MachineTrackerViewSet):
         return super(CamViewSet, self).list(request)
 
 
+@extend_schema_view(list=extend_schema(parameters=_MACHINETRACKER_PARAMS + [_IP_PARAM]))
 class ArpViewSet(MachineTrackerViewSet):
     """Lists ARP records.
 
@@ -995,6 +1082,18 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
         return Response(results.data)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="family",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="IP family: 4 or 6. If unset, both are listed.",
+            )
+        ]
+    )
+)
 class RoutedPrefixList(NAVAPIMixin, ListAPIView):
     """Lists all routed prefixes. A router has category *GSW* or *GW*
 
@@ -1037,6 +1136,37 @@ def get_times(request):
     return starttime, endtime
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=serializers.PrefixUsageSerializer(many=True),
+        parameters=[
+            OpenApiParameter(
+                name="scope",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Limit results to a specific scope.",
+            ),
+            OpenApiParameter(
+                name="family",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="Limit results to IP family: 4 or 6.",
+            ),
+            OpenApiParameter(
+                name="starttime",
+                type=OpenApiTypes.DATETIME,
+                location=OpenApiParameter.QUERY,
+                description="ISO8601 timestamp; start of the interval.",
+            ),
+            OpenApiParameter(
+                name="endtime",
+                type=OpenApiTypes.DATETIME,
+                location=OpenApiParameter.QUERY,
+                description="ISO8601 timestamp; must be combined with starttime.",
+            ),
+        ],
+    )
+)
 class PrefixUsageList(NAVAPIMixin, ListAPIView):
     """Lists the usage of prefixes. This means how many addresses are in use
     in the prefix.
@@ -1079,6 +1209,10 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
 
     def get_queryset(self):
         """Filter for ip family"""
+        if getattr(self, 'swagger_fake_view', False):
+            # drf-spectacular instantiates the view with a fake request during
+            # schema generation; avoid hitting the database then.
+            return manage.Prefix.objects.none()
         if 'scope' in self.request.GET:
             queryset = manage.Prefix.objects.within(
                 self.request.GET.get('scope')
@@ -1108,6 +1242,31 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
         )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        responses=serializers.PrefixUsageSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="prefix",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+                description="CIDR prefix to report usage for.",
+            ),
+            OpenApiParameter(
+                name="starttime",
+                type=OpenApiTypes.DATETIME,
+                location=OpenApiParameter.QUERY,
+                description="ISO8601 timestamp; start of the interval.",
+            ),
+            OpenApiParameter(
+                name="endtime",
+                type=OpenApiTypes.DATETIME,
+                location=OpenApiParameter.QUERY,
+                description="ISO8601 timestamp; must be combined with starttime.",
+            ),
+        ],
+    )
+)
 class PrefixUsageDetail(NAVAPIMixin, APIView):
     """Makes prefix usage accessible from api"""
 
@@ -1326,6 +1485,31 @@ class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ModuleSerializer
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Look up the vendor of a single MAC address",
+        parameters=[
+            OpenApiParameter(
+                name="mac",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="A single MAC address, e.g. aa:bb:cc:dd:ee:ff",
+            )
+        ],
+        responses=OpenApiResponse(
+            OpenApiTypes.OBJECT,
+            description="Mapping of MAC address to vendor name.",
+        ),
+    ),
+    post=extend_schema(
+        summary="Look up vendors for multiple MAC addresses",
+        request=OpenApiTypes.OBJECT,
+        responses=OpenApiResponse(
+            OpenApiTypes.OBJECT,
+            description="Mapping of MAC addresses to vendor names.",
+        ),
+    ),
+)
 class VendorLookup(NAVAPIMixin, APIView):
     """Lookup vendor names for MAC addresses.
 
@@ -1476,6 +1660,22 @@ class NetboxEntityViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['netbox', 'physical_class']
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Exchange a refresh token for a new token pair",
+        request=inline_serializer(
+            name="JWTRefreshRequest",
+            fields={"refresh_token": drf_serializers.CharField()},
+        ),
+        responses=inline_serializer(
+            name="JWTRefreshResponse",
+            fields={
+                "access_token": drf_serializers.CharField(),
+                "refresh_token": drf_serializers.CharField(),
+            },
+        ),
+    )
+)
 class JWTRefreshViewSet(NAVAPIMixin, APIView):
     """
     Accepts a valid refresh token.
