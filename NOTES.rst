@@ -22,6 +22,27 @@ Python modules with changed version requirements:
 
 * :mod:`Django` (``>=5.2,<5.3``)
 
+CAM logging for hybrid switch ports
+-----------------------------------
+
+Switch ports whose only neighbor is an unmanaged device (one registered in NAV
+but with no SNMP or other management profiles) can now optionally log CAM
+records.  Previously, once the topology detector discovered such a neighbor, the
+cam plugin would classify the port as a link port and stop logging forwarding
+table entries — making it invisible to Machine Tracker.
+
+To enable this, add the following to :file:`ipdevpoll.conf`::
+
+    [cam]
+    log_unmanaged_neighbor_macs = yes
+
+When enabled, these ports are treated as *hybrid* ports: their MAC addresses are
+logged for Machine Tracker while adjacency candidates are still created for the
+topology system.  This is useful for locating both the unmanaged device itself
+and any end hosts behind it.
+
+See the ``[cam]`` section in :doc:`/reference/ipdevpoll` for full details.
+
 NAV 5.18
 ========
 
