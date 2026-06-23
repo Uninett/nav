@@ -6,6 +6,7 @@ import pytest
 
 from nav.models.profiles import Account, AccountDashboard, AccountNavlet
 from nav.bin.navdashboard import main
+from .utils import run_cli
 
 
 class TestListCommand:
@@ -14,7 +15,7 @@ class TestListCommand:
     def test_when_listing_all_then_it_should_include_dashboards_from_all_users(
         self, dashboard_with_widget, other_user_dashboard, capsys
     ):
-        code = _run_cli("list")
+        code = run_cli(main, "list")
         assert code == 0
         output = capsys.readouterr().out
         assert "CLI Dashboard" in output
@@ -25,7 +26,7 @@ class TestListCommand:
     def test_when_listing_with_user_filter_then_it_should_show_only_user_dashboards(
         self, dashboard_with_widget, other_user_dashboard, capsys
     ):
-        code = _run_cli("list", "--user", "clitest")
+        code = run_cli(main, "list", "--user", "clitest")
         assert code == 0
         output = capsys.readouterr().out
         assert "CLI Dashboard" in output
@@ -34,7 +35,7 @@ class TestListCommand:
     def test_when_listing_as_json_then_it_should_output_valid_json(
         self, dashboard_with_widget, other_user_dashboard, capsys
     ):
-        code = _run_cli("list", "--format", "json")
+        code = run_cli(main, "list", "--format", "json")
         assert code == 0
         output = capsys.readouterr().out
         data = json.loads(output)
@@ -52,7 +53,7 @@ class TestExportCommand:
     def test_when_exporting_by_name_then_it_should_output_json(
         self, dashboard_with_widget, capsys
     ):
-        code = _run_cli("export", "--user", "clitest", "--name", "CLI Dashboard")
+        code = run_cli(main, "export", "--user", "clitest", "--name", "CLI Dashboard")
         assert code == 0
         output = capsys.readouterr().out
         data = json.loads(output)
@@ -63,7 +64,7 @@ class TestExportCommand:
         self, dashboard_with_widget, capsys
     ):
         did = dashboard_with_widget.id
-        code = _run_cli("export", "--id", str(did))
+        code = run_cli(main, "export", "--id", str(did))
         assert code == 0
         output = capsys.readouterr().out
         data = json.loads(output)
@@ -73,8 +74,8 @@ class TestExportCommand:
         self, dashboard_with_widget, tmp_path
     ):
         path = str(tmp_path / "export.json")
-        code = _run_cli(
-            "export", "--user", "clitest", "--name", "CLI Dashboard", "-o", path
+        code = run_cli(
+            main, "export", "--user", "clitest", "--name", "CLI Dashboard", "-o", path
         )
         assert code == 0
         with open(path) as f:
@@ -82,7 +83,8 @@ class TestExportCommand:
         assert data["name"] == "CLI Dashboard"
 
     def test_when_user_missing_with_ok_flag_then_it_should_exit_zero(self, db, capsys):
-        code = _run_cli(
+        code = run_cli(
+            main,
             "export",
             "--user",
             "nonexistent",
@@ -95,17 +97,17 @@ class TestExportCommand:
         assert "does not exist" in err
 
     def test_when_id_combined_with_user_then_it_should_exit_nonzero(self, db, capsys):
-        code = _run_cli("export", "--id", "1", "--user", "admin")
+        code = run_cli(main, "export", "--id", "1", "--user", "admin")
         assert code != 0
 
     def test_when_neither_id_nor_user_name_then_it_should_exit_nonzero(
         self, db, capsys
     ):
-        code = _run_cli("export", "--name", "foo")
+        code = run_cli(main, "export", "--name", "foo")
         assert code != 0
 
     def test_when_user_without_name_then_it_should_exit_nonzero(self, db, capsys):
-        code = _run_cli("export", "--user", "admin")
+        code = run_cli(main, "export", "--user", "admin")
         assert code != 0
 
 
@@ -116,7 +118,7 @@ class TestImportCommand:
         self, account, tmp_path, capsys
     ):
         path = _write_dashboard_json(tmp_path, name="Imported")
-        code = _run_cli("import", "--user", "clitest", "--file", path)
+        code = run_cli(main, "import", "--user", "clitest", "--file", path)
         assert code == 0
         assert AccountDashboard.objects.filter(
             account=account, name="Imported"
@@ -126,8 +128,11 @@ class TestImportCommand:
         self, dashboard_with_widget, tmp_path, capsys
     ):
         path = str(tmp_path / "roundtrip.json")
-        _run_cli("export", "--user", "clitest", "--name", "CLI Dashboard", "-o", path)
-        code = _run_cli(
+        run_cli(
+            main, "export", "--user", "clitest", "--name", "CLI Dashboard", "-o", path
+        )
+        code = run_cli(
+            main,
             "import",
             "--user",
             "clitest",
@@ -150,7 +155,8 @@ class TestImportCommand:
         path = _write_dashboard_json(
             tmp_path, name="CLI Dashboard", num_columns=4, widgets=[]
         )
-        code = _run_cli(
+        code = run_cli(
+            main,
             "import",
             "--user",
             "clitest",
@@ -169,7 +175,7 @@ class TestImportCommand:
 
     def test_when_dry_run_then_it_should_not_modify_db(self, account, tmp_path, capsys):
         path = _write_dashboard_json(tmp_path, name="Dry Run Dashboard", widgets=[])
-        code = _run_cli("import", "--user", "clitest", "--file", path, "--dry-run")
+        code = run_cli(main, "import", "--user", "clitest", "--file", path, "--dry-run")
         assert code == 0
         assert not AccountDashboard.objects.filter(
             account=account, name="Dry Run Dashboard"
@@ -181,7 +187,7 @@ class TestImportCommand:
         self, account, tmp_path, capsys
     ):
         path = _write_dashboard_json(tmp_path, name="Shared Dashboard", widgets=[])
-        code = _run_cli("import", "--user", "clitest", "--file", path, "--shared")
+        code = run_cli(main, "import", "--user", "clitest", "--file", path, "--shared")
         assert code == 0
         dashboard = AccountDashboard.objects.get(
             account=account, name="Shared Dashboard"
@@ -194,7 +200,8 @@ class TestImportCommand:
         self, db, tmp_path, capsys
     ):
         path = _write_dashboard_json(tmp_path, widgets=[])
-        code = _run_cli(
+        code = run_cli(
+            main,
             "import",
             "--user",
             "nonexistent",
@@ -244,18 +251,6 @@ def other_user_dashboard(db):
     )
     yield dashboard
     other.delete()
-
-
-def _run_cli(*args):
-    """Run the navdashboard CLI with the given arguments.
-
-    Returns the integer exit code.  Use capsys to capture stdout/stderr.
-    """
-    try:
-        main(list(args))
-        return 0
-    except SystemExit as exc:
-        return exc.code if exc.code is not None else 0
 
 
 def _write_dashboard_json(tmp_path, name="Test Dashboard", num_columns=2, widgets=None):
