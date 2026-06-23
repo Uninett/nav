@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.11", "3.13"]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: |
@@ -109,7 +109,7 @@ jobs:
     name: "Test Javascript code"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: browser-actions/setup-chrome@latest
       - uses: browser-actions/setup-firefox@latest
       - run: chrome --version
