@@ -579,7 +579,7 @@ def add_user_navlet_sensor(request):
             preferences = {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname}
         account = get_account(request)
         add_navlet(account, navlet, preferences)
-        return HttpResponse(status=200)
+        return render(request, 'ipdevinfo/frag_added_to_dashboard.html')
 
     return HttpResponse(status=400)
 

@@ -23,6 +23,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django_htmx.http import (
     HttpResponseClientRedirect,
@@ -31,8 +32,8 @@ from django_htmx.http import (
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
+from nav.metrics.data import get_metric_data
 from nav.metrics.errors import GraphiteUnreachableError
-from nav.metrics.graphs import get_simple_graph_url
 from nav.web.auth.utils import get_account
 from nav.web.modals import render_modal
 
@@ -918,9 +919,6 @@ def sensor_details(request, identifier):
         request,
         'ipdevinfo/sensor-details.html',
         {
-            'data_url': get_simple_graph_url(
-                sensor.get_metric_name(), time_frame='10minutes', format='json'
-            ),
             'sensor': sensor,
             'navpath': navpath,
             'heading': heading,
@@ -930,8 +928,56 @@ def sensor_details(request, identifier):
             'graphite_data_url': Graph(
                 magic_targets=[sensor.get_metric_name()], format='json'
             ),
+            'fetch_error_html': render_to_string('ipdevinfo/_fetch_error.html'),
         },
     )
+
+
+def sensor_on_off_state(request, identifier):
+    """Renders an htmx fragment with the current on/off state of a sensor.
+
+    Fetches the most recent non-null Graphite datapoint for the sensor's
+    metric within the last 10 minutes and compares it to the sensor's
+    configured `on_state`.  Renders the appropriate alert-box, or a
+    "no recent data" message if Graphite has nothing fresh for this
+    sensor.
+
+    Lets `GraphiteUnreachableError` propagate; htmx swaps the placeholder
+    to "Error fetching data" via `hx-on::response-error` on a 5xx, which
+    is the truthful UX when Graphite is genuinely down (as opposed to a
+    sensor that exists but has no recent readings).
+    """
+    sensor = get_object_or_404(Sensor, pk=identifier)
+    value = _latest_metric_value(sensor.get_metric_name())
+    if value is None:
+        state = None
+    elif value == sensor.on_state:
+        state = "on"
+    else:
+        state = "off"
+    return render(
+        request,
+        "ipdevinfo/frag_sensor_on_off.html",
+        {"sensor": sensor, "state": state},
+    )
+
+
+def _latest_metric_value(metric_name):
+    """Returns the most recent non-null value for a metric, or None.
+
+    Returns None when Graphite has no data for the metric within the
+    queried window, or when every datapoint in the window is null.
+    Does not catch `GraphiteUnreachableError` — that condition is
+    handled by the client's `hx-on::response-error` swap.
+    """
+    data = get_metric_data(metric_name, start="-10min")
+    if not data:
+        return None
+    datapoints = data[0].get("datapoints", [])
+    for value, _timestamp in reversed(datapoints):
+        if value is not None:
+            return value
+    return None
 
 
 def save_port_layout_pref(request):

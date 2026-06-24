@@ -93,16 +93,13 @@
     <div class="large-6 column">
         {% if sensor.unit_of_measurement == 'boolean' %}
           <h4>Display values</h4>
-          <div class="sensor"
-               data-url="{{ data_url }}"
-               data-on-state="{{ sensor.on_state }}"/>
-          <div class="on alert-box with-icon {{ sensor.alert_type_class }} hidden">{{ sensor.on_message }}</div>
-          <div class="off alert-box with-icon success hidden">{{ sensor.off_message }}</div>
-          <button id="add-to-dashboard-button"
-                  class="tiny secondary"
-                  data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
-            Add to dashboard
-          </button>
+          <span hx-get="{% url 'sensor-on-off-state' sensor.pk %}"
+                hx-trigger="load"
+                hx-swap="outerHTML"
+                hx-on::send-error="this.outerHTML='{{ fetch_error_html|escapejs }}'"
+                hx-on::response-error="this.outerHTML='{{ fetch_error_html|escapejs }}'"
+          ><i class="fa fa-spinner fa-spin"></i> Fetching...</span>
+          {% include 'ipdevinfo/_add_to_dashboard_button.html' %}
           {% include 'custom_crispy_templates/flat_form.html' %}
         {% else %}
           <h4>Gauge display ranges</h4>
@@ -117,11 +114,7 @@
                  data-min="{{sensor.get_display_range.0}}"
                  data-max="{{sensor.get_display_range.1}}"
             ></div>
-            <button id="add-to-dashboard-button"
-                    class="tiny secondary"
-                    data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
-              Add to dashboard
-            </button>
+            {% include 'ipdevinfo/_add_to_dashboard_button.html' %}
           </div>
           {% include 'custom_crispy_templates/flat_form.html' %}
         {% endif %}

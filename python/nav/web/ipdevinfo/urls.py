@@ -106,6 +106,11 @@ urlpatterns = [
         name="ipdevinfo-hostinfo",
     ),
     # Sensors
+    path(
+        'sensor/<int:identifier>/state/',
+        views.sensor_on_off_state,
+        name="sensor-on-off-state",
+    ),
     re_path(r'sensor/(?P<identifier>.+)', views.sensor_details, name="sensor-details"),
     re_path(
         r'^(?P<netboxid>\d+)/unrecognized_neighbors',
