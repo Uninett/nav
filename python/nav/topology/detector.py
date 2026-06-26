@@ -35,6 +35,7 @@ from nav.topology.analyze import (
     build_candidate_graph_from_db,
     get_aggregate_mapping,
 )
+from nav.topology.stats import ReducerStats
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 from nav.models.manage import Vlan, Prefix
@@ -118,12 +119,15 @@ def with_exception_logging(func):
 @with_exception_logging
 def do_layer2_detection():
     """Detect and update layer 2 topology"""
-    candidates = build_candidate_graph_from_db()
+    stats = ReducerStats()
+    with stats.time_phase("load"):
+        candidates = build_candidate_graph_from_db(stats=stats)
     aggregates = get_aggregate_mapping(include_stacks=True)
-    reducer = AdjacencyReducer(candidates, aggregates)
+    reducer = AdjacencyReducer(candidates, aggregates, stats=stats)
     reducer.reduce()
     links = reducer.get_single_edges_from_ports()
-    update_layer2_topology(links)
+    update_layer2_topology(links, stats=stats)
+    _logger.info("%s", stats.summary_line())
 
 
 @with_exception_logging

@@ -44,6 +44,7 @@ import logging
 
 import networkx as nx
 from nav.models.manage import AdjacencyCandidate, InterfaceAggregate, InterfaceStack
+from nav.topology.stats import NullStats
 
 _logger = logging.getLogger(__name__)
 
@@ -77,9 +78,10 @@ class Port(tuple):
 class AdjacencyAnalyzer(object):
     """Adjacency candidate graph analyzer and manipulator"""
 
-    def __init__(self, graph, aggregates=None):
+    def __init__(self, graph, aggregates=None, stats=None):
         self.graph = graph
         self.aggregates = aggregates or {}
+        self.stats = stats if stats is not None else NullStats()
 
     def get_max_out_degree(self):
         """Returns the port node with the highest outgoing degree"""
@@ -164,10 +166,14 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
         """
         self.result = nx.DiGraph(name="network adjacency candidates")
-        self._reduce_discovery_protocol(LLDP)
-        self._reduce_discovery_protocol(CDP)
-        self._remove_aggregates()
-        self._reduce_cam()
+        with self.stats.time_phase("reduce.lldp"):
+            self._reduce_discovery_protocol(LLDP)
+        with self.stats.time_phase("reduce.cdp"):
+            self._reduce_discovery_protocol(CDP)
+        with self.stats.time_phase("reduce.aggregates"):
+            self._remove_aggregates()
+        with self.stats.time_phase("reduce.cam"):
+            self._reduce_cam()
         self.graph = self.result
 
     def _reduce_cam(self):
@@ -186,6 +192,13 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         """
         max_degree = self.get_max_out_degree()
         _logger.debug("Analyzing graph with max degree %d", max_degree)
+
+        for port_degree, _port in self.get_ports_and_degree():
+            if port_degree < 1:
+                continue
+            bucket = self.stats.cam_degree_bucket(port_degree)
+            self.stats.cam_by_degree[bucket] += 1
+
         degree = 1
 
         while degree <= max_degree:
@@ -199,6 +212,9 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             if not self._visit_unvisited(unvisited):
                 degree += 1
                 continue
+        self.stats.cam["unresolved_remaining"] += sum(
+            1 for n in self.graph.nodes() if isinstance(n, Port)
+        )
         self.result.add_edges_from(self.get_single_edges_from_ports())
 
     def _remove_aggregates(self):
@@ -219,8 +235,10 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     ', '.join(str(s) for s in self.aggregates[port]),
                 )
             self.graph.remove_nodes_from(removeable)
+            self.stats.aggregates["removed"] += len(removeable)
 
     def _reduce_discovery_protocol(self, sourcetype):
+        bucket = getattr(self.stats, sourcetype)
         done = False
         while not done:
             done = True
@@ -231,12 +249,14 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     or proto != sourcetype
                 ):
                     continue
+                bucket["edges_seen"] += 1
                 if source == dest:
                     _logger.info("Ignoring apparent %s self-loop on %s", proto, source)
+                    bucket["self_loops"] += 1
                     self.graph.remove_edge(source, dest, proto)
                     continue
                 if self.graph.has_edge(dest, source, proto):
-                    _logger.debug("Found connection from %s to %s", source, dest)
+                    self.stats.record_resolution(sourcetype, source, dest)
                     self.result.add_edge(source, dest)
                     self.result.add_edge(dest, source)
                     self.graph.remove_node(source)
@@ -247,6 +267,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     _logger.debug(
                         "Removing unmatched %s connection %s -> %s", proto, source, dest
                     )
+                    bucket["unmatched_dropped"] += 1
                     self.graph.remove_edge(source, dest, proto)
 
     def _visit_unvisited(self, unvisited):
@@ -257,21 +278,17 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     _logger.warning(
                         "A possible self-loop was found: %r", (source, dest)
                     )
+                    self.stats.cam["self_loops"] += 1
                     self.graph.remove_edge(source, dest)
                     continue
 
                 if self._is_single_dataless_destination(source, dest):
-                    self.connect_ports(source, dest)
+                    self.connect_ports(source, dest, source_tag='cam-dataless')
                     return True
 
                 remote_port = self.find_return_port(source, dest)
                 if remote_port:
-                    _logger.debug(
-                        "Found connection %s -> %s because of good return path",
-                        source,
-                        remote_port,
-                    )
-                    self.connect_ports(source, remote_port)
+                    self.connect_ports(source, remote_port, source_tag='cam-return')
                     return True
             _logger.debug("Found no connection for %s", port)
         return False
@@ -284,22 +301,17 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             return False
         distinct_edges = set(self.graph.edges(source))
         if len(distinct_edges) == 1:
-            _logger.debug(
-                "No data from %s, trusting single distinct candidate from %s",
-                dest,
-                source,
-            )
             return True
         else:
             return False
 
-    def connect_ports(self, i, j):
-        """Add connection between a and b to result.
+    def connect_ports(self, i, j, *, source_tag):
+        """Add connection between i and j to result.
 
-        If a or b are of type Port they are removed from the input
-        graph, as they are now completely processed
-
+        If i or j are of type Port they are removed from the input
+        graph, as they are now completely processed.
         """
+        self.stats.record_resolution(source_tag, i, j)
         if isinstance(i, Port):
             self.graph.remove_node(i)
         if isinstance(j, Port):
@@ -312,20 +324,25 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 # Graph builder functions
 
 
-def build_candidate_graph_from_db():
+def build_candidate_graph_from_db(stats=None):
     """Builds and returns a DiGraph conforming to the requirements of an
     AdjacencyAnalyzer, based on data found in the adjacency_candidate database
     table.
 
     """
+    stats = stats or NullStats()
     acs = AdjacencyCandidate.objects.select_related(
         'netbox', 'interface', 'to_netbox', 'to_interface'
     )
 
     graph = nx.MultiDiGraph(name="network adjacency candidates")
+    netboxes_seen = set()
+    ports_seen = set()
 
     for cand in acs:
+        stats.load["candidates"] += 1
         if not cand.interface.is_admin_up():
+            stats.load["filtered_admin_down"] += 1
             continue  # ignore data from disabled interfaces
         if cand.to_interface:
             dest_node = interface_to_port(cand.to_interface)
@@ -337,8 +354,14 @@ def build_candidate_graph_from_db():
         netbox = Box(cand.netbox.id)
         netbox.name = cand.netbox.sysname
 
+        netboxes_seen.add(int(netbox))
+        ports_seen.add(tuple(port))
+
         graph.add_edge(port, dest_node, cand.source)
         graph.add_edge(netbox, port)
+
+    stats.load["netboxes"] = len(netboxes_seen)
+    stats.load["ports"] = len(ports_seen)
 
     return graph
 
