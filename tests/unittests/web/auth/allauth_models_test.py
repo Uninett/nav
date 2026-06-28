@@ -36,14 +36,14 @@ class TestMFAConfig:
         mfa = MFAConfig(enabled=True)
         assert mfa.get_MFA_SUPPORTED_TYPES_setting() == ["totp", "recovery_codes"]
 
-    def test_when_enabled_with_passkeys_then_supported_types_should_include_passkeys(  # noqa: E501
+    def test_when_enabled_with_passkeys_then_supported_types_should_include_webauthn(  # noqa: E501
         self,
     ):
         mfa = MFAConfig(enabled=True, support_passkeys=True)
         assert mfa.get_MFA_SUPPORTED_TYPES_setting() == [
             "totp",
             "recovery_codes",
-            "passkeys",
+            "webauthn",
         ]
 
     def test_when_enabled_without_recovery_codes_then_supported_types_should_exclude_them(  # noqa: E501
