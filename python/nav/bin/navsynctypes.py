@@ -28,6 +28,7 @@ bootstrap_django("synctypes")
 from nav.models.manage import NetboxType
 
 
+# Param is string
 VENDOR_INSERT_SQL_TEMPLATE = """
 INSERT INTO vendor
 (SELECT {vendorid} AS vendorid
@@ -37,6 +38,8 @@ INSERT INTO vendor
 );
 """
 
+
+# All params are strings
 TYPE_UPSERT_SQL_TEMPLATE = """
 INSERT INTO "type" (vendorid, typename, sysobjectid, descr)
 VALUES (
@@ -95,7 +98,7 @@ def print_type(typ: NetboxType):
 
 def escape(v):
     """Escape a value before entering it in to the db"""
-    return nav.db.escape(str(v)) if v is not None else "NULL"
+    return nav.db.escape_literal(str(v)) if v is not None else "NULL"
 
 
 def parse_args():
