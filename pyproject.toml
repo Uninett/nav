@@ -71,6 +71,7 @@ ldap = ["python-ldap==3.4.5"]  # optional for LDAP authentication, requires libl
 [dependency-groups]
 dev = [
     "isort",
+    "pip",  # PyCharm's package inspector needs `pip` in the venv to detect deps
     "ruff",
     "towncrier",
     "pre-commit",
