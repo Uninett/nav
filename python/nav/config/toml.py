@@ -62,6 +62,13 @@ class TOMLConfigParser(UserDict):
         elif config_file:
             self._read(config_file)
 
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
     def read_file(self, fp):
         config = tomllib.load(fp)
         self._merge_with_default(config)
