@@ -36,6 +36,7 @@ import logging
 from typing import Awaitable, Iterator
 
 from pynetsnmp.netsnmp import SnmpTimeoutError
+from pynetsnmp.twistedsnmp import SnmpError
 from twisted.internet import defer, reactor
 from twisted.internet.error import TimeoutError
 from twisted.python.failure import Failure
@@ -656,17 +657,20 @@ class MultiMibMixIn(MibRetriever):
         return integrator(results)
 
     def __timeout_handler(self, failure, descr):
-        """Handles timeouts while processing alternate MIB instances.
+        """Handles errors while processing alternate MIB instances.
 
         Under the premise that we may have an incorrect community string for a
         MIB instance, we don't want to derail the entire process of collecting
-        from all instances, so we ignore timeouts for anything but the primary
-        (base) instance.
+        from all instances, so we ignore timeouts and access errors (such as a
+        device rejecting a community-indexed query with noAccess) for anything
+        but the primary (base) instance.
 
         """
         if self.agent_proxy is not self._base_agent:
-            failure.trap(TimeoutError, defer.TimeoutError)
-            self._logger.debug("ignoring timeout from %r", descr)
+            failure.trap(TimeoutError, defer.TimeoutError, SnmpError)
+            self._logger.debug(
+                "ignoring error from %r: %s", descr, failure.getErrorMessage()
+            )
             return None
         return failure
 
