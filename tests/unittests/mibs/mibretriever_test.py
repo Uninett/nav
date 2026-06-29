@@ -17,9 +17,18 @@
 
 from unittest.mock import Mock
 
+from pynetsnmp.twistedsnmp import SnmpError
+from twisted.internet.error import TimeoutError
+from twisted.python.failure import Failure
+
 from nav.ipdevpoll.snmp.common import SNMPParameters
 from nav.mibs.mibretriever import MultiMibMixIn
 from nav.mibs.types import LogicalMibInstance
+
+
+def _make_failure(exception):
+    """Wraps an exception in a Twisted Failure."""
+    return Failure(exception)
 
 
 class TestMultiMibMixInGetAlternateAgent:
@@ -110,3 +119,42 @@ class TestMultiMibMixInGetAlternateAgent:
         alt_agent = mixin._get_alternate_agent(instance)
 
         assert alt_agent.protocol is agent.protocol
+
+
+class TestMultiMibMixInTimeoutHandler:
+    """Tests for MultiMibMixIn.__timeout_handler()"""
+
+    def _make_mixin(self):
+        agent = Mock()
+        agent.community = "public"
+        agent.ip = "10.0.0.1"
+        agent.port = 161
+        agent.snmp_parameters = SNMPParameters(version=2, community="public")
+        return MultiMibMixIn(agent, [])
+
+    def _handle(self, mixin, failure, descr="vlan100"):
+        # __timeout_handler is name-mangled
+        return mixin._MultiMibMixIn__timeout_handler(failure, descr)
+
+    def test_when_alternate_instance_returns_snmp_error_then_it_should_be_ignored(self):
+        mixin = self._make_mixin()
+        mixin.agent_proxy = Mock()  # any non-base agent
+        failure = _make_failure(
+            SnmpError("Packet for 10.0.0.1 has error: Permission denied")
+        )
+
+        assert self._handle(mixin, failure) is None
+
+    def test_when_alternate_instance_times_out_then_it_should_be_ignored(self):
+        mixin = self._make_mixin()
+        mixin.agent_proxy = Mock()  # any non-base agent
+        failure = _make_failure(TimeoutError("timed out"))
+
+        assert self._handle(mixin, failure) is None
+
+    def test_when_base_instance_returns_snmp_error_then_it_should_propagate(self):
+        mixin = self._make_mixin()
+        # agent_proxy is left as the base agent
+        failure = _make_failure(SnmpError("Packet for 10.0.0.1 has error: genErr"))
+
+        assert self._handle(mixin, failure, descr=None) is failure
