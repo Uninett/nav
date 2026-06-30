@@ -17,7 +17,7 @@ def update_title(request):
         try:
             image = Image.objects.get(pk=imageid)
         except Image.DoesNotExist:
-            return HttpResponse(status=500)
+            return HttpResponse(status=404)
         else:
             image.title = title
             image.save()
@@ -35,7 +35,8 @@ def delete_image(request):
         try:
             image = Image.objects.get(pk=imageid)
         except Image.DoesNotExist:
-            return HttpResponse(status=500)
+            # Already gone; deletion is idempotent, treat as success
+            return HttpResponse(status=200)
         else:
             filepath = image.fullpath
             try:
@@ -67,7 +68,10 @@ def update_priority(request):
     if request.method == 'POST':
         for key, value in request.POST.items():
             _logger.debug('%s=%s', key, value)
-            image = Image.objects.get(pk=key)
+            try:
+                image = Image.objects.get(pk=key)
+            except Image.DoesNotExist:
+                return HttpResponse(status=404)
             image.priority = value
             image.save()
 
