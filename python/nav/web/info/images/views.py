@@ -73,10 +73,15 @@ def update_priority(request):
         for key, value in request.POST.items():
             _logger.debug('%s=%s', key, value)
             try:
-                image = Image.objects.get(pk=key)
+                imageid = int(key)
+                priority = int(value)
+            except ValueError:
+                return HttpResponse(status=400)
+            try:
+                image = Image.objects.get(pk=imageid)
             except Image.DoesNotExist:
                 return HttpResponse(status=404)
-            image.priority = value
+            image.priority = priority
             image.save()
 
     return HttpResponse(status=200)
