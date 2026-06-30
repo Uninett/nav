@@ -37,6 +37,7 @@ def delete_image(request):
             image = Image.objects.get(pk=imageid)
         except Image.DoesNotExist:
             # Already gone; deletion is idempotent, treat as success
+            messages.info(request, 'Image was already deleted')
             return HttpResponse(status=200)
         else:
             filepath = image.fullpath
@@ -48,10 +49,6 @@ def delete_image(request):
                 if error.errno != errno.ENOENT:
                     _logger.error('Could not delete image file %s: %s', filepath, error)
                     return HttpResponse(status=500)
-            else:
-                messages.success(
-                    request, 'Image &laquo;%s&raquo; deleted' % image.title
-                )
 
             try:
                 os.unlink(image.thumbpath)
@@ -61,6 +58,7 @@ def delete_image(request):
 
             # Fetch all image instances that uses this image and delete them
             Image.objects.filter(path=image.path, name=image.name).delete()
+            messages.success(request, 'Image &laquo;%s&raquo; deleted' % image.title)
 
     return HttpResponse(status=200)
 
