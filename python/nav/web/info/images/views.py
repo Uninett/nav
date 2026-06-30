@@ -13,7 +13,9 @@ _logger = logging.getLogger('nav.web.info.image')
 def update_title(request):
     """Update the title for a room image"""
     if request.method == 'POST':
-        imageid = int(request.POST['id'])
+        imageid = _posted_image_id(request)
+        if imageid is None:
+            return HttpResponse(status=400)
         title = request.POST.get('title', '')
         try:
             image = Image.objects.get(pk=imageid)
@@ -29,7 +31,9 @@ def update_title(request):
 def delete_image(request):
     """Delete an image from a room"""
     if request.method == 'POST':
-        imageid = int(request.POST['id'])
+        imageid = _posted_image_id(request)
+        if imageid is None:
+            return HttpResponse(status=400)
 
         _logger.debug('Deleting image %s', imageid)
 
@@ -76,3 +80,11 @@ def update_priority(request):
             image.save()
 
     return HttpResponse(status=200)
+
+
+def _posted_image_id(request):
+    """Return the posted image id as an int, or None if missing or malformed"""
+    try:
+        return int(request.POST['id'])
+    except (KeyError, ValueError):
+        return None
