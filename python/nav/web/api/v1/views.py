@@ -155,6 +155,7 @@ def get_endpoints(request=None, version=1):
         'arp': reverse_lazy('{}arp-list'.format(prefix), **kwargs),
         'cabling': reverse_lazy('{}cabling-list'.format(prefix), **kwargs),
         'cam': reverse_lazy('{}cam-list'.format(prefix), **kwargs),
+        'gwportprefix': reverse_lazy('{}gwportprefix-list'.format(prefix), **kwargs),
         'interface': reverse_lazy('{}interface-list'.format(prefix), **kwargs),
         'location': reverse_lazy('{}location-list'.format(prefix), **kwargs),
         'organization': reverse_lazy('{}organization-list'.format(prefix), **kwargs),
@@ -434,6 +435,25 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.UnrecognizedNeighborSerializer
     filterset_fields = ('netbox', 'source')
     search_fields = ('remote_name',)
+
+
+class GwPortPrefixViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all gateway port prefixes.
+
+    Filters
+    -------
+    - interface
+    - interface__netbox
+    - prefix
+    - virtual
+    """
+
+    queryset = manage.GwPortPrefix.objects.all()
+    serializer_class = serializers.GwPortPrefixSerializer
+    filterset_fields = ('interface', 'interface__netbox', 'prefix', 'virtual')
+    lookup_field = 'gw_ip'
+    lookup_value_regex = '[^/]+(?:/[^/]+)?'
+    ordering = ('gw_ip',)
 
 
 class ManagementProfileViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):

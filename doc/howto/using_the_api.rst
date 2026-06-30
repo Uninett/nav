@@ -113,6 +113,7 @@ The available endpoints is listed if you go to the root of the api -
 - "auditlog": "http://<host>/api/auditlog/"
 - "cabling": "http://<host>/api/cabling/"
 - "cam": "http://<host>/api/cam/"
+- "gwportprefix": "http://<host>/api/gwportprefix/"
 - "interface": "http://<host>/api/interface/"
 - "jwt_refresh": "http://<host>/api/jwt-refresh"
 - "location": "http://<host>/api/location/"
