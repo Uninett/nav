@@ -1,3 +1,4 @@
+import errno
 import logging
 import os
 
@@ -43,8 +44,9 @@ def delete_image(request):
                 _logger.debug('Deleting file %s', filepath)
                 os.unlink(filepath)
             except OSError as error:
-                # If the file is not found, then this is ok, otherwise not ok
-                if error.errno != 2:
+                # A missing file is fine; any other error is a real problem
+                if error.errno != errno.ENOENT:
+                    _logger.error('Could not delete image file %s: %s', filepath, error)
                     return HttpResponse(status=500)
             else:
                 messages.success(
