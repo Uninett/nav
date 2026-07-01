@@ -188,11 +188,25 @@ def getConnection(scriptName, database='nav'):
             _connection_cache.cache(conn_object)
         except nav.CacheError:
             # Another thread won the race and cached its connection between our
-            # cache miss and this insert. ObjectCache already closed our now
-            # redundant connection, so reuse the winner's cached one.
-            connection = _connection_cache[cache_key].object
+            # cache miss and this insert. Close our now-redundant connection and
+            # reuse the winner's cached one instead of failing the request.
+            _close_ignoring_errors(connection)
+            winner = _connection_cache.get(cache_key)
+            if winner is None:
+                # The winner was invalidated and evicted before we could read
+                # it; start over so we open (and cache) a fresh connection.
+                return getConnection(scriptName, database)
+            connection = winner.object
 
     return connection
+
+
+def _close_ignoring_errors(connection):
+    """Closes a database connection, suppressing any error from doing so."""
+    try:
+        connection.close()
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def closeConnections():

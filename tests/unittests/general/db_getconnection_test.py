@@ -17,6 +17,7 @@
 
 from unittest.mock import MagicMock, patch
 
+import nav
 from nav import db, ObjectCache
 from nav.db import ConnectionObject
 
@@ -66,3 +67,44 @@ class TestGetConnectionRace:
         assert result is conn
         assert cache[CACHE_KEY].object is conn
         conn.close.assert_not_called()
+
+    def test_when_winner_is_evicted_before_reuse_then_a_fresh_connection_opens(self):
+        """If the winning entry is invalidated and evicted between our failed
+        insert and the reuse lookup, getConnection must retry and open a fresh
+        connection rather than crash on the missing cache entry.
+        """
+
+        class FlakyCache(ObjectCache):
+            """Fails the first insert (as if a racing thread held the key) but
+            reports the key as already gone, forcing getConnection to retry.
+            """
+
+            def __init__(self):
+                super().__init__()
+                self._first_insert = True
+
+            def cache(self, item):
+                if self._first_insert:
+                    self._first_insert = False
+                    raise nav.CacheError("simulated race")
+                super().cache(item)
+
+            def get(self, key, default=None):
+                # The winner was evicted before we could read it.
+                return None
+
+        cache = FlakyCache()
+        loser = MagicMock(name='loser')
+        fresh = MagicMock(name='fresh')
+        conns = [loser, fresh]
+
+        with (
+            patch.object(db, '_connection_cache', cache),
+            patch.object(db, 'get_connection_parameters', return_value=PARAMS),
+            patch.object(db.psycopg2, 'connect', side_effect=lambda _dsn: conns.pop(0)),
+        ):
+            result = db.getConnection('default')
+
+        assert result is fresh, "Should retry and return a freshly opened connection"
+        loser.close.assert_called_once()
+        assert cache[CACHE_KEY].object is fresh

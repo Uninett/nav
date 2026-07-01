@@ -39,13 +39,11 @@ class ObjectCache(dict):
     def __setitem__(self, key, item):
         with self._lock:
             if key in self:
-                # Object already cached - this shouldn't happen with proper locking,
-                # but if it does, close the new connection to prevent leaks
-                if hasattr(item, 'object') and hasattr(item.object, 'close'):
-                    try:
-                        item.object.close()
-                    except Exception:  # noqa: BLE001
-                        pass
+                # A duplicate insert means the caller lost a race to another
+                # thread. Disposing of the redundant object (e.g. closing a
+                # database connection) is the caller's responsibility, not the
+                # cache's -- this keeps ObjectCache free of any knowledge about
+                # what it stores.
                 raise CacheError(
                     "An object keyed %r is already stored in the cache" % (key,)
                 )
@@ -58,6 +56,13 @@ class ObjectCache(dict):
             self[key].cache = None
             super(ObjectCache, self).__delitem__(key)
 
+    def clear(self):
+        """Removes all objects from the cache in a thread-safe manner."""
+        with self._lock:
+            for item in list(self.values()):
+                item.cache = None
+            super(ObjectCache, self).clear()
+
     def cache(self, item):
         """Caches the item, which should be a CacheableObject instance"""
         with self._lock:
@@ -68,25 +73,39 @@ class ObjectCache(dict):
         number of objects removed.
 
         """
+        # is_invalid() may perform network I/O (a database ping), so evaluate it
+        # on a snapshot taken outside the lock; only the actual mutations are
+        # locked, to avoid serializing every caller behind a slow ping.
         with self._lock:
-            count = 0
-            for key in list(self.keys()):
-                if self[key].is_invalid():
-                    del self[key]
-                    count += 1
-            return count
+            items = list(self.items())
+
+        count = 0
+        for key, item in items:
+            if item.is_invalid():
+                with self._lock:
+                    # The entry may have been removed or replaced while we were
+                    # unlocked; only delete it if it is still the same object.
+                    if self.get(key) is item:
+                        super(ObjectCache, self).__delitem__(key)
+                        item.cache = None
+                        count += 1
+        return count
 
     def refresh(self):
         """Refreshes all invalid objects in the cache, and returns the
         number of objects refreshed.
 
         """
+        # Like invalidate(), refresh() may block on I/O per item, so it operates
+        # on a snapshot taken under the lock rather than holding it throughout.
         with self._lock:
-            count = 0
-            for key in self.keys():
-                if self[key].is_invalid() and self[key].refresh():
-                    count += 1
-            return count
+            items = list(self.values())
+
+        count = 0
+        for item in items:
+            if item.is_invalid() and item.refresh():
+                count += 1
+        return count
 
 
 class CacheableObject(object):

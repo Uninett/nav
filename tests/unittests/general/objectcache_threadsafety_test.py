@@ -73,8 +73,11 @@ class ObjectCacheThreadSafetyTest(TestCase):
             cached_obj.object.closed, "Cached connection should remain open"
         )
 
-    def test_when_duplicate_key_inserted_then_new_connection_is_closed(self):
-        """Test that duplicate connections are closed to prevent leaks"""
+    def test_when_duplicate_key_inserted_then_cache_error_is_raised(self):
+        """A duplicate insert must raise CacheError and leave the cache and the
+        stored objects untouched. Disposing of the redundant object is the
+        caller's responsibility, not the cache's.
+        """
         key = ('test', 'key')
 
         # Cache first connection
@@ -91,9 +94,20 @@ class ObjectCacheThreadSafetyTest(TestCase):
         with self.assertRaises(CacheError):
             self.cache.cache(obj2)
 
-        # conn2 should be closed to prevent leak
-        self.assertTrue(
-            conn2.closed, "Duplicate connection should be closed to prevent leak"
-        )
-        # conn1 should still be open
+        # The cache must not touch either connection
+        self.assertFalse(conn2.closed, "Cache must not close the caller's object")
         self.assertFalse(conn1.closed, "Original cached connection should remain open")
+        self.assertIs(self.cache[key], obj1, "Winning object should remain cached")
+
+    def test_when_cleared_then_cache_is_emptied_and_items_uncached(self):
+        """clear() must empty the cache and detach every stored object so no
+        stale back-reference to the cache lingers.
+        """
+        obj = CacheableObject(MockConnection("conn"))
+        obj.key = ('test', 'key')
+        self.cache.cache(obj)
+
+        self.cache.clear()
+
+        self.assertEqual(len(self.cache), 0, "Cache should be empty after clear()")
+        self.assertIsNone(obj.cache, "Cleared object should be detached from cache")
