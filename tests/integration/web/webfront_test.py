@@ -220,15 +220,14 @@ class TestDeleteDashboardView:
 
 
 def test_when_logging_in_it_should_change_the_session_id(
-    db, client, admin_username, admin_password
+    db, client, admin_username, admin_password, log_in
 ):
-    login_url = reverse('webfront-login')
     logout_url = reverse('webfront-logout')
     # log out first to compare before and after being logged in
     client.post(logout_url)
     assert client.session.session_key, "the initial session lacks an ID"
     session_id_pre_login = client.session.session_key
-    client.post(login_url, {'username': admin_username, 'password': admin_password})
+    log_in(client, admin_username, admin_password)
     session_id_post_login = client.session.session_key
     assert session_id_post_login != session_id_pre_login
 
@@ -260,7 +259,7 @@ def test_shows_password_issue_banner_on_own_password_issues(db, client):
 
 
 def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
-    db, admin_account
+    db, admin_account, log_in
 ):
     """
     If other users have insecure or old passwords a banner should be shown to admins
@@ -282,8 +281,7 @@ def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
 
     # login with a password only used for this test
     client_ = Client()
-    url = reverse('webfront-login')
-    client_.post(url, {'username': admin_account.login, 'password': new_password})
+    log_in(client_, admin_account.login, new_password)
 
     # test
     index_url = reverse('webfront-index')
