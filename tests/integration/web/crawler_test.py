@@ -170,11 +170,10 @@ class WebCrawler(object):
     def login(self):
         login_url = urljoin(self.base_url, LOGIN_URL)
         opener = build_opener(HTTPCookieProcessor())
-        login_url = urljoin(self.base_url, "/index/login/")
         login_response = opener.open(login_url)
         login_html = lxml.html.parse(login_response)
-        login_form = login_html.find("//form[@method='post'][@action='/index/login/']")
-        login_form.fields["username"] = self.username
+        login_form = login_html.find(f".//form[@method='post'][@action='{LOGIN_URL}']")
+        login_form.fields["login"] = self.username
         login_form.fields["password"] = self.password
         login_data = urlencode(login_form.form_values()).encode("utf-8")
         opener.open(login_form.action, login_data, TIMEOUT)
