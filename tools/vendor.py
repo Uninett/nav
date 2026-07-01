@@ -216,7 +216,7 @@ def cmd_list():
         print("an entry to OVERRIDES in tools/vendor.py if auto-resolution fails.")
 
 
-def cmd_check():
+def cmd_check(no_untracked=False):
     """Check for version mismatches, missing files, and untracked vendors."""
     _check_node_modules()
     problems = []
@@ -237,9 +237,10 @@ def cmd_check():
         elif actual != expected:
             problems.append(f"  {npm_name}: version mismatch ({actual} != {expected})")
 
-    for f in sorted(LIBS.glob("*.js")):
-        if f.name not in managed_files and VERSION_RE.search(f.name):
-            problems.append(f"  {f.name}: untracked")
+    if not no_untracked:
+        for f in sorted(LIBS.glob("*.js")):
+            if f.name not in managed_files and VERSION_RE.search(f.name):
+                problems.append(f"  {f.name}: untracked")
 
     if problems:
         print("Problems found:")
@@ -332,7 +333,14 @@ def build_parser():
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("list", help="List vendored libraries and their status")
-    sub.add_parser("check", help="Check for version mismatches and untracked files")
+    check = sub.add_parser(
+        "check", help="Check for version mismatches and untracked files"
+    )
+    check.add_argument(
+        "--no-untracked",
+        action="store_true",
+        help="Skip checking for untracked files in libs/",
+    )
     sub.add_parser("sync", help="Sync all vendored libraries from node_modules")
 
     update = sub.add_parser("update", help="Update a vendored package")
@@ -356,7 +364,7 @@ if __name__ == "__main__":
     if args.command == "list":
         cmd_list()
     elif args.command == "check":
-        cmd_check()
+        cmd_check(no_untracked=args.no_untracked)
     elif args.command == "sync":
         cmd_sync()
     elif args.command == "update":
