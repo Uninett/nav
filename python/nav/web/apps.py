@@ -22,6 +22,9 @@ class NAVWebAppConfig(AppConfig):
     verbose_name = 'NAV Main web frontend application'
 
     def ready(self):
+        # Connect the login-logging signal receivers in every deployment mode.
+        from nav.web.auth import signals  # noqa: F401
+
         if 'runserver' not in sys.argv:
             return
 
