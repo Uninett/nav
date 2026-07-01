@@ -184,7 +184,13 @@ def getConnection(scriptName, database='nav'):
         connection.set_isolation_level(1)
         connection.set_client_encoding('utf8')
         conn_object = ConnectionObject(connection, cache_key)
-        _connection_cache.cache(conn_object)
+        try:
+            _connection_cache.cache(conn_object)
+        except nav.CacheError:
+            # Another thread won the race and cached its connection between our
+            # cache miss and this insert. ObjectCache already closed our now
+            # redundant connection, so reuse the winner's cached one.
+            connection = _connection_cache[cache_key].object
 
     return connection
 
