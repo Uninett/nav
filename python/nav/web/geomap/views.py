@@ -19,8 +19,7 @@
 import logging
 from decimal import Decimal
 
-import psycopg2.extras
-
+from django.db import connection as db_connection
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
@@ -28,7 +27,6 @@ from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 
-import nav.db
 from nav.web.auth.utils import get_account
 
 from nav.web.geomap.conf import get_configuration
@@ -132,10 +130,6 @@ def data(request, variant):
     variant must be a variant name defined in the configuration file.
 
     """
-    connection = nav.db.getConnection('geomapserver', 'manage')
-    connection.set_isolation_level(1)
-    db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
     truthy = ['True', 'true', True]
     do_create_edges = request.GET.get('create_edges', True) in truthy
     do_fetch_data = request.GET.get('fetch_data', True) in truthy
@@ -166,17 +160,20 @@ def data(request, variant):
     else:
         time_interval = None
 
-    data = get_formatted_data(
-        variant,
-        db,
-        format_,
-        bounds,
-        viewport_size,
-        limit,
-        time_interval,
-        do_create_edges,
-        do_fetch_data,
-    )
+    # Django's connection, not the legacy nav.db cache: thread-local, no
+    # shared state across request threads.
+    with db_connection.cursor() as db:
+        data = get_formatted_data(
+            variant,
+            db,
+            format_,
+            bounds,
+            viewport_size,
+            limit,
+            time_interval,
+            do_create_edges,
+            do_fetch_data,
+        )
     response = HttpResponse(data)
     response['Content-Type'] = format_mime_type(format_)
     return response
