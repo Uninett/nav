@@ -16,8 +16,7 @@
 """Represents the meta information and result from a database query."""
 
 import psycopg2
-
-from nav import db
+from django.db import connection
 
 
 class DatabaseResult(object):
@@ -37,23 +36,21 @@ class DatabaseResult(object):
         self.error = ""
         self.hidden = []
 
-        connection = db.getConnection('default')
-        cursor = connection.cursor()
-
         self.sql, self.parameters = report_config.make_sql()
 
         # Make a dictionary of which columns to summarize
         self.sums = {sum_key: '' for sum_key in report_config.sum}
 
         try:
-            cursor.execute(self.sql, self.parameters or None)
-            self.result = cursor.fetchall()
+            with connection.cursor() as cursor:
+                cursor.execute(self.sql, self.parameters or None)
+                self.result = cursor.fetchall()
 
-            # A list of the column headers.
-            report_config.sql_select = [col.name for col in cursor.description]
+                # A list of the column headers.
+                report_config.sql_select = [col.name for col in cursor.description]
 
-            # Total count of the rows returned.
-            self.rowcount = len(self.result)
+                # Total count of the rows returned.
+                self.rowcount = len(self.result)
 
         except psycopg2.ProgrammingError as error:
             self.error = (

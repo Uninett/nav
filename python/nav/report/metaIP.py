@@ -17,7 +17,7 @@
 
 import re
 from IPy import IP
-from nav import db
+from django.db import connection
 
 
 class MetaIP:
@@ -77,9 +77,10 @@ class MetaIP:
                  WHERE family(netaddr) = %s"""
             % family
         )
-        cursor = db.getConnection('default', 'manage').cursor()
-        cursor.execute(sql)
-        rows = cursor.fetchall()
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
         result = {}
         for row in rows:
             result[IP(row[2])] = {

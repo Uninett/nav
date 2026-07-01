@@ -17,6 +17,7 @@
 Provides a common root package for the NAV python library.
 """
 
+import threading
 import time
 import warnings
 
@@ -31,43 +32,61 @@ class ObjectCache(dict):
 
     """
 
-    def __setitem__(self, key, item):
-        if key in self:
-            raise CacheError("An object keyed %r is already stored in the cache" % key)
+    def __init__(self):
+        super(ObjectCache, self).__init__()
+        self._lock = threading.RLock()
 
-        super(ObjectCache, self).__setitem__(key, item)
-        item.cache = self
+    def __setitem__(self, key, item):
+        with self._lock:
+            if key in self:
+                # Object already cached - this shouldn't happen with proper locking,
+                # but if it does, close the new connection to prevent leaks
+                if hasattr(item, 'object') and hasattr(item.object, 'close'):
+                    try:
+                        item.object.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+                raise CacheError(
+                    "An object keyed %r is already stored in the cache" % (key,)
+                )
+
+            super(ObjectCache, self).__setitem__(key, item)
+            item.cache = self
 
     def __delitem__(self, key):
-        self[key].cache = None
-        super(ObjectCache, self).__delitem__(key)
+        with self._lock:
+            self[key].cache = None
+            super(ObjectCache, self).__delitem__(key)
 
     def cache(self, item):
         """Caches the item, which should be a CacheableObject instance"""
-        self[item.key] = item
+        with self._lock:
+            self[item.key] = item
 
     def invalidate(self):
         """Removes all invalid objects from the cache, and returns the
         number of objects removed.
 
         """
-        count = 0
-        for key in list(self.keys()):
-            if self[key].is_invalid():
-                del self[key]
-                count += 1
-        return count
+        with self._lock:
+            count = 0
+            for key in list(self.keys()):
+                if self[key].is_invalid():
+                    del self[key]
+                    count += 1
+            return count
 
     def refresh(self):
         """Refreshes all invalid objects in the cache, and returns the
         number of objects refreshed.
 
         """
-        count = 0
-        for key in self.keys():
-            if self[key].is_invalid() and self[key].refresh():
-                count += 1
-        return count
+        with self._lock:
+            count = 0
+            for key in self.keys():
+                if self[key].is_invalid() and self[key].refresh():
+                    count += 1
+            return count
 
 
 class CacheableObject(object):

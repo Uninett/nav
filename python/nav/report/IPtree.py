@@ -17,7 +17,7 @@
 """Builds and represents IP nets in a tree structure."""
 
 from copy import deepcopy
-from nav import db
+from django.db import connection
 from nav.ip import IP
 from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 
@@ -101,9 +101,9 @@ def get_subnets(network, min_length=None):
           AND masklen(netaddr) < %s
     """
     args = (network.version(), str(network), min_length, max_length)
-    db_cursor = db.getConnection('default').cursor()
-    db_cursor.execute(sql.strip(), args)
-    db_result = db_cursor.fetchall()
+    with connection.cursor() as cursor:
+        cursor.execute(sql.strip(), args)
+        db_result = cursor.fetchall()
     return [IP(i[0]) for i in db_result]
 
 
