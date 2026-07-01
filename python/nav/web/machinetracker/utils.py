@@ -128,6 +128,28 @@ def ip_dict(rows):
     return result
 
 
+def collapse_overlapping(rows):
+    """Drops rows whose active period overlaps a newer kept row.
+
+    `rows` is the list of Arp result rows for a single (ip, mac) pair, already
+    ordered newest-first (by -start_time). Rows with disjoint time windows
+    (genuine connect/disconnect history) are preserved, while rows that overlap
+    an already-kept row are dropped.
+
+    NAV records one Arp row per collecting router by design, so a single
+    address served by several routers (e.g. an HSRP pair) shows up as multiple
+    overlapping rows. This collapses those into one for callers that opt in.
+    """
+    kept = []
+    for row in rows:
+        overlaps = any(
+            row.start_time < k.end_time and k.start_time < row.end_time for k in kept
+        )
+        if not overlaps:
+            kept.append(row)
+    return kept
+
+
 def process_ip_row(row, dns):
     """Processes an IP search result row"""
     if row.end_time > datetime.now():
