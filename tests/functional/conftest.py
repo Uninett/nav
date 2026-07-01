@@ -1,5 +1,3 @@
-from nav.django.defaults import NAV_LOGIN_URL as LOGIN_URL
-
 import pytest
 from django.contrib.staticfiles.handlers import StaticFilesHandler
 from django.test.testcases import LiveServerThread
@@ -47,9 +45,14 @@ def live_server():
 @pytest.fixture
 def authenticated_page(page: Page, live_server, admin_username, admin_password):
     """Fixture providing a Playwright page logged in as admin"""
-    page.goto(f"{live_server}{LOGIN_URL}")
-    page.locator("#id_username").fill(admin_username)
+    # Imported lazily: importing nav.django.settings at conftest module level
+    # would lock in Django's settings before the DB fixtures configure it.
+    from django.conf import settings
+    from django.shortcuts import resolve_url
+
+    page.goto(f"{live_server}{resolve_url(settings.LOGIN_URL)}")
+    page.locator("#id_login").fill(admin_username)
     page.locator("#id_password").fill(admin_password)
-    page.locator("#submit-id-submit").click()
+    page.get_by_role("button", name="Log in").click()
     page.wait_for_url(f"{live_server}/")
     yield page, live_server
