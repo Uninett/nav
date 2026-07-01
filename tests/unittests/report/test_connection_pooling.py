@@ -15,17 +15,16 @@
 #
 """Tests for Django connection pooling in report system"""
 
-import pytest
 import threading
 from unittest.mock import patch, MagicMock
 from django.db import connection
 
 from nav.report.dbresult import DatabaseResult
+from nav.report.generator import ReportConfig
 from nav.report.metaIP import MetaIP
 from nav.report.IPtree import get_subnets
 
 
-@pytest.mark.django_db
 class TestThreadSafetyWithDjangoConnections:
     """Verify concurrent report generation doesn't leak connections"""
 
@@ -44,12 +43,8 @@ class TestThreadSafetyWithDjangoConnections:
                     mock_cursor_instance.description = [MagicMock(name='col1')]
                     mock_cursor_instance.fetchall.return_value = []
 
-                    from nav.report.config import ReportConfig
-
                     config = ReportConfig()
                     config.make_sql = MagicMock(return_value=('SELECT 1', None))
-                    config.sum = []
-                    config.error = ''
 
                     DatabaseResult(config)
             except Exception as e:  # noqa: BLE001
