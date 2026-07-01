@@ -33,6 +33,12 @@ class LegacyCleanupMiddleware(MiddlewareMixin):
         """
         connections = (v.object for v in db._connection_cache.values())
         for conn in connections:
+            # A connection may have been closed without being evicted from the
+            # cache (e.g. by closeConnections()). Rolling back a closed
+            # connection raises InterfaceError, which would turn cleanup into an
+            # HTTP 500, so skip those.
+            if conn.closed:
+                continue
             conn.rollback()
 
         return response

@@ -190,12 +190,18 @@ def getConnection(scriptName, database='nav'):
 
 
 def closeConnections():
-    """Close all cached database connections"""
+    """Close all cached database connections and evict them from the cache.
+
+    Leaving closed connections in the cache is unsafe: code that iterates the
+    cache (e.g. LegacyCleanupMiddleware) may try to use them and fail with
+    InterfaceError.
+    """
     for connection in _connection_cache.values():
         try:
             connection.object.close()
         except psycopg2.InterfaceError:
             pass
+    _connection_cache.clear()
 
 
 def commit_all_connections():
