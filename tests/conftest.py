@@ -19,6 +19,14 @@ def pytest_configure(config):
 
     setup_test_environment()
 
+    # The test suite logs in on nearly every web test, which would otherwise
+    # trip allauth's default "30/m/ip" login throttle and cause spurious
+    # failures. Disable only the login rate limits; allauth merges this over its
+    # defaults, so every other throttle keeps its real value.
+    from django.conf import settings
+
+    settings.ACCOUNT_RATE_LIMITS = {"login": None, "login_failed": None}
+
     if platform.system() == 'Linux':
         # Install custom reactor for Twisted tests
         from nav.ipdevpoll.epollreactor2 import install
