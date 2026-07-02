@@ -18,9 +18,20 @@ Dependency changes
 
 .. IMPORTANT:: NAV 5.19 no longer supports Python versions older than *3.11*.
 
+These Python modules are new requirements:
+
+* :mod:`pydantic` (``>=2.0``)
+
 Python modules with changed version requirements:
 
-* :mod:`Django` (``>=5.2,<5.3``)
+* :mod:`Django` (``>=4.2,<4.3`` → ``>=5.2,<5.3``)
+* :mod:`PyOpenSSL` (``23.3.0`` → ``26.0.0``)
+* :mod:`Sphinx` (``7.4.7`` → ``9.0.4``)
+
+These Python modules are no longer required:
+
+* :mod:`pytz`
+* :mod:`tomli`
 
 CAM logging for hybrid switch ports
 -----------------------------------
@@ -42,6 +53,21 @@ topology system.  This is useful for locating both the unmanaged device itself
 and any end hosts behind it.
 
 See the ``[cam]`` section in :doc:`/reference/ipdevpoll` for full details.
+
+New REST API endpoints
+----------------------
+
+The REST API has gained the following endpoints:
+
+* ``api/gwportprefix/`` — read-only access to gateway port prefixes.
+* ``api/organization/`` — access to organizations.
+* ``api/maintenance/`` — listing, creating and deleting maintenance tasks.
+
+New navdashboard CLI tool
+-------------------------
+
+A new :program:`navdashboard` command line tool is available for listing,
+exporting and importing dashboards.
 
 NAV 5.18
 ========
