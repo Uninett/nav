@@ -184,18 +184,44 @@ def getConnection(scriptName, database='nav'):
         connection.set_isolation_level(1)
         connection.set_client_encoding('utf8')
         conn_object = ConnectionObject(connection, cache_key)
-        _connection_cache.cache(conn_object)
+        try:
+            _connection_cache.cache(conn_object)
+        except nav.CacheError:
+            # Another thread won the race and cached its connection between our
+            # cache miss and this insert. Close our now-redundant connection and
+            # reuse the winner's cached one instead of failing the request.
+            _close_ignoring_errors(connection)
+            winner = _connection_cache.get(cache_key)
+            if winner is None:
+                # The winner was invalidated and evicted before we could read
+                # it; start over so we open (and cache) a fresh connection.
+                return getConnection(scriptName, database)
+            connection = winner.object
 
     return connection
 
 
+def _close_ignoring_errors(connection):
+    """Closes a database connection, suppressing any error from doing so."""
+    try:
+        connection.close()
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def closeConnections():
-    """Close all cached database connections"""
+    """Close all cached database connections and evict them from the cache.
+
+    Leaving closed connections in the cache is unsafe: code that iterates the
+    cache (e.g. LegacyCleanupMiddleware) may try to use them and fail with
+    InterfaceError.
+    """
     for connection in _connection_cache.values():
         try:
             connection.object.close()
         except psycopg2.InterfaceError:
             pass
+    _connection_cache.clear()
 
 
 def commit_all_connections():

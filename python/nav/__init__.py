@@ -17,6 +17,7 @@
 Provides a common root package for the NAV python library.
 """
 
+import threading
 import time
 import warnings
 
@@ -31,31 +32,63 @@ class ObjectCache(dict):
 
     """
 
-    def __setitem__(self, key, item):
-        if key in self:
-            raise CacheError("An object keyed %r is already stored in the cache" % key)
+    def __init__(self):
+        super(ObjectCache, self).__init__()
+        self._lock = threading.RLock()
 
-        super(ObjectCache, self).__setitem__(key, item)
-        item.cache = self
+    def __setitem__(self, key, item):
+        with self._lock:
+            if key in self:
+                # A duplicate insert means the caller lost a race to another
+                # thread. Disposing of the redundant object (e.g. closing a
+                # database connection) is the caller's responsibility, not the
+                # cache's -- this keeps ObjectCache free of any knowledge about
+                # what it stores.
+                raise CacheError(
+                    "An object keyed %r is already stored in the cache" % (key,)
+                )
+
+            super(ObjectCache, self).__setitem__(key, item)
+            item.cache = self
 
     def __delitem__(self, key):
-        self[key].cache = None
-        super(ObjectCache, self).__delitem__(key)
+        with self._lock:
+            self[key].cache = None
+            super(ObjectCache, self).__delitem__(key)
+
+    def clear(self):
+        """Removes all objects from the cache in a thread-safe manner."""
+        with self._lock:
+            for item in list(self.values()):
+                item.cache = None
+            super(ObjectCache, self).clear()
 
     def cache(self, item):
         """Caches the item, which should be a CacheableObject instance"""
-        self[item.key] = item
+        with self._lock:
+            self[item.key] = item
 
     def invalidate(self):
         """Removes all invalid objects from the cache, and returns the
         number of objects removed.
 
         """
+        # is_invalid() may perform network I/O (a database ping), so evaluate it
+        # on a snapshot taken outside the lock; only the actual mutations are
+        # locked, to avoid serializing every caller behind a slow ping.
+        with self._lock:
+            items = list(self.items())
+
         count = 0
-        for key in list(self.keys()):
-            if self[key].is_invalid():
-                del self[key]
-                count += 1
+        for key, item in items:
+            if item.is_invalid():
+                with self._lock:
+                    # The entry may have been removed or replaced while we were
+                    # unlocked; only delete it if it is still the same object.
+                    if self.get(key) is item:
+                        super(ObjectCache, self).__delitem__(key)
+                        item.cache = None
+                        count += 1
         return count
 
     def refresh(self):
@@ -63,9 +96,14 @@ class ObjectCache(dict):
         number of objects refreshed.
 
         """
+        # Like invalidate(), refresh() may block on I/O per item, so it operates
+        # on a snapshot taken under the lock rather than holding it throughout.
+        with self._lock:
+            items = list(self.values())
+
         count = 0
-        for key in self.keys():
-            if self[key].is_invalid() and self[key].refresh():
+        for item in items:
+            if item.is_invalid() and item.refresh():
                 count += 1
         return count
 
