@@ -1,0 +1,24 @@
+{% comment %}
+IP addresses on this (router) interface; shown only when it has gwport prefixes.
+{% endcomment %}
+{% if port.gwport_prefixes.all %}
+  <table class="listtable">
+    <caption>Addresses</caption>
+    <thead>
+      <tr>
+        <th>IP</th>
+        <th>Prefix</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for gwprefix in port.gwport_prefixes.all %}
+        <tr>
+          <td>{{ gwprefix.gw_ip }}</td>
+          <td>
+            <a href="{% url 'prefix-details' gwprefix.prefix.id %}">{{ gwprefix.prefix.net_address }}</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

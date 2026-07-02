@@ -27,7 +27,7 @@ from itertools import count, groupby
 import logging
 import math
 import re
-from typing import Optional
+from typing import NamedTuple, Optional
 
 import IPy
 from django.conf import settings
@@ -2013,6 +2013,31 @@ class Cam(models.Model):
 ### Interfaces and related attributes
 
 
+# Relation between a parent interface and a member contained in it: bundled
+# into a link aggregate, stacked one layer below, or (on Juniper) both at once.
+LAG_RELATION = "lag"
+STACK_RELATION = "stack"
+BOTH_RELATION = "both"
+
+
+class TopologyTreeNode(NamedTuple):
+    """A node in an interface's layered aggregate/stack hierarchy.
+
+    ``is_current`` flags the interface the hierarchy was requested for (the "you
+    are here" row); ``relation`` is how the node is contained in its parent (a
+    ``*_RELATION`` constant, or None for a root).
+    """
+
+    interface: "Interface"
+    is_current: bool
+    relation: Optional[str]
+    members: list["TopologyTreeNode"]
+
+
+# Maps an interface pk to its contained members as (member, relation) pairs.
+TopologyMemberMap = dict[int, list[tuple["Interface", str]]]
+
+
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
 
@@ -2324,6 +2349,154 @@ class Interface(models.Model):
     def get_bundled_interfaces(self):
         """Returns the interfaces that are bundled on this interface"""
         return Interface.objects.filter(bundled__aggregator=self)
+
+    def get_layered_topology(self) -> list[TopologyTreeNode]:
+        """Returns the aggregate/stack hierarchy this interface belongs to.
+
+        The topology detector records each link on its source-of-truth
+        interface, which for a bundle is below the layer being viewed: an ``ae``
+        sits over logical units that stack over physical ports, and the neighbor
+        lands on the physical. So the aggregate (and any intermediate layer) has
+        no ``to_netbox`` of its own while the topology lives further down.
+
+        The hierarchy is returned as a list of root :class:`TopologyTreeNode`s
+        so the details page can render it from any layer; an interface with no
+        layering yields a single childless root, itself. Containment combines
+        both relations, since which one exposes each hop varies by vendor -- the
+        same walk the #4029 reducer relies on, without shared code.
+        """
+        cluster, members = self._walk_topology_graph()
+        contained = {child.pk for kids in members.values() for child, _ in kids}
+        roots = sorted(
+            (node for pk, node in cluster.items() if pk not in contained),
+            key=lambda iface: iface.ifindex,
+        )
+
+        shown = set()
+        tree = []
+        for root in roots:
+            if self._is_redundant_root(root, members, shown):
+                continue
+            tree.append(self._build_topology_node(root, None, members, shown))
+        return tree
+
+    def _walk_topology_graph(
+        self,
+    ) -> tuple[dict[int, "Interface"], TopologyMemberMap]:
+        """Returns ``(cluster, members)`` for the layered component of self.
+
+        Walks both relations in both directions to collect the connected
+        component. ``cluster`` maps pk to Interface; ``members`` maps pk to its
+        ``(member, relation)`` pairs, sorted by ifindex. Members are fetched once
+        here and reused when building the tree, not re-queried per node; the
+        cluster doubles as the cycle guard.
+        """
+        cluster = {self.pk: self}
+        members = {}
+        queue = [self]
+        while queue:
+            node = queue.pop()
+            node_members = sorted(
+                self._containment_members(node),
+                key=lambda pair: pair[0].ifindex,
+            )
+            members[node.pk] = node_members
+            contained = [member for member, _ in node_members]
+            for iface in contained + self._containment_aggregators(node):
+                if iface.pk not in cluster:
+                    cluster[iface.pk] = iface
+                    queue.append(iface)
+        return cluster, members
+
+    @staticmethod
+    def _containment_members(iface: "Interface") -> list[tuple["Interface", str]]:
+        """Returns ``(member, relation)`` pairs for interfaces below iface.
+
+        Merges bundled members (aggregate) and lower-layer interfaces (stack),
+        deduplicated, tagging each with how it was reached: ``LAG_RELATION``,
+        ``STACK_RELATION``, or ``BOTH_RELATION`` when both.
+        """
+        bundled = {member.pk: member for member in iface.get_bundled_interfaces()}
+        stacked = {member.pk: member for member in iface.below_me()}
+        members = []
+        for pk, member in {**bundled, **stacked}.items():
+            if pk in bundled and pk in stacked:
+                relation = BOTH_RELATION
+            elif pk in bundled:
+                relation = LAG_RELATION
+            else:
+                relation = STACK_RELATION
+            members.append((member, relation))
+        return members
+
+    @staticmethod
+    def _containment_aggregators(iface: "Interface") -> list["Interface"]:
+        """Returns the interfaces directly containing iface, deduplicated.
+
+        The inverse of :meth:`_containment_members`: whatever bundles iface or
+        is stacked above it.
+        """
+        parents = {}
+        aggregators = Interface.objects.filter(aggregators__interface=iface)
+        for parent in list(aggregators) + list(iface.above_me()):
+            parents.setdefault(parent.pk, parent)
+        return list(parents.values())
+
+    def _is_redundant_root(
+        self, root: "Interface", members: TopologyMemberMap, shown: set[int]
+    ) -> bool:
+        """True if root need not be drawn as a separate top of the hierarchy.
+
+        The graph is a DAG: an ``ae`` and its logical unit can both parent the
+        same members, so several parentless nodes would repeat whole subtrees. A
+        root is redundant when it carries no link and all its descendants were
+        already drawn -- except the viewed interface, which is never suppressed.
+        """
+        # to_netbox_id (not to_interface) is the "has a link" test: it is set
+        # for any resolved neighbor, including a device-only one with no port.
+        if root.pk == self.pk or root.to_netbox_id:
+            return False
+        descendants = self._descendant_pks(root, members, set())
+        return descendants <= shown
+
+    def _descendant_pks(
+        self, iface: "Interface", members: TopologyMemberMap, acc: set[int]
+    ) -> set[int]:
+        """Returns the pks of every interface below iface in the hierarchy."""
+        for member, _relation in members[iface.pk]:
+            if member.pk not in acc:
+                acc.add(member.pk)
+                self._descendant_pks(member, members, acc)
+        return acc
+
+    def _build_topology_node(
+        self,
+        iface: "Interface",
+        relation: Optional[str],
+        members: TopologyMemberMap,
+        shown: set[int],
+    ) -> TopologyTreeNode:
+        """Builds iface's TopologyTreeNode, recursing into its members.
+
+        Expands only on first visit; a node re-reached through the DAG becomes a
+        childless reference, avoiding repeated subtrees and guarding cycles.
+        """
+        expand = iface.pk not in shown
+        shown.add(iface.pk)
+        children = (
+            [
+                self._build_topology_node(member, member_relation, members, shown)
+                for member, member_relation in members[iface.pk]
+            ]
+            if expand
+            else []
+        )
+        return TopologyTreeNode(
+            interface=iface,
+            is_current=iface.pk == self.pk,
+            relation=relation,
+            members=children,
+        )
 
     def is_degraded(self):
         """

@@ -248,3 +248,92 @@ table.module td div.portcell span.oplayer {
         .htmx-indicator { display: inline; }
     }
 }
+
+/* Layered aggregate/stack hierarchy (the "Connections" tree on port details).
+ * Connectors are drawn from the nested <ul>/<li> with pseudo-element borders,
+ * no images. */
+$topology-line-color: #b3b3b3;
+$topology-muted-color: #888;
+$topology-indent: 1em;
+$topology-elbow-width: 0.7em;
+$topology-elbow-offset: 0.85em;
+
+.topology {
+    margin: 0;
+}
+
+.topology-tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding-left: $topology-indent;
+    }
+
+    /* Nested members only: positioning the root would paint it over the floated
+     * candidate-report link sharing its line and swallow the clicks. */
+    ul li {
+        position: relative;
+        padding-left: $topology-indent;
+        /* vertical line down the indent column, spanning the whole node */
+        &::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-left: 1px solid $topology-line-color;
+        }
+        /* elbow into the node label */
+        &::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: $topology-elbow-offset;
+            width: $topology-elbow-width;
+            border-top: 1px solid $topology-line-color;
+        }
+        /* last child: stop the vertical line at the elbow so it doesn't overrun */
+        &:last-child::before {
+            bottom: auto;
+            height: $topology-elbow-offset;
+        }
+        /* solid = bundled (LAG), dashed = layered (ifStack), dotted = both.
+         * Style only the drawn side; border-style would show the other
+         * (medium-width) borders as fat dashes. */
+        &.rel-stack {
+            &::before { border-left-style: dashed; }
+            &::after { border-top-style: dashed; }
+        }
+        &.rel-both {
+            &::before { border-left-style: dotted; }
+            &::after { border-top-style: dotted; }
+        }
+    }
+}
+
+/* The interface this page is for: a quiet bold + pin, not a loud fill. */
+.topology-current-interface {
+    font-weight: bold;
+}
+
+.topology-legend {
+    margin: 0.5em 0 0;
+    font-size: 0.85em;
+    color: $topology-muted-color;
+
+    .sample {
+        display: inline-block;
+        width: 1.6em;
+        vertical-align: middle;
+        border-top: 1px solid $topology-line-color;
+        margin: 0 0.2em 0 0.6em;
+
+        &.stack {
+            border-top-style: dashed;
+        }
+    }
+}

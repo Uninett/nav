@@ -1,0 +1,64 @@
+{% load report %}
+<table class="vertitable full-width">
+  <caption>Connections</caption>
+
+  <tr class="align-top">
+    <td colspan="2">
+      <a href="{% report 'topology_candidates' from_device=port.netbox.sysname from_interface=port.ifname %}"
+         title="Show the collected candidate neighbor information that was used to arrive at this value">
+          <i class="fa fa-external-link right"></i>
+      </a>
+      {% with tree=port.get_layered_topology %}
+        {# Always the tree, even for a lone interface (a single node); members #}
+        {# may resolve to different devices for an MLAG. The legend explains the #}
+        {# connector styles, so it only appears when there are connectors. #}
+        <figure class="topology">
+          <ul class="topology-tree">
+            {% for node in tree %}
+              {% include 'ipdevinfo/port-details-topology-tree-frag.html' with node=node %}
+            {% endfor %}
+          </ul>
+          {% if tree.0.members %}
+            <figcaption class="topology-legend">
+              <span class="sample" aria-hidden="true"></span>bundled (LAG)
+              <span class="sample stack" aria-hidden="true"></span>layered (ifStack)
+            </figcaption>
+          {% endif %}
+        </figure>
+      {% endwith %}
+    </td>
+  </tr>
+
+  {% if port.baseport %}
+    <tr>
+      <th>Patched to</th>
+      <td>
+        {% if port.patches.count %}
+          <ul class="no-bullet">
+            {% for patch in port.patches.all %}
+              <li>{{ patch.cabling.verbose|capfirst }}, in room
+                <a href="{% report 'netbox' roomid=patch.cabling.room.id %}">
+                  {{ patch.cabling.room.id }}</a></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          N/A
+        {% endif %}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Last CAM record</th>
+      <td>
+        {% with port.get_last_cam_record.end_time|timesince as time_since %}
+          {% if time_since %}
+            {{ time_since }} ago
+          {% else %}
+            Today
+          {% endif %}
+        {% endwith %}<br/>
+      </td>
+    </tr>
+  {% endif %}
+
+</table>

@@ -80,13 +80,13 @@
         </div>
 
         <div class="column large-4">
-          {% include 'ipdevinfo/port-details-vlan-frag.html' %}
+          {% include 'ipdevinfo/port-details-dot1q-frag.html' %}
+          {% include 'ipdevinfo/port-details-addresses-frag.html' %}
         </div>
 
         <div class="column large-4">
+          {% include 'ipdevinfo/port-details-connection-frag.html' %}
           {% include 'ipdevinfo/port-details-neighbors-frag.html' %}
-          {% include 'ipdevinfo/port-details-aggregate-frag.html' %}
-          {% include 'ipdevinfo/port-details-stacking-frag.html' %}
         </div>
 
       </div>
