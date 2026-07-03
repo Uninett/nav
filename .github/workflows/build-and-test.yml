@@ -85,6 +85,7 @@ jobs:
             reports/**/*
 
       - name: "Upload coverage to Codecov"
+        if: github.repository_owner == 'Uninett'
         uses: codecov/codecov-action@v7
         with:
           fail_ci_if_error: true
