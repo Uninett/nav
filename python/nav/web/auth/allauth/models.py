@@ -67,7 +67,7 @@ class MFAConfig(BaseModel):
             if self.support_recovery_codes:
                 methods.append("recovery_codes")
             if self.support_passkeys:
-                methods.append("passkeys")
+                methods.append("webauthn")
         return methods
 
     def get_MFA_PASSKEY_LOGIN_ENABLED_setting(self) -> bool:
