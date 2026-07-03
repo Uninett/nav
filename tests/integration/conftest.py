@@ -218,12 +218,32 @@ def localhost_using_legacy_db():
 def client(admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
-    from django.urls import reverse
-
     client_ = Client()
-    url = reverse('webfront-login')
-    client_.post(url, {'username': admin_username, 'password': admin_password})
+    log_in_client(client_, admin_username, admin_password)
     return client_
+
+
+@pytest.fixture
+def log_in():
+    """Provides a helper for logging a test client in via the real login flow"""
+    return log_in_client
+
+
+def log_in_client(client, username, password):
+    """Logs a Django test client in through NAV's real (allauth) login flow.
+
+    The login URL is resolved from ``settings.LOGIN_URL`` — the same setting the
+    rest of NAV uses to locate its login page — so these tests follow any future
+    change to the configured login path instead of silently exercising an
+    outdated one (which is how the dead legacy login view went untested).
+    """
+    from django.conf import settings
+    from django.shortcuts import resolve_url
+
+    return client.post(
+        resolve_url(settings.LOGIN_URL),
+        {'login': username, 'password': password},
+    )
 
 
 @pytest.fixture(scope='function')

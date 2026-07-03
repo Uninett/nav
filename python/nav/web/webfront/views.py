@@ -364,17 +364,12 @@ def do_login(request: HttpRequest) -> HttpResponse:
 
         account = authenticate(request, username=username, password=password)
         if account is not None:
-            LogEntry.add_log_entry(
-                account, 'log-in', '{actor} logged in', before=account
-            )
             django_login(request, account)
             set_account(request, account)  # NAV legacy specific
-            _logger.info("%s successfully logged in", account.login)
             if not origin:
                 origin = reverse('webfront-index')
             return HttpResponseRedirect(origin)
         else:
-            _logger.info("failed login: %r", username)
             errors.append(
                 'Username or password is incorrect, or the account is locked.'
             )
