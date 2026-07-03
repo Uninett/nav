@@ -104,7 +104,6 @@ class Sensors(Plugin):
         that they may be persisted to the database.
 
         """
-        sensors = []
         for row in result:
             oid = row.get('oid', None)
             internal_name = row.get('internal_name', None)
@@ -140,8 +139,6 @@ class Sensors(Plugin):
                     )
                     threshold_for_sensor.oid = threshold_for_oid
                     sensor.threshold_for = threshold_for_sensor
-                sensors.append(sensors)
-        return sensors
 
 
 ####################
