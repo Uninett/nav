@@ -122,6 +122,10 @@ class _DB(threading.Thread):
             except InFailedSqlTransaction:
                 _logger.critical("Rolling back aborted transaction...")
                 self.db.rollback()
+        # psycopg2 also inspected InternalError.pgcode here to re-raise unknown
+        # internal errors; psycopg3 splits SQLSTATEs into distinct exception
+        # classes, so any other error simply falls through to the reconnect
+        # path below, which is a safe recovery for genuine connection trouble.
         except Exception:  # noqa: BLE001
             if self.db is not None:
                 _logger.critical(
@@ -159,7 +163,7 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", statement)
+            _logger.debug("Executed: %s %s", statement, values)
             if commit:
                 self.db.commit()
             return cursor.fetchall()
@@ -187,7 +191,7 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", statement)
+            _logger.debug("Executed: %s %s", statement, values)
             if commit:
                 try:
                     self.db.commit()
@@ -197,7 +201,7 @@ class _DB(threading.Thread):
             _logger.critical(
                 "Database integrity error, throwing away update", exc_info=True
             )
-            _logger.debug("Tried to execute: %s", statement)
+            _logger.debug("Tried to execute: %s %s", statement, values)
             if commit:
                 self.db.rollback()
         except Exception:  # noqa: BLE001

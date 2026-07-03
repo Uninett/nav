@@ -46,6 +46,7 @@ def main():
         expiry = args.datetime
 
     cleaned = False
+    db_error = None
     with transaction.atomic():
         cleaners = get_selected_cleaners(args, connection)
         for cleaner in cleaners:
@@ -61,15 +62,22 @@ def main():
                 cleaned = True
 
             except DatabaseError as error:
-                print("The PostgreSQL backend produced an error", file=sys.stderr)
-                print(error, file=sys.stderr)
-                sys.exit(1)
+                # Roll back and bail out, but exit *after* leaving the atomic
+                # block so SystemExit doesn't unwind it on a broken transaction.
+                db_error = error
+                transaction.set_rollback(True)
+                break
 
         # Every run is a dry-run unless --force is given, so roll back all the
         # changes made above unless the user explicitly asked to keep them.
         if not args.force:
             transaction.set_rollback(True)
             cleaned = False
+
+    if db_error is not None:
+        print("The PostgreSQL backend produced an error", file=sys.stderr)
+        print(db_error, file=sys.stderr)
+        sys.exit(1)
 
     if not args.quiet:
         if cleaned:
