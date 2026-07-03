@@ -32,7 +32,7 @@ from nav.config import NAV_CONFIG, NAVConfigParser
 import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 from nav.util import is_valid_ip, address_to_string
-from nav.db import getConnection
+from django.db import connection, transaction
 from nav.bootstrap import bootstrap_django
 import nav.logs
 
@@ -127,10 +127,9 @@ def main():
         # Daemonized
         _logger.info('snmptrapd is now running in daemon mode')
 
-        # Reopen lost db connection
-        # This is a workaround for a double free bug in psycopg 2.0.7
-        # which is why we don't need to keep the return value
-        getConnection('default')
+        # We just forked; drop the database connection inherited from the
+        # parent so Django opens a fresh one in this process on next use.
+        connection.close()
 
         # Reopen log files on SIGHUP
         _logger.debug('Adding signal handler for reopening log files on SIGHUP.')
@@ -201,7 +200,6 @@ def trap_handler(trap):
 
     """
     _traplogger.debug("%s", trap)
-    connection = getConnection('default')
     handled_by = []
 
     for mod in handlermodules:
@@ -223,10 +221,6 @@ def trap_handler(trap):
                 mod.__name__,
                 why,
             )
-        # Assuming that the handler used the same connection as this
-        # function, we rollback any uncommitted changes.  This is to
-        # avoid idling in transactions.
-        connection.rollback()
 
     _log_trap_handle_result(handled_by, trap)
 
@@ -253,13 +247,11 @@ def _log_trap_handle_result(handled_by, trap):
 
 def verify_subsystem():
     """Verify that subsystem exists, if not insert it into database"""
-    db = getConnection('default')
-    c = db.cursor()
-
     sql = """INSERT INTO subsystem (SELECT 'snmptrapd', '' WHERE
     NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"""
-    c.execute(sql)
-    db.commit()
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
 
 
 def signal_handler(signum, _):
