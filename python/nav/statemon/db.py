@@ -31,6 +31,7 @@ import threading
 
 import psycopg
 from psycopg.errors import InFailedSqlTransaction
+from psycopg.types.string import TextLoader
 
 from nav.db import get_connection_string
 from nav.util import synchronized
@@ -78,6 +79,11 @@ class _DB(threading.Thread):
         try:
             conn_str = get_connection_string(script_name='servicemon')
             self.db = psycopg.connect(conn_str)
+            # psycopg3 loads PostgreSQL inet/cidr columns as ipaddress objects
+            # by default, but statemon's callers (e.g. megaping) expect the
+            # plain strings that psycopg2 used to return.
+            self.db.adapters.register_loader("inet", TextLoader)
+            self.db.adapters.register_loader("cidr", TextLoader)
             atexit.register(self.close)
 
             _logger.info("Successfully (re)connected to NAVdb")
