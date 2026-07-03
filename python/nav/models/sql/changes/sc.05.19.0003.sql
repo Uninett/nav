@@ -5,3 +5,5 @@ ALTER TABLE sensor
   ADD CONSTRAINT sensor_threshold_for_id_fkey
     FOREIGN KEY (threshold_for_id) REFERENCES sensor(sensorid) ON DELETE CASCADE
 ;
+
+CREATE INDEX sensor_threshold_for_id_btree ON sensor USING btree (threshold_for_id);
