@@ -1,76 +1,58 @@
-from nav.models.manage import Sensor
 import pytest
 
+from nav.models.manage import Sensor
 
-class TestSensor:
-    def test_threshold_for_returns_the_sensor_the_current_sensor_is_a_threshold_for(
+
+class TestThresholdFor:
+    def test_when_sensor_is_a_threshold_then_threshold_for_should_return_its_parent(
         self, db, sensor, threshold_sensor1
     ):
-        threshold_for_sensor = threshold_sensor1.threshold_for
-        assert threshold_for_sensor == sensor
+        assert threshold_sensor1.threshold_for == sensor
 
-    def test_thresholds_returns_all_sensors_that_are_thresholds_for_current_sensor(
+
+class TestThresholds:
+    def test_when_sensor_has_thresholds_then_thresholds_should_return_exactly_them(
         self, db, sensor, threshold_sensor1, threshold_sensor2
     ):
-        threshold_sensors = sensor.thresholds.all()
-        expected_threshold_sensors = Sensor.objects.filter(threshold_for=sensor).all()
-        assert set(threshold_sensors) == set(expected_threshold_sensors)
+        assert set(sensor.thresholds.all()) == {threshold_sensor1, threshold_sensor2}
 
-
-@pytest.fixture
-def threshold_sensor1(db, localhost, sensor):
-    sensor = Sensor(
-        netbox=localhost,
-        oid="1.2.4",
-        unit_of_measurement=Sensor.UNIT_OTHER,
-        data_scale=Sensor.SCALE_MILLI,
-        precision=1,
-        human_readable="threshold_sensor1",
-        name="threshold_sensor1",
-        internal_name="threshold_sensor1",
-        mib="testmib",
-        threshold_for=sensor,
-    )
-    sensor.save()
-    yield sensor
-    if sensor.pk:
-        sensor.delete()
-
-
-@pytest.fixture
-def threshold_sensor2(db, localhost, sensor):
-    sensor = Sensor(
-        netbox=localhost,
-        oid="1.2.5",
-        unit_of_measurement=Sensor.UNIT_OTHER,
-        data_scale=Sensor.SCALE_MILLI,
-        precision=1,
-        human_readable="threshold_sensor2",
-        name="threshold_sensor2",
-        internal_name="threshold_sensor2",
-        mib="testmib",
-        threshold_for=sensor,
-    )
-    sensor.save()
-    yield sensor
-    if sensor.pk:
-        sensor.delete()
+    def test_when_sensor_has_no_thresholds_then_thresholds_should_be_empty(
+        self, db, threshold_sensor1
+    ):
+        assert list(threshold_sensor1.thresholds.all()) == []
 
 
 @pytest.fixture
 def sensor(db, localhost):
+    return _make_sensor(localhost, oid="1.2.3", name="sensor")
+
+
+@pytest.fixture
+def threshold_sensor1(db, localhost, sensor):
+    return _make_sensor(
+        localhost, oid="1.2.4", name="threshold_sensor1", threshold_for=sensor
+    )
+
+
+@pytest.fixture
+def threshold_sensor2(db, localhost, sensor):
+    return _make_sensor(
+        localhost, oid="1.2.5", name="threshold_sensor2", threshold_for=sensor
+    )
+
+
+def _make_sensor(netbox, oid, name, threshold_for=None):
     sensor = Sensor(
-        netbox=localhost,
-        oid="1.2.3",
+        netbox=netbox,
+        oid=oid,
         unit_of_measurement=Sensor.UNIT_OTHER,
         data_scale=Sensor.SCALE_MILLI,
         precision=1,
-        human_readable="value",
-        name="sensor",
-        internal_name="sensor",
+        human_readable=name,
+        name=name,
+        internal_name=name,
         mib="testmib",
+        threshold_for=threshold_for,
     )
     sensor.save()
-    yield sensor
-    if sensor.pk:
-        sensor.delete()
+    return sensor
