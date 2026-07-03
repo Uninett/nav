@@ -19,6 +19,7 @@ Provides common database functionality for NAV.
 """
 
 import atexit
+from collections import namedtuple
 from functools import wraps
 import logging
 import os
@@ -88,6 +89,41 @@ def escape(string):
     quoted = psycopg2.extensions.QuotedString(string)
     result = quoted.getquoted()
     return result if isinstance(result, str) else result.decode("utf-8")
+
+
+PGNotification = namedtuple("PGNotification", ["channel", "payload"])
+
+
+def get_pg_notifications(connection):
+    """Non-blocking drain of buffered PostgreSQL LISTEN/NOTIFY messages.
+
+    Consumes whatever input is waiting on the psycopg connection's socket and
+    returns the notifications that were buffered. Designed to be driven by a
+    select/reactor loop, mirroring psycopg2's ``poll()`` + ``notifies`` idiom
+    that psycopg3 no longer exposes on the connection object.
+
+    :param connection: A raw psycopg3 connection, e.g.
+                       ``django.db.connection.connection``.
+    :returns: A list of ``PGNotification(channel, payload)`` named tuples.
+    :raises psycopg.OperationalError: If the connection is broken (``consume_input``
+                                      raises on a dropped connection, just as
+                                      psycopg2's ``poll()`` used to).
+    """
+    pgconn = connection.pgconn
+    pgconn.consume_input()
+    notifications = []
+    while True:
+        notify = pgconn.notifies()
+        if notify is None:
+            break
+        channel = notify.relname
+        payload = notify.extra
+        if isinstance(channel, bytes):
+            channel = channel.decode("utf-8")
+        if isinstance(payload, bytes):
+            payload = payload.decode("utf-8")
+        notifications.append(PGNotification(channel, payload))
+    return notifications
 
 
 def get_connection_parameters(script_name='default', database='nav'):
