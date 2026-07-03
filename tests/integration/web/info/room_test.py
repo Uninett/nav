@@ -272,10 +272,9 @@ def test_sensor(db, localhost):
 
 
 @pytest.fixture(scope='function')
-def non_admin_client(client, non_admin_account):
+def non_admin_client(client, non_admin_account, log_in):
     client_ = Client()
-    url = reverse('webfront-login')
-    client_.post(url, {'username': non_admin_account.login, 'password': 'password'})
+    log_in(client_, non_admin_account.login, 'password')
     return client_
 
 
