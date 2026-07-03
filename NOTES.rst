@@ -33,6 +33,16 @@ These Python modules are no longer required:
 * :mod:`pytz`
 * :mod:`tomli`
 
+Juniper optical (DOM) threshold values
+--------------------------------------
+
+NAV now collects the alarm and warning thresholds reported by optical
+transceivers on Juniper devices (for RX/TX laser power, TX laser bias
+current and module temperature), registering each as its own sensor. A
+threshold sensor is linked to the reading it applies to and shown on the
+*Sensor details* page, so the transceiver's own limits are on hand when
+deciding what value to use in a threshold rule for that reading.
+
 CAM logging for hybrid switch ports
 -----------------------------------
 
