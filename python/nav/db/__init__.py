@@ -28,6 +28,7 @@ import time
 
 import psycopg2
 import psycopg2.extensions
+from psycopg import sql
 
 import nav
 from nav import config
@@ -81,14 +82,14 @@ class ConnectionObject(nav.CacheableObject):
 
 
 def escape(string):
-    """Escape a string for use in SQL statements.
+    """Escape and quote a string as an SQL literal.
 
-    ..warning:: You should be using parameterized queries if you can!
+    ..warning:: You should be using parameterized queries if you can!  This
+    helper only exists for the rare cases that must embed a literal directly in
+    generated SQL text, such as producing a standalone SQL script.
 
     """
-    quoted = psycopg2.extensions.QuotedString(string)
-    result = quoted.getquoted()
-    return result if isinstance(result, str) else result.decode("utf-8")
+    return sql.Literal(string).as_string()
 
 
 PGNotification = namedtuple("PGNotification", ["channel", "payload"])
