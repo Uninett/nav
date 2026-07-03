@@ -2787,6 +2787,13 @@ class Sensor(models.Model):
         (ALERT_TYPE_WARNING, 'An orange warning'),
     )
 
+    THRESHOLD_TYPE_HIGH = 1
+    THRESHOLD_TYPE_LOW = 2
+    THRESHOLD_TYPE_CHOICES = (
+        (THRESHOLD_TYPE_HIGH, 'Threshold for high values'),
+        (THRESHOLD_TYPE_LOW, 'Threshold for low values'),
+    )
+
     id = models.AutoField(db_column='sensorid', primary_key=True)
     netbox = models.ForeignKey(
         Netbox,
@@ -2829,6 +2836,19 @@ class Sensor(models.Model):
     on_state_sys = models.IntegerField(db_column='on_state_sys', null=True)
     alert_type = models.IntegerField(
         db_column='alert_type', choices=ALERT_TYPE_CHOICES, null=True
+    )
+    threshold_type = models.IntegerField(
+        db_column='threshold_type', choices=THRESHOLD_TYPE_CHOICES, null=True
+    )
+    threshold_alert_type = models.IntegerField(
+        db_column='threshold_alert_type', choices=ALERT_TYPE_CHOICES, null=True
+    )
+    threshold_for = models.ForeignKey(
+        'Sensor',
+        on_delete=models.CASCADE,
+        db_column='threshold_for_id',
+        null=True,
+        related_name="thresholds",
     )
 
     class Meta(object):

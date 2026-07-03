@@ -104,7 +104,6 @@ class Sensors(Plugin):
         that they may be persisted to the database.
 
         """
-        sensors = []
         for row in result:
             oid = row.get('oid', None)
             internal_name = row.get('internal_name', None)
@@ -127,13 +126,19 @@ class Sensors(Plugin):
                 sensor.on_message_sys = row.get('on_message')
                 sensor.off_message_sys = row.get('off_message')
                 sensor.on_state_sys = row.get('on_state')
+                sensor.threshold_type = row.get('threshold_type')
+                sensor.threshold_alert_type = row.get('threshold_alert_type')
                 if ifindex:
                     iface = self.containers.factory(ifindex, shadows.Interface)
                     iface.netbox = self.netbox
                     iface.ifindex = ifindex
                     sensor.interface = iface
-                sensors.append(sensors)
-        return sensors
+                if threshold_for_oid := row.get('threshold_for_oid'):
+                    threshold_for_sensor = self.containers.factory(
+                        threshold_for_oid, shadows.Sensor
+                    )
+                    threshold_for_sensor.oid = threshold_for_oid
+                    sensor.threshold_for = threshold_for_sensor
 
 
 ####################
