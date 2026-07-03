@@ -29,9 +29,8 @@ import queue
 import time
 import threading
 
-import psycopg2
-from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
-from psycopg2.errorcodes import lookup as pg_err_lookup
+import psycopg
+from psycopg.errors import InFailedSqlTransaction
 
 from nav.db import get_connection_string
 from nav.util import synchronized
@@ -78,12 +77,10 @@ class _DB(threading.Thread):
         """Connects to the NAV database"""
         try:
             conn_str = get_connection_string(script_name='servicemon')
-            self.db = psycopg2.connect(conn_str)
+            self.db = psycopg.connect(conn_str)
             atexit.register(self.close)
 
             _logger.info("Successfully (re)connected to NAVdb")
-            # Set transaction isolation level to READ COMMITTED
-            self.db.set_isolation_level(1)
         except Exception:  # noqa: BLE001
             _logger.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
@@ -93,14 +90,14 @@ class _DB(threading.Thread):
         try:
             if self.db:
                 self.db.close()
-        except psycopg2.InterfaceError:
+        except psycopg.InterfaceError:
             # ignore "already-closed" type errors
             pass
 
     def status(self):
         """Returns 0/1 connection status indicator"""
         try:
-            if self.db.status:
+            if self.db and not self.db.closed:
                 return 1
         except Exception:  # noqa: BLE001
             return 0
@@ -116,19 +113,9 @@ class _DB(threading.Thread):
             try:
                 cursor = self.db.cursor()
                 cursor.execute('SELECT 1')
-            except psycopg2.InternalError as err:
-                if err.pgcode == IN_FAILED_SQL_TRANSACTION:
-                    _logger.critical("Rolling back aborted transaction...")
-                    self.db.rollback()
-                else:
-                    _logger.critical(
-                        "PostgreSQL reported an internal error "
-                        "I don't know how to handle: %s "
-                        "(code=%s)",
-                        pg_err_lookup(err.pgcode),
-                        err.pgcode,
-                    )
-                    raise
+            except InFailedSqlTransaction:
+                _logger.critical("Rolling back aborted transaction...")
+                self.db.rollback()
         except Exception:  # noqa: BLE001
             if self.db is not None:
                 _logger.critical(
@@ -166,14 +153,14 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", cursor.query)
+            _logger.debug("Executed: %s", statement)
             if commit:
                 self.db.commit()
             return cursor.fetchall()
         except Exception:  # noqa: BLE001
             _logger.critical(
                 "Failed to execute query: %s",
-                cursor.query if cursor else statement,
+                statement,
                 exc_info=True,
             )
             if commit:
@@ -194,23 +181,23 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", cursor.query)
+            _logger.debug("Executed: %s", statement)
             if commit:
                 try:
                     self.db.commit()
                 except Exception:  # noqa: BLE001
                     _logger.critical("Failed to commit")
-        except psycopg2.IntegrityError:
+        except psycopg.IntegrityError:
             _logger.critical(
                 "Database integrity error, throwing away update", exc_info=True
             )
-            _logger.debug("Tried to execute: %s", cursor.query)
+            _logger.debug("Tried to execute: %s", statement)
             if commit:
                 self.db.rollback()
         except Exception:  # noqa: BLE001
             _logger.critical(
                 "Could not execute statement: %s",
-                cursor.query if cursor else statement,
+                statement,
                 exc_info=True,
             )
             if commit:
