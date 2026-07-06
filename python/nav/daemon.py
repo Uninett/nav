@@ -340,9 +340,16 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
     try:
         pid = os.fork()
         if pid > 0:
-            # We're the first parent. Exit!
+            # We're the first parent. Exit with os._exit() rather than
+            # sys.exit(): the parent must NOT run the Python interpreter's
+            # shutdown (module teardown and garbage collection). On hosts that
+            # forbid writable-and-executable memory, libffi/ctypes callback
+            # closures are allocated in memory shared across this fork();
+            # finalizing them during interpreter shutdown here would corrupt
+            # them for the surviving daemon, crashing it on the next C callback.
+            # See https://github.com/Uninett/nav/issues/4066
             _logger.debug("First parent exiting. Second has pid %d.", pid)
-            sys.exit(0)
+            os._exit(0)
     except OSError as error:
         _logger.debug("Fork #1 failed. (%s)", error)
         raise ForkError(1, error)
@@ -357,9 +364,10 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
     try:
         pid = os.fork()
         if pid > 0:
-            # We're the second parent. Exit!
+            # We're the second parent. Exit with os._exit() rather than
+            # sys.exit(), for the same reason as the first fork above (#4066).
             _logger.debug("Second parent exiting. Daemon has pid %d.", pid)
-            sys.exit(0)
+            os._exit(0)
     except OSError as error:
         _logger.exception("Fork #2 failed. (%s)", error)
         raise ForkError(2, error)
