@@ -50,7 +50,9 @@ class VlanGraphAnalyzer(object):
     def __init__(self):
         self.routed_vlans = self._build_vlan_router_dict()
         self.unrouted_vlans = self._build_unrouted_vlan_seed_dict()
-        self.layer2 = build_layer2_graph()
+        # Preload the allowed-VLAN set (a reverse one-to-one) so the per-edge
+        # trunk checks in the traversal don't each issue their own query.
+        self.layer2 = build_layer2_graph(related_extra=('swport_allowed_vlan',))
         annotate_vlan_bearers(self.layer2)
         self.stp_blocked = get_stp_blocked_ports()
         _logger.debug("blocked ports: %r", self.stp_blocked)
