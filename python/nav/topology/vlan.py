@@ -30,6 +30,8 @@ from django.db import transaction
 from nav.models.manage import (
     GwPortPrefix,
     Interface,
+    InterfaceAggregate,
+    InterfaceStack,
     SwPortVlan,
     SwPortBlocked,
     Prefix,
@@ -48,7 +50,10 @@ class VlanGraphAnalyzer(object):
     def __init__(self):
         self.routed_vlans = self._build_vlan_router_dict()
         self.unrouted_vlans = self._build_unrouted_vlan_seed_dict()
-        self.layer2 = build_layer2_graph()
+        # Preload the allowed-VLAN set (a reverse one-to-one) so the per-edge
+        # trunk checks in the traversal don't each issue their own query.
+        self.layer2 = build_layer2_graph(related_extra=('swport_allowed_vlan',))
+        annotate_vlan_bearers(self.layer2)
         self.stp_blocked = get_stp_blocked_ports()
         _logger.debug("blocked ports: %r", self.stp_blocked)
         self.ifc_vlan_map = {}
@@ -226,10 +231,14 @@ class RoutedVlanTopologyAnalyzer(object):
                     self._log_block(next_edge)
 
         if vlan_is_active and ifc:
+            vlan_interface = _vlan_bearing_interface(ifc)
             _logger.debug(
-                "(%s) setting %s direction: %s", self.vlan.vlan, ifc, direction
+                "(%s) setting %s direction: %s",
+                self.vlan.vlan,
+                vlan_interface,
+                direction,
             )
-            self.ifc_directions[ifc] = direction
+            self.ifc_directions[vlan_interface] = direction
 
         return vlan_is_active
 
@@ -258,13 +267,19 @@ class RoutedVlanTopologyAnalyzer(object):
                 return dest, source, list(self.layer2[dest][source].keys())[0]
 
     def _interface_has_been_seen_before(self, ifc):
-        return ifc in self.ifc_directions
+        return _vlan_bearing_interface(ifc) in self.ifc_directions
 
     def _is_vlan_active_on_destination(self, dest, ifc):
         if not ifc:
             return False
 
-        if not ifc.trunk:
+        # The 802.1q configuration (trunk flag, allowed VLANs) is read from the
+        # VLAN-bearing interface -- which, where a vendor splits them across the
+        # LAG hierarchy (e.g. Juniper), can be the aggregate above the edge --
+        # while the topology (`to_interface`) stays on the physical member the
+        # edge is keyed by. Keep them separate: collapsing both onto `ifc` blinds
+        # the traversal to VLANs on such aggregated uplinks.
+        if not _vlan_bearing_interface(ifc).trunk:
             return self._ifc_has_vlan(ifc)
         else:
             non_trunks_on_vlan = dest.interfaces.filter(vlan=self.vlan.vlan).filter(
@@ -283,7 +298,10 @@ class RoutedVlanTopologyAnalyzer(object):
         )
 
     def _ifc_has_vlan(self, ifc):
-        return ifc.vlan == self.vlan.vlan or self._vlan_allowed_on_trunk(ifc)
+        vlan_interface = _vlan_bearing_interface(ifc)
+        return vlan_interface.vlan == self.vlan.vlan or self._vlan_allowed_on_trunk(
+            vlan_interface
+        )
 
     def _vlan_allowed_on_trunk(self, ifc):
         return (
@@ -302,7 +320,9 @@ class RoutedVlanTopologyAnalyzer(object):
     def _is_edge_blocked(self, edge):
         if edge:
             _source, _dest, ifc = edge
-            return self.vlan.vlan in self.stp_blocked.get(ifc.id, [])
+            return self.vlan.vlan in self.stp_blocked.get(
+                _vlan_bearing_interface(ifc).id, []
+            )
         return False
 
     def _log_descent(self, next_edge):
@@ -339,11 +359,11 @@ class RoutedVlanTopologyAnalyzer(object):
 
     def _mark_both_ends_as_blocked(self, edge):
         _source, _dest, source_ifc = edge
-        self.ifc_directions[source_ifc] = 'blocked'
+        self.ifc_directions[_vlan_bearing_interface(source_ifc)] = 'blocked'
         reverse_edge = self._find_reverse_edge(edge)
         if reverse_edge:
             _dest, _source, dest_ifc = reverse_edge
-            self.ifc_directions[dest_ifc] = 'blocked'
+            self.ifc_directions[_vlan_bearing_interface(dest_ifc)] = 'blocked'
 
 
 class UnroutedVlanTopologyAnalyzer(RoutedVlanTopologyAnalyzer):
@@ -478,6 +498,139 @@ def build_layer2_graph(related_extra=None):
         dest = link.to_interface.netbox if link.to_interface else link.to_netbox
         graph.add_edge(link.netbox, dest, key=link)
     return graph
+
+
+def annotate_vlan_bearers(graph: nx.MultiDiGraph) -> None:
+    """Annotates each layer-2 edge interface with its VLAN-bearing interface.
+
+    On some vendors' aggregated uplinks (e.g. Juniper) the resolved neighbor can
+    land on a physical member port while the 802.1q configuration sits on the
+    aggregate above it, so the edge interface itself looks VLAN-less to the
+    analyzer. For every edge interface this attaches a ``_vlan_bearer`` pointing
+    at the nearest interface up the aggregate/stack hierarchy that actually
+    carries VLAN configuration -- or the interface itself when it does.
+    :func:`_vlan_bearing_interface` reads the annotation back.
+
+    The hierarchy is loaded in bulk (two queries for the whole aggregate/stack
+    graph plus one for the ancestor interfaces) and walked in memory; resolving
+    it per interface would issue a query per stack hop and does not scale.
+    """
+    edge_interfaces = {key.pk: key for _u, _v, key in graph.edges(keys=True)}
+    if not edge_interfaces:
+        return
+
+    parents = _build_stack_parent_map()
+    ancestor_pks = set()
+    for pk in edge_interfaces:
+        ancestor_pks |= _ancestors(pk, parents)
+    ancestor_pks -= set(edge_interfaces)
+
+    # The edge interfaces are already loaded as the graph's edge keys; only their
+    # ancestors need fetching. Those are the interfaces a bundle's VLAN config
+    # lives on, so they are loaded with their allowed-VLAN set to spare the
+    # traversal a query per aggregate.
+    config = dict(edge_interfaces)
+    config.update(
+        (interface.pk, interface)
+        for interface in Interface.objects.filter(pk__in=ancestor_pks).select_related(
+            'swport_allowed_vlan'
+        )
+    )
+
+    for pk, interface in edge_interfaces.items():
+        interface._vlan_bearer = config.get(_find_bearer_pk(pk, parents, config))
+
+
+def _build_stack_parent_map() -> dict[int, set[int]]:
+    """Returns a ``{child_pk: {parent_pk, ...}}`` map of the aggregate/stack
+    hierarchy, combining both relations so a bearer can be found regardless of
+    which one a given vendor exposes each layer through.
+    """
+    parents = defaultdict(set)
+    for aggregator, member in InterfaceAggregate.objects.values_list(
+        'aggregator', 'interface'
+    ):
+        parents[member].add(aggregator)
+    for higher, lower in InterfaceStack.objects.values_list('higher', 'lower'):
+        parents[lower].add(higher)
+    return parents
+
+
+def _ancestors(pk: int, parents: dict[int, set[int]]) -> set[int]:
+    """Returns the transitive set of interface pks above ``pk`` in the
+    aggregate/stack hierarchy. The accumulated set doubles as the cycle guard.
+    """
+    seen = set()
+    frontier = set(parents.get(pk, ()))
+    while frontier:
+        seen |= frontier
+        nxt = set()
+        for parent in frontier:
+            nxt |= parents.get(parent, set()) - seen
+        frontier = nxt
+    return seen
+
+
+def _find_bearer_pk(
+    pk: int, parents: dict[int, set[int]], config: dict[int, Interface]
+) -> int:
+    """Returns the pk of the nearest interface at or above ``pk`` that carries
+    VLAN configuration, falling back to ``pk`` itself when none does.
+
+    Walks the hierarchy breadth-first so the layer closest to the edge wins. The
+    config-bearing filter is normally what discriminates -- a Juniper ``ae0``
+    and its logical ``ae0.0`` both bundle the same members, but only ``ae0``
+    holds the 802.1q configuration. The lowest-ifIndex tie-break only settles
+    the rare case where more than one candidate in the same layer carries
+    config; it mirrors the convention already used by
+    :meth:`Interface.get_aggregator`.
+    """
+    visited = set()
+    layer = {pk}
+    while layer:
+        config_bearers = [
+            candidate
+            for candidate in layer
+            if _carries_vlan_config(config.get(candidate))
+        ]
+        if config_bearers:
+            return min(
+                config_bearers,
+                key=lambda candidate: (config[candidate].ifindex, candidate),
+            )
+        visited |= layer
+        next_layer = set()
+        for child in layer:
+            next_layer |= parents.get(child, set()) - visited
+        layer = next_layer
+    return pk
+
+
+def _carries_vlan_config(interface: Interface | None) -> bool:
+    """Returns True if the interface carries VLAN configuration the traversal can
+    act on: a trunk flag or an access VLAN.
+
+    An allowed-VLAN set without the trunk flag is deliberately not counted --
+    :meth:`RoutedVlanTopologyAnalyzer._vlan_allowed_on_trunk` only consults the
+    allowed set on trunks, so such an interface exposes nothing usable and would
+    make a pointless bearer.
+    """
+    return bool(interface and (interface.trunk or interface.vlan is not None))
+
+
+def _vlan_bearing_interface(interface: Interface) -> Interface:
+    """Returns the interface that carries ``interface``'s 802.1q configuration.
+
+    On aggregated (LAG) uplinks the layer-2 topology and the VLAN configuration
+    can live on different layers of the interface hierarchy, depending on the
+    vendor: on Juniper, for instance, the resolved neighbor lands on the
+    physical member port(s) while the ``trunk``/``vlan``/allowed-VLAN data sits
+    on the aggregate above them. The two are bridged by the in-memory
+    ``_vlan_bearer`` annotation :func:`annotate_vlan_bearers` attaches to each
+    layer-2 edge interface. A plain, un-aggregated port carries its own
+    configuration and is its own bearer.
+    """
+    return getattr(interface, '_vlan_bearer', None) or interface
 
 
 def build_layer3_graph(related_extra=None):
