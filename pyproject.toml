@@ -222,3 +222,7 @@ showcontent = true
 exclude-newer = "1 week"
 # pynetsnmp-2 is our own package
 exclude-newer-package = { pynetsnmp-2 = false }
+# uv sync/lock ignore constraints.txt (only the pip interface reads it), so the
+# junos-eznc pin from constraints.txt is repeated here to protect uv-based dev
+# environments too. Keep the two in sync. See #4119.
+constraint-dependencies = ["junos-eznc<2.8.1"]
