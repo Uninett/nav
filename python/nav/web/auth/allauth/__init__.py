@@ -200,7 +200,7 @@ class OIDCConfigParser(SocialProviderHelper, TOMLConfigParser):
     Feide OIDC does not support the standard OIDC scopes/claims
     scope = ["userid-feide"]  # Other idps have "profile" for this
 
-    [oidc.dataporten-oidc.settings]
+    [oidc.idps.dataporten-oidc.settings]
     uid_field = "https://n.feide.no/claims/eduPersonPrincipalName"
     """
 

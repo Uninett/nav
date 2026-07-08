@@ -41,8 +41,7 @@ enabled = false
 # client_id = "not.optional"
 # secret = "not.optional"
 # server_url = "https://auth.dataporten.no/"  # NEVER optional
-# Feide OIDC does not support the standard OIDC scopes/claims
-# scope = ["userid-feide"]
+# scope = ["userid-feide"]  # Feide does not support the standard OIDC scopes
 
-# [oidc.dataporten-oidc.settings]
+# [oidc.idps.dataporten-oidc.settings]
 # uid_field = "https://n.feide.no/claims/eduPersonPrincipalName"
