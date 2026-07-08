@@ -1,6 +1,8 @@
 """Tests for Pydantic-based authentication config models."""
 
+import re
 import tomllib
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -272,6 +274,40 @@ foo = 1
         settings = result["openid_connect"]["APPS"][0]["settings"]
         assert settings["scope"] == ["openid", "email"]
 
+    def test_when_entry_level_scope_set_then_generate_should_route_it_into_settings(
+        self,
+    ):
+        config_string = """
+[idps.dataporten-oidc]
+name = "Feide OIDC"
+client_id = "id"
+secret = "sec"
+server_url = "https://auth.dataporten.no/"
+scope = ["userid-feide"]
+"""
+        raw = tomllib.loads(config_string)
+        oc = OIDCConfig.model_validate(raw)
+        result = oc.generate_SOCIALACCOUNT_PROVIDERS()
+        settings = result["openid_connect"]["APPS"][0]["settings"]
+        assert settings["scope"] == ["userid-feide"]
+
+    def test_when_scope_set_both_places_then_generate_should_prefer_entry_level(self):
+        oc = OIDCConfig(
+            idps={
+                "test": OIDCProviderEntry(
+                    name="Test",
+                    client_id="id",
+                    secret="sec",
+                    server_url="https://example.com",
+                    scope=["userid-feide"],
+                    settings=OIDCProviderSettings(scope=["openid", "email"]),
+                ),
+            },
+        )
+        result = oc.generate_SOCIALACCOUNT_PROVIDERS()
+        settings = result["openid_connect"]["APPS"][0]["settings"]
+        assert settings["scope"] == ["userid-feide"]
+
 
 class TestAuthenticationConfig:
     def test_when_defaults_then_all_sections_should_have_defaults(self):
@@ -344,3 +380,46 @@ bogus-key = true
         ):
             with pytest.raises(ValidationError):
                 read_authentication_config()
+
+
+class TestShippedExampleConfig:
+    """Regression tests for the bundled ``etc/webfront/authentication.toml``.
+
+    The core demand of issue #4121 is that the shipped example must validate as
+    written; these guard against it drifting back into a form the config models
+    reject.
+    """
+
+    def test_when_examples_enabled_then_shipped_config_should_validate(self):
+        raw = tomllib.loads(_enable_shipped_examples())
+        config = AuthenticationConfig.model_validate(raw)
+
+        oidc_app = config.oidc.generate_SOCIALACCOUNT_PROVIDERS()["openid_connect"][
+            "APPS"
+        ][0]
+        assert oidc_app["settings"]["scope"] == ["userid-feide"]
+
+        github = config.social.generate_SOCIALACCOUNT_PROVIDERS()["github"]
+        assert github["SCOPE"] == ["user:email"]
+
+
+def _enable_shipped_examples() -> str:
+    """Return the bundled ``authentication.toml`` with its examples enabled.
+
+    The shipped file interleaves prose comments with commented-out TOML. This
+    strips one leading ``#`` from every line and keeps only the lines that then
+    read as TOML — table headers or ``key = value`` assignments — reconstructing
+    a fully-enabled config to validate.
+    """
+    import nav
+
+    path = Path(nav.__file__).parent / "etc" / "webfront" / "authentication.toml"
+    is_toml = re.compile(r"^(\[.*\]|[A-Za-z0-9_.-]+\s*=)")
+    lines = []
+    for line in path.read_text().splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            stripped = stripped[1:].lstrip()
+        if is_toml.match(stripped):
+            lines.append(stripped)
+    return "\n".join(lines)
