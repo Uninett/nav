@@ -119,6 +119,7 @@ Overview of settings:
    client_id = "your.service.id" # Get from idp
    secret = "your.service.secret" # Get from idp
    server_url = "https://my.server.example.com"
+   # scope = ["openid", "profile", "email"]  # optional; these are the defaults
 
    # [oidc.idps.some-unique-id.settings]  # optional settings
    # Optional PKCE defaults False, but may be required by
@@ -136,8 +137,6 @@ Overview of settings:
    # If omitted, a method from the the server's
    # token auth methods list is used
    # token_auth_method = client_secret_basic
-   #
-   # scope = [],
    #
    # The field to be used as the account ID. Might depend on scope
    # uid_field = "sub"
@@ -177,11 +176,11 @@ Using Feide OIDC (aka. dataporten) as an example
    client_id = "your.service.id"  # Get from your Feide admin
    secret = "your.service.secret"  # Get from your Feide admin
    server_url = "https://auth.dataporten.no/"
+   scope = ["userid-feide"]  # Feide does not support the standard OIDC scopes
 
    # optional settings but needed for Feide OIDC
    [oidc.idps.dataporten-oidc.settings]
    uid_field = "https://n.feide.no/claims/eduPersonPrincipalName"
-   scope = ["userid-feide"]
 
 Just like when using a provider app you get the client id and secret from
 `Feide Kundeportal <https://kunde.feide.no>`_, and you need to add the redirect
