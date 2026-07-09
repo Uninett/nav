@@ -1,0 +1,6836 @@
+openapi: 3.0.3
+info:
+  title: NAV REST API
+  version: 0.0.0
+  description: Auto-generated OpenAPI specification for the Network Administration
+    Visualized (NAV) REST API.
+paths:
+  /api/1/:
+    get:
+      operationId: 1_retrieve
+      description: |-
+        Some endpoints support write operations. They have a POST in the
+        Allow-header.
+
+        To get programmatic access to the API you need a token. Read more
+        in the official [documentation][1].
+
+        Paging
+        ------
+        `/api/netbox/?page_size=10`
+
+        Default page_size is 100
+
+        Searching
+        ---------
+        `/api/netbox/?search=something`
+
+        Which fields are searched is documented for each endpoint.
+
+        Filtering
+        ---------
+        `/api/netbox/?category=GSW`
+
+        Which fields can be used for filtering is documented for each endpoint.
+
+        Sorting
+        -------
+        `/api/netbox/?ordering=sysname` for ascending order.
+
+        `/api/netbox/?ordering=-sysname` for descending order.
+
+        `/api/netbox/?ordering=room__location` for ordering on related models.
+
+        Most attributes of the result records can be used as ordering arguments.
+
+        [1]: https://nav.readthedocs.io/en/latest/howto/using_the_api.html
+      summary: API root
+      tags:
+      - meta
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: Mapping of endpoint names to their absolute URLs.
+  /api/1/account/:
+    get:
+      operationId: 1_account_list
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      parameters:
+      - in: query
+        name: ext_sync
+        schema:
+          type: string
+      - in: query
+        name: login
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountList'
+          description: ''
+    post:
+      operationId: 1_account_create
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /api/1/account/{id}/:
+    get:
+      operationId: 1_account_retrieve
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    put:
+      operationId: 1_account_update
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    patch:
+      operationId: 1_account_partial_update
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    delete:
+      operationId: 1_account_destroy
+      description: |-
+        Lists all accounts
+
+        Filters
+        -------
+        - login
+        - ext_sync
+
+        Search
+        ------
+        Searches in *name*
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/accountgroup/:
+    get:
+      operationId: 1_accountgroup_list
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountGroupList'
+          description: ''
+    post:
+      operationId: 1_accountgroup_create
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountGroup'
+          description: ''
+  /api/1/accountgroup/{id}/:
+    get:
+      operationId: 1_accountgroup_retrieve
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account group.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountGroup'
+          description: ''
+    put:
+      operationId: 1_accountgroup_update
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account group.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountGroup'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountGroup'
+          description: ''
+    patch:
+      operationId: 1_accountgroup_partial_update
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account group.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountGroup'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountGroup'
+          description: ''
+    delete:
+      operationId: 1_accountgroup_destroy
+      description: |-
+        Lists all accountgroups
+
+        Filters
+        -------
+        - account - filter by one or more accounts
+
+        Search
+        ------
+        Searches in *name* and *description*
+
+        Example: `accountgroup?account=abcd&account=bcde`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account group.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/alert/:
+    get:
+      operationId: 1_alert_list
+      description: |-
+        Lists all alerts.
+
+        Filters
+        -------
+        - stateless: *also lists stateless alerts (alerts without end time)*
+        - stateless_threshold: *hours back in time to fetch stateless alerts*
+
+        Example: `?stateless=1&stateless_threshold=1000`
+
+        Headers
+        -------
+        By setting the _Accept_ header field to `text/x-nav-html` you will get a
+        html-representation of the alert suitable for including in web-pages. This
+        only works on _retrieve_ operations, not _list_ operations.
+
+        If the response is an empty string, this means that a template for that
+        alert does not exist.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAlertHistoryList'
+          description: ''
+  /api/1/alert/{id}/:
+    get:
+      operationId: 1_alert_retrieve
+      description: |-
+        Lists all alerts.
+
+        Filters
+        -------
+        - stateless: *also lists stateless alerts (alerts without end time)*
+        - stateless_threshold: *hours back in time to fetch stateless alerts*
+
+        Example: `?stateless=1&stateless_threshold=1000`
+
+        Headers
+        -------
+        By setting the _Accept_ header field to `text/x-nav-html` you will get a
+        html-representation of the alert suitable for including in web-pages. This
+        only works on _retrieve_ operations, not _list_ operations.
+
+        If the response is an empty string, this means that a template for that
+        alert does not exist.
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - html
+          - json
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this alert history.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertHistory'
+            text/x-nav-html:
+              schema:
+                $ref: '#/components/schemas/AlertHistory'
+          description: ''
+  /api/1/arp/:
+    get:
+      operationId: 1_arp_list
+      description: Override list so that we can control what is returned
+      parameters:
+      - in: query
+        name: active
+        schema:
+          type: boolean
+        description: List only records that are still active. Overrides starttime/endtime.
+      - in: query
+        name: endtime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp. Must be combined with starttime.
+      - in: query
+        name: ip
+        schema:
+          type: string
+        description: Single IP address or subnet range (e.g. 10.0.42.0/24).
+      - in: query
+        name: mac
+        schema:
+          type: string
+        description: MAC address, supports prefix filtering (e.g. aa:aa:aa).
+      - in: query
+        name: netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: prefix
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: starttime
+        schema:
+          type: string
+          format: date-time
+        description: 'ISO8601 timestamp. Without endtime: active records at that time.'
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedArpList'
+          description: ''
+  /api/1/arp/{id}/:
+    get:
+      operationId: 1_arp_retrieve
+      description: |-
+        Lists ARP records.
+
+        *Because the number of ARP records often is huge, the API does not support
+        fetching all and will ask you to use a filter if you try.*
+
+        Filters
+        -------
+
+        - `active`: *set this to list only records that are still active. Enabling
+        this will **ignore** any start- and endtime filters present in the same
+        request.*
+        - `starttime`: *if set without endtime: lists all active records at that
+          timestamp*
+        - `endtime`: *must be set with starttime: lists all active records in the
+          period between starttime and endtime*
+        - `ip`: *Allows filtering by both individual IP addresses and subnet ranges.
+          Single IP example: "ip=2001:db8:a0b:12f0::1"
+          Subnet example: "ip=10.0.42.0/24"*
+        - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+           return all records where the mac address starts with aa:aa:aa*
+        - `netbox`
+        - `prefix`
+
+        For timestamp formats, see the [iso8601 module
+        doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+        `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+        that are still active.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this arp.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Arp'
+          description: ''
+  /api/1/auditlog/:
+    get:
+      operationId: 1_auditlog_list
+      description: |-
+        V1 API endpoint - returns plain strings for backward compatibility.
+
+        Logentries are created behind the scenes by the subsystems themselves.
+      parameters:
+      - in: query
+        name: object_pk
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: subsystem
+        schema:
+          type: string
+      - in: query
+        name: verb
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogEntryList'
+          description: ''
+  /api/1/auditlog/{id}/:
+    get:
+      operationId: 1_auditlog_retrieve
+      description: |-
+        V1 API endpoint - returns plain strings for backward compatibility.
+
+        Logentries are created behind the scenes by the subsystems themselves.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this log entry.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntry'
+          description: ''
+  /api/1/cabling/:
+    get:
+      operationId: 1_cabling_list
+      description: |-
+        Lists all cables.
+
+        Search
+        ------
+        Searches in *jack*, *target_room*, *building*,
+        *description*, *category*, *room*, *room__aliases*
+
+        Filters
+        -------
+        - available: *set this to list only cables that are not patched*
+        - building
+        - category
+        - jack
+        - room
+        - room_alias
+        - target_room
+        - target_room_alias
+      parameters:
+      - in: query
+        name: building
+        schema:
+          type: string
+      - in: query
+        name: category
+        schema:
+          type: string
+      - in: query
+        name: jack
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: room
+        schema:
+          type: string
+      - in: query
+        name: room_alias
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: target_room
+        schema:
+          type: string
+      - in: query
+        name: target_room_alias
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCablingList'
+          description: ''
+  /api/1/cabling/{id}/:
+    get:
+      operationId: 1_cabling_retrieve
+      description: |-
+        Lists all cables.
+
+        Search
+        ------
+        Searches in *jack*, *target_room*, *building*,
+        *description*, *category*, *room*, *room__aliases*
+
+        Filters
+        -------
+        - available: *set this to list only cables that are not patched*
+        - building
+        - category
+        - jack
+        - room
+        - room_alias
+        - target_room
+        - target_room_alias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this cabling.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cabling'
+          description: ''
+  /api/1/cam/:
+    get:
+      operationId: 1_cam_list
+      description: Override list so that we can control what is returned
+      parameters:
+      - in: query
+        name: active
+        schema:
+          type: boolean
+        description: List only records that are still active. Overrides starttime/endtime.
+      - in: query
+        name: endtime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp. Must be combined with starttime.
+      - in: query
+        name: ifindex
+        schema:
+          type: integer
+      - in: query
+        name: mac
+        schema:
+          type: string
+        description: MAC address, supports prefix filtering (e.g. aa:aa:aa).
+      - in: query
+        name: netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: port
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: starttime
+        schema:
+          type: string
+          format: date-time
+        description: 'ISO8601 timestamp. Without endtime: active records at that time.'
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCamList'
+          description: ''
+  /api/1/cam/{id}/:
+    get:
+      operationId: 1_cam_retrieve
+      description: |-
+        Lists CAM records.
+
+        *Because the number of CAM records often is huge, the API does not support
+        fetching all and will ask you to use a filter if you try.*
+
+        Filters
+        -------
+        - `active`: *set this to list only records that are still active. Enabling
+        this will **ignore** any start- and endtime filters present in the same
+        request.*
+        - `starttime`: *if set without endtime: lists all active records at that
+          timestamp*
+        - `endtime`: *must be set with starttime: lists all active records in the
+          period between starttime and endtime*
+        - `ifindex`
+        - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
+           return all records where the mac address starts with aa:aa:aa*
+        - `netbox`
+        - `port`
+
+        For timestamp formats, see the [iso8601 module
+        doc](https://pypi.python.org/pypi/iso8601) and <https://xkcd.com/1179/>.
+        `end_time` timestamps shown as `"9999-12-31T23:59:59.999"` denote records
+        that are still active.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this cam.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cam'
+          description: ''
+  /api/1/gwportprefix/:
+    get:
+      operationId: 1_gwportprefix_list
+      description: |-
+        Lists all gateway port prefixes.
+
+        Filters
+        -------
+        - interface
+        - interface__netbox
+        - prefix
+        - virtual
+      parameters:
+      - in: query
+        name: interface
+        schema:
+          type: integer
+      - in: query
+        name: interface__netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: prefix
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: virtual
+        schema:
+          type: boolean
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGwPortPrefixList'
+          description: ''
+  /api/1/gwportprefix/{gw_ip}/:
+    get:
+      operationId: 1_gwportprefix_retrieve
+      description: |-
+        Lists all gateway port prefixes.
+
+        Filters
+        -------
+        - interface
+        - interface__netbox
+        - prefix
+        - virtual
+      parameters:
+      - in: path
+        name: gw_ip
+        schema:
+          type: string
+          pattern: ^[^/]+(?:/[^/]+)?$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GwPortPrefix'
+          description: ''
+  /api/1/interface/:
+    get:
+      operationId: 1_interface_list
+      description: |-
+        Lists all interfaces.
+
+        Search
+        ------
+        Searches in *ifalias*, *ifdescr* and *ifname*
+
+        Filters
+        -------
+        - baseport
+        - ifadminstatus
+        - ifindex
+        - ifname
+        - ifoperstatus
+        - iftype
+        - netbox
+        - trunk
+        - vlan
+        - module__name
+        - ifclass=[swport, gwport, physicalport, trunk]
+
+        Detail routes
+        -------------
+        - last_used: interface/<id>/last_used/
+        - metrics: interface/<id>/metrics/
+
+        Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
+      parameters:
+      - in: query
+        name: baseport
+        schema:
+          type: integer
+      - in: query
+        name: ifadminstatus
+        schema:
+          type: integer
+          enum:
+          - 1
+          - 2
+          - 3
+        description: |-
+          * `1` - up
+          * `2` - down
+          * `3` - testing
+      - in: query
+        name: ifindex
+        schema:
+          type: integer
+      - in: query
+        name: ifname
+        schema:
+          type: string
+      - in: query
+        name: ifoperstatus
+        schema:
+          type: integer
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+        description: |-
+          * `1` - up
+          * `2` - down
+          * `3` - testing
+          * `4` - unknown
+          * `5` - dormant
+          * `6` - not present
+          * `7` - lower layer down
+      - in: query
+        name: iftype
+        schema:
+          type: integer
+      - in: query
+        name: module__name
+        schema:
+          type: string
+      - in: query
+        name: netbox
+        schema:
+          type: array
+          items:
+            type: integer
+        explode: true
+        style: form
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: trunk
+        schema:
+          type: boolean
+      - in: query
+        name: vlan
+        schema:
+          type: integer
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInterfaceList'
+          description: ''
+  /api/1/interface/{id}/:
+    get:
+      operationId: 1_interface_retrieve
+      description: |-
+        Lists all interfaces.
+
+        Search
+        ------
+        Searches in *ifalias*, *ifdescr* and *ifname*
+
+        Filters
+        -------
+        - baseport
+        - ifadminstatus
+        - ifindex
+        - ifname
+        - ifoperstatus
+        - iftype
+        - netbox
+        - trunk
+        - vlan
+        - module__name
+        - ifclass=[swport, gwport, physicalport, trunk]
+
+        Detail routes
+        -------------
+        - last_used: interface/<id>/last_used/
+        - metrics: interface/<id>/metrics/
+
+        Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - html
+          - json
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this interface.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interface'
+            text/x-nav-html:
+              schema:
+                $ref: '#/components/schemas/Interface'
+          description: ''
+  /api/1/interface/{id}/last_used/:
+    get:
+      operationId: 1_interface_last_used_retrieve
+      description: |-
+        Return last used timestamp for this interface
+
+        If still in use this will return datetime.max as per
+        DateTimeInfinityField
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this interface.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interface'
+          description: ''
+  /api/1/interface/{id}/metrics/:
+    get:
+      operationId: 1_interface_metrics_retrieve
+      description: |-
+        List all metrics for this interface
+
+        We don't want to include this by default as that will spam the Graphite
+        backend with requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this interface.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interface'
+          description: ''
+  /api/1/jwt/refresh/:
+    post:
+      operationId: 1_jwt_refresh_create
+      description: |-
+        Accepts a valid refresh token.
+        Returns a new refresh token and an access token.
+      summary: Exchange a refresh token for a new token pair
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JWTRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JWTRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JWTRefreshRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWTRefreshResponse'
+          description: ''
+  /api/1/location/:
+    get:
+      operationId: 1_location_list
+      description: |-
+        Lists all locations
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - parent
+        - alias
+      parameters:
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: id
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: parent
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationList'
+          description: ''
+    post:
+      operationId: 1_location_create
+      description: Log POST requests that create new objects
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Location'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Location'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+  /api/1/location/{id}/:
+    get:
+      operationId: 1_location_retrieve
+      description: |-
+        Lists all locations
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - parent
+        - alias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    put:
+      operationId: 1_location_update
+      description: |-
+        Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Location'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Location'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    patch:
+      operationId: 1_location_partial_update
+      description: |-
+        Lists all locations
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - parent
+        - alias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLocation'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+          description: ''
+    delete:
+      operationId: 1_location_destroy
+      description: Log successful DELETE requests
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/maintenance/:
+    get:
+      operationId: 1_maintenance_list
+      description: |-
+        Lists all maintenance tasks.
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - description
+        - author
+        - state (scheduled, active, passed, canceled)
+        - current
+        - past
+        - future
+        - endless
+      parameters:
+      - in: query
+        name: author
+        schema:
+          type: string
+      - in: query
+        name: current
+        schema:
+          type: boolean
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: endless
+        schema:
+          type: boolean
+      - in: query
+        name: future
+        schema:
+          type: boolean
+      - in: query
+        name: id
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: past
+        schema:
+          type: boolean
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: state
+        schema:
+          type: string
+          enum:
+          - active
+          - canceled
+          - passed
+          - scheduled
+        description: |-
+          * `scheduled` - Scheduled
+          * `active` - Active
+          * `passed` - Passed
+          * `canceled` - Canceled
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseMaintenanceTaskList'
+          description: ''
+    post:
+      operationId: 1_maintenance_create
+      description: |-
+        Lists all maintenance tasks.
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - description
+        - author
+        - state (scheduled, active, passed, canceled)
+        - current
+        - past
+        - future
+        - endless
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestMaintenanceTask'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestMaintenanceTask'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RequestMaintenanceTask'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestMaintenanceTask'
+          description: ''
+  /api/1/maintenance/{id}/:
+    get:
+      operationId: 1_maintenance_retrieve
+      description: |-
+        Lists all maintenance tasks.
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - description
+        - author
+        - state (scheduled, active, passed, canceled)
+        - current
+        - past
+        - future
+        - endless
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this maintenance task.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMaintenanceTask'
+          description: ''
+    delete:
+      operationId: 1_maintenance_destroy
+      description: |-
+        Lists all maintenance tasks.
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - description
+        - author
+        - state (scheduled, active, passed, canceled)
+        - current
+        - past
+        - future
+        - endless
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this maintenance task.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/management-profile/:
+    get:
+      operationId: 1_management_profile_list
+      description: Lists all management profiles
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedManagementProfileList'
+          description: ''
+    post:
+      operationId: 1_management_profile_create
+      description: Log POST requests that create new objects
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementProfile'
+          description: ''
+  /api/1/management-profile/{id}/:
+    get:
+      operationId: 1_management_profile_retrieve
+      description: Lists all management profiles
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this management profile.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementProfile'
+          description: ''
+    put:
+      operationId: 1_management_profile_update
+      description: |-
+        Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this management profile.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManagementProfile'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementProfile'
+          description: ''
+    patch:
+      operationId: 1_management_profile_partial_update
+      description: Lists all management profiles
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this management profile.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedManagementProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedManagementProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedManagementProfile'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementProfile'
+          description: ''
+    delete:
+      operationId: 1_management_profile_destroy
+      description: Log successful DELETE requests
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this management profile.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/module/:
+    get:
+      operationId: 1_module_list
+      description: |-
+        Lists all modules.
+
+        Filters
+        -------
+        - netbox
+        - device__serial
+
+        Example: `/api/1/module/?netbox=91&device__serial=AB12345`
+      parameters:
+      - in: query
+        name: device__serial
+        schema:
+          type: string
+      - in: query
+        name: netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedModuleList'
+          description: ''
+  /api/1/module/{id}/:
+    get:
+      operationId: 1_module_retrieve
+      description: |-
+        Lists all modules.
+
+        Filters
+        -------
+        - netbox
+        - device__serial
+
+        Example: `/api/1/module/?netbox=91&device__serial=AB12345`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this module.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+          description: ''
+  /api/1/netbox/:
+    get:
+      operationId: 1_netbox_list
+      description: |-
+        Lists all netboxes.
+
+        Search
+        ------
+        Searches in *sysname*.
+
+        Filters
+        -------
+        - category
+        - ip
+        - maintenance: "yes" for netboxes on maintenance, "no" for the opposite,
+          unset for everything
+        - organization
+        - room
+        - room_alias
+        - room_location_alias
+        - sysname
+        - type__name (NB: two underscores): ^ indicates starts_with, otherwise exact match
+
+        When the filtered item is an object, it will filter on the id.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+      - in: query
+        name: ip
+        schema:
+          type: string
+        description: Single IP address or subnet range (e.g. 10.0.42.0/24).
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: organization
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: room
+        schema:
+          type: string
+      - in: query
+        name: room__location
+        schema:
+          type: string
+      - in: query
+        name: room_alias
+        schema:
+          type: string
+      - in: query
+        name: room_location_alias
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: sysname
+        schema:
+          type: string
+      - in: query
+        name: type__name
+        schema:
+          type: string
+        description: Type name; prefix with ^ for starts-with match.
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNetboxList'
+          description: ''
+    post:
+      operationId: 1_netbox_create
+      description: Log POST requests that create new objects
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Netbox'
+          description: ''
+  /api/1/netbox/{id}/:
+    get:
+      operationId: 1_netbox_retrieve
+      description: |-
+        Lists all netboxes.
+
+        Search
+        ------
+        Searches in *sysname*.
+
+        Filters
+        -------
+        - category
+        - ip
+        - maintenance: "yes" for netboxes on maintenance, "no" for the opposite,
+          unset for everything
+        - organization
+        - room
+        - room_alias
+        - room_location_alias
+        - sysname
+        - type__name (NB: two underscores): ^ indicates starts_with, otherwise exact match
+
+        When the filtered item is an object, it will filter on the id.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this IP Device.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Netbox'
+          description: ''
+    put:
+      operationId: 1_netbox_update
+      description: |-
+        Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this IP Device.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Netbox'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Netbox'
+          description: ''
+    patch:
+      operationId: 1_netbox_partial_update
+      description: |-
+        Lists all netboxes.
+
+        Search
+        ------
+        Searches in *sysname*.
+
+        Filters
+        -------
+        - category
+        - ip
+        - maintenance: "yes" for netboxes on maintenance, "no" for the opposite,
+          unset for everything
+        - organization
+        - room
+        - room_alias
+        - room_location_alias
+        - sysname
+        - type__name (NB: two underscores): ^ indicates starts_with, otherwise exact match
+
+        When the filtered item is an object, it will filter on the id.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this IP Device.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNetbox'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNetbox'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNetbox'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Netbox'
+          description: ''
+    delete:
+      operationId: 1_netbox_destroy
+      description: |-
+        Override the deletion process
+
+        The background processes of NAV will execute the deletion if deleted_at
+        is set
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this IP Device.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/netboxentity/:
+    get:
+      operationId: 1_netboxentity_list
+      description: |-
+        A simple ViewSet for viewing NetboxEntities.
+
+        Filters
+        -------
+        - netbox
+        - physical_class
+
+        Example: `/api/netboxentity/?netbox=109&physical_class=3`
+      parameters:
+      - in: query
+        name: netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: physical_class
+        schema:
+          type: integer
+          nullable: true
+          enum:
+          - 1
+          - 10
+          - 11
+          - 12
+          - 13
+          - 14
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+          - 7
+          - 8
+          - 9
+        description: |-
+          * `1` - other
+          * `2` - unknown
+          * `3` - chassis
+          * `4` - backplane
+          * `5` - container
+          * `6` - powerSupply
+          * `7` - fan
+          * `8` - sensor
+          * `9` - module
+          * `10` - port
+          * `11` - stack
+          * `12` - cpu
+          * `13` - energyObject
+          * `14` - battery
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNetboxEntityList'
+          description: ''
+  /api/1/netboxentity/{id}/:
+    get:
+      operationId: 1_netboxentity_retrieve
+      description: |-
+        A simple ViewSet for viewing NetboxEntities.
+
+        Filters
+        -------
+        - netbox
+        - physical_class
+
+        Example: `/api/netboxentity/?netbox=109&physical_class=3`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this netbox entity.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetboxEntity'
+          description: ''
+  /api/1/organization/:
+    get:
+      operationId: 1_organization_list
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      parameters:
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: id
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: parent
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationList'
+          description: ''
+    post:
+      operationId: 1_organization_create
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/1/organization/{id}/:
+    get:
+      operationId: 1_organization_retrieve
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    put:
+      operationId: 1_organization_update
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    patch:
+      operationId: 1_organization_partial_update
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    delete:
+      operationId: 1_organization_destroy
+      description: |-
+        Lists all organizations
+
+        Search
+        ------
+        Searches in *description*
+
+        Filters
+        -------
+        - id
+        - parent
+        - description
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/patch/:
+    get:
+      operationId: 1_patch_list
+      description: |-
+        Lists all patches
+
+        Search
+        ------
+        Searches in *jack*, *room*, *sysname*, *ifname*, *ifalias*
+
+        Filters
+        -------
+        - cabling: The cable id
+        - cabling__room: The room id
+        - cabling_room_alias: Room aliases
+        - interface: The interface id
+        - interface__netbox: The netbox id
+
+        ### (Silly) Example
+        `patch/?interface__netbox=138&interface=337827&search=a`
+      parameters:
+      - in: query
+        name: cabling
+        schema:
+          type: integer
+      - in: query
+        name: cabling__room
+        schema:
+          type: string
+      - in: query
+        name: cabling_room_alias
+        schema:
+          type: string
+      - in: query
+        name: cabling_target_room_alias
+        schema:
+          type: string
+      - in: query
+        name: interface
+        schema:
+          type: integer
+      - in: query
+        name: interface__netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPatchList'
+          description: ''
+  /api/1/patch/{id}/:
+    get:
+      operationId: 1_patch_retrieve
+      description: |-
+        Lists all patches
+
+        Search
+        ------
+        Searches in *jack*, *room*, *sysname*, *ifname*, *ifalias*
+
+        Filters
+        -------
+        - cabling: The cable id
+        - cabling__room: The room id
+        - cabling_room_alias: Room aliases
+        - interface: The interface id
+        - interface__netbox: The netbox id
+
+        ### (Silly) Example
+        `patch/?interface__netbox=138&interface=337827&search=a`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this patch.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patch'
+          description: ''
+  /api/1/prefix/:
+    get:
+      operationId: 1_prefix_list
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      parameters:
+      - in: query
+        name: contains_address
+        schema:
+          type: string
+      - in: query
+        name: net_address
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: vlan
+        schema:
+          type: integer
+      - in: query
+        name: vlan__vlan
+        schema:
+          type: integer
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPrefixList'
+          description: ''
+    post:
+      operationId: 1_prefix_create
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefix'
+          description: ''
+  /api/1/prefix/{id}/:
+    get:
+      operationId: 1_prefix_retrieve
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this prefix.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefix'
+          description: ''
+    put:
+      operationId: 1_prefix_update
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this prefix.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Prefix'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefix'
+          description: ''
+    patch:
+      operationId: 1_prefix_partial_update
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this prefix.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPrefix'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPrefix'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPrefix'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefix'
+          description: ''
+    delete:
+      operationId: 1_prefix_destroy
+      description: |-
+        Lists all prefixes.
+
+        Filters
+        -------
+        - net_address
+        - vlan
+        - vlan__vlan: *Filters on the vlan number of the vlan*
+        - contains_address
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this prefix.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/prefix/routed/:
+    get:
+      operationId: 1_prefix_routed_list
+      description: |-
+        Lists all routed prefixes. A router has category *GSW* or *GW*
+
+        Filters
+        -------
+        - family: *either 4 or 6, else both will be listed*
+      parameters:
+      - in: query
+        name: family
+        schema:
+          type: integer
+        description: 'IP family: 4 or 6. If unset, both are listed.'
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPrefixList'
+          description: ''
+  /api/1/prefix/search/:
+    get:
+      operationId: 1_prefix_search_retrieve
+      description: Do string-like prefix searching. Currently only supports net_address.
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefix'
+          description: ''
+  /api/1/prefix/usage/:
+    get:
+      operationId: 1_prefix_usage_list
+      description: Override get method to verify url parameters
+      parameters:
+      - in: query
+        name: endtime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp; must be combined with starttime.
+      - in: query
+        name: family
+        schema:
+          type: integer
+        description: 'Limit results to IP family: 4 or 6.'
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: Limit results to a specific scope.
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: starttime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp; start of the interval.
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPrefixUsageList'
+          description: ''
+  /api/1/prefix/usage/{prefix}:
+    get:
+      operationId: 1_prefix_usage_retrieve
+      description: Handles get request for prefix usage
+      parameters:
+      - in: query
+        name: endtime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp; must be combined with starttime.
+      - in: path
+        name: prefix
+        schema:
+          type: string
+        description: CIDR prefix to report usage for.
+        required: true
+      - in: query
+        name: starttime
+        schema:
+          type: string
+          format: date-time
+        description: ISO8601 timestamp; start of the interval.
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrefixUsage'
+          description: ''
+  /api/1/rack/:
+    get:
+      operationId: 1_rack_list
+      description: |-
+        Lists all environment racks.
+
+        Search
+        ------
+        Searches in *rackname*
+
+        Filters
+        -------
+        - id
+        - room
+        - room_alias
+        - rackname
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: rackname
+        schema:
+          type: string
+      - in: query
+        name: room
+        schema:
+          type: string
+      - in: query
+        name: room_alias
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRackList'
+          description: ''
+  /api/1/rack/{id}/:
+    get:
+      operationId: 1_rack_retrieve
+      description: |-
+        Lists all environment racks.
+
+        Search
+        ------
+        Searches in *rackname*
+
+        Filters
+        -------
+        - id
+        - room
+        - room_alias
+        - rackname
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this rack.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rack'
+          description: ''
+  /api/1/room/:
+    get:
+      operationId: 1_room_list
+      description: |-
+        Lists all rooms.
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - location
+        - alias
+      parameters:
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: id
+        schema:
+          type: string
+      - in: query
+        name: location
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRoomList'
+          description: ''
+    post:
+      operationId: 1_room_create
+      description: Log POST requests that create new objects
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Room'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Room'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+          description: ''
+  /api/1/room/{id}/:
+    get:
+      operationId: 1_room_retrieve
+      description: |-
+        Lists all rooms.
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - location
+        - alias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+          description: ''
+    put:
+      operationId: 1_room_update
+      description: |-
+        Log successful update (PUT and PATCH) requests
+
+        Remember - update can create new objects with PUT
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Room'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Room'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+          description: ''
+    patch:
+      operationId: 1_room_partial_update
+      description: |-
+        Lists all rooms.
+
+        Search
+        ------
+        Searches in *description* and *aliases*
+
+        Filters
+        -------
+        - id
+        - description
+        - location
+        - alias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRoom'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRoom'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRoom'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+          description: ''
+    delete:
+      operationId: 1_room_destroy
+      description: Log successful DELETE requests
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[^/]+$
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/1/servicehandler/:
+    get:
+      operationId: 1_servicehandler_list
+      description: Handle list requests
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceHandler'
+          description: ''
+  /api/1/servicehandler/{id}/:
+    get:
+      operationId: 1_servicehandler_retrieve
+      description: Handle retrieve requests
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: Service handler type name.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceHandler'
+          description: ''
+  /api/1/unrecognized-neighbor/:
+    get:
+      operationId: 1_unrecognized_neighbor_list
+      description: |-
+        Lists unrecognized neighbors.
+
+        Search
+        ------
+        Searches in *remote_name*
+
+        Filters
+        -------
+        - netbox
+        - source
+      parameters:
+      - in: query
+        name: netbox
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: source
+        schema:
+          type: string
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUnrecognizedNeighborList'
+          description: ''
+  /api/1/unrecognized-neighbor/{id}/:
+    get:
+      operationId: 1_unrecognized_neighbor_retrieve
+      description: |-
+        Lists unrecognized neighbors.
+
+        Search
+        ------
+        Searches in *remote_name*
+
+        Filters
+        -------
+        - netbox
+        - source
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unrecognized neighbor.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnrecognizedNeighbor'
+          description: ''
+  /api/1/vendor/:
+    get:
+      operationId: 1_vendor_retrieve
+      description: |-
+        Lookup vendor names for MAC addresses.
+
+        This endpoint allows you to look up vendor names for MAC addresses.
+        It can be used with either a GET or POST request.
+
+        For GET requests, the MAC address must be provided via the query parameter `mac`.
+        This only supports one MAC address at a time.
+
+        For POST requests, the MAC addresses must be provided in the request body
+        as a JSON array. This supports multiple MAC addresses.
+
+        Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
+        The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
+        given MAC address is not found, it will be omitted from the response.
+        If no mac address was supplied, an empty dict will be returned.
+
+        Example GET request: `/api/1/vendor/?mac=aa:bb:cc:dd:ee:ff`
+
+        Example GET response: `{"aa:bb:cc:dd:ee:ff": "Vendor A"}`
+
+        Example POST request:
+            `/api/1/vendor/` with body `["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]`
+
+        Example POST response:
+            `{"aa:bb:cc:dd:ee:ff": "Vendor A", "11:22:33:44:55:66": "Vendor B"}`
+      summary: Look up the vendor of a single MAC address
+      parameters:
+      - in: query
+        name: mac
+        schema:
+          type: string
+        description: A single MAC address, e.g. aa:bb:cc:dd:ee:ff
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: Mapping of MAC address to vendor name.
+    post:
+      operationId: 1_vendor_create
+      description: |-
+        Lookup vendor names for MAC addresses.
+
+        This endpoint allows you to look up vendor names for MAC addresses.
+        It can be used with either a GET or POST request.
+
+        For GET requests, the MAC address must be provided via the query parameter `mac`.
+        This only supports one MAC address at a time.
+
+        For POST requests, the MAC addresses must be provided in the request body
+        as a JSON array. This supports multiple MAC addresses.
+
+        Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
+        The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
+        given MAC address is not found, it will be omitted from the response.
+        If no mac address was supplied, an empty dict will be returned.
+
+        Example GET request: `/api/1/vendor/?mac=aa:bb:cc:dd:ee:ff`
+
+        Example GET response: `{"aa:bb:cc:dd:ee:ff": "Vendor A"}`
+
+        Example POST request:
+            `/api/1/vendor/` with body `["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]`
+
+        Example POST response:
+            `{"aa:bb:cc:dd:ee:ff": "Vendor A", "11:22:33:44:55:66": "Vendor B"}`
+      summary: Look up vendors for multiple MAC addresses
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: Mapping of MAC addresses to vendor names.
+  /api/1/vlan/:
+    get:
+      operationId: 1_vlan_list
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      parameters:
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: net_ident
+        schema:
+          type: string
+      - in: query
+        name: net_type
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: organization
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: usage
+        schema:
+          type: string
+      - in: query
+        name: vlan
+        schema:
+          type: integer
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVlanList'
+          description: ''
+    post:
+      operationId: 1_vlan_create
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vlan'
+          description: ''
+  /api/1/vlan/{id}/:
+    get:
+      operationId: 1_vlan_retrieve
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vlan.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vlan'
+          description: ''
+    put:
+      operationId: 1_vlan_update
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vlan.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Vlan'
+        required: true
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vlan'
+          description: ''
+    patch:
+      operationId: 1_vlan_partial_update
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vlan.
+        required: true
+      tags:
+      - '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVlan'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vlan'
+          description: ''
+    delete:
+      operationId: 1_vlan_destroy
+      description: |-
+        Lists all vlans.
+
+        Search
+        ------
+        Searches in *net_ident* and *description*
+
+        Filters
+        -------
+        - description
+        - net_type
+        - net_ident
+        - organization
+        - usage
+        - vlan
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vlan.
+        required: true
+      tags:
+      - '1'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/2/auditlog/:
+    get:
+      operationId: 2_auditlog_list
+      description: |-
+        V2 API endpoint - returns objects with {name, url} for entity linking.
+
+        Logentries are created behind the scenes by the subsystems themselves.
+      parameters:
+      - in: query
+        name: object_pk
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: subsystem
+        schema:
+          type: string
+      - in: query
+        name: verb
+        schema:
+          type: string
+      tags:
+      - '2'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLogEntrySerializerV2List'
+          description: ''
+  /api/2/auditlog/{id}/:
+    get:
+      operationId: 2_auditlog_retrieve
+      description: |-
+        V2 API endpoint - returns objects with {name, url} for entity linking.
+
+        Logentries are created behind the scenes by the subsystems themselves.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this log entry.
+        required: true
+      tags:
+      - '2'
+      security:
+      - cookieAuth: []
+      - apiToken: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntrySerializerV2'
+          description: ''
+components:
+  schemas:
+    Account:
+      type: object
+      description: Serializer for accounts
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        login:
+          type: string
+        name:
+          type: string
+        ext_sync:
+          type: string
+        preferences:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        organizations:
+          type: array
+          items:
+            type: string
+        accountgroups:
+          type: array
+          items:
+            type: integer
+      required:
+      - accountgroups
+      - id
+      - login
+      - name
+    AccountGroup:
+      type: object
+      description: Serializer for accountgroups
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: integer
+      required:
+      - accounts
+      - description
+      - id
+      - name
+    Acknowledgement:
+      type: object
+      description: Serializer for alert acknowledgements
+      properties:
+        account:
+          $ref: '#/components/schemas/AlertAcknowledgementAccount'
+        comment:
+          type: string
+        date:
+          type: string
+          format: date-time
+        comment_html:
+          type: string
+          readOnly: true
+      required:
+      - account
+      - comment_html
+    AggregatedInterface:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ifname:
+          type: string
+      required:
+      - id
+      - ifname
+    AlertAcknowledgementAccount:
+      type: object
+      description: Serializer for Accounts that have acknowledged alerts
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        login:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - login
+      - name
+    AlertHistory:
+      type: object
+      description: Serializer for the AlertHistory model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        subject:
+          type: string
+          readOnly: true
+        subject_url:
+          type: string
+          readOnly: true
+        subject_type:
+          type: string
+          readOnly: true
+        on_maintenance:
+          type: string
+          readOnly: true
+        event_history_url:
+          type: string
+          readOnly: true
+        netbox_history_url:
+          type: string
+          readOnly: true
+        device_groups:
+          type: string
+          readOnly: true
+        alert_type:
+          $ref: '#/components/schemas/AlertType'
+        event_type:
+          $ref: '#/components/schemas/EventType'
+        acknowledgement:
+          $ref: '#/components/schemas/Acknowledgement'
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          readOnly: true
+        event_details_url:
+          type: string
+          readOnly: true
+        subid:
+          type: string
+        value:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        severity:
+          type: integer
+          maximum: 5
+          minimum: 1
+        source:
+          type: string
+        device:
+          type: integer
+          nullable: true
+        netbox:
+          type: integer
+          nullable: true
+      required:
+      - acknowledgement
+      - alert_type
+      - device_groups
+      - end_time
+      - event_details_url
+      - event_history_url
+      - event_type
+      - id
+      - netbox_history_url
+      - on_maintenance
+      - source
+      - start_time
+      - subject
+      - subject_type
+      - subject_url
+      - value
+    AlertType:
+      type: object
+      description: Serializer for alert types
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - description
+      - name
+    Arp:
+      type: object
+      description: Serializer for the arp model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sysname:
+          type: string
+        ip:
+          type: string
+        mac:
+          type: string
+          maxLength: 17
+        start_time:
+          type: string
+          format: date-time
+          readOnly: true
+        end_time:
+          type: string
+          format: date-time
+        netbox:
+          type: integer
+          nullable: true
+        prefix:
+          type: integer
+          nullable: true
+      required:
+      - end_time
+      - id
+      - ip
+      - mac
+      - start_time
+      - sysname
+    Cabling:
+      type: object
+      description: Serializer for the cabling model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        jack:
+          type: string
+        building:
+          type: string
+        target_room:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        room:
+          type: string
+      required:
+      - id
+      - jack
+      - room
+    Cam:
+      type: object
+      description: Serializer for the cam model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sysname:
+          type: string
+        ifindex:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        module:
+          type: string
+          maxLength: 4
+        port:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+          readOnly: true
+        end_time:
+          type: string
+          format: date-time
+        miss_count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        mac:
+          type: string
+          maxLength: 17
+        netbox:
+          type: integer
+          nullable: true
+      required:
+      - end_time
+      - id
+      - ifindex
+      - mac
+      - module
+      - port
+      - start_time
+      - sysname
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 8
+        description:
+          type: string
+        req_mgmt:
+          type: boolean
+      required:
+      - description
+      - id
+    Component:
+      type: object
+      description: Serializer for creating components of a MaintenanceTask
+      properties:
+        room:
+          type: array
+          items:
+            type: string
+          nullable: true
+        location:
+          type: array
+          items:
+            type: string
+          nullable: true
+        netbox:
+          type: array
+          items:
+            type: integer
+          nullable: true
+        service:
+          type: array
+          items:
+            type: integer
+          nullable: true
+        netboxgroup:
+          type: array
+          items:
+            type: string
+          nullable: true
+    Device:
+      type: object
+      description: Serializer for the device model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        serial:
+          type: string
+          nullable: true
+        hardware_version:
+          type: string
+          nullable: true
+        firmware_version:
+          type: string
+          nullable: true
+        software_version:
+          type: string
+          nullable: true
+        discovered:
+          type: string
+          format: date-time
+      required:
+      - id
+    DeviceInline:
+      type: object
+      description: Serializer for the device model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        serial:
+          type: string
+          nullable: true
+      required:
+      - id
+    DuplexEnum:
+      enum:
+      - f
+      - h
+      type: string
+      description: |-
+        * `f` - full duplex
+        * `h` - half duplex
+    Entity:
+      type: object
+      description: Serializer for netboxentities
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          nullable: true
+        descr:
+          type: string
+          nullable: true
+        serial:
+          type: string
+        vendor_type:
+          type: string
+          nullable: true
+        hardware_revision:
+          type: string
+          nullable: true
+        firmware_revision:
+          type: string
+          nullable: true
+        software_revision:
+          type: string
+          nullable: true
+        mfg_name:
+          type: string
+          nullable: true
+        model_name:
+          type: string
+          nullable: true
+        fru:
+          type: boolean
+          nullable: true
+          title: Is a field replaceable unit
+        mfg_date:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - id
+      - serial
+    EventType:
+      type: object
+      description: Serializer for event types
+      properties:
+        id:
+          type: string
+          maxLength: 32
+        description:
+          type: string
+      required:
+      - description
+      - id
+    GwPortPrefix:
+      type: object
+      description: Serializer for the GwPortPrefix model
+      properties:
+        gw_ip:
+          type: string
+        interface:
+          allOf:
+          - $ref: '#/components/schemas/InlineInterface'
+          readOnly: true
+        prefix:
+          allOf:
+          - $ref: '#/components/schemas/InlinePrefix'
+          readOnly: true
+        virtual:
+          type: boolean
+      required:
+      - gw_ip
+      - interface
+      - prefix
+    IfadminstatusEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      type: integer
+      description: |-
+        * `1` - up
+        * `2` - down
+        * `3` - testing
+    IfoperstatusEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      type: integer
+      description: |-
+        * `1` - up
+        * `2` - down
+        * `3` - testing
+        * `4` - unknown
+        * `5` - dormant
+        * `6` - not present
+        * `7` - lower layer down
+    InlineInterface:
+      type: object
+      description: Flat interface serializer for inline use
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ifindex:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        netbox:
+          type: integer
+      required:
+      - id
+      - ifindex
+      - netbox
+    InlinePrefix:
+      type: object
+      description: Flat prefix serializer for inline use
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        net_address:
+          type: string
+        vlan:
+          type: integer
+      required:
+      - id
+      - net_address
+      - vlan
+    Interface:
+      type: object
+      description: Serializer for the interface model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        patches:
+          $ref: '#/components/schemas/SpecificPatch'
+        module:
+          $ref: '#/components/schemas/ModuleInline'
+        object_url:
+          type: string
+        to_netbox:
+          $ref: '#/components/schemas/SubNetbox'
+        to_interface:
+          $ref: '#/components/schemas/SubInterface'
+        aggregator:
+          $ref: '#/components/schemas/AggregatedInterface'
+        bundled_interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregatedInterface'
+        netbox:
+          $ref: '#/components/schemas/SubNetbox'
+        vlan_netident:
+          type: string
+          readOnly: true
+        ifindex:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ifname:
+          type: string
+        ifdescr:
+          type: string
+        iftype:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        speed:
+          type: number
+          format: double
+        ifphysaddress:
+          type: string
+          nullable: true
+          maxLength: 17
+        ifadminstatus:
+          allOf:
+          - $ref: '#/components/schemas/IfadminstatusEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        ifoperstatus:
+          allOf:
+          - $ref: '#/components/schemas/IfoperstatusEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        iflastchange:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ifconnectorpresent:
+          type: boolean
+        ifpromiscuousmode:
+          type: boolean
+        ifalias:
+          type: string
+        baseport:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        media:
+          type: string
+          nullable: true
+        vlan:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        trunk:
+          type: boolean
+        duplex:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/DuplexEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        gone_since:
+          type: string
+          format: date-time
+      required:
+      - aggregator
+      - baseport
+      - bundled_interfaces
+      - gone_since
+      - id
+      - ifadminstatus
+      - ifalias
+      - ifdescr
+      - ifindex
+      - iflastchange
+      - ifname
+      - ifoperstatus
+      - iftype
+      - module
+      - netbox
+      - object_url
+      - patches
+      - speed
+      - to_interface
+      - to_netbox
+      - vlan
+      - vlan_netident
+    JWTRefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+      required:
+      - refresh_token
+    JWTRefreshResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      required:
+      - access_token
+      - refresh_token
+    Location:
+      type: object
+      description: Serializer for the location model
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        description:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        aliases: {}
+        parent:
+          type: string
+          nullable: true
+      required:
+      - id
+    LogEntry:
+      type: object
+      description: V1 serializer - returns plain strings for backward compatibility
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        subsystem:
+          type: string
+          nullable: true
+        actor:
+          type: string
+          readOnly: true
+        verb:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        object:
+          type: string
+          readOnly: true
+        target:
+          type: string
+          readOnly: true
+        summary:
+          type: string
+        before:
+          type: string
+          nullable: true
+        after:
+          type: string
+          nullable: true
+      required:
+      - actor
+      - object
+      - summary
+      - target
+      - timestamp
+      - verb
+    LogEntrySerializerV2:
+      type: object
+      description: V2 serializer - returns objects with {name, url} for entity linking
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        subsystem:
+          type: string
+          nullable: true
+        actor:
+          type: string
+          readOnly: true
+        verb:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        object:
+          type: string
+          readOnly: true
+        target:
+          type: string
+          readOnly: true
+        summary:
+          type: string
+        before:
+          type: string
+          nullable: true
+        after:
+          type: string
+          nullable: true
+      required:
+      - actor
+      - object
+      - summary
+      - target
+      - timestamp
+      - verb
+    ManagementProfile:
+      type: object
+      description: Serializer for management profiles
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        protocol:
+          $ref: '#/components/schemas/ProtocolEnum'
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        configuration: {}
+      required:
+      - id
+      - name
+      - protocol
+    Module:
+      type: object
+      description: Serializer for the module model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        object_url:
+          type: string
+        device:
+          $ref: '#/components/schemas/Device'
+        netbox:
+          $ref: '#/components/schemas/NetboxInline'
+        module_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        name:
+          type: string
+        model:
+          type: string
+        description:
+          type: string
+        up:
+          $ref: '#/components/schemas/UpA9aEnum'
+        down_since:
+          type: string
+          format: date-time
+      required:
+      - description
+      - device
+      - down_since
+      - id
+      - model
+      - module_number
+      - name
+      - netbox
+      - object_url
+    ModuleInline:
+      type: object
+      description: Serializer for including module information in other serializers
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        object_url:
+          type: string
+        module_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        name:
+          type: string
+        model:
+          type: string
+        description:
+          type: string
+        up:
+          $ref: '#/components/schemas/UpA9aEnum'
+        down_since:
+          type: string
+          format: date-time
+        device:
+          type: integer
+        netbox:
+          type: integer
+      required:
+      - description
+      - device
+      - down_since
+      - id
+      - model
+      - module_number
+      - name
+      - netbox
+      - object_url
+    Nested:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        jack:
+          type: string
+        building:
+          type: string
+        target_room:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        room:
+          type: string
+      required:
+      - id
+      - jack
+      - room
+    Netbox:
+      type: object
+      description: Serializer for the netbox model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        chassis:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          readOnly: true
+        sysname:
+          type: string
+        roomid:
+          type: string
+          writeOnly: true
+        room:
+          $ref: '#/components/schemas/Room'
+        organizationid:
+          type: string
+          writeOnly: true
+        organization:
+          $ref: '#/components/schemas/Organization'
+        categoryid:
+          type: string
+          writeOnly: true
+        category:
+          $ref: '#/components/schemas/Category'
+        masterid:
+          type: integer
+          writeOnly: true
+        master:
+          $ref: '#/components/schemas/SubNetbox'
+        typeid:
+          type: integer
+          writeOnly: true
+        type:
+          allOf:
+          - $ref: '#/components/schemas/NetboxType'
+          readOnly: true
+        profiles:
+          type: array
+          items:
+            type: integer
+        mac_addresses:
+          type: array
+          items: {}
+          readOnly: true
+        ip:
+          type: string
+        up:
+          $ref: '#/components/schemas/Up918Enum'
+        up_since:
+          type: string
+          format: date-time
+          readOnly: true
+        up_to_date:
+          type: boolean
+        discovered:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Nested'
+          readOnly: true
+      required:
+      - categoryid
+      - chassis
+      - discovered
+      - groups
+      - id
+      - ip
+      - mac_addresses
+      - organizationid
+      - roomid
+      - type
+      - up_since
+    NetboxEntity:
+      type: object
+      description: Serializer for the NetboxEntity model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        device:
+          $ref: '#/components/schemas/DeviceInline'
+        physical_class_name:
+          type: string
+        index:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        source:
+          type: string
+          default: ENTITY-MIB
+        descr:
+          type: string
+          nullable: true
+        vendor_type:
+          type: string
+          nullable: true
+        physical_class:
+          nullable: true
+          minimum: -2147483648
+          maximum: 2147483647
+          oneOf:
+          - $ref: '#/components/schemas/PhysicalClassEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        parent_relpos:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        hardware_revision:
+          type: string
+          nullable: true
+        firmware_revision:
+          type: string
+          nullable: true
+        software_revision:
+          type: string
+          nullable: true
+        mfg_name:
+          type: string
+          nullable: true
+        model_name:
+          type: string
+          nullable: true
+        alias:
+          type: string
+          nullable: true
+        asset_id:
+          type: string
+          nullable: true
+        fru:
+          type: boolean
+          nullable: true
+          title: Is a field replaceable unit
+        mfg_date:
+          type: string
+          format: date-time
+          nullable: true
+        uris:
+          type: string
+          nullable: true
+        gone_since:
+          type: string
+          format: date-time
+          nullable: true
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        netbox:
+          type: integer
+        contained_in:
+          type: integer
+          nullable: true
+      required:
+      - device
+      - id
+      - index
+      - netbox
+      - physical_class_name
+    NetboxInline:
+      type: object
+      description: Serializer for including netbox information in other serializers
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sysname:
+          type: string
+      required:
+      - id
+      - sysname
+    NetboxType:
+      type: object
+      description: Serializer for the type model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Type name
+        sysobjectid:
+          type: string
+        description:
+          type: string
+        vendor:
+          type: string
+      required:
+      - description
+      - id
+      - name
+      - sysobjectid
+      - vendor
+    NullEnum:
+      enum:
+      - null
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        description:
+          type: string
+        contact:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        parent:
+          type: string
+          nullable: true
+      required:
+      - id
+    PaginatedAccountGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountGroup'
+    PaginatedAccountList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+    PaginatedAlertHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertHistory'
+    PaginatedArpList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Arp'
+    PaginatedCablingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cabling'
+    PaginatedCamList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cam'
+    PaginatedGwPortPrefixList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GwPortPrefix'
+    PaginatedInterfaceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Interface'
+    PaginatedLocationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    PaginatedLogEntryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntry'
+    PaginatedLogEntrySerializerV2List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntrySerializerV2'
+    PaginatedManagementProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManagementProfile'
+    PaginatedModuleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Module'
+    PaginatedNetboxEntityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetboxEntity'
+    PaginatedNetboxList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Netbox'
+    PaginatedOrganizationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+    PaginatedPatchList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patch'
+    PaginatedPrefixList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prefix'
+    PaginatedPrefixUsageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrefixUsage'
+    PaginatedRackList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rack'
+    PaginatedResponseMaintenanceTaskList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseMaintenanceTask'
+    PaginatedRoomList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+    PaginatedUnrecognizedNeighborList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnrecognizedNeighbor'
+    PaginatedVlanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vlan'
+    Patch:
+      type: object
+      description: Serializer for the patch model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        split:
+          type: string
+        interface:
+          allOf:
+          - $ref: '#/components/schemas/Nested'
+          readOnly: true
+        cabling:
+          allOf:
+          - $ref: '#/components/schemas/Nested'
+          readOnly: true
+      required:
+      - cabling
+      - id
+      - interface
+    PatchedAccount:
+      type: object
+      description: Serializer for accounts
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        login:
+          type: string
+        name:
+          type: string
+        ext_sync:
+          type: string
+        preferences:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        organizations:
+          type: array
+          items:
+            type: string
+        accountgroups:
+          type: array
+          items:
+            type: integer
+    PatchedAccountGroup:
+      type: object
+      description: Serializer for accountgroups
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: integer
+    PatchedLocation:
+      type: object
+      description: Serializer for the location model
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        description:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        aliases: {}
+        parent:
+          type: string
+          nullable: true
+    PatchedManagementProfile:
+      type: object
+      description: Serializer for management profiles
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        protocol:
+          $ref: '#/components/schemas/ProtocolEnum'
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        configuration: {}
+    PatchedNetbox:
+      type: object
+      description: Serializer for the netbox model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        chassis:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          readOnly: true
+        sysname:
+          type: string
+        roomid:
+          type: string
+          writeOnly: true
+        room:
+          $ref: '#/components/schemas/Room'
+        organizationid:
+          type: string
+          writeOnly: true
+        organization:
+          $ref: '#/components/schemas/Organization'
+        categoryid:
+          type: string
+          writeOnly: true
+        category:
+          $ref: '#/components/schemas/Category'
+        masterid:
+          type: integer
+          writeOnly: true
+        master:
+          $ref: '#/components/schemas/SubNetbox'
+        typeid:
+          type: integer
+          writeOnly: true
+        type:
+          allOf:
+          - $ref: '#/components/schemas/NetboxType'
+          readOnly: true
+        profiles:
+          type: array
+          items:
+            type: integer
+        mac_addresses:
+          type: array
+          items: {}
+          readOnly: true
+        ip:
+          type: string
+        up:
+          $ref: '#/components/schemas/Up918Enum'
+        up_since:
+          type: string
+          format: date-time
+          readOnly: true
+        up_to_date:
+          type: boolean
+        discovered:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Nested'
+          readOnly: true
+    PatchedOrganization:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        description:
+          type: string
+        contact:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        parent:
+          type: string
+          nullable: true
+    PatchedPrefix:
+      type: object
+      description: Serializer for prefix model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usages:
+          type: array
+          items:
+            type: string
+        vlan_data:
+          allOf:
+          - $ref: '#/components/schemas/Vlan'
+          readOnly: true
+        net_address:
+          type: string
+        vlan:
+          type: integer
+    PatchedRoom:
+      type: object
+      description: Serializer for the room model
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        position:
+          type: array
+          items:
+            type: string
+            format: decimal
+            pattern: ^-?\d{0,8}(?:\.\d{0,12})?$
+          nullable: true
+          maxItems: 2
+          minItems: 2
+        description:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        aliases: {}
+        location:
+          type: string
+    PatchedVlan:
+      type: object
+      description: Serializer for the vlan model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        vlan:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        net_ident:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        net_type:
+          type: string
+        organization:
+          type: string
+          nullable: true
+        usage:
+          type: string
+          nullable: true
+        netbox:
+          type: integer
+          nullable: true
+    PhysicalClassEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      type: integer
+      description: |-
+        * `1` - other
+        * `2` - unknown
+        * `3` - chassis
+        * `4` - backplane
+        * `5` - container
+        * `6` - powerSupply
+        * `7` - fan
+        * `8` - sensor
+        * `9` - module
+        * `10` - port
+        * `11` - stack
+        * `12` - cpu
+        * `13` - energyObject
+        * `14` - battery
+    Prefix:
+      type: object
+      description: Serializer for prefix model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usages:
+          type: array
+          items:
+            type: string
+        vlan_data:
+          allOf:
+          - $ref: '#/components/schemas/Vlan'
+          readOnly: true
+        net_address:
+          type: string
+        vlan:
+          type: integer
+      required:
+      - id
+      - net_address
+      - vlan
+      - vlan_data
+    PrefixUsage:
+      type: object
+      description: Serializer for prefix usage queries
+      properties:
+        starttime:
+          type: string
+          format: date-time
+        endtime:
+          type: string
+          format: date-time
+        prefix:
+          type: string
+        usage:
+          type: number
+          format: double
+        active_addresses:
+          type: integer
+        max_addresses:
+          type: integer
+        max_hosts:
+          type: integer
+        vlan_id:
+          type: integer
+        net_ident:
+          type: string
+        url_machinetracker:
+          type: string
+        url_report:
+          type: string
+        url_vlan:
+          type: string
+      required:
+      - active_addresses
+      - endtime
+      - max_addresses
+      - max_hosts
+      - net_ident
+      - prefix
+      - starttime
+      - url_machinetracker
+      - url_report
+      - url_vlan
+      - usage
+      - vlan_id
+    ProtocolEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      type: integer
+      description: |-
+        * `1` - SNMP
+        * `2` - NAPALM
+        * `3` - SNMPv3
+        * `4` - HTTP API
+    Rack:
+      type: object
+      description: Serializer for the rack model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        configuration:
+          type: string
+          readOnly: true
+        rackname:
+          type: string
+        ordering:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        item_counter:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        room:
+          type: string
+      required:
+      - configuration
+      - id
+      - ordering
+      - room
+    RequestMaintenanceTask:
+      type: object
+      description: Serializer for creating a MaintenanceTask
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+          default: '9999-12-31T23:59:59.999999'
+        description:
+          type: string
+        author:
+          type: string
+        components:
+          $ref: '#/components/schemas/Component'
+      required:
+      - author
+      - components
+      - description
+      - start_time
+    ResponseMaintenanceTask:
+      type: object
+      description: Serializer for returning a MaintenanceTask
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        components:
+          type: string
+          readOnly: true
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        description:
+          type: string
+        author:
+          type: string
+        state:
+          $ref: '#/components/schemas/StateEnum'
+      required:
+      - author
+      - components
+      - description
+      - id
+      - start_time
+      - state
+    Room:
+      type: object
+      description: Serializer for the room model
+      properties:
+        id:
+          type: string
+          maxLength: 30
+        position:
+          type: array
+          items:
+            type: string
+            format: decimal
+            pattern: ^-?\d{0,8}(?:\.\d{0,12})?$
+          nullable: true
+          maxItems: 2
+          minItems: 2
+        description:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        aliases: {}
+        location:
+          type: string
+      required:
+      - id
+      - location
+    ServiceHandler:
+      type: object
+      description: |-
+        Serializer for service handlers.
+
+        These handlers does not exist in the database but as python modules.
+
+        NB: Later versions of django rest framework supports list and dict
+        fields. Then we can add the args and optargs.
+      properties:
+        name:
+          type: string
+        ipv6_support:
+          type: boolean
+        description:
+          type: string
+      required:
+      - description
+      - ipv6_support
+      - name
+    SpecificPatch:
+      type: object
+      description: Specific serializer used for InterfaceSerializer
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        cabling:
+          allOf:
+          - $ref: '#/components/schemas/Nested'
+          readOnly: true
+        split:
+          type: string
+      required:
+      - cabling
+      - id
+    StateEnum:
+      enum:
+      - scheduled
+      - active
+      - passed
+      - canceled
+      type: string
+      description: |-
+        * `scheduled` - Scheduled
+        * `active` - Active
+        * `passed` - Passed
+        * `canceled` - Canceled
+    SubInterface:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        object_url:
+          type: string
+        ifindex:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ifname:
+          type: string
+        ifdescr:
+          type: string
+        iftype:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        speed:
+          type: number
+          format: double
+        ifphysaddress:
+          type: string
+          nullable: true
+          maxLength: 17
+        ifadminstatus:
+          allOf:
+          - $ref: '#/components/schemas/IfadminstatusEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        ifoperstatus:
+          allOf:
+          - $ref: '#/components/schemas/IfoperstatusEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        iflastchange:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ifconnectorpresent:
+          type: boolean
+        ifpromiscuousmode:
+          type: boolean
+        ifalias:
+          type: string
+        baseport:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        media:
+          type: string
+          nullable: true
+        vlan:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        trunk:
+          type: boolean
+        duplex:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/DuplexEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        gone_since:
+          type: string
+          format: date-time
+        netbox:
+          type: integer
+        module:
+          type: integer
+          nullable: true
+        to_netbox:
+          type: integer
+          nullable: true
+        to_interface:
+          type: integer
+          nullable: true
+      required:
+      - baseport
+      - gone_since
+      - id
+      - ifadminstatus
+      - ifalias
+      - ifdescr
+      - ifindex
+      - iflastchange
+      - ifname
+      - ifoperstatus
+      - iftype
+      - netbox
+      - object_url
+      - speed
+      - vlan
+    SubNetbox:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        object_url:
+          type: string
+        ip:
+          type: string
+        sysname:
+          type: string
+        up:
+          $ref: '#/components/schemas/Up918Enum'
+        up_since:
+          type: string
+          format: date-time
+          readOnly: true
+        up_to_date:
+          type: boolean
+        discovered:
+          type: string
+          format: date-time
+          readOnly: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        data:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+        room:
+          type: string
+        type:
+          type: integer
+          nullable: true
+        category:
+          type: string
+        organization:
+          type: string
+        master:
+          type: integer
+          nullable: true
+        groups:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        profiles:
+          type: array
+          items:
+            type: integer
+          readOnly: true
+      required:
+      - category
+      - discovered
+      - groups
+      - id
+      - ip
+      - object_url
+      - organization
+      - profiles
+      - room
+      - sysname
+      - up_since
+    UnrecognizedNeighbor:
+      type: object
+      description: Serializer for the arp model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        remote_id:
+          type: string
+        remote_name:
+          type: string
+        source:
+          type: string
+        since:
+          type: string
+          format: date-time
+          readOnly: true
+        ignored_since:
+          type: string
+          format: date-time
+        netbox:
+          type: integer
+        interface:
+          type: integer
+      required:
+      - id
+      - ignored_since
+      - interface
+      - netbox
+      - remote_id
+      - remote_name
+      - since
+      - source
+    Up918Enum:
+      enum:
+      - y
+      - n
+      - s
+      type: string
+      description: |-
+        * `y` - up
+        * `n` - down
+        * `s` - shadow
+    UpA9aEnum:
+      enum:
+      - y
+      - n
+      type: string
+      description: |-
+        * `y` - up
+        * `n` - down
+    Vlan:
+      type: object
+      description: Serializer for the vlan model
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        vlan:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        net_ident:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        net_type:
+          type: string
+        organization:
+          type: string
+          nullable: true
+        usage:
+          type: string
+          nullable: true
+        netbox:
+          type: integer
+          nullable: true
+      required:
+      - id
+      - net_type
+  securitySchemes:
+    apiToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'NAV API token. Send as ``Authorization: Token <your-token>``.'
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: nav_sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
