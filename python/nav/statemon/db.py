@@ -31,6 +31,7 @@ import threading
 
 import psycopg
 from psycopg.errors import InFailedSqlTransaction
+from psycopg.types.net import CidrBinaryLoader, InetBinaryLoader
 from psycopg.types.string import TextLoader
 
 from nav.db import get_connection_string
@@ -41,6 +42,25 @@ from .event import Event
 
 
 _logger = logging.getLogger(__name__)
+
+
+class _InetBinaryStrLoader(InetBinaryLoader):
+    """Loads inet columns as plain strings, even over the binary protocol.
+
+    psycopg3's default binary loader returns ipaddress objects; statemon's
+    callers (e.g. megaping) expect the plain strings psycopg2 used to return.
+    """
+
+    def load(self, data):
+        return str(super().load(data))
+
+
+class _CidrBinaryStrLoader(CidrBinaryLoader):
+    """Loads cidr columns as plain strings, even over the binary protocol."""
+
+    def load(self, data):
+        return str(super().load(data))
+
 
 # The event model requires a valid severity value, even though the event engine will
 # always override it when generating alerts. It therefore doesn't matter what value
@@ -81,9 +101,13 @@ class _DB(threading.Thread):
             self.db = psycopg.connect(conn_str)
             # psycopg3 loads PostgreSQL inet/cidr columns as ipaddress objects
             # by default, but statemon's callers (e.g. megaping) expect the
-            # plain strings that psycopg2 used to return.
+            # plain strings that psycopg2 used to return. Loaders are registered
+            # per wire format, so both the text and binary protocols must be
+            # overridden or the binary path leaks ipaddress objects.
             self.db.adapters.register_loader("inet", TextLoader)
             self.db.adapters.register_loader("cidr", TextLoader)
+            self.db.adapters.register_loader("inet", _InetBinaryStrLoader)
+            self.db.adapters.register_loader("cidr", _CidrBinaryStrLoader)
             atexit.register(self.close)
 
             _logger.info("Successfully (re)connected to NAVdb")
