@@ -15,6 +15,8 @@
 #
 """Various functionality to bridge legacy NAV code with Django"""
 
+import psycopg2
+
 from django.utils.deprecation import MiddlewareMixin
 
 from nav import db
@@ -33,6 +35,16 @@ class LegacyCleanupMiddleware(MiddlewareMixin):
         """
         connections = (v.object for v in db._connection_cache.values())
         for conn in connections:
-            conn.rollback()
+            try:
+                conn.rollback()
+            except psycopg2.Error:
+                # The cached connection may have died out-of-band during the
+                # request (database reboot, server-side termination, network
+                # drop) after getConnection() last validated it. psycopg2 does
+                # not flag such a connection as closed until the failing I/O, so
+                # the rollback here is what raises. Swallow it so cleanup does
+                # not turn into an HTTP 500; getConnection() validates and
+                # replaces the dead connection on the next request.
+                pass
 
         return response
