@@ -212,7 +212,7 @@ def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result, collapse=Fal
     """Creates a tracker tuple where the result is active"""
     ip = str(ip_key)
     rows = ip_result[ip_key]
-    touched_keys = []
+    touched_keys = set()
     for row in rows:
         row = process_ip_row(row, dns=False)
         if dns:
@@ -222,10 +222,8 @@ def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result, collapse=Fal
                 row.dns_lookup = dns_lookups[ip][0]
         row.ip_int_value = normalize_ip_to_string(row.ip)
         key = (row.ip, row.mac)
-        if key not in tracker:
-            tracker[key] = []
-            touched_keys.append(key)
-        tracker[key].append(row)
+        tracker.setdefault(key, []).append(row)
+        touched_keys.add(key)
     if collapse:
         for key in touched_keys:
             tracker[key] = collapse_overlapping(tracker[key])

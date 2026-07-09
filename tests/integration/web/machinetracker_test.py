@@ -27,7 +27,9 @@ class TestCollapseOverlapping:
             _row(now - timedelta(hours=1), INFINITY, "router-a"),
             _row(now - timedelta(hours=2), INFINITY, "router-b"),
         ]
-        assert len(collapse_overlapping(rows)) == 1
+        kept = collapse_overlapping(rows)
+        assert len(kept) == 1
+        assert kept[0].sysname == "router-a"  # newer start_time wins
 
     def test_given_disjoint_history_rows_it_should_preserve_them(self):
         now = datetime.now()

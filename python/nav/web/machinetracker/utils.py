@@ -25,7 +25,7 @@ from IPy import IP
 from django.db import DatabaseError, transaction
 
 from nav import asyncdns
-from nav.models.manage import Prefix, Netbox, Interface
+from nav.models.manage import Arp, Prefix, Netbox, Interface
 
 _cached_hostname = {}
 _logger = logging.getLogger(__name__)
@@ -128,7 +128,7 @@ def ip_dict(rows):
     return result
 
 
-def collapse_overlapping(rows):
+def collapse_overlapping(rows: list[Arp]) -> list[Arp]:
     """Drops rows whose active period overlaps a newer kept row.
 
     `rows` is the list of Arp result rows for a single (ip, mac) pair, already
