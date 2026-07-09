@@ -12,7 +12,6 @@ import pytest
 from django.http import QueryDict
 from django.urls import reverse
 
-from nav import db
 from nav.report.generator import ReportList, Generator
 from nav.config import find_config_dir, list_config_files_from_dir
 
@@ -30,7 +29,6 @@ def report_list():
 def test_report(report_name):
     # uri = 'http://example.com/report/%s/' % report_name
     uri = QueryDict('').copy()
-    db.closeConnections()  # Ensure clean connection for each test
 
     generator = Generator()
     report, contents, neg, operator, adv, config, dbresult = generator.make_report(
