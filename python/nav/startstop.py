@@ -93,6 +93,14 @@ class DaemonService(Service):
 
     status = None
 
+    # Seconds to wait for a graceful (SIGTERM) shutdown before escalating to
+    # SIGKILL.
+    TERM_GRACE_PERIOD = 15
+    # Seconds to wait for the process to disappear after sending SIGKILL.
+    KILL_GRACE_PERIOD = 5
+    # How often (seconds) to poll for process exit while waiting.
+    POLL_INTERVAL = 0.5
+
     def __init__(self, name, service_dict, source=None):
         self.name = name
         self.info = service_dict.get('description')
@@ -138,19 +146,62 @@ class DaemonService(Service):
             return False
 
         pid = self.get_pid()
-        for attempt in range(3):
-            try:
-                os.kill(pid, signal.SIGTERM)
-            except OSError as error:
-                if error.errno == errno.ESRCH:  # it's gone
-                    return True
-                else:
-                    raise
-            if self.is_up(pid=pid):
-                delay = (attempt + 1) * 2
-                time.sleep(delay)
-        else:
+        if pid is None:
             return False
+
+        # Try a graceful shutdown first. If the daemon (or any of its child
+        # processes) is still alive after the grace period, escalate to
+        # SIGKILL, which cannot be caught, blocked or deferred by the process.
+        if self._signal_and_wait(pid, signal.SIGTERM, self.TERM_GRACE_PERIOD):
+            return True
+        self._signal_and_wait(pid, signal.SIGKILL, self.KILL_GRACE_PERIOD)
+        return not self.is_up(pid=pid)
+
+    def _signal_and_wait(self, pid, sig, timeout):
+        """Signals the daemon's process group and waits up to timeout seconds
+        for the daemon to exit.
+
+        Signalling the whole process group (rather than just the master pid)
+        ensures child processes -- such as ipdevpoll's multiprocess workers --
+        are terminated along with the master, instead of being left behind as
+        orphans or unreaped zombies.
+
+        Returns True if the daemon exited within the timeout.
+        """
+        if not self._signal_process_group(pid, sig):
+            return True  # already gone
+
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if not self.is_up(pid=pid):
+                return True
+            time.sleep(self.POLL_INTERVAL)
+        return not self.is_up(pid=pid)
+
+    @staticmethod
+    def _signal_process_group(pid, sig):
+        """Sends signal sig to the process group led by pid, falling back to
+        the single process if it is not a group leader.
+
+        Returns False if the process is already gone, True otherwise.
+        """
+        try:
+            pgid = os.getpgid(pid)
+        except ProcessLookupError:
+            return False
+
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            return False
+        except OSError:
+            # Not a group leader (or the group is otherwise unsignalable);
+            # fall back to signalling the single process.
+            try:
+                os.kill(pid, sig)
+            except ProcessLookupError:
+                return False
+        return True
 
     def restart(self, silent=False):
         if self.stop(silent=silent):
