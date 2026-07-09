@@ -18,10 +18,34 @@
 
 from django.urls import path
 from django.urls import include
+
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+
 from nav.web.api.v1 import urls as v1_urls
 from nav.web.api.v2 import urls as v2_urls
 
+# The double-mount of v1 (at /api/ and /api/1/) is de-duplicated by the
+# public_schema_filter preprocessing hook configured in SPECTACULAR_SETTINGS.
 urlpatterns = [
+    path(
+        'schema/',
+        SpectacularAPIView.as_view(),
+        name='schema',
+    ),
+    path(
+        'schema/swagger-ui/',
+        SpectacularSwaggerView.as_view(url_name='api:schema'),
+        name='swagger-ui',
+    ),
+    path(
+        'schema/redoc/',
+        SpectacularRedocView.as_view(url_name='api:schema'),
+        name='redoc',
+    ),
     path('', include((v1_urls, 'api'))),
     path('1/', include((v1_urls, 'api'), namespace='1')),
     path('2/', include((v2_urls, 'api'), namespace='2')),
