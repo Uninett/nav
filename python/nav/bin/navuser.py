@@ -19,14 +19,17 @@
 A command line interface to list and modify NAV web user accounts
 """
 
-import sys
 import argparse
-from getpass import getpass
+import sys
+from getpass import getpass, getuser
 
 from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
+from django.db import transaction
+
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 
 
@@ -74,10 +77,27 @@ def adduser(args):
     else:
         msg = "User %s created"
 
+    _add_log_entry(
+        verb='create-account',
+        template='{actor} created {object}',
+        after=account,
+        object=account,
+    )
+
     print(msg % args.login, file=sys.stderr)
 
 
+# Logging needs to happen before the actual deletion
+# the atomic wrapper is added to avoid having a log entry even though something went
+# wrong while deleting the user
+@transaction.atomic
 def removeuser(args):
+    _add_log_entry(
+        verb='delete-account',
+        template='{actor} deleted {object}',
+        before=args.login,
+        object=args.login,
+    )
     args.login.delete()
     print("User %s has been removed" % args.login.login, file=sys.stderr)
 
@@ -94,10 +114,22 @@ def adminify(args):
         admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
         admin.accounts.add(account)
         msg = "User %s was made an admin" % args.login
+        _add_log_entry(
+            verb='edit-account-add-group',
+            template='{actor} added user {object} to group {target}',
+            target=admin,
+            object=account,
+        )
     elif action == 'remove':
         admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
         admin.accounts.remove(account)
         msg = "User %s is no longer an admin" % args.login
+        _add_log_entry(
+            verb='edit-account-remove-group',
+            template='{actor} removed user {object} from group {target}',
+            target=admin,
+            object=account,
+        )
     else:
         msg = "Unknown argument %s" % action
     print(msg, file=sys.stderr)
@@ -131,6 +163,11 @@ def passwd(args):
     if len(password) >= Account.MIN_PASSWD_LENGTH:
         account.set_password(password)
         account.save()
+        _add_log_entry(
+            verb='edit-account-password',
+            template='{actor} edited {object}: password changed',
+            object=account,
+        )
         print("New password saved", file=sys.stderr)
     else:
         print(
@@ -161,6 +198,12 @@ def lock(args):
 
     args.login.is_active = False
     args.login.save()
+    _add_log_entry(
+        verb='lock-account',
+        template='{actor} locked {object}',
+        after=args.login,
+        object=args.login,
+    )
     print("User %s locked" % args.login.login, file=sys.stderr)
 
 
@@ -175,6 +218,12 @@ def unlock(args):
 
     args.login.is_active = True
     args.login.save()
+    _add_log_entry(
+        verb='unlock-account',
+        template='{actor} unlocked {object}',
+        after=args.login,
+        object=args.login,
+    )
     print("User %s unlocked" % args.login.login, file=sys.stderr)
 
 
@@ -190,6 +239,16 @@ def usergetter(login):
         return Account.objects.get(login=login)
     except Account.DoesNotExist:
         raise argparse.ArgumentTypeError("No such user account: %s" % login)
+
+
+def _add_log_entry(verb: str, template: str, **kwargs):
+    # Every log entry needs an actor and since we don't know which nav user uses the
+    # CLI command we log the action done as admin since any user able to execute the
+    # navuser command is de-facto admin
+    actor = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+    navuser_user = getuser()
+    template = f"{template} ({navuser_user} via navuser)"
+    LogEntry.add_log_entry(actor=actor, verb=verb, template=template, **kwargs)
 
 
 def parse_args(argv=None):
