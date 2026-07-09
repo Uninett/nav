@@ -644,7 +644,7 @@ class MultiMibMixIn(MibRetriever):
             self.agent_proxy = agent
             try:
                 one_result = yield method(*args, **kwargs).addErrback(
-                    self.__timeout_handler, descr
+                    self.__ignore_alternate_instance_error, descr
                 )
             finally:
                 if agent is not self._base_agent:
@@ -656,7 +656,7 @@ class MultiMibMixIn(MibRetriever):
             yield lambda thing: fire_eventually(thing)
         return integrator(results)
 
-    def __timeout_handler(self, failure, descr):
+    def __ignore_alternate_instance_error(self, failure, descr):
         """Handles errors while processing alternate MIB instances.
 
         Under the premise that we may have an incorrect community string for a
@@ -664,6 +664,13 @@ class MultiMibMixIn(MibRetriever):
         from all instances, so we ignore timeouts and access errors (such as a
         device rejecting a community-indexed query with noAccess) for anything
         but the primary (base) instance.
+
+        pynetsnmp raises noAccess, resourceUnavailable and authorizationError
+        only as the base SnmpError (distinguished by message string), so there
+        is no narrower class to trap here. Note that Snmpv3Error subclasses
+        SnmpError, so a v3 auth/context failure on an alternate instance is
+        swallowed too; this is a conscious choice, consistent with tolerating
+        timeouts on alternates, and only ever affects non-base instances.
 
         """
         if self.agent_proxy is not self._base_agent:
