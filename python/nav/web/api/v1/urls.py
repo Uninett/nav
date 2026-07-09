@@ -22,6 +22,9 @@ from rest_framework import routers
 from nav.auditlog import api as auditlogapi
 from nav.web.api.v1 import views
 
+# Importing registers the OpenAPI authentication scheme extensions
+from nav.web.api.v1 import schema  # noqa: F401
+
 router = routers.SimpleRouter()
 router.register(r'account', views.AccountViewSet)
 router.register(r'accountgroup', views.AccountGroupViewSet, basename='accountgroup')
