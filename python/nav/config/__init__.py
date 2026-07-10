@@ -182,7 +182,7 @@ class NAVConfigParser(configparser.ConfigParser):
             if f
         ]
         filenames.extend(os.path.join('.', name) for name in self.DEFAULT_CONFIG_FILES)
-        files_read = self.read(filenames)
+        files_read = self.read(filenames, encoding='utf-8')
 
         if files_read:
             _logger.debug("Read config files %r", files_read)
