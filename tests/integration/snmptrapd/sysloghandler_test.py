@@ -11,7 +11,7 @@ class TestGeneralSyslogHandler:
     def test_module_should_be_importable(self):
         assert sysloghandler is not None
 
-    def test_event_and_alert_types_should_be_created_on_inializing(db):
+    def test_event_and_alert_types_should_be_created_on_inializing(self, db):
         sysloghandler.initialize()
 
         assert EventType.objects.filter(id="haSrgStateChange").exists()
@@ -20,14 +20,14 @@ class TestGeneralSyslogHandler:
         assert EventType.objects.filter(id="pingProbe").exists()
         assert AlertType.objects.filter(name="pingProbeFailed").exists()
 
-    def test_handler_should_log_trap(db, mock_ineligible_trap, caplog):
+    def test_handler_should_log_trap(self, db, mock_ineligible_trap, caplog):
         with caplog.at_level(logging.DEBUG, logger="nav.snmptrapd.sysloghandler"):
             sysloghandler.initialize()
             sysloghandler.handleTrap(trap=mock_ineligible_trap)
 
         assert "Got jnxSyslogTrap from" in caplog.text
 
-    def test_handler_should_ignore_traps_of_irrelevant_type(db):
+    def test_handler_should_ignore_traps_of_irrelevant_type(self, db):
         trap = SNMPTrap(
             src="127.0.0.1",
             agent="127.0.0.1",
@@ -48,7 +48,7 @@ class TestGeneralSyslogHandler:
 
         assert not accepted
 
-    def test_handler_should_ignore_traps_from_unknown_netbox(db, caplog):
+    def test_handler_should_ignore_traps_from_unknown_netbox(self, db, caplog):
         trap = SNMPTrap(
             src="127.0.0.2",
             agent="127.0.0.2",
@@ -86,6 +86,7 @@ class TestGeneralSyslogHandler:
         assert "Ignoring syslog trap from unknown netbox" in caplog.text
 
     def test_map_trap_attributes_matches_correct_attributes_and_values(
+        self,
         db,
         mock_ineligible_trap,
     ):
@@ -100,7 +101,7 @@ class TestGeneralSyslogHandler:
         assert trap_attributes == trap_attributes | {"reason": "Control plane down"}
 
     def test_handler_should_ignore_traps_of_irrelevant_event_name(
-        db, localhost_using_legacy_db, caplog
+        self, db, localhost_using_legacy_db, caplog
     ):
         trap = SNMPTrap(
             src="127.0.0.1",
@@ -136,7 +137,7 @@ class TestGeneralSyslogHandler:
 
 class TestHaSrgChangeHandler:
     def test_handler_should_ignore_traps_indicating_state_change_to_other_than_ineligible_backup_or_active(  # noqa: E501
-        db, localhost_using_legacy_db, caplog
+        self, db, localhost_using_legacy_db, caplog
     ):
         trap = SNMPTrap(
             src="127.0.0.1",
@@ -178,7 +179,7 @@ class TestHaSrgChangeHandler:
         )
 
     def test_handler_should_ignore_traps_indicating_state_change_to_backup_or_active_from_not_hold(  # noqa: E501
-        db, localhost_using_legacy_db, caplog
+        self, db, localhost_using_legacy_db, caplog
     ):
         trap = SNMPTrap(
             src="127.0.0.1",
@@ -220,7 +221,7 @@ class TestHaSrgChangeHandler:
         )
 
     def test_handler_should_post_event_on_trap_indicating_ineligible_state(
-        db, localhost_using_legacy_db, mock_ineligible_trap
+        self, db, localhost_using_legacy_db, mock_ineligible_trap
     ):
         sysloghandler.initialize()
         accepted = sysloghandler.handleTrap(trap=mock_ineligible_trap)
@@ -245,6 +246,7 @@ class TestHaSrgChangeHandler:
         )
 
     def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_backup(  # noqa: E501
+        self,
         db,
         localhost_using_legacy_db,
     ):
@@ -301,6 +303,7 @@ class TestHaSrgChangeHandler:
         assert event.varmap["new_state"] == "BACKUP"
 
     def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_active(  # noqa: E501
+        self,
         db,
         localhost_using_legacy_db,
     ):
@@ -358,6 +361,7 @@ class TestHaSrgChangeHandler:
         assert event.varmap["new_state"] == "ACTIVE"
 
     def test_handler_should_post_event_on_trap_indicating_state_change_from_ineligible_to_backup(  # noqa: E501
+        self,
         db,
         localhost_using_legacy_db,
     ):
@@ -415,6 +419,7 @@ class TestHaSrgChangeHandler:
         assert event.varmap["new_state"] == "BACKUP"
 
     def test_handler_should_post_event_on_trap_indicating_state_change_from_ineligible_to_active(  # noqa: E501
+        self,
         db,
         localhost_using_legacy_db,
     ):
@@ -474,7 +479,7 @@ class TestHaSrgChangeHandler:
 
 class TestPingProbeHandler:
     def test_handler_should_post_event_on_trap_indicating_ping_probe_failed(
-        db, localhost_using_legacy_db, mock_ping_probe_failed_trap
+        self, db, localhost_using_legacy_db, mock_ping_probe_failed_trap
     ):
         sysloghandler.initialize()
         accepted = sysloghandler.handleTrap(trap=mock_ping_probe_failed_trap)
