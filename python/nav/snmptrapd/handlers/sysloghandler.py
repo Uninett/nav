@@ -77,8 +77,15 @@ def handleTrap(trap, config=None):
 
     trap_vars = _map_trap_variables(trap)
     trap_attributes = _map_trap_attributes(trap_vars)
-    event_name = trap_vars["jnxSyslogEventName"][0][1]
-    message = trap_vars["jnxSyslogMessage"][0][1]
+    try:
+        event_name = trap_vars["jnxSyslogEventName"][0][1]
+        message = trap_vars["jnxSyslogMessage"][0][1]
+    except (KeyError, IndexError):
+        _logger.info(
+            "Got malformed jnxSyslogTrap from %s:\n%s", netbox, pformat(trap_vars)
+        )
+        return False
+
     _logger.info("Got jnxSyslogTrap from %s:\n%s", netbox, pformat(trap_vars))
 
     if event_name == "JSRPD_HA_SRG_STATE_CHANGE":
