@@ -7,18 +7,18 @@ from nav.snmptrapd.handlers import sysloghandler
 from nav.snmptrapd.trap import SNMPTrap
 
 
-def test_module_should_be_importable():
+def test_given_module_then_it_should_be_importable():
     assert sysloghandler is not None
 
 
-def test_event_and_alert_types_should_be_created_on_inializing(db):
+def test_when_initializing_then_event_and_alert_types_should_be_created(db):
     sysloghandler.initialize()
 
     assert EventType.objects.filter(id="haSrgStateChange").exists()
     assert AlertType.objects.filter(name="haSrgStateIneligible").exists()
 
 
-def test_handler_should_log_trap(db, mock_ineligible_trap, caplog):
+def test_given_trap_then_handler_should_log_it(db, mock_ineligible_trap, caplog):
     with caplog.at_level(logging.DEBUG, logger="nav.snmptrapd.sysloghandler"):
         sysloghandler.initialize()
         sysloghandler.handleTrap(trap=mock_ineligible_trap)
@@ -26,7 +26,7 @@ def test_handler_should_log_trap(db, mock_ineligible_trap, caplog):
     assert "Got jnxSyslogTrap from" in caplog.text
 
 
-def test_handler_should_ignore_traps_of_irrelevant_type(db):
+def test_given_trap_of_irrelevant_type_then_handler_should_ignore_it(db):
     trap = SNMPTrap(
         src="127.0.0.1",
         agent="127.0.0.1",
@@ -48,7 +48,7 @@ def test_handler_should_ignore_traps_of_irrelevant_type(db):
     assert not accepted
 
 
-def test_handler_should_ignore_traps_from_unknown_netbox(db, caplog):
+def test_given_trap_from_unknown_netbox_then_handler_should_ignore_it(db, caplog):
     trap = SNMPTrap(
         src="127.0.0.2",
         agent="127.0.0.2",
@@ -86,7 +86,7 @@ def test_handler_should_ignore_traps_from_unknown_netbox(db, caplog):
     assert "Ignoring syslog trap from unknown netbox" in caplog.text
 
 
-def test_map_trap_attributes_matches_correct_attributes_and_values(
+def test_given_trap_attributes_then_map_trap_attributes_matches_them_correctly(
     db,
     mock_ineligible_trap,
 ):
@@ -101,7 +101,7 @@ def test_map_trap_attributes_matches_correct_attributes_and_values(
     assert trap_attributes == trap_attributes | {"reason": "Control plane down"}
 
 
-def test_handler_should_ignore_traps_of_irrelevant_event_name(
+def test_given_trap_with_irrelevant_event_name_then_handler_should_ignore_it(
     db, localhost_using_legacy_db, caplog
 ):
     trap = SNMPTrap(
@@ -136,9 +136,11 @@ def test_handler_should_ignore_traps_of_irrelevant_event_name(
     assert "irrelevant event name" in caplog.text
 
 
-def test_handler_should_ignore_traps_indicating_state_change_to_other_than_ineligible_backup_or_active(  # noqa: E501
+def test_given_trap_with_change_to_irrelevant_state_then_handler_should_ignore_it(
     db, localhost_using_legacy_db, caplog
 ):
+    # All state changes to states that are not ineligible, backup or active should be
+    # ignored
     trap = SNMPTrap(
         src="127.0.0.1",
         agent="127.0.0.1",
@@ -178,9 +180,11 @@ def test_handler_should_ignore_traps_indicating_state_change_to_other_than_ineli
     )
 
 
-def test_handler_should_ignore_traps_indicating_state_change_to_backup_or_active_from_not_hold(  # noqa: E501
+def test_given_trap_with_change_from_irrelevant_state_then_handler_should_ignore_it(
     db, localhost_using_legacy_db, caplog
 ):
+    # All state changes to ineligible, backup or active should be ignored if they are
+    # not coming from hold
     trap = SNMPTrap(
         src="127.0.0.1",
         agent="127.0.0.1",
@@ -220,7 +224,7 @@ def test_handler_should_ignore_traps_indicating_state_change_to_backup_or_active
     )
 
 
-def test_handler_should_post_event_on_trap_indicating_ineligible_state(
+def test_given_trap_indicating_ineligible_state_then_handler_should_post_event(
     db, localhost_using_legacy_db, mock_ineligible_trap
 ):
     sysloghandler.initialize()
@@ -246,7 +250,7 @@ def test_handler_should_post_event_on_trap_indicating_ineligible_state(
     )
 
 
-def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_backup(
+def test_given_trap_with_change_from_hold_to_backup_then_handler_should_post_event(
     db,
     localhost_using_legacy_db,
 ):
@@ -303,7 +307,7 @@ def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_
     assert event.varmap["new_state"] == "BACKUP"
 
 
-def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_active(
+def test_given_trap_with_change_from_hold_to_active_then_handler_should_post_event(
     db,
     localhost_using_legacy_db,
 ):
@@ -361,7 +365,7 @@ def test_handler_should_post_event_on_trap_indicating_state_change_from_hold_to_
     assert event.varmap["new_state"] == "ACTIVE"
 
 
-def test_handler_should_post_event_on_trap_indicating_state_change_from_ineligible_to_backup(  # noqa: E501
+def test_given_trap_with_change_from_ineligible_to_backup_then_handler_should_post_event(  # noqa: E501
     db,
     localhost_using_legacy_db,
 ):
@@ -419,7 +423,7 @@ def test_handler_should_post_event_on_trap_indicating_state_change_from_ineligib
     assert event.varmap["new_state"] == "BACKUP"
 
 
-def test_handler_should_post_event_on_trap_indicating_state_change_from_ineligible_to_active(  # noqa: E501
+def test_given_trap_with_change_from_ineligible_to_active_then_handler_should_post_event(  # noqa: E501
     db,
     localhost_using_legacy_db,
 ):
