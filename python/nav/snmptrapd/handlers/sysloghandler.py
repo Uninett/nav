@@ -92,7 +92,9 @@ def handleTrap(trap, config=None):
     return False
 
 
-def _map_trap_variables(trap: SNMPTrap) -> dict[Union[str, OID], tuple[OID, Any]]:
+def _map_trap_variables(
+    trap: SNMPTrap,
+) -> dict[Union[str, OID], list[tuple[Optional[OID], Any]]]:
     """NAV/snmptrapd provides very poor utilities for symbolic parsing of MIB data, so
     we do it here instead. Even if all the OIDs and values of an SNMP trap's varbinds
     have been converted to strings before the plugin receives them
@@ -125,8 +127,8 @@ def _break_down_oid(oid: OID) -> tuple[Optional[str], Optional[OID]]:
 
 
 def _map_trap_attributes(
-    trap_vars: tuple[Optional[str], Optional[OID]],
-) -> dict[str, str]:
+    trap_vars: dict[Union[str, OID], list[tuple[Optional[OID], Any]]],
+) -> dict[Any, Any]:
     attributes = trap_vars["jnxSyslogAvAttribute"]
     values = trap_vars["jnxSyslogAvValue"]
 
