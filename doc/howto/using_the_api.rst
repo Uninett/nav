@@ -14,21 +14,15 @@ Interactive API documentation
 =============================
 
 NAV publishes a machine-readable `OpenAPI 3`_ specification of the REST API,
-along with two interactive documentation browsers:
+generated dynamically with `drf-spectacular`_, along with two interactive
+documentation browsers:
 
 * OpenAPI schema: ``https://<host>/api/schema/``
 * Swagger UI: ``https://<host>/api/schema/swagger-ui/``
 * ReDoc: ``https://<host>/api/schema/redoc/``
 
-The schema is generated with `drf-spectacular`_. A generated snapshot is kept in
-the source tree at :file:`doc/api/openapi.yml`. Regenerate it from a NAV checkout
-with::
-
-  python tools/openapi_schema.py
-
-A CI check (``tox -e openapi-schema``) fails if the committed snapshot drifts out
-of sync with the code, so remember to regenerate and commit it whenever you
-change the API.
+The schema is generated on the fly from the running code, so it always reflects
+the API of the running NAV instance.
 
 .. _OpenAPI 3: https://www.openapis.org/
 .. _drf-spectacular: https://drf-spectacular.readthedocs.io/
