@@ -3,6 +3,7 @@ from io import BytesIO
 from urllib.parse import quote
 
 import pytest
+from django.db.utils import IntegrityError
 from django.http import Http404
 from django.test import Client, RequestFactory
 from django.urls import reverse
@@ -218,6 +219,14 @@ class TestDeleteDashboardView:
             account=account,
             is_shared=is_shared,
         )
+
+
+@pytest.mark.parametrize("name", ["", "   ", "\t", "\n"])
+def test_when_saving_dashboard_with_blank_name_then_it_should_fail(
+    db, admin_account, name
+):
+    with pytest.raises(IntegrityError):
+        AccountDashboard.objects.create(account=admin_account, name=name)
 
 
 def test_when_logging_in_it_should_change_the_session_id(
