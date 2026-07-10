@@ -129,15 +129,17 @@ def _break_down_oid(oid: OID) -> tuple[Optional[str], Optional[OID]]:
 def _map_trap_attributes(
     trap_vars: dict[Union[str, OID], list[tuple[Optional[OID], Any]]],
 ) -> dict[Any, Any]:
+    """Joins the parallel jnxSyslogAvAttribute/jnxSyslogAvValue columns into a
+    plain attribute-name -> value dict.
+
+    The two columns are joined on their shared row instance (the trailing OID
+    index), not on list position, since SNMP does not guarantee the varbinds of
+    the two columns arrive in the same order.
+    """
     attributes = trap_vars["jnxSyslogAvAttribute"]
-    values = trap_vars["jnxSyslogAvValue"]
+    values_by_instance = dict(trap_vars["jnxSyslogAvValue"])
 
-    mapped_attributes = dict()
-
-    for i in range(len(attributes)):
-        mapped_attributes[attributes[i][1]] = values[i][1]
-
-    return mapped_attributes
+    return {name: values_by_instance[instance] for instance, name in attributes}
 
 
 def _handle_ha_srg_change_trap(
