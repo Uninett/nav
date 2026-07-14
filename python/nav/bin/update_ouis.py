@@ -31,6 +31,7 @@ bootstrap_django(__file__)
 
 import django.db
 
+from nav.config import NAVConfigParser
 from nav.macaddress import MacPrefix
 from nav.logs import init_stderr_logging
 
@@ -40,6 +41,20 @@ FILE_URL = "https://standards-oui.ieee.org/oui/oui.txt"
 USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:135.0) Gecko/20100101 Firefox/135.0"
 
 MAX_ERRORS = 100
+
+
+class OuiConfig(NAVConfigParser):
+    """update_ouis config parser"""
+
+    DEFAULT_CONFIG_FILES = ("update_ouis.conf",)
+    DEFAULT_CONFIG = """
+[oui]
+proxy =
+"""
+
+    def get_proxy(self) -> str:
+        """Returns the configured HTTP(S) proxy URL, or an empty string"""
+        return self.get("oui", "proxy", fallback="").strip()
 
 
 def main():
@@ -66,7 +81,11 @@ def _download_oui_file(url: str) -> str:
     headers = {
         'User-Agent': USER_AGENT,
     }
-    response = requests.get(url, headers=headers)
+    proxy = OuiConfig().get_proxy()
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+    if proxy:
+        _logger.debug("Using proxy %s for OUI download", proxy)
+    response = requests.get(url, headers=headers, proxies=proxies)
     response.raise_for_status()
     return response.text
 
