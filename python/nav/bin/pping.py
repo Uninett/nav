@@ -106,6 +106,16 @@ class Pinger(object):
                         netbox.ip,
                     )
                     self.down.append(netbox.netboxid)
+            elif netbox.up != 'y' and netbox.netboxid not in self.down:
+                # Ensure reconciliation with the database
+                # when external state changes occur
+                _logger.info(
+                    "Netbox %s is marked down in database but up internally, "
+                    "re-syncing internal state to match database",
+                    netbox.ip,
+                )
+                self.down.append(netbox.netboxid)
+                self.replies[netbox.netboxid].reset_all_to(-1)
             if netbox.netboxid not in self.replies:
                 self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
                 if netbox.up != 'y':
