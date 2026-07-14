@@ -27,7 +27,7 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-import psycopg2
+from django.db import connection, transaction, DataError, DatabaseError
 from django.db.transaction import atomic
 from django.contrib.sessions.models import Session
 from django.utils import timezone
@@ -45,41 +45,45 @@ def main():
     elif args.datetime:
         expiry = args.datetime
 
-    connection = nav.db.getConnection('default', 'manage')
-    cleaners = get_selected_cleaners(args, connection)
-
     cleaned = False
-    for cleaner in cleaners:
-        try:
-            count = cleaner.clean(expiry, dry_run=not args.force)
-            if not args.quiet:
-                print(
-                    "Expired {expiry_type} records: {count}".format(
-                        expiry_type=cleaner.expiry_type,
-                        count=count if count is not None else "N/A",
+    db_error = None
+    with transaction.atomic():
+        cleaners = get_selected_cleaners(args, connection)
+        for cleaner in cleaners:
+            try:
+                count = cleaner.clean(expiry, dry_run=not args.force)
+                if not args.quiet:
+                    print(
+                        "Expired {expiry_type} records: {count}".format(
+                            expiry_type=cleaner.expiry_type,
+                            count=count if count is not None else "N/A",
+                        )
                     )
-                )
-            cleaned = True
+                cleaned = True
 
-        except psycopg2.Error as error:
-            print("The PostgreSQL backend produced an error", file=sys.stderr)
-            print(error, file=sys.stderr)
-            connection.rollback()
-            sys.exit(1)
+            except DatabaseError as error:
+                # Roll back and bail out, but exit *after* leaving the atomic
+                # block so SystemExit doesn't unwind it on a broken transaction.
+                db_error = error
+                transaction.set_rollback(True)
+                break
 
-    if not args.force:
-        connection.rollback()
-        cleaned = False
-    else:
-        connection.commit()
+        # Every run is a dry-run unless --force is given, so roll back all the
+        # changes made above unless the user explicitly asked to keep them.
+        if not args.force:
+            transaction.set_rollback(True)
+            cleaned = False
+
+    if db_error is not None:
+        print("The PostgreSQL backend produced an error", file=sys.stderr)
+        print(db_error, file=sys.stderr)
+        sys.exit(1)
 
     if not args.quiet:
         if cleaned:
             print("Expired records were updated/deleted.")
         else:
             print("Nothing changed.")
-
-    connection.close()
 
 
 #
@@ -146,14 +150,12 @@ def make_argparser():
 
 def validate_sql(sql, args):
     """Validates than an SQL statement can run without errors"""
-    connection = nav.db.getConnection('default', 'manage')
-    cursor = connection.cursor()
     try:
-        cursor.execute(sql, args)
-    except psycopg2.DataError as error:
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(sql, args)
+    except DataError as error:
         raise ValueError(error)
-    finally:
-        connection.rollback()
     return True
 
 

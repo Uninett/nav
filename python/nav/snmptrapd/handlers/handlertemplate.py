@@ -17,17 +17,12 @@
 
 import logging
 import nav.errors
-from nav.db import getConnection
+from django.db import connection, transaction
 from nav.event import Event
 
 
 # Create logger with modulename here
 _logger = logging.getLogger(__name__)
-
-
-# If you need to contact database.
-global db
-db = getConnection('default')
 
 
 def handleTrap(trap, config=None):
@@ -87,8 +82,6 @@ def verifyEventtype():
     database. Should be run when module is imported.
     """
 
-    c = db.cursor()
-
     # NB: Remember to replace the values with the one you need.
 
     sql = """
@@ -106,11 +99,11 @@ def verifyEventtype():
     """
 
     queries = sql.split(';')
-    for q in queries:
-        if len(q.rstrip()) > 0:
-            c.execute(q)
-
-    db.commit()
+    with transaction.atomic():
+        with connection.cursor() as c:
+            for q in queries:
+                if len(q.rstrip()) > 0:
+                    c.execute(q)
 
 
 def initialize():

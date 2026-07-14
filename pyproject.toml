@@ -17,6 +17,10 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "asciitree==0.3.3",
+    "psycopg>=3.2",
+    "django-psycopg-infinity",
+    # Transitional: kept until every legacy nav.db caller is migrated to
+    # psycopg3 / django.db; removed in the final migration commit.
     "psycopg2==2.9.10",
     "IPy==1.01",
     "pyaml",

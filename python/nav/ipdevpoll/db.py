@@ -28,8 +28,9 @@ import django.db
 from django.db import transaction
 from django.db.utils import OperationalError as DjangoOperationalError
 from django.db.utils import InterfaceError as DjangoInterfaceError
-from psycopg2 import InterfaceError, OperationalError
+from psycopg import InterfaceError, OperationalError
 
+from nav.db import get_pg_notifications
 from nav.models.event import EventQueue
 
 _logger = logging.getLogger(__name__)
@@ -294,16 +295,14 @@ class PostgresNotifyReader(abstract.FileDescriptor):
                 "check_for_notifications: polling for notifications from %r",
                 threading.current_thread(),
             )
-            connection.poll()
-            if connection.notifies:
-                _logger.debug("Found notifications: %r", connection.notifies)
-                if any(_is_a_new_ipdevpoll_event(c) for c in connection.notifies):
+            notifications = get_pg_notifications(connection)
+            if notifications:
+                _logger.debug("Found notifications: %r", notifications)
+                if any(_is_a_new_ipdevpoll_event(c) for c in notifications):
                     self.schedule_trigger()
-                del connection.notifies[:]
         else:
             _logger.debug(
-                "check_for_notifications: connection was empty in thread %r "
-                "(subscription is in %r)",
+                "check_for_notifications: connection was empty in thread %r",
                 threading.current_thread(),
             )
 

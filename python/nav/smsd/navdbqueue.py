@@ -25,8 +25,15 @@ Generally, a phone number is a user and vice versa.
 
 import logging
 import sys
+import time
 
-import nav.db
+from django.db import connection, transaction, ProgrammingError
+from django.db.utils import InterfaceError, OperationalError
+
+_logger = logging.getLogger("nav.smsd.queue")
+
+# Exceptions that suggest the database connection was lost and should be reset
+_DB_LOSS_ERRORS = (OperationalError, InterfaceError)
 
 
 class NAVDBQueue(object):
@@ -55,16 +62,15 @@ class NAVDBQueue(object):
         """
 
         dbconn = self._connect()
-        db = dbconn.cursor()
-
         data = dict(minage=str(minage))
 
         # Test minage
         if minage != '0':
             sql = "SELECT interval %(minage)s"
             try:
-                db.execute(sql, data)
-            except nav.db.driver.ProgrammingError:
+                with dbconn.cursor() as db:
+                    db.execute(sql, data)
+            except ProgrammingError:
                 self.logger.warning(
                     "'autocancel' value (%s) is not valid. "
                     + "Check config for errors.",
@@ -80,10 +86,10 @@ class NAVDBQueue(object):
         # Ignore messages
         sql = """UPDATE smsq SET sent = 'I'
             WHERE sent = 'N' AND time < now() - interval %(minage)s"""
-        db.execute(sql, data)
-        dbconn.commit()
-
-        return db.rowcount
+        with transaction.atomic():
+            with dbconn.cursor() as db:
+                db.execute(sql, data)
+                return db.rowcount
 
     def getusers(self, sent='N'):
         """
@@ -95,18 +101,15 @@ class NAVDBQueue(object):
 
         users = []
         dbconn = self._connect()
-        db = dbconn.cursor()
 
         data = dict(sent=sent)
         sql = """SELECT DISTINCT phone
             FROM smsq
             WHERE sent = %(sent)s
             ORDER BY phone"""
-        db.execute(sql, data)
-        result = db.fetchall()
-        # Rollback so we don't have old open transactions which foobars the
-        # usage of now() in setsentstatus()
-        dbconn.rollback()
+        with dbconn.cursor() as db:
+            db.execute(sql, data)
+            result = db.fetchall()
 
         # Create a simple list without the tuples
         for row in result:
@@ -123,18 +126,15 @@ class NAVDBQueue(object):
         """
 
         dbconn = self._connect()
-        db = dbconn.cursor()
 
         data = dict(phone=user, sent=sent)
         sql = """SELECT id, msg, severity
             FROM smsq
             WHERE phone = %(phone)s AND sent = %(sent)s
             ORDER BY severity ASC, time ASC"""
-        db.execute(sql, data)
-        result = db.fetchall()
-        # Rollback so we don't have old open transactions which foobars the
-        # usage of now() in setsentstatus()
-        dbconn.rollback()
+        with dbconn.cursor() as db:
+            db.execute(sql, data)
+            result = db.fetchall()
 
         return result
 
@@ -147,26 +147,26 @@ class NAVDBQueue(object):
         """
 
         dbconn = self._connect()
-        db = dbconn.cursor()
 
         data = dict(sent=sent)
         sql = """SELECT smsq.id as smsqid, name, msg, time
             FROM smsq
             JOIN account ON (account.id = smsq.accountid)
             WHERE sent = %(sent)s ORDER BY time ASC"""
-        db.execute(sql, data)
+        with dbconn.cursor() as db:
+            db.execute(sql, data)
+            rows = db.fetchall()
 
         result = []
-        for smsqid, name, msg, time in db.fetchall():
+        for smsqid, name, msg, msgtime in rows:
             result.append(
                 dict(
-                    id=smsqid, name=name, msg=msg, time=time.strftime("%Y-%m-%d %H:%M")
+                    id=smsqid,
+                    name=name,
+                    msg=msg,
+                    time=msgtime.strftime("%Y-%m-%d %H:%M"),
                 )
             )
-
-        # Rollback so we don't have old open transactions which foobars the
-        # usage of now() in setsentstatus()
-        dbconn.rollback()
 
         return result
 
@@ -178,7 +178,6 @@ class NAVDBQueue(object):
         """
 
         dbconn = self._connect()
-        db = dbconn.cursor()
 
         if sent == 'Y' or sent == 'I':
             sql = """UPDATE smsq
@@ -190,10 +189,10 @@ class NAVDBQueue(object):
                 WHERE id = %(id)s"""
 
         data = dict(sent=sent, smsid=smsid, id=identifier)
-        db.execute(sql, data)
-        dbconn.commit()
-
-        return db.rowcount
+        with transaction.atomic():
+            with dbconn.cursor() as db:
+                db.execute(sql, data)
+                return db.rowcount
 
     def inserttestmsgs(self, uid, phone, msg):
         """
@@ -203,18 +202,38 @@ class NAVDBQueue(object):
         """
 
         dbconn = self._connect()
-        db = dbconn.cursor()
 
         data = dict(uid=uid, phone=phone, msg=msg)
         sql = """INSERT INTO smsq (accountid, time, phone, msg) VALUES (
                  %(uid)s, now(), %(phone)s, %(msg)s)"""
 
-        db.execute(sql, data)
-        dbconn.commit()
-
-        return db.rowcount
+        with transaction.atomic():
+            with dbconn.cursor() as db:
+                db.execute(sql, data)
+                return db.rowcount
 
     @staticmethod
-    @nav.db.retry_on_db_loss(delay=5)
-    def _connect():
-        return nav.db.getConnection('smsd', 'navprofile')
+    def _connect(retries=3, delay=5):
+        """Return a healthy Django database connection.
+
+        Any connection left unusable by a previous error (e.g. the database
+        server was restarted) is dropped and re-established, retrying a few
+        times before giving up.  This preserves the reconnect behaviour smsd
+        previously got from the legacy nav.db connection cache.
+        """
+        for attempt in range(1, retries + 1):
+            connection.close_if_unusable_or_obsolete()
+            try:
+                connection.ensure_connection()
+                return connection
+            except _DB_LOSS_ERRORS:
+                _logger.error(
+                    "cannot establish db connection, attempt %d of %d",
+                    attempt,
+                    retries,
+                )
+                connection.close()
+                if attempt < retries:
+                    time.sleep(delay)
+                else:
+                    raise

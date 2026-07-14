@@ -52,9 +52,10 @@ from configparser import ConfigParser
 import datetime
 import optparse
 
+from django.db import connection, transaction, Error as DatabaseError
+
 import nav
 import nav.logs
-from nav import db
 from nav import daemon
 from nav.config import find_config_file
 
@@ -289,19 +290,16 @@ def delete_old_messages(config):
     """Delete old messages from db, according to config settings."""
     _logger.debug("Deleting old messages from db")
 
-    conn = db.getConnection('logger', 'logger')
-    cursor = conn.cursor()
-
-    for priority in range(0, 8):
-        if config.get("deletepriority", str(priority)):
-            days = config.getint("deletepriority", str(priority))
-            cursor.execute(
-                "DELETE FROM log_message WHERE newpriority=%s "
-                "AND time < now() - interval %s",
-                (priority, '%d days' % days),
-            )
-
-    conn.commit()
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            for priority in range(0, 8):
+                if config.get("deletepriority", str(priority)):
+                    days = config.getint("deletepriority", str(priority))
+                    cursor.execute(
+                        "DELETE FROM log_message WHERE newpriority=%s "
+                        "AND time < now() - interval %s",
+                        (priority, '%d days' % days),
+                    )
 
 
 def verify_singleton(quiet=False):
@@ -525,42 +523,39 @@ def add_type(facility, mnemonic, priorityid, types, database):
 def logengine(config, options):
     verify_singleton(options.quiet)
 
-    connection = db.getConnection('logger', 'logger')
-    database = connection.cursor()
-
-    # initial setup of dictionaries
-
-    categories = get_categories(database)
-    origins = get_origins(database)
-    types = get_types(database)
-
     # parse priorityexceptions
     (exceptionorigin, exceptiontype, exceptiontypeorigin) = get_exception_dicts(config)
 
-    # add new records
-    _logger.debug("Reading new log entries")
-    my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
-    for line in read_log_lines(config):
-        my_parse_and_insert(
-            line,
-            database,
-            categories,
-            origins,
-            types,
-            exceptionorigin,
-            exceptiontype,
-            exceptiontypeorigin,
-        )
+    # All inserts happen in a single transaction that is committed on success
+    # (or rolled back if a database error propagates out of the block).
+    with transaction.atomic():
+        with connection.cursor() as database:
+            # initial setup of dictionaries
+            categories = get_categories(database)
+            origins = get_origins(database)
+            types = get_types(database)
 
-    # Make sure it all sticks
-    connection.commit()
+            # add new records
+            _logger.debug("Reading new log entries")
+            my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
+            for line in read_log_lines(config):
+                my_parse_and_insert(
+                    line,
+                    database,
+                    categories,
+                    origins,
+                    types,
+                    exceptionorigin,
+                    exceptiontype,
+                    exceptiontypeorigin,
+                )
 
 
 def swallow_all_but_db_exceptions(func):
     def _swallow(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except db.driver.Error:
+        except DatabaseError:
             raise
         except Exception:  # noqa: BLE001
             _logger.exception("Unhandled exception occurred, ignoring.")
