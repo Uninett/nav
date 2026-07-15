@@ -23,6 +23,7 @@ from functools import wraps
 import logging
 import os
 import sys
+import threading
 import time
 
 import psycopg2
@@ -32,8 +33,29 @@ import nav
 from nav import config
 
 _logger = logging.getLogger('nav.db')
-_connection_cache = nav.ObjectCache()
 driver = psycopg2
+
+
+class _ThreadLocalConnectionCache(threading.local):
+    """Per-thread ObjectCache of legacy database connections.
+
+    NAV's legacy database layer predates threaded deployment (e.g. threaded
+    mod_wsgi). Sharing a single psycopg2 connection between threads risks
+    interleaving unrelated transactions on the same connection. Mirroring how
+    Django manages its connections, each thread keeps its own connection cache,
+    so connections are never shared between threads.
+    """
+
+    def __init__(self):
+        self.cache = nav.ObjectCache()
+
+
+_connection_cache_holder = _ThreadLocalConnectionCache()
+
+
+def _get_connection_cache():
+    """Returns the calling thread's connection cache."""
+    return _connection_cache_holder.cache
 
 
 class ConnectionObject(nav.CacheableObject):
@@ -164,12 +186,13 @@ def getConnection(scriptName, database='nav'):
         scriptName, database
     )
     cache_key = (dbname, user)
+    cache = _get_connection_cache()
 
     # First, invalidate any dead connections.  Return a connection
     # object from the cache if one exists, open a new one if not.
-    _connection_cache.invalidate()
+    cache.invalidate()
     try:
-        connection = _connection_cache[cache_key].object
+        connection = cache[cache_key].object
     except KeyError:
         connection = psycopg2.connect(
             get_connection_string((dbhost, port, dbname, user, password))
@@ -183,15 +206,14 @@ def getConnection(scriptName, database='nav'):
         # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
         connection.set_client_encoding('utf8')
-        conn_object = ConnectionObject(connection, cache_key)
-        _connection_cache.cache(conn_object)
+        cache.cache(ConnectionObject(connection, cache_key))
 
     return connection
 
 
 def closeConnections():
-    """Close all cached database connections"""
-    for connection in _connection_cache.values():
+    """Close the calling thread's cached database connections"""
+    for connection in _get_connection_cache().values():
         try:
             connection.object.close()
         except psycopg2.InterfaceError:
@@ -199,8 +221,8 @@ def closeConnections():
 
 
 def commit_all_connections():
-    """Attempts to commit the current transactions on all cached connections"""
-    conns = (v.object for v in _connection_cache.values())
+    """Commits current transactions on the calling thread's cached connections"""
+    conns = (v.object for v in _get_connection_cache().values())
     for conn in conns:
         conn.commit()
 
