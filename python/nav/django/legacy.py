@@ -31,7 +31,7 @@ class LegacyCleanupMiddleware(MiddlewareMixin):
         to avoid idling indefinitely in transactions.
 
         """
-        connections = (v.object for v in db._connection_cache.values())
+        connections = (v.object for v in db._get_connection_cache().values())
         for conn in connections:
             conn.rollback()
 
