@@ -91,14 +91,23 @@ def _nav_script_tests():
 
 
 def _nav_scripts_map() -> dict[str, str]:
-    """Returns a map of installable script names to NAV module names from
-    pyproject.toml.
+    """Returns a map of installable script names to the NAV module that
+    actually implements each one.
+
+    Most Django-dependent scripts are installed via nav.cli_dispatch, which
+    bootstraps Django and then dispatches to the real implementation based
+    on the "nav.cli_commands" entry-point group - so for those, that group
+    is where the real module lives, not project.scripts.
     """
     data = toml.load('pyproject.toml')
     scripts: dict[str, str] = data.get('project', {}).get('scripts', {})
+    cli_commands: dict[str, str] = (
+        data.get('project', {}).get('entry-points', {}).get('nav.cli_commands', {})
+    )
+    modules = {**scripts, **cli_commands}
     return {
         script: module.split(':', maxsplit=1)[0]
-        for script, module in scripts.items()
+        for script, module in modules.items()
         if module.startswith('nav.')
     }
 

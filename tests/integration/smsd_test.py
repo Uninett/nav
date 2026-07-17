@@ -10,8 +10,6 @@ import pytest
 
 from nav.config import find_config_file, find_config_dir
 
-BINDIR = "./python/nav/bin"
-
 
 def test_smsd_test_message_with_uninettmaildispatcher_should_work(
     smsd_test_config,
@@ -88,7 +86,7 @@ def get_smsd_test_output(phone_no, timeout=5):
     returns the combined stdout+stderr output from the process.
 
     """
-    cmd = [os.path.join(BINDIR, 'smsd.py'), '-t', phone_no]
+    cmd = ['smsd', '-t', phone_no]
     try:
         # remove environment var that may interfere with our test - this mimicks
         # a production environment
