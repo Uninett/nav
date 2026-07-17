@@ -23,10 +23,6 @@ import argparse
 import json
 
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.bulkparse import escape_pipe
 from nav.models import manage
 import nav.models.service

@@ -25,10 +25,6 @@ from typing import Iterable, Generator, Tuple
 import requests
 from requests.exceptions import RequestException
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 import django.db
 
 from nav.macaddress import MacPrefix

@@ -19,10 +19,6 @@
 import logging
 import time
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
 from nav.logs import init_generic_logging

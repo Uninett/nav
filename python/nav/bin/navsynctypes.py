@@ -22,9 +22,6 @@ information contained in another.
 import argparse
 
 import nav.db
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django("synctypes")
 from nav.models.manage import NetboxType
 
 

@@ -23,10 +23,6 @@ import configparser
 
 from django.db import connection, DatabaseError
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.config import NAVConfigParser
 from nav.logs import init_generic_logging
 from nav.metrics.carbon import send_metrics

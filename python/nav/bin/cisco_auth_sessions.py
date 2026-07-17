@@ -30,10 +30,6 @@ import argparse
 import logging
 from collections import defaultdict
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.util import is_valid_ip
 from nav.ipdevpoll.snmp.common import SnmpError, SNMPParameters
 from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol

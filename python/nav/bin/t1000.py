@@ -32,10 +32,6 @@ import logging
 import getpass
 from datetime import datetime, timedelta
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.logs import init_generic_logging
 from nav.arnold import (
     find_computer_info,
