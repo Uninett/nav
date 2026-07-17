@@ -597,7 +597,7 @@ def main():
     # Process setup
 
     config = ConfigParser()
-    config.read(find_config_file('logger.conf'))
+    config.read(find_config_file('logger.conf'), encoding='utf-8')
 
     nav.logs.init_stderr_logging()
 

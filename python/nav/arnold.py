@@ -595,7 +595,7 @@ def parse_nonblock_file(filename):
 
     # Open nonblocklist, parse it.
     try:
-        handle = open(filename)
+        handle = open(filename, encoding="utf-8")
     except IOError as why:
         raise FileError(why)
 
@@ -622,7 +622,7 @@ def parse_nonblock_file(filename):
 def get_config(configfile):
     """Get config from file"""
     config = configparser.ConfigParser()
-    config.read(configfile)
+    config.read(configfile, encoding="utf-8")
     return config
 
 
