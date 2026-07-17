@@ -27,14 +27,17 @@ update_nav_conf() {
 
 update_graphite_conf() {
   GRAPHITE_CONF="${NAV_CONFIG_DIR}/graphite.conf"
+  CARBON_HOST="${CARBON_HOST:-graphite}"
+  CARBON_PORT="${CARBON_PORT:-2003}"
+  GRAPHITEWEB_BASE="${GRAPHITEWEB_BASE:-http://graphite:8000/}"
   echo "Updating $GRAPHITE_CONF"
   cat > "$GRAPHITE_CONF" <<EOF
 [carbon]
-host=graphite
-port=2003
+host=${CARBON_HOST}
+port=${CARBON_PORT}
 
 [graphiteweb]
-base=http://graphite:8000/
+base=${GRAPHITEWEB_BASE}
 EOF
 }
 
@@ -43,7 +46,13 @@ update_nav_conf
 update_nav_db_conf
 update_graphite_conf
 
-# Ensure the default virtualenv is in the secure_path when running sudo
-echo "Defaults        secure_path=\"${UV_PROJECT_ENVIRONMENT}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"" | sudo tee /etc/sudoers.d/secure_path_virtualenv
-# Install an empty crontab to avoid the error "no crontab for vscode"
-echo -n | crontab
+# Devcontainer-only: sudoers secure_path + empty crontab.  Skipped on the host
+# (e.g. when invoked from nix-shell).  Gated on $DEVCONTAINER, which we set
+# ourselves in devcontainer.json's `containerEnv` so the signal is independent
+# of which IDE (VS Code, JetBrains, ...) brought the container up.
+if [ -n "$DEVCONTAINER" ]; then
+    # Ensure the default virtualenv is in the secure_path when running sudo
+    echo "Defaults        secure_path=\"${UV_PROJECT_ENVIRONMENT}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"" | sudo tee /etc/sudoers.d/secure_path_virtualenv
+    # Install an empty crontab to avoid the error "no crontab for vscode"
+    echo -n | crontab
+fi
