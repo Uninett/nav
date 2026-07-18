@@ -33,7 +33,6 @@ import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 from nav.util import is_valid_ip, address_to_string
 from nav.db import getConnection
-from nav.bootstrap import bootstrap_django
 import nav.logs
 
 from nav.snmptrapd import agent
@@ -59,8 +58,6 @@ if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
 
 
 def main():
-    bootstrap_django('snmptrapd')
-
     # Verify that subsystem exists, if not insert it into database
     verify_subsystem()
 

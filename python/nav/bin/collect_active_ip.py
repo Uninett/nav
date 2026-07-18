@@ -22,10 +22,6 @@ import logging
 import time
 import sys
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 import nav.daemon
 from nav.activeipcollector import manager
 from nav.logs import init_generic_logging

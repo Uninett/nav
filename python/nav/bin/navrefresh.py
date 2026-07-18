@@ -20,10 +20,6 @@
 import argparse
 import sys
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from django.db import transaction
 from nav.models.manage import Netbox
 from nav.event2 import EventFactory

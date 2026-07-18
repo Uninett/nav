@@ -23,10 +23,6 @@
 import argparse
 import sys
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 import psycopg2
 from django.db.transaction import atomic
 from django.contrib.sessions.models import Session

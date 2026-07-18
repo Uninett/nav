@@ -36,10 +36,6 @@ import sys
 import time
 from psycopg2 import InterfaceError
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 import nav.buildconf
 import nav.config
 import nav.daemon
