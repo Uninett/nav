@@ -51,7 +51,7 @@ jobs:
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
         if: ${{ failure() && steps.slack-secret-check.outputs.slack_available == 'true' }}
-        uses: slackapi/slack-github-action@v3.0.5
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           payload: |
             {
