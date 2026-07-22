@@ -19,9 +19,10 @@ from twisted.internet.defer import inlineCallbacks
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
+from nav.ipdevpoll.utils import get_arista_vrf_instances
 from nav.models import manage
 
-from nav.mibs.bgp4_mib import BGP4Mib
+from nav.mibs.bgp4_mib import BGP4Mib, MultiBGP4Mib
 from nav.mibs.bgp4_v2_mib_juniper import BGP4V2JuniperMib
 from nav.mibs.cisco_bgp4_mib import CiscoBGP4Mib
 
@@ -70,8 +71,15 @@ class BGP(Plugin):
 
     @inlineCallbacks
     def _get_supported_mib(self):
-        for mibclass in (BGP4V2JuniperMib, CiscoBGP4Mib, BGP4Mib):
+        for mibclass, multi_mibclass in (
+            (BGP4V2JuniperMib, None),
+            (CiscoBGP4Mib, None),
+            (BGP4Mib, MultiBGP4Mib),
+        ):
             mib = mibclass(self.agent)
             support = yield mib.is_supported()
             if support:
+                if multi_mibclass and self.is_arista():
+                    instances = yield get_arista_vrf_instances(self.agent)
+                    return multi_mibclass(self.agent, instances=instances)
                 return mib
