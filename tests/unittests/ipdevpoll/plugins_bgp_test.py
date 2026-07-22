@@ -1,79 +1,70 @@
-import sys
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
-from nav.enterprise.ids import (
-    VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC,
-    VENDOR_ID_CISCOSYSTEMS,
-)
-from nav.ipdevpoll.plugins.bgp import BGP
-from nav.ipdevpoll.storage import ContainerRepository
-from nav.mibs.bgp4_mib import BGP4Mib, MultiBGP4Mib, _dict_integrator
-from nav.mibs.mibretriever import MultiMibMixIn
+import pytest
+import pytest_twisted
+from twisted.internet import defer
+
+from nav.mibs.bgp4_mib import BGP4Mib, BgpPeerState, MultiBGP4Mib
 
 
-sys.modules["psycopg2"] = Mock()
-sys.modules["psycopg2.extensions"] = Mock()
-sys.modules["psycopg2.extras"] = Mock()
+def _peer(remote_ip, remote_as):
+    return BgpPeerState(
+        peer=remote_ip,
+        state=6,
+        adminstatus=2,
+        local_as=64512,
+        remote_as=remote_as,
+    )
 
 
-class TestDictIntegrator:
-    def test_when_instances_have_distinct_keys_it_should_merge_all_dicts(self):
-        results = [
-            ('vrf-a', {'10.0.0.1': 'peer-a'}),
-            ('vrf-b', {'10.0.0.2': 'peer-b'}),
+def _make_multi_mib(per_instance_results):
+    """
+    Builds a MultiBGP4Mib whose fan-out yields one instance per result.
+    """
+    mib = MultiBGP4Mib(agent_proxy=Mock(), instances=[])
+    agents = [
+        (mib._base_agent, "instance-%d" % i) for i in range(len(per_instance_results))
+    ]
+    mib._make_agents = Mock(return_value=iter(agents))
+    return mib
+
+
+class TestMultiBGP4MibGetBgpPeerStates:
+    @pytest.mark.twisted
+    @pytest_twisted.inlineCallbacks
+    def test_it_should_merge_peers_from_all_instances(self):
+        instance_results = [
+            {"10.0.0.1": _peer("10.0.0.1", 65001)},
+            {"10.0.0.2": _peer("10.0.0.2", 65002)},
         ]
-        merged = _dict_integrator(results)
-        assert merged == {'10.0.0.1': 'peer-a', '10.0.0.2': 'peer-b'}
+        mib = _make_multi_mib(instance_results)
 
-    def test_when_instances_share_a_key_it_should_keep_the_last_value(self):
-        results = [
-            ('vrf-a', {'10.0.0.1': 'first'}),
-            ('vrf-b', {'10.0.0.1': 'second'}),
+        with patch.object(
+            BGP4Mib,
+            "get_bgp_peer_states",
+            side_effect=[defer.succeed(r) for r in instance_results],
+        ):
+            merged = yield mib.get_bgp_peer_states()
+
+        assert set(merged) == {"10.0.0.1", "10.0.0.2"}
+        assert merged["10.0.0.1"].remote_as == 65001
+        assert merged["10.0.0.2"].remote_as == 65002
+
+    @pytest.mark.twisted
+    @pytest_twisted.inlineCallbacks
+    def test_when_a_peer_appears_in_multiple_instances_it_should_deduplicate(self):
+        instance_results = [
+            {"10.0.0.1": _peer("10.0.0.1", 65001)},
+            {"10.0.0.1": _peer("10.0.0.1", 65999)},
         ]
-        merged = _dict_integrator(results)
-        assert merged == {'10.0.0.1': 'second'}
+        mib = _make_multi_mib(instance_results)
 
-    def test_when_some_results_are_empty_or_none_it_should_skip_them(self):
-        results = [
-            ('vrf-a', None),
-            ('vrf-b', {}),
-            ('vrf-c', {'10.0.0.1': 'peer'}),
-        ]
-        merged = _dict_integrator(results)
-        assert merged == {'10.0.0.1': 'peer'}
+        with patch.object(
+            BGP4Mib,
+            "get_bgp_peer_states",
+            side_effect=[defer.succeed(r) for r in instance_results],
+        ):
+            merged = yield mib.get_bgp_peer_states()
 
-    def test_when_input_is_empty_it_should_return_empty_dict(self):
-        assert _dict_integrator([]) == {}
-
-
-class TestMultiBGP4Mib:
-    def test_it_should_be_a_subclass_of_bgp4mib(self):
-        assert issubclass(MultiBGP4Mib, BGP4Mib)
-
-    def test_it_should_be_a_subclass_of_multimibmixin(self):
-        assert issubclass(MultiBGP4Mib, MultiMibMixIn)
-
-
-def _make_bgp_plugin(enterprise_id):
-    netbox = Mock()
-    if enterprise_id is None:
-        netbox.type = None
-    else:
-        netbox.type.get_enterprise_id.return_value = enterprise_id
-    return BGP(netbox, agent=None, containers=ContainerRepository())
-
-
-class TestIsArista:
-    def test_when_device_is_arista_it_should_return_true(self):
-        plugin = _make_bgp_plugin(
-            VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
-        )
-        assert plugin.is_arista()
-
-    def test_when_device_is_cisco_it_should_return_false(self):
-        plugin = _make_bgp_plugin(VENDOR_ID_CISCOSYSTEMS)
-        assert not plugin.is_arista()
-
-    def test_when_netbox_has_no_type_it_should_return_false(self):
-        plugin = _make_bgp_plugin(None)
-        assert not plugin.is_arista()
+        assert list(merged) == ["10.0.0.1"]
+        assert merged["10.0.0.1"].remote_as == 65999

@@ -17,7 +17,6 @@
 
 from twisted.internet.defer import inlineCallbacks
 
-from nav.enterprise.ids import VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll.shadows import GatewayPeerSession, Netbox
 from nav.ipdevpoll.utils import get_arista_vrf_instances
@@ -36,14 +35,6 @@ class BGP(Plugin):
         """This will only be useful on routers"""
         daddy_says_ok = super(BGP, cls).can_handle(netbox)
         return daddy_says_ok and netbox.category.id in ('GW', 'GSW')
-
-    def is_arista(self):
-        """Returns True if this is an Arista device"""
-        return (
-            self.netbox.type
-            and self.netbox.type.get_enterprise_id()
-            == VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
-        )
 
     @inlineCallbacks
     def handle(self):

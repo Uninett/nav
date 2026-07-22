@@ -96,19 +96,6 @@ class BGP4Mib(mibretriever.MibRetriever):
         return oid_to_ipv4(row_index)
 
 
-def _dict_integrator(results):
-    """Merge dicts from all logical MIB instances.
-
-    Later instances overwrite duplicate keys, naturally deduplicating BGP
-    peers that may appear under the same remote IP in multiple VRFs.
-    """
-    merged = {}
-    for _descr, result in results:
-        if result:
-            merged.update(result)
-    return merged
-
-
 class MultiBGP4Mib(BGP4Mib, mibretriever.MultiMibMixIn):
     """A version of BGP4Mib that supports collection of BGP peer states from
     multiple logical MIB instances (e.g. one per VRF on Arista devices, via
@@ -117,4 +104,4 @@ class MultiBGP4Mib(BGP4Mib, mibretriever.MultiMibMixIn):
 
     def get_bgp_peer_states(self):
         method = super().get_bgp_peer_states
-        return self._multiquery(method, integrator=_dict_integrator)
+        return self._multiquery(method)
