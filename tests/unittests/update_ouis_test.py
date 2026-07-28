@@ -24,6 +24,18 @@ def test_given_no_proxy_then_get_proxy_returns_empty_string():
     assert conf.get_proxy() == ""
 
 
+def test_given_commented_out_proxy_in_file_then_get_proxy_returns_empty_string():
+    conf = OuiConfig()
+    conf.read_string("[oui]\n# proxy =\n")
+    assert conf.get_proxy() == ""
+
+
+def test_given_proxy_set_in_file_then_get_proxy_returns_it():
+    conf = OuiConfig()
+    conf.read_string("[oui]\nproxy = http://proxy.example.com:3128\n")
+    assert conf.get_proxy() == "http://proxy.example.com:3128"
+
+
 def test_when_proxy_configured_then_download_passes_proxies():
     proxy = "http://proxy.example.org:3128"
     with patch.object(OuiConfig, "get_proxy", return_value=proxy):
