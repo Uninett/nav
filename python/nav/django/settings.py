@@ -345,7 +345,7 @@ X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 _csrf_trusted_origins = _websecurity_config.get_csrf_trusted_origins()
 CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins
 
-_proxy_tls_terminated = bool(_websecurity_config.getboolean('proxy_tls_terminated'))
+_proxy_tls_terminated = _websecurity_config.getboolean('proxy_tls_terminated')
 SECURE_PROXY_SSL_HEADER = (
     ('HTTP_X_FORWARDED_PROTO', 'https') if _proxy_tls_terminated else None
 )
