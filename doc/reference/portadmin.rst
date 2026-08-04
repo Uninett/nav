@@ -123,8 +123,11 @@ To activate the voice VLAN, click the checkbox and click "Save".
 I cannot edit an interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Two things can lead to an interface not being editable (no fields or dropdowns appear):
+Several things can lead to an interface not being editable (no fields or dropdowns appear):
 
+* Your user group has not been granted the PortAdmin privilege for the attribute
+  you are trying to change on this device. A NAV administrator must grant it, see
+  :ref:`portadmin-privileges`.
 * The NAV admin has turned on VLAN authorization. This means you can only
   edit interfaces that have a VLAN that you are organizationally connected to.
 * Something called a *read-write community* has not been set on the device. The
@@ -138,6 +141,66 @@ Some parts of the interface is disabled/greyed out
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See above.
+
+
+.. _portadmin-privileges:
+
+Authorizing changes
+===================
+
+PortAdmin has two independent layers of authorization:
+
+1. **Which interfaces** a user may edit at all. This is governed by the
+   ``vlan_auth`` config option described below, based on the relationship between
+   the user's organizations and the VLAN of the interface.
+2. **What the user may change** on those interfaces. This is governed by the
+   per-attribute privileges described here.
+
+The second layer is off by default. Set ``require_privileges`` to ``on`` in the
+``[authorization]`` section of :file:`portadmin.conf` to enforce it. While it is
+off, any user allowed to edit an interface may change every attribute on it.
+
+Each editable interface attribute has its own privilege:
+
+==============================  ==========================================
+Privilege                       Permits changing
+==============================  ==========================================
+``portadmin_description``       The port description (ifalias)
+``portadmin_vlan``              The access/native VLAN of a port
+``portadmin_admin_status``      Enabling and disabling a port
+``portadmin_poe``               The PoE state of a port
+``portadmin_voice_vlan``        The voice VLAN setting of a port
+``portadmin_trunk``             Trunk configuration
+==============================  ==========================================
+
+.. important:: Once ``require_privileges`` is on, the default is to deny. A user who
+   is not a NAV administrator cannot change anything in PortAdmin until at least one
+   of these privileges has been granted to one of their user groups. NAV
+   administrators always have full access.
+
+Privileges are granted per user group in the Useradmin tool, under
+:guilabel:`Groups`. Each grant has a *target* that scopes it to a set of IP
+devices. The target is a regular expression, matched against the names of the
+*device groups* defined in SeedDB, in the same way the targets of ``web_access``
+privileges are regular expressions. The privilege applies to an IP device if the
+expression matches at least one of the device groups it belongs to:
+
+``^SDN$``
+    The privilege applies only to IP devices in the device group ``SDN``.
+
+``^LEGACY-.*``
+    The privilege applies to IP devices in any device group whose name starts with
+    ``LEGACY-``.
+
+``.*``
+    The privilege applies to every IP device that is in a device group.
+
+Remember to anchor a target with ``^`` and ``$`` when you mean an exact group name.
+An unanchored target such as ``SDN`` also matches a group named ``SDN-EDGE``.
+
+.. note:: Since a target only ever matches device group names, an IP device that
+   belongs to no device group at all is matched by no target, not even ``.*``. Put
+   an IP device in at least one device group before granting anyone access to it.
 
 
 The Config File
@@ -179,6 +242,12 @@ the example config file. Some of the options that can be set in this file are:
     If you want to limit what users can do in PortAdmin you activate
     this option. What this does is limit the choice of VLANs to the
     ones connected to the users organization.
+
+**require_privileges**
+    When set to ``true``, each interface attribute can only be changed by users
+    whose group has been granted the corresponding PortAdmin privilege. The default
+    is ``false``, which lets any user who may edit an interface change every
+    attribute on it. See :ref:`portadmin-privileges`.
 
 **vlan and netident**
     Some network admins want to use a separate VLAN to indicate that
