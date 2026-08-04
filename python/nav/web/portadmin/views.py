@@ -268,11 +268,12 @@ def populate_infodict(request, netbox, interfaces):
     voice_vlan = None
     supports_poe = False
     poe_options = []
+    permissions = PortadminPermissions(get_account(request), netbox)
 
     if not has_error:
         account = get_account(request)
         allowed_vlans = find_and_populate_allowed_vlans(
-            account, netbox, interfaces, handler
+            account, netbox, interfaces, handler, permissions=permissions
         )
         voice_vlan = _setup_voice_vlan(request, netbox, interfaces, handler)
         mark_detained_interfaces(interfaces)
@@ -295,10 +296,11 @@ def populate_infodict(request, netbox, interfaces):
         'allowed_vlans': allowed_vlans,
         'readonly': has_error,
         'aliastemplate': _get_alias_template(),
-        'trunk_edit': CONFIG.get_trunk_edit(),
+        'trunk_edit': CONFIG.get_trunk_edit() and permissions.trunk,
         'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
         'supports_poe': supports_poe,
         'poe_options': poe_options,
+        'permissions': permissions,
     }
 
     if handler:
@@ -858,6 +860,7 @@ def render_trunk_edit(request, interfaceid):
             'allowed_vlans': allowed_vlans,
             'trunk_edit': CONFIG.get_trunk_edit() and permissions.trunk,
             'readonly': not handler.is_configurable() or not permissions.trunk,
+            'permissions': permissions,
         }
     )
 
