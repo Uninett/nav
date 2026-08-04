@@ -2,7 +2,9 @@
 # Dockerfile
 
 asciitree==0.3.3  # optional, for naventity
-psycopg2==2.9.10  # requires libpq to build
+psycopg>=3.2  # requires libpq to build if not using a wheel
+django-psycopg-infinity  # psycopg3 backend with ±infinity timestamp support
+psycopg2==2.9.10  # transitional, removed once all legacy callers are migrated
 IPy==1.01
 pyaml
 

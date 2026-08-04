@@ -23,7 +23,7 @@ off battery.
 """
 
 import logging
-from nav.db import getConnection
+from django.db import connection, transaction
 from nav.event import Event
 from nav.Snmp import Snmp
 
@@ -176,9 +176,6 @@ def verifyEventtype():
     database. Should be run when module is imported.
     """
 
-    db = getConnection('default')
-    c = db.cursor()
-
     # NB: Remember to replace the values with the one you need.
 
     sql = """
@@ -199,11 +196,11 @@ def verifyEventtype():
     """
 
     queries = sql.split(';')
-    for q in queries:
-        if q.rstrip():
-            c.execute(q)
-
-    db.commit()
+    with transaction.atomic():
+        with connection.cursor() as c:
+            for q in queries:
+                if q.rstrip():
+                    c.execute(q)
 
 
 def initialize():

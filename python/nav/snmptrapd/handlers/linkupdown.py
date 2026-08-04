@@ -21,7 +21,7 @@ network equipment.
 import logging
 import nav.errors
 
-from nav.db import getConnection
+from django.db import connection, transaction, ProgrammingError
 from nav.event import Event
 
 _logger = logging.getLogger('nav.snmptrapd.linkupdown')
@@ -92,16 +92,16 @@ def get_interface_details(netboxid, ifindex):
                  LEFT JOIN module USING (moduleid)
                  WHERE netbox.netboxid=%s AND ifindex = %s"""
     _logger.debug(idquery)
-    cursor = getConnection('default').cursor()
-    try:
-        cursor.execute(idquery, (netboxid, ifindex))
-    except nav.db.driver.ProgrammingError:
-        _logger.exception("Unexpected error when querying database")
-    else:
-        if cursor.rowcount > 0:
-            return cursor.fetchone()
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(idquery, (netboxid, ifindex))
+        except ProgrammingError:
+            _logger.exception("Unexpected error when querying database")
         else:
-            _logger.debug('Could not find ifindex %s on %s', ifindex, netboxid)
+            if cursor.rowcount > 0:
+                return cursor.fetchone()
+            else:
+                _logger.debug('Could not find ifindex %s on %s', ifindex, netboxid)
 
     return (None, None, None, None, None)
 
@@ -138,9 +138,6 @@ def verify_event_type():
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.
     """
-    connection = getConnection('default')
-    cursor = connection.cursor()
-
     sql = """
     INSERT INTO eventtype (
     SELECT 'linkState','Tells us whether a link is up or down.','y'
@@ -161,11 +158,11 @@ def verify_event_type():
     """
 
     queries = sql.split(';')
-    for query in queries:
-        if query.rstrip():
-            cursor.execute(query)
-
-    connection.commit()
+    with transaction.atomic():
+        with connection.cursor() as cursor:
+            for query in queries:
+                if query.rstrip():
+                    cursor.execute(query)
 
 
 def initialize():

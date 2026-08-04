@@ -87,13 +87,13 @@ def test_swallow_generic_exceptions():
 
 
 def test_raise_db_exception():
-    from nav.db import driver
+    from django.db import Error
 
     @logengine.swallow_all_but_db_exceptions
     def raiser():
-        raise driver.Error("This is an ex-database")
+        raise Error("This is an ex-database")
 
-    with pytest.raises(driver.Error):
+    with pytest.raises(Error):
         raiser()
 
 

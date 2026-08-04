@@ -29,9 +29,10 @@ import queue
 import time
 import threading
 
-import psycopg2
-from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION
-from psycopg2.errorcodes import lookup as pg_err_lookup
+import psycopg
+from psycopg.errors import InFailedSqlTransaction
+from psycopg.types.net import CidrBinaryLoader, InetBinaryLoader
+from psycopg.types.string import TextLoader
 
 from nav.db import get_connection_string
 from nav.util import synchronized
@@ -41,6 +42,25 @@ from .event import Event
 
 
 _logger = logging.getLogger(__name__)
+
+
+class _InetBinaryStrLoader(InetBinaryLoader):
+    """Loads inet columns as plain strings, even over the binary protocol.
+
+    psycopg3's default binary loader returns ipaddress objects; statemon's
+    callers (e.g. megaping) expect the plain strings psycopg2 used to return.
+    """
+
+    def load(self, data):
+        return str(super().load(data))
+
+
+class _CidrBinaryStrLoader(CidrBinaryLoader):
+    """Loads cidr columns as plain strings, even over the binary protocol."""
+
+    def load(self, data):
+        return str(super().load(data))
+
 
 # The event model requires a valid severity value, even though the event engine will
 # always override it when generating alerts. It therefore doesn't matter what value
@@ -78,12 +98,19 @@ class _DB(threading.Thread):
         """Connects to the NAV database"""
         try:
             conn_str = get_connection_string(script_name='servicemon')
-            self.db = psycopg2.connect(conn_str)
+            self.db = psycopg.connect(conn_str)
+            # psycopg3 loads PostgreSQL inet/cidr columns as ipaddress objects
+            # by default, but statemon's callers (e.g. megaping) expect the
+            # plain strings that psycopg2 used to return. Loaders are registered
+            # per wire format, so both the text and binary protocols must be
+            # overridden or the binary path leaks ipaddress objects.
+            self.db.adapters.register_loader("inet", TextLoader)
+            self.db.adapters.register_loader("cidr", TextLoader)
+            self.db.adapters.register_loader("inet", _InetBinaryStrLoader)
+            self.db.adapters.register_loader("cidr", _CidrBinaryStrLoader)
             atexit.register(self.close)
 
             _logger.info("Successfully (re)connected to NAVdb")
-            # Set transaction isolation level to READ COMMITTED
-            self.db.set_isolation_level(1)
         except Exception:  # noqa: BLE001
             _logger.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
@@ -93,14 +120,14 @@ class _DB(threading.Thread):
         try:
             if self.db:
                 self.db.close()
-        except psycopg2.InterfaceError:
+        except psycopg.InterfaceError:
             # ignore "already-closed" type errors
             pass
 
     def status(self):
         """Returns 0/1 connection status indicator"""
         try:
-            if self.db.status:
+            if self.db and not self.db.closed:
                 return 1
         except Exception:  # noqa: BLE001
             return 0
@@ -116,19 +143,13 @@ class _DB(threading.Thread):
             try:
                 cursor = self.db.cursor()
                 cursor.execute('SELECT 1')
-            except psycopg2.InternalError as err:
-                if err.pgcode == IN_FAILED_SQL_TRANSACTION:
-                    _logger.critical("Rolling back aborted transaction...")
-                    self.db.rollback()
-                else:
-                    _logger.critical(
-                        "PostgreSQL reported an internal error "
-                        "I don't know how to handle: %s "
-                        "(code=%s)",
-                        pg_err_lookup(err.pgcode),
-                        err.pgcode,
-                    )
-                    raise
+            except InFailedSqlTransaction:
+                _logger.critical("Rolling back aborted transaction...")
+                self.db.rollback()
+        # psycopg2 also inspected InternalError.pgcode here to re-raise unknown
+        # internal errors; psycopg3 splits SQLSTATEs into distinct exception
+        # classes, so any other error simply falls through to the reconnect
+        # path below, which is a safe recovery for genuine connection trouble.
         except Exception:  # noqa: BLE001
             if self.db is not None:
                 _logger.critical(
@@ -166,14 +187,14 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", cursor.query)
+            _logger.debug("Executed: %s %s", statement, values)
             if commit:
                 self.db.commit()
             return cursor.fetchall()
         except Exception:  # noqa: BLE001
             _logger.critical(
                 "Failed to execute query: %s",
-                cursor.query if cursor else statement,
+                statement,
                 exc_info=True,
             )
             if commit:
@@ -194,23 +215,23 @@ class _DB(threading.Thread):
         try:
             cursor = self.cursor()
             cursor.execute(statement, values)
-            _logger.debug("Executed: %s", cursor.query)
+            _logger.debug("Executed: %s %s", statement, values)
             if commit:
                 try:
                     self.db.commit()
                 except Exception:  # noqa: BLE001
                     _logger.critical("Failed to commit")
-        except psycopg2.IntegrityError:
+        except psycopg.IntegrityError:
             _logger.critical(
                 "Database integrity error, throwing away update", exc_info=True
             )
-            _logger.debug("Tried to execute: %s", cursor.query)
+            _logger.debug("Tried to execute: %s %s", statement, values)
             if commit:
                 self.db.rollback()
         except Exception:  # noqa: BLE001
             _logger.critical(
                 "Could not execute statement: %s",
-                cursor.query if cursor else statement,
+                statement,
                 exc_info=True,
             )
             if commit:

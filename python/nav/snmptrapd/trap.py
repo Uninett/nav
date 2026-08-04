@@ -19,7 +19,7 @@ import string
 import logging
 from collections import namedtuple
 
-from nav.db import getConnection
+from django.db import connection
 
 _logger = logging.getLogger(__name__)
 
@@ -63,24 +63,24 @@ class SNMPTrap(object):
 
     def _lookup_agent(self):
         """Attempts to look up the corresponding netbox of this trap"""
-        conn = getConnection('snmptrapd')
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT DISTINCT netboxid, sysname, roomid "
-            "FROM netbox "
-            "LEFT JOIN interface USING (netboxid) "
-            "LEFT JOIN gwportprefix USING (interfaceid) "
-            "WHERE %s IN (ip, gwip) ",
-            (self.agent,),
-        )
-
-        if cur.rowcount < 1:
-            _logger.warning(
-                "Unable to match trap agent %s to a NAV-monitored device", self.agent
+        with connection.cursor() as cur:
+            cur.execute(
+                "SELECT DISTINCT netboxid, sysname, roomid "
+                "FROM netbox "
+                "LEFT JOIN interface USING (netboxid) "
+                "LEFT JOIN gwportprefix USING (interfaceid) "
+                "WHERE %s IN (ip, gwip) ",
+                (self.agent,),
             )
-            return None
 
-        return AgentNetbox(*cur.fetchone())
+            if cur.rowcount < 1:
+                _logger.warning(
+                    "Unable to match trap agent %s to a NAV-monitored device",
+                    self.agent,
+                )
+                return None
+
+            return AgentNetbox(*cur.fetchone())
 
     @property
     def netbox(self):

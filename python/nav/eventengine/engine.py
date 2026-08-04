@@ -30,7 +30,7 @@ import time
 from functools import wraps
 import errno
 
-from psycopg2 import OperationalError
+from psycopg import OperationalError
 from django.db import connection, DatabaseError, transaction
 
 from nav.eventengine import export
@@ -119,15 +119,14 @@ class EventEngine(object):
                 if err.args[0] != errno.EINTR:
                     raise
             try:
-                conn.poll()
+                notifications = nav.db.get_pg_notifications(conn)
             except OperationalError:
                 connection.connection = None
                 self._listen()
                 return
-            if conn.notifies:
+            if notifications:
                 self._logger.debug("got event notification from database")
                 self._schedule_next_queuecheck()
-                del conn.notifies[:]
         else:
             self._logger.debug("regular sleep for %ss", delay)
             time.sleep(delay)

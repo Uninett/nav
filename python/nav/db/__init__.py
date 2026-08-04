@@ -19,6 +19,7 @@ Provides common database functionality for NAV.
 """
 
 import atexit
+from collections import namedtuple
 from functools import wraps
 import logging
 import os
@@ -27,6 +28,7 @@ import time
 
 import psycopg2
 import psycopg2.extensions
+from psycopg import sql
 
 import nav
 from nav import config
@@ -80,14 +82,49 @@ class ConnectionObject(nav.CacheableObject):
 
 
 def escape(string):
-    """Escape a string for use in SQL statements.
+    """Escape and quote a string as an SQL literal.
 
-    ..warning:: You should be using parameterized queries if you can!
+    ..warning:: You should be using parameterized queries if you can!  This
+    helper only exists for the rare cases that must embed a literal directly in
+    generated SQL text, such as producing a standalone SQL script.
 
     """
-    quoted = psycopg2.extensions.QuotedString(string)
-    result = quoted.getquoted()
-    return result if isinstance(result, str) else result.decode("utf-8")
+    return sql.Literal(string).as_string()
+
+
+PGNotification = namedtuple("PGNotification", ["channel", "payload"])
+
+
+def get_pg_notifications(connection):
+    """Non-blocking drain of buffered PostgreSQL LISTEN/NOTIFY messages.
+
+    Consumes whatever input is waiting on the psycopg connection's socket and
+    returns the notifications that were buffered. Designed to be driven by a
+    select/reactor loop, mirroring psycopg2's ``poll()`` + ``notifies`` idiom
+    that psycopg3 no longer exposes on the connection object.
+
+    :param connection: A raw psycopg3 connection, e.g.
+                       ``django.db.connection.connection``.
+    :returns: A list of ``PGNotification(channel, payload)`` named tuples.
+    :raises psycopg.OperationalError: If the connection is broken (``consume_input``
+                                      raises on a dropped connection, just as
+                                      psycopg2's ``poll()`` used to).
+    """
+    pgconn = connection.pgconn
+    pgconn.consume_input()
+    notifications = []
+    while True:
+        notify = pgconn.notifies()
+        if notify is None:
+            break
+        channel = notify.relname
+        payload = notify.extra
+        if isinstance(channel, bytes):
+            channel = channel.decode("utf-8")
+        if isinstance(payload, bytes):
+            payload = payload.decode("utf-8")
+        notifications.append(PGNotification(channel, payload))
+    return notifications
 
 
 def get_connection_parameters(script_name='default', database='nav'):

@@ -16,9 +16,8 @@
 #
 """Simple API to interface with NAVs event queue."""
 
-from django.db import transaction
+from django.db import connection, transaction
 
-import nav.db
 from nav.errors import GeneralException
 
 from nav.models.event import EventType, AlertType
@@ -107,26 +106,20 @@ class Event(dict):
 
 
 class EventQ(object):
-    """Static class to manipulate the event queue"""
+    """Static class to manipulate the event queue.
 
-    @classmethod
-    def _get_connection(cls):
-        conn = nav.db.getConnection('default', 'manage')
-        # Make sure the connection doesn't autocommit: Posting an event
-        # consists of several SQL statements that should go into a single
-        # transaction.
-        conn.set_isolation_level(1)
-        return conn
+    Uses Django's thread-local database connection. Posting an event consists
+    of several SQL statements that must go into a single transaction, so
+    ``post_event`` wraps them in ``transaction.atomic()``.
+    """
 
     @classmethod
     def allocate_id(cls):
         sql = "SELECT NEXTVAL('eventq_eventqid_seq')"
-        conn = cls._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        if cursor.rowcount > 0:
-            return cursor.fetchone()[0]
-        else:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            if cursor.rowcount > 0:
+                return cursor.fetchone()[0]
             raise EventIdAllocationError
 
     @classmethod
@@ -160,23 +153,25 @@ class EventQ(object):
             "INSERT INTO eventq (eventqid, " + field_string + ") "
             "VALUES (%s" + placeholders + ")"
         )
-        eventqid = cls.allocate_id()
-        conn = cls._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(eventsql, (eventqid,) + tuple(values))
 
-        # Prepare an SQL statement to post the variables, if any
-        if event:
-            varsql = "INSERT INTO eventqvar (eventqid, var, val)VALUES (%s, %s, %s)"
-            values = [(eventqid,) + i for i in event.items()]
-            cursor.executemany(varsql, values)
+        # Allocate the id and insert the event (plus its variables) atomically
+        with transaction.atomic():
+            eventqid = cls.allocate_id()
+            with connection.cursor() as cursor:
+                cursor.execute(eventsql, (eventqid,) + tuple(values))
 
-        # If we got this far, commit the transaction and update the event
-        # object with the allocated id
+                # Post the event variables, if any
+                if event:
+                    varsql = (
+                        "INSERT INTO eventqvar (eventqid, var, val)VALUES (%s, %s, %s)"
+                    )
+                    varvalues = [(eventqid,) + i for i in event.items()]
+                    cursor.executemany(varsql, varvalues)
 
-        conn.commit()
+                status = cursor.statusmessage
+
         event.eventqid = eventqid
-        return cursor.statusmessage
+        return status
 
     @classmethod
     def consume_events(cls, target):
@@ -188,39 +183,37 @@ class EventQ(object):
                              subid, time, eventtypeid, state, value, severity
                       FROM eventq
                       WHERE target = %s"""
-        conn = cls._get_connection()
-        conn.commit()
-        cursor = conn.cursor()
-
-        def load_vars(event):
-            varsql = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
-            curs = conn.cursor()
-            curs.execute(varsql, (event.eventqid,))
-            if curs.rowcount > 0:
-                for var, val in curs.fetchmany():
-                    event[var] = val
+        with connection.cursor() as cursor:
+            cursor.execute(eventsql, (target,))
+            rows = cursor.fetchall()
 
         events = []
-        cursor.execute(eventsql, (target,))
-        if cursor.rowcount > 0:
-            for event_row in cursor.fetchall():
-                event = Event()
-                (
-                    event.eventqid,
-                    event.source,
-                    event.target,
-                    event.deviceid,
-                    event.netboxid,
-                    event.subid,
-                    event.time,
-                    event.eventtypeid,
-                    event.state,
-                    event.value,
-                    event.severity,
-                ) = event_row
-                load_vars(event)
-                events.append(event)
+        for event_row in rows:
+            event = Event()
+            (
+                event.eventqid,
+                event.source,
+                event.target,
+                event.deviceid,
+                event.netboxid,
+                event.subid,
+                event.time,
+                event.eventtypeid,
+                event.state,
+                event.value,
+                event.severity,
+            ) = event_row
+            cls._load_vars(event)
+            events.append(event)
         return events
+
+    @classmethod
+    def _load_vars(cls, event):
+        varsql = "SELECT var, val FROM eventqvar WHERE eventqid=%s"
+        with connection.cursor() as cursor:
+            cursor.execute(varsql, (event.eventqid,))
+            for var, val in cursor.fetchall():
+                event[var] = val
 
     @classmethod
     def delete_event(cls, eventqid):
@@ -230,11 +223,9 @@ class EventQ(object):
         processed by its target.
         """
         sql = "DELETE FROM eventq WHERE eventqid = %s"
-        conn = cls._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, (eventqid,))
-        conn.commit()
-        return cursor.statusmessage
+        with connection.cursor() as cursor:
+            cursor.execute(sql, (eventqid,))
+            return cursor.statusmessage
 
 
 class EventIdAllocationError(GeneralException):
