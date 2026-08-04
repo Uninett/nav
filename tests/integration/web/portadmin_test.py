@@ -7,7 +7,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from jnpr.junos.exception import ConnectRefusedError
-from mock import patch, Mock
+from mock import ANY, patch, Mock
 
 from nav.models.manage import Interface, Netbox, NetboxGroup, NetboxProfile
 from nav.models.profiles import AccountGroup, PrivilegeType
@@ -239,7 +239,7 @@ class TestPortadminDataLoading:
         result = populate_infodict(mock_request, netbox, interfaces)
 
         mock_find_vlans.assert_called_once_with(
-            mock_request.account, netbox, interfaces, mock_handler
+            mock_request.account, netbox, interfaces, mock_handler, permissions=ANY
         )
         mock_setup_voice.assert_called_once_with(
             mock_request, netbox, interfaces, mock_handler
