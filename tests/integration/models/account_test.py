@@ -58,3 +58,30 @@ class TestHasPermWebAccess:
         self._grant(group, "web_access", r"^/(portadmin)/?")
 
         assert account.has_perm("web_access", "/portadmin/") is True
+
+    def test_when_another_privilege_target_matches_everything_it_should_not_give_access(
+        self, account_in_group
+    ):
+        """
+        A non-web_access target must never be able to grant web access.
+        This is tested because there was a bug where all privileges
+        could give web access.
+        """
+        account, group = account_in_group
+        self._grant(group, "alert_by", ".*")
+
+        assert account.has_perm("web_access", "/useradmin/") is False
+
+    def test_when_web_access_matches_it_should_give_access(self, account_in_group):
+        account, group = account_in_group
+        self._grant(group, "web_access", r"^/status/")
+
+        assert account.has_perm("web_access", "/status/") is True
+
+    def test_when_web_access_does_not_match_it_should_not_give_access(
+        self, account_in_group
+    ):
+        account, group = account_in_group
+        self._grant(group, "web_access", r"^/status/")
+
+        assert account.has_perm("web_access", "/useradmin/") is False

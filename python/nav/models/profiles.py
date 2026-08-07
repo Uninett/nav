@@ -197,12 +197,14 @@ class Account(AbstractBaseUser):
         elif privileges.count() == 0:
             return False
         elif action == 'web_access':
-            for privilege in privileges:
+            # There are multiple types of privileges, only `web_access`
+            # should be used in this context
+            for privilege in privileges.filter(type__name='web_access'):
                 try:
                     regexp = re.compile(privilege.target)
                 except re.error:
                     logging.getLogger('nav.models.profiles').error(
-                        "Invalid regexp in privilege target for group %s: %r",
+                        "Invalid regexp in web_access privilege for group %s: %r",
                         privilege.group_id,
                         privilege.target,
                     )
