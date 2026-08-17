@@ -38,6 +38,7 @@ link_edit = true
 
 [authorization]
 vlan_auth = off
+require_privileges = off
 
 [defaultvlan]
 [ifaliasformat]
@@ -49,6 +50,15 @@ enabled = false
     def is_vlan_authorization_enabled(self):
         """Check config to see if authorization is to be done"""
         return self.getboolean("authorization", "vlan_auth")
+
+    def is_privilege_authorization_enabled(self):
+        """Checks if per-attribute privileges are required to change an interface
+
+        When this is off, any user who is allowed to edit an interface may change
+        every attribute on it, which is how PortAdmin behaved before per-attribute
+        privileges were introduced. Default is off.
+        """
+        return self.getboolean("authorization", "require_privileges", fallback=False)
 
     def is_commit_enabled(self):
         """Checks if configuration commit is turned on or off. Default is on"""
