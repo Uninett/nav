@@ -80,6 +80,8 @@ dev = [
 ]
 test = [
     "coverage>=7.0.0",
+    "cryptography>=44.0.1", # snmpsim uses pysnmp which uses cryptography, but only declares it as dev dependency
+    "pysmi>=2.0.0,<3.0.0", # imported by snmpsim.utils, not pulled in by pysnmp
     "mock==2.0.0",
     "pytest>=8.3.3",
     "pytest-metadata==3.1.1",
