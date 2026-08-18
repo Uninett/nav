@@ -23,10 +23,11 @@ from django.test.client import RequestFactory
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
 
-from nav.models.profiles import Account
 from nav.models.manage import Netbox
-from nav.web.status2.forms import StatusWidgetForm
+from nav.models.profiles import Account
 from nav.web.api.v1.views import AlertHistoryViewSet
+from nav.web.auth.utils import get_account
+from nav.web.status2.forms import StatusWidgetForm
 from . import Navlet
 
 
@@ -45,7 +46,9 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        results = self.do_query(status_filter)
+        results = self.do_query(
+            status_filter, account=get_account(context["view"].request)
+        )
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
@@ -63,15 +66,11 @@ class Status2Widget(Navlet):
         context['interval'] = self.preferences['refresh_interval'] / 1000
         return context
 
-    def do_query(self, query_string):
+    def do_query(self, query_string, account: Account):
         """Queries for alerts given a query string"""
         factory = RequestFactory()
         view = AlertHistoryViewSet.as_view({'get': 'list'})
         request = factory.get("?%s" % query_string)
-        account = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
-        # Fake request! This is safe
-        # We cannot know whether the user is sudo'ed...
-        # but since we operate as admin it is irrelevant
         request.account = request.user = account
         response = view(request)
         return response.data.get('results')
