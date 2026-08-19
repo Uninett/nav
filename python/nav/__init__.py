@@ -18,10 +18,6 @@ Provides a common root package for the NAV python library.
 """
 
 import time
-import warnings
-
-# Ignore stupid warnings about psycopg2-binary package, they're of no concern to us
-warnings.filterwarnings("ignore", category=UserWarning, module='psycopg2')
 
 
 class ObjectCache(dict):

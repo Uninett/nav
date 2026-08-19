@@ -28,7 +28,7 @@ import django.db
 from django.db import transaction
 from django.db.utils import OperationalError as DjangoOperationalError
 from django.db.utils import InterfaceError as DjangoInterfaceError
-from psycopg2 import InterfaceError, OperationalError
+from psycopg import InterfaceError, OperationalError
 
 from nav.models.event import EventQueue
 

@@ -24,7 +24,7 @@ import subprocess
 from textwrap import wrap
 from errno import ENOENT, EACCES
 from pathlib import Path
-import psycopg2
+import psycopg
 
 from nav.db import ConnectionParameters
 from nav.colors import colorize, print_color
@@ -48,7 +48,7 @@ def main():
     sync = Synchronizer('nav.models', options.apply_out_of_order_changes)
     try:
         sync.connect()
-    except psycopg2.OperationalError as err:
+    except psycopg.OperationalError as err:
         die(err)
 
     sync.synchronize()
@@ -294,7 +294,7 @@ class Synchronizer(object):
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
         dsn = str(self.connect_options)
-        self.connection = psycopg2.connect(dsn)
+        self.connection = psycopg.connect(dsn)
         read_committed = 1
         self.connection.set_isolation_level(read_committed)
         self.cursor = self.connection.cursor()
@@ -538,7 +538,7 @@ class Synchronizer(object):
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
-        except (psycopg2.DataError, psycopg2.ProgrammingError) as err:
+        except (psycopg.DataError, psycopg.ProgrammingError) as err:
             print_color(str(err) or type(err).__name__, COLOR_RED)
             sys.exit(2)
         else:

@@ -34,7 +34,7 @@ import signal
 import socket
 import sys
 import time
-from psycopg2 import InterfaceError
+from psycopg import InterfaceError
 
 from nav.bootstrap import bootstrap_django
 

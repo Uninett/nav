@@ -25,15 +25,15 @@ import os
 import sys
 import time
 
-import psycopg2
-import psycopg2.extensions
+import psycopg
+from psycopg import sql
 
 import nav
 from nav import config
 
 _logger = logging.getLogger('nav.db')
 _connection_cache = nav.ObjectCache()
-driver = psycopg2
+driver = psycopg
 
 
 class ConnectionObject(nav.CacheableObject):
@@ -57,13 +57,13 @@ class ConnectionObject(nav.CacheableObject):
                 if self.ping():
                     self.last_validated = time.time()
                     return False
-            except (psycopg2.ProgrammingError, psycopg2.OperationalError):
+            except (psycopg.ProgrammingError, psycopg.OperationalError):
                 _logger.debug(
                     'Invalid connection object (%r), age=%s', self.key, self.age()
                 )
                 self.object.close()
                 return True
-        except psycopg2.InterfaceError:
+        except psycopg.InterfaceError:
             _logger.debug('Connection may already be closed (%r)', self.key)
             return True
 
@@ -79,15 +79,16 @@ class ConnectionObject(nav.CacheableObject):
         return 1
 
 
-def escape(string):
-    """Escape a string for use in SQL statements.
+def escape_literal(string: str):
+    """Escape a string for use in SQL statements as a parameter.
+
+    Not to be used for what psycopg calls identifiers: table names, index names
+    etc. See https://www.psycopg.org/psycopg3/docs/api/sql.html
 
     ..warning:: You should be using parameterized queries if you can!
 
     """
-    quoted = psycopg2.extensions.QuotedString(string)
-    result = quoted.getquoted()
-    return result if isinstance(result, str) else result.decode("utf-8")
+    return sql.Literal(string).as_string()
 
 
 def get_connection_parameters(script_name='default', database='nav'):
@@ -138,7 +139,7 @@ def get_connection_string(db_params=None, script_name='default'):
     :param script_name: Script name to use for looking up connection
                         info, if dbparams is supplied.
 
-    :returns: A suitable dsn string to use when calling psycopg2.connect()
+    :returns: A suitable dsn string to use when calling psycopg.connect()
 
     """
     if not db_params:
@@ -171,7 +172,7 @@ def getConnection(scriptName, database='nav'):
     try:
         connection = _connection_cache[cache_key].object
     except KeyError:
-        connection = psycopg2.connect(
+        connection = psycopg.connect(
             get_connection_string((dbhost, port, dbname, user, password))
         )
         _logger.debug(
@@ -182,7 +183,6 @@ def getConnection(scriptName, database='nav'):
         )
         # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
-        connection.set_client_encoding('utf8')
         conn_object = ConnectionObject(connection, cache_key)
         _connection_cache.cache(conn_object)
 
@@ -194,7 +194,7 @@ def closeConnections():
     for connection in _connection_cache.values():
         try:
             connection.object.close()
-        except psycopg2.InterfaceError:
+        except psycopg.InterfaceError:
             pass
 
 
@@ -216,12 +216,12 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
     :param fallback: A function to run when all retry attempts fail. If
                      set to None, the caught exception will be re-raised.
     :param also_handled: A list of exception classes to catch in addition to
-                         the relevant ones from the psycopg2 library.
+                         the relevant ones from the psycopg library.
 
     """
     if fallback:
         assert callable(fallback)
-    handled = (psycopg2.OperationalError, psycopg2.InterfaceError)
+    handled = (psycopg.OperationalError, psycopg.InterfaceError)
     if also_handled:
         handled = handled + tuple(also_handled)
 

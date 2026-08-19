@@ -17,7 +17,8 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "asciitree==0.3.3",
-    "psycopg2==2.9.10",
+    "psycopg>=3.1.8",
+    "django-psycopg-infinity",
     "IPy==1.01",
     "pyaml",
     "twisted>=24.7",

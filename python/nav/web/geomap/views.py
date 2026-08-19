@@ -19,7 +19,7 @@
 import logging
 from decimal import Decimal
 
-import psycopg2.extras
+from psycopg.rows import dict_row
 
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -134,7 +134,7 @@ def data(request, variant):
     """
     connection = nav.db.getConnection('geomapserver', 'manage')
     connection.set_isolation_level(1)
-    db = connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    db = connection.cursor(row_factory=dict_row)
 
     truthy = ['True', 'true', True]
     do_create_edges = request.GET.get('create_edges', True) in truthy
