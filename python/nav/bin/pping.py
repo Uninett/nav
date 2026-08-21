@@ -197,15 +197,16 @@ class Pinger(object):
                 len(self.down),
             )
             wait = self._looptime - elapsedtime
-            if wait > 0:
-                _logger.debug("Sleeping %03.3f secs", wait)
-            else:
-                wait = abs(self._looptime + wait)
+            if wait <= 0:
                 _logger.warning(
-                    "Check lasted longer than looptime. "
-                    "Delaying next check for %03.3f secs",
-                    wait,
+                    "Check lasted %0.3fs, longer than looptime %0.3fs; "
+                    "starting next round immediately",
+                    elapsedtime,
+                    self._looptime,
                 )
+                wait = 0.0
+            else:
+                _logger.debug("Sleeping %03.3f secs", wait)
             sleep(wait)
 
     def signalhandler(self, signum, _frame):
