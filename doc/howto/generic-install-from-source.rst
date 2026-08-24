@@ -208,16 +208,26 @@ directory.
 Users and privileges
 --------------------
 
-Apart from the ``pping`` and ``snmptrapd`` daemons, no NAV processes should
-ever be run as ``root``. You should create a non-privileged system user and
-group, and ensure the ``NAV_USER`` option in :file:`nav.conf` is set
-accordingly. Also make sure this user has permissions to write to the directories
-configured in ``PID_DIR``, ``LOG_DIR`` and ``UPLOAD_DIR``.
+No NAV processes should ordinarily run as ``root``. You should create a
+non-privileged system user and group, and ensure the ``NAV_USER`` option in
+:file:`nav.conf` is set accordingly. Also make sure this user has permissions
+to write to the directories configured in ``PID_DIR``, ``LOG_DIR`` and
+``UPLOAD_DIR``.
 
-.. note:: The ``pping`` and ``snmptrapd`` daemons must be started as ``root``
-          to be able to create privileged communication sockets. Both daemons
-          will drop privileges and run as the configured non-privileged user as
-          soon as the sockets have been acquired.
+.. note:: The ``snmptrapd`` daemon must be started as ``root`` to be able to
+          bind UDP port 162 for incoming SNMP traps; it drops privileges as
+          soon as the socket is bound. In :file:`daemons.yml`, ``snmptrapd``
+          is marked ``privileged: true`` for this reason.
+
+.. note:: The ``pping`` daemon needs to open ICMP sockets, which historically
+          also required ``root``. On Linux, ``pping`` can run unprivileged if
+          the ``NAV_USER``'s gid is within the kernel's
+          ``net.ipv4.ping_group_range`` sysctl, or if ``CAP_NET_RAW`` is
+          granted to the Python binary. The shipped :file:`daemons.yml` sets
+          ``privileged: false`` for ``pping``; if you run NAV on a non-Linux
+          system (FreeBSD, macOS) or your kernel does not expose unprivileged
+          ICMP sockets, change it back to ``privileged: true`` so the daemon
+          starts as ``root`` and drops privileges after opening the sockets.
 
 Building the documentation
 --------------------------
