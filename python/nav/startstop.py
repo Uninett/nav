@@ -17,6 +17,7 @@
 """NAV Service start/stop library."""
 
 import errno
+import getpass
 import os
 import shlex
 import signal
@@ -329,7 +330,7 @@ class Crontab(object):
     def load(self):
         """Loads the currently active crontab"""
         try:
-            output = subprocess.check_output(["crontab", "-u", self.user, "-l"])
+            output = subprocess.check_output(self._crontab_command("-l"))
             self.content = output.decode('utf-8').splitlines()
         except subprocess.CalledProcessError:
             # crontab doesn't have very helpful exit codes. if we get here, it
@@ -360,9 +361,7 @@ class Crontab(object):
     def save(self):
         """Saves the current state to the crontab"""
         self.update_init()
-        proc = subprocess.Popen(
-            ["crontab", "-u", self.user, "-"], stdin=subprocess.PIPE
-        )
+        proc = subprocess.Popen(self._crontab_command("-"), stdin=subprocess.PIPE)
         proc.stdin.write(str(self).encode('utf-8'))
         proc.stdin.close()
 
@@ -446,6 +445,19 @@ class Crontab(object):
 
     def __str__(self):
         return '\n'.join(self.content)
+
+    def _crontab_command(self, *extra):
+        """Build a `crontab` command, omitting `-u` when self-targeting.
+
+        Vixie cron rejects `-u` outright for non-root callers, even when the
+        named user is the current user.  Cronie permits the self-targeting
+        case.  Avoid the flag whenever we don't need it so NAV works against
+        either implementation.
+        """
+        cmd = ["crontab"]
+        if self.user != getpass.getuser():
+            cmd += ["-u", self.user]
+        return cmd + list(extra)
 
 
 class ServiceRegistry(dict):
