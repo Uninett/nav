@@ -15,8 +15,7 @@
 #
 """Pydantic models for authentication configuration.
 
-Replaces the TOMLConfigParser-based parsers for reading
-``webfront/authentication.toml``.
+Reads and validates ``webfront/authentication.toml``.
 """
 
 import logging
