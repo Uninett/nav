@@ -50,7 +50,7 @@ def main():
 
     # Todo: fail if config file is not found
     conf = configparser.ConfigParser()
-    conf.read(find_config_file(CONFIG_FILE))
+    conf.read(find_config_file(CONFIG_FILE), encoding='utf-8')
 
     # Must do this after config, so logfile can be configurable
     if args.test:

@@ -124,14 +124,14 @@ def _get_logging_conf():
     """
     filename = os.environ.get(LOGGING_CONF_VAR, LOGGING_CONF_FILE_DEFAULT)
     config = configparser.ConfigParser()
-    read = config.read(filename)
+    read = config.read(filename, encoding="utf-8")
     if filename not in read and LOGGING_CONF_VAR in os.environ:
         _logger.error(
             "cannot read logging config from %s, trying default %s",
             filename,
             LOGGING_CONF_FILE_DEFAULT,
         )
-        config.read(LOGGING_CONF_FILE_DEFAULT)
+        config.read(LOGGING_CONF_FILE_DEFAULT, encoding="utf-8")
     return config
 
 
