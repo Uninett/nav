@@ -17,7 +17,7 @@
     "htmx.org": "2.0.4",
     "jquery": "4.0.0",
     "jquery-ui": "1.14.0",
-    "moment": "2.18.1",
+    "moment": "2.29.4",
     "requirejs": "2.0.4",
     "select2": "4.1.0-rc.0",
     "spin.js": "2.3.2",
