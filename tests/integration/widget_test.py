@@ -3,8 +3,9 @@ from unittest.mock import Mock
 
 from django.urls import reverse
 
-from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.feedreader import FeedReaderNavlet
+from nav.web.navlets.roomstatus import RoomStatus
+from nav.web.navlets.status2 import Status2Widget, QueryError
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.profiles import AccountDashboard, AccountNavlet
 from nav.models.fields import INFINITY
@@ -29,6 +30,16 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
     ]
     assert len(matching) == 1
     assert matching[0]['netbox_object'] == alerthist_with_two_messages.netbox
+
+
+def test_status_should_show_error_on_failed_query(admin_account):
+    widget = Status2Widget()
+    widget.do_query = Mock(side_effect=QueryError)
+    request = Mock()
+    request.account = admin_account
+    result = widget.get_context_data_view({"view": request})
+    assert not result["results"]
+    assert "NAV was not able to get the alerts." in result["error"]
 
 
 def test_feedreader_widget_should_get_nav_blog_posts():

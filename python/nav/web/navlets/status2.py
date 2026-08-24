@@ -15,6 +15,7 @@
 #
 """Status2 widget"""
 
+import logging
 from datetime import datetime
 from operator import itemgetter
 
@@ -22,6 +23,7 @@ from django.http import QueryDict
 from django.test.client import RequestFactory
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
+from rest_framework import status
 
 from nav.models.manage import Netbox
 from nav.models.profiles import Account
@@ -29,6 +31,12 @@ from nav.web.api.v1.views import AlertHistoryViewSet
 from nav.web.auth.utils import get_account
 from nav.web.status2.forms import StatusWidgetForm
 from . import Navlet
+
+_logger = logging.getLogger(__name__)
+
+
+class QueryError(Exception):
+    """The requested data could not be queried"""
 
 
 class Status2Widget(Navlet):
@@ -46,9 +54,17 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        results = self.do_query(
-            status_filter, account=get_account(context["view"].request)
-        )
+        try:
+            results = self.do_query(
+                status_filter, account=get_account(context["view"].request)
+            )
+        # Catch error here and display it
+        except QueryError:
+            context["results"] = None
+            context["error"] = "NAV was not able to get the alerts."
+            context['last_updated'] = datetime.now()
+            return context
+
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
@@ -73,6 +89,9 @@ class Status2Widget(Navlet):
         request = factory.get("?%s" % query_string)
         request.account = request.user = account
         response = view(request)
+        if response.status_code != status.HTTP_200_OK:
+            _logger.error("Error when querying alerts: %s", response.data.get("detail"))
+            raise QueryError
         return response.data.get('results')
 
     def add_formatted_time(self, results):
