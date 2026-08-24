@@ -59,7 +59,6 @@ TESTARGS_PATTERN = re.compile(
     r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$', re.MULTILINE
 )
 NOTEST_PATTERN = re.compile(r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
-BINDIR = './python/nav/bin'
 
 
 def pytest_generate_tests(metafunc):
