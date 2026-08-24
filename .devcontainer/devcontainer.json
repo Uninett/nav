@@ -28,7 +28,8 @@
   "containerEnv": {
     "DJANGO_SETTINGS_MODULE": "nav.django.settings",
     "DISPLAY": "dummy",
-    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "DEVCONTAINER": "true"
   },
 
   // Configure tool-specific properties.
