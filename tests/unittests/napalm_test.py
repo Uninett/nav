@@ -17,6 +17,8 @@
 import pytest
 from unittest.mock import Mock
 
+import napalm
+
 from nav.models import manage
 from nav.napalm import connect, NapalmError
 
@@ -64,3 +66,20 @@ class TestNapalm:
         profile_mock.configuration = {}
         with pytest.raises(NapalmError):
             connect(host=netbox_mock, profile=profile_mock)
+
+
+def test_when_hostname_is_a_bare_ipv6_address_then_the_junos_driver_should_accept_it():
+    """Regression test for #4119.
+
+    junos-eznc 2.8.1 started rejecting unbracketed IPv6 literals as the host
+    value, while napalm's junos driver hands them the device IP verbatim. NAV
+    always hands bare IP addresses to the Napalm driver, so constructing the junos
+    driver with one must not raise. Construction is where the driver builds the
+    jnpr.junos.Device and PyEZ validates the host; no network I/O happens until
+    open(), so this stays a pure unit test.
+    """
+    junos_driver = napalm.get_network_driver("junos")
+
+    device = junos_driver(hostname="2001:db8::1", username="admin", password="x")
+
+    assert device.hostname == "2001:db8::1"

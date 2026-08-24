@@ -1,3 +1,9 @@
 # Bound the transitive paramiko range so pip-compile's backtracking resolver
 # doesn't enumerate versions across napalm/junos-eznc/ncclient/netmiko.
 paramiko>=4,<5
+
+# junos-eznc 2.8.1 added hostname validation that rejects bare IPv6 literals,
+# but napalm's junos driver hands them the device IP unbracketed. This breaks
+# PortAdmin and SeedDB for IPv6-addressed Juniper devices. Pin below the
+# offending release until napalm's junos driver brackets IPv6 hosts. See #4119.
+junos-eznc<2.8.1
