@@ -1,12 +1,17 @@
-import os
-import subprocess
-import sys
 from pathlib import Path
 from unittest import TestCase
 
-import pytest
-
 from nav.config import _config_resource_walk, find_config_file, get_config_locations
+
+from .ascii_locale import assert_runs_in_ascii_locale
+
+_READ_UTF8_CONFIG_SCRIPT = """
+from nav.config import NAVConfigParser
+
+parser = NAVConfigParser(default_config="", default_config_files=("utf8.conf",))
+expected = "a" + chr(0x2014) + "b"
+assert parser.get("section", "key") == expected, parser.get("section", "key")
+"""
 
 
 class TestConfigResourceWalk(TestCase):
@@ -131,47 +136,6 @@ class TestConfigFileEncoding:
         config_file = tmp_path / "utf8.conf"
         config_file.write_text("[section]\nkey = a—b\n", encoding="utf-8")
 
-        result = _run_in_ascii_locale(_READ_UTF8_CONFIG_SCRIPT, config_dir=tmp_path)
-
-        if result.returncode == _COULD_NOT_FORCE_ASCII:
-            pytest.skip("interpreter could not be forced to a non-UTF-8 locale")
-        assert result.returncode == 0, result.stderr
-
-
-# The regression is only observable when the interpreter's default encoding is
-# not UTF-8, and that cannot be changed once the process has started. So we read
-# the config file in a child interpreter whose locale is forced to plain ASCII.
-
-_COULD_NOT_FORCE_ASCII = 99
-
-_READ_UTF8_CONFIG_SCRIPT = f"""
-import locale
-import sys
-
-from nav.config import NAVConfigParser
-
-if "utf" in locale.getpreferredencoding(False).lower().replace("-", ""):
-    sys.exit({_COULD_NOT_FORCE_ASCII})
-
-parser = NAVConfigParser(default_config="", default_config_files=("utf8.conf",))
-expected = "a" + chr(0x2014) + "b"
-assert parser.get("section", "key") == expected, parser.get("section", "key")
-"""
-
-
-def _run_in_ascii_locale(script, config_dir):
-    env = {
-        **os.environ,
-        "LC_ALL": "C",
-        "LANG": "C",
-        "PYTHONUTF8": "0",
-        "PYTHONCOERCECLOCALE": "0",
-        "NAV_CONFIG_DIR": str(config_dir),
-    }
-    return subprocess.run(
-        [sys.executable, "-c", script],
-        env=env,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+        assert_runs_in_ascii_locale(
+            _READ_UTF8_CONFIG_SCRIPT, NAV_CONFIG_DIR=str(tmp_path)
+        )

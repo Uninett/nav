@@ -21,9 +21,6 @@ NAV's own readers, and the readers themselves must decode as UTF-8 even when the
 locale's preferred encoding is not.
 """
 
-import os
-import subprocess
-import sys
 import tomllib
 from pathlib import Path
 
@@ -31,6 +28,8 @@ import pytest
 
 import nav
 from nav.config import getconfig
+
+from .ascii_locale import assert_runs_in_ascii_locale
 
 _ETC_DIR = Path(nav.__file__).resolve().parent / "etc"
 
@@ -64,6 +63,13 @@ _INI_CONFIG_FILES = [
 _TOML_CONFIG_FILES = [
     "webfront/authentication.toml",
 ]
+
+_READ_LOGGING_CONF_SCRIPT = """
+from nav.logs import _get_logging_conf
+
+config = _get_logging_conf()
+assert config.get("levels", "root") == "INFO", dict(config["levels"])
+"""
 
 
 class TestShippedConfigFiles:
@@ -105,13 +111,9 @@ class TestRawIniReaderEncoding:
         # dash character that triggered #4132 in a shipped config's comment.
         config_file.write_text("[levels]\nroot = INFO\n# a—b\n", encoding="utf-8")
 
-        result = _run_python_in_ascii_locale(
-            _READ_LOGGING_CONF_SCRIPT, {"NAV_LOGGING_CONF": str(config_file)}
+        assert_runs_in_ascii_locale(
+            _READ_LOGGING_CONF_SCRIPT, NAV_LOGGING_CONF=str(config_file)
         )
-
-        if result.returncode == _COULD_NOT_FORCE_ASCII:
-            pytest.skip("interpreter could not be forced to a non-UTF-8 locale")
-        assert result.returncode == 0, result.stderr
 
 
 def _shipped_config_files():
@@ -124,41 +126,3 @@ def _shipped_config_files():
         if path.name.startswith(".") or path.name.endswith("~"):
             continue
         yield path
-
-
-# The regression is only observable when the interpreter's default encoding is
-# not UTF-8, and that cannot be changed once the process has started. So we read
-# the config file in a child interpreter whose locale is forced to plain ASCII.
-
-_COULD_NOT_FORCE_ASCII = 99
-
-_READ_LOGGING_CONF_SCRIPT = """
-import locale
-import sys
-
-if "utf" in locale.getpreferredencoding(False).lower().replace("-", ""):
-    sys.exit({skip})
-
-from nav.logs import _get_logging_conf
-
-config = _get_logging_conf()
-assert config.get("levels", "root") == "INFO", dict(config["levels"])
-""".format(skip=_COULD_NOT_FORCE_ASCII)
-
-
-def _run_python_in_ascii_locale(script, extra_env):
-    env = {
-        **os.environ,
-        "LC_ALL": "C",
-        "LANG": "C",
-        "PYTHONUTF8": "0",
-        "PYTHONCOERCECLOCALE": "0",
-        **extra_env,
-    }
-    return subprocess.run(
-        [sys.executable, "-c", script],
-        env=env,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
