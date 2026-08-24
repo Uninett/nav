@@ -41,11 +41,7 @@ from operator import methodcaller
 import argparse
 from os.path import join
 
-from nav.bootstrap import bootstrap_django
 from nav.config import find_config_file
-
-bootstrap_django(__file__)
-
 from nav.logs import init_generic_logging
 import nav.arnold
 from nav.arnold import (

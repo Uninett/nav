@@ -24,10 +24,7 @@ import configparser
 
 import argparse
 
-from nav.bootstrap import bootstrap_django
 from nav.config import find_config_file
-
-bootstrap_django(__file__)
 
 import nav
 import nav.mailin

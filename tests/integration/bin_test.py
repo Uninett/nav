@@ -1,11 +1,9 @@
 from shutil import which
+import os
 import subprocess
 import sys
 
 import pytest
-
-
-BINDIR = './python/nav/bin'
 
 
 def test_script_runs(script):
@@ -13,7 +11,15 @@ def test_script_runs(script):
     if "netbiostracker" in script[0] and not which("nbtscan"):
         pytest.skip("nbtscan is not installed")
 
-    proc = subprocess.Popen(script, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+    # Scripts must be able to bootstrap Django on their own, without relying on
+    # DJANGO_SETTINGS_MODULE already being set in the environment (which pytest
+    # or a tox testenv may have done for its own purposes).
+    env = os.environ.copy()
+    env.pop('DJANGO_SETTINGS_MODULE', None)
+
+    proc = subprocess.Popen(
+        script, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=env
+    )
     (done, fail) = proc.communicate()
     retcode = proc.wait()
 
@@ -30,7 +36,7 @@ def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
 
     Added in regards to: https://github.com/Uninett/nav/issues/2433
     """
-    params = [BINDIR + "/naventity.py", localhost.ip, "-p", "1024"]
+    params = ["naventity", localhost.ip, "-p", "1024"]
     if sys.version_info[0:2] == (3, 12):  # Python 3.12 is weird
         params += ["-t", "5.0"]
     proc = subprocess.Popen(
@@ -56,7 +62,7 @@ def test_nav_runs_without_error_without_arguments():
     Added in regards to: https://github.com/Uninett/nav/issues/2601
     """
     proc = subprocess.Popen(
-        [BINDIR + "/navmain.py"],
+        ["nav"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
@@ -77,7 +83,7 @@ def test_given_default_account_for_navuser_passwd_then_exit_with_error():
 
     Added in regards to: https://github.com/Uninett/nav/issues/3964
     """
-    params = [BINDIR + "/navuser.py", "passwd", "default"]
+    params = ["navuser", "passwd", "default"]
     proc = subprocess.Popen(
         params,
         stderr=subprocess.STDOUT,

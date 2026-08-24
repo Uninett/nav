@@ -12,10 +12,6 @@ import platform
 
 logging.raiseExceptions = False
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 
 def main():
     if platform.system() == "Linux":

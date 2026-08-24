@@ -20,10 +20,6 @@
 import argparse
 import logging
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.web.business.reportengine import send_reports
 from nav.models.profiles import ReportSubscription
 from nav.logs import init_generic_logging

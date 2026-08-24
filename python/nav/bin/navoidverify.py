@@ -26,10 +26,6 @@ import sys
 from itertools import cycle
 from argparse import ArgumentParser
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 if platform.system() == "Linux":
     from nav.ipdevpoll.epollreactor2 import install
 

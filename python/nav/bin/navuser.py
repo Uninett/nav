@@ -23,10 +23,6 @@ import argparse
 import sys
 from getpass import getpass, getuser
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from django.db import transaction
 
 from nav.auditlog.models import LogEntry

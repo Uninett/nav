@@ -20,10 +20,6 @@ A command line interface to list and filter IP devices monitored by NAV
 
 import argparse
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.models.manage import Netbox
 
 

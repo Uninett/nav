@@ -22,10 +22,6 @@ line arguments.
 import argparse
 import sys
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.models.manage import Netbox
 from IPy import IP
 

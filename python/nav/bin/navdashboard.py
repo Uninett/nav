@@ -21,10 +21,6 @@ import argparse
 import json
 import sys
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.models.profiles import Account, AccountDashboard
 from nav.web.webfront.dashboard_io import (
     ConflictMode,

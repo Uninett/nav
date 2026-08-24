@@ -4,10 +4,6 @@
 import argparse
 import logging
 
-from nav.bootstrap import bootstrap_django
-
-bootstrap_django(__file__)
-
 from nav.logs import init_generic_logging
 from nav.web.sortedstats import TIMEFRAMES
 from nav.web.sortedstats.views import collect_result
