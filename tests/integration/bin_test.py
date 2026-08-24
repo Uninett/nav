@@ -6,9 +6,6 @@ import sys
 import pytest
 
 
-BINDIR = './python/nav/bin'
-
-
 def test_script_runs(script):
     """Verifies that a script defined in pyproject.toml runs with a zero exit code"""
     if "netbiostracker" in script[0] and not which("nbtscan"):
@@ -65,7 +62,7 @@ def test_nav_runs_without_error_without_arguments():
     Added in regards to: https://github.com/Uninett/nav/issues/2601
     """
     proc = subprocess.Popen(
-        [BINDIR + "/navmain.py"],
+        ["nav"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
