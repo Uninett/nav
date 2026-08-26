@@ -37,6 +37,10 @@ class LocationStatus(RoomStatus):
 
     def get_context_data_view(self, context):
         context = super(LocationStatus, self).get_context_data_view(context)
+
+        if context.get("error"):
+            return context
+
         assert 'results' in context
 
         result_ids = [r.get('id') for r in context['results']]
@@ -53,7 +57,7 @@ class LocationStatus(RoomStatus):
             locations.append(location)
 
         context['items'] = locations
-        context['last_update'] = datetime.now()
+        context['last_updated'] = datetime.now()
         context['name'] = 'room'
         context['name_plural'] = 'rooms'
         context['history_route'] = 'devicehistory-view-location'

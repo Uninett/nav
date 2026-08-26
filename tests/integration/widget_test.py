@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from django.urls import reverse
 
 from nav.web.navlets.feedreader import FeedReaderNavlet
+from nav.web.navlets.locationstatus import LocationStatus
 from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.status2 import Status2Widget, QueryError
 from nav.models.event import AlertHistory, AlertHistoryMessage
@@ -17,9 +18,9 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
     alerthist_with_two_messages, admin_account
 ):
     widget = RoomStatus()
-    request = Mock()
-    request.account = admin_account
-    result = widget.get_context_data_view({"view": request})
+    request = Mock(user=admin_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
     print(result)
     assert 'results' in result
 
@@ -32,12 +33,32 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
     assert matching[0]['netbox_object'] == alerthist_with_two_messages.netbox
 
 
+def test_room_status_should_show_error_on_failed_query(admin_account):
+    widget = RoomStatus()
+    widget.do_query = Mock(side_effect=QueryError)
+    request = Mock(user=admin_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
+    assert not result["results"]
+    assert "NAV was not able to get the alerts." in result["error"]
+
+
+def test_location_status_should_show_error_on_failed_query(admin_account):
+    widget = LocationStatus()
+    widget.do_query = Mock(side_effect=QueryError)
+    request = Mock(user=admin_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
+    assert not result["results"]
+    assert "NAV was not able to get the alerts." in result["error"]
+
+
 def test_status_should_show_error_on_failed_query(admin_account):
     widget = Status2Widget()
     widget.do_query = Mock(side_effect=QueryError)
-    request = Mock()
-    request.account = admin_account
-    result = widget.get_context_data_view({"view": request})
+    request = Mock(user=admin_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
     assert not result["results"]
     assert "NAV was not able to get the alerts." in result["error"]
 
