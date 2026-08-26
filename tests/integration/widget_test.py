@@ -40,7 +40,7 @@ def test_room_status_should_show_error_on_failed_query(admin_account):
     view = Mock(request=request)
     result = widget.get_context_data_view({"view": view})
     assert not result["results"]
-    assert "NAV was not able to get the alerts." in result["error"]
+    assert "NAV was not able to get the alerts" in result["error"]
 
 
 def test_location_status_should_show_error_on_failed_query(admin_account):
@@ -50,7 +50,7 @@ def test_location_status_should_show_error_on_failed_query(admin_account):
     view = Mock(request=request)
     result = widget.get_context_data_view({"view": view})
     assert not result["results"]
-    assert "NAV was not able to get the alerts." in result["error"]
+    assert "NAV was not able to get the alerts" in result["error"]
 
 
 def test_status_should_show_error_on_failed_query(admin_account):
@@ -60,7 +60,7 @@ def test_status_should_show_error_on_failed_query(admin_account):
     view = Mock(request=request)
     result = widget.get_context_data_view({"view": view})
     assert not result["results"]
-    assert "NAV was not able to get the alerts." in result["error"]
+    assert "NAV was not able to get the alerts" in result["error"]
 
 
 def test_feedreader_widget_should_get_nav_blog_posts():
