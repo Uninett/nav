@@ -61,7 +61,7 @@ class Status2Widget(Navlet):
         # Catch error here and display it
         except QueryError:
             context["results"] = None
-            context["error"] = "NAV was not able to get the alerts."
+            context["error"] = "NAV was not able to get the alerts"
             context['last_updated'] = datetime.now()
             return context
 
