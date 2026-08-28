@@ -73,8 +73,14 @@ class ConnectionObject(nav.CacheableObject):
         Executes a simple query, like SELECT 1.  If no exceptions are
         raised, the database connection should still be up.
         """
-        cursor = self.object.cursor()
-        cursor.execute('SELECT 1')
+        with self.object.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        # The connection uses READ COMMITTED (not autocommit), so the ping
+        # query opened a transaction. Roll it back so the connection is not
+        # left "idle in transaction", which would pin the xmin horizon and
+        # block VACUUM. This also clears any uncommitted read left on the
+        # connection by an earlier caller.
+        self.object.rollback()
         # If we got this far withouth exceptions, we did OK
         return 1
 
