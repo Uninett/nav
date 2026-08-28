@@ -36,6 +36,7 @@ dependencies = [
     "Django>=5.2,<5.3",
     "django-filter>=2",
     "djangorestframework>=3.14",
+    "drf-spectacular>=0.27",
     "django-htmx",
     "django-allauth[mfa,socialaccount]",
 
