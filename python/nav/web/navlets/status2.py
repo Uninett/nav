@@ -81,7 +81,7 @@ class Status2Widget(Navlet):
         context['interval'] = self.preferences['refresh_interval'] / 1000
         return context
 
-    def do_query(self, query_string, account: Account):
+    def do_query(self, query_string: str, account: Account) -> list[dict]:
         """Queries for alerts given a query string"""
         factory = RequestFactory()
         view = AlertHistoryViewSet.as_view({'get': 'list'})
