@@ -23,6 +23,9 @@ parameters are named wrong is skipped without ever being called. A test that
 invokes the backend directly cannot observe that.
 """
 
+import logging
+from unittest.mock import patch
+
 from django.contrib.auth import SESSION_KEY
 
 from nav.models.profiles import Account
@@ -65,3 +68,27 @@ class TestRemoteUserLogin:
             anonymous_client.get("/", REMOTE_USER=non_admin_account.login)
 
         assert anonymous_client.session.get(SESSION_KEY) == str(Account.DEFAULT_ACCOUNT)
+
+
+class TestRemoteUserDebugLogging:
+    def test_when_varname_is_customised_then_the_log_should_name_that_variable(
+        self, db, non_admin_account, anonymous_client, remote_user_auth, caplog
+    ):
+        varname = "HTTP_X_REMOTE_USER"
+
+        # The patch must be active before this client's first request: the
+        # middleware reads `self.header` once, when the chain is built.
+
+        with (
+            remote_user_auth(),
+            patch(
+                "nav.web.auth.remote_user.CONFIG.get_remote_user_varname",
+                return_value=varname,
+            ),
+            caplog.at_level(logging.DEBUG, logger="nav.web.auth.middleware"),
+        ):
+            anonymous_client.get(
+                "/", headers={"x-remote-user": non_admin_account.login}
+            )
+
+        assert f'request.META["{varname}"]: "{non_admin_account.login}"' in caplog.text
