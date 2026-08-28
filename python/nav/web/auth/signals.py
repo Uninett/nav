@@ -41,10 +41,11 @@ def log_successful_login(sender, request, user, **kwargs):
 def log_failed_login(sender, credentials, request=None, **kwargs):
     """Records a failed login attempt in the application log"""
     # Auth backends name the identity credential differently: allauth uses
-    # "username", and NAVRemoteUserBackend uses "user".
+    # "username" or "login", while Django's RemoteUserMiddleware passes the
+    # identity along as "remote_user".
     username = (
         credentials.get('username')
         or credentials.get('login')
-        or credentials.get('user')
+        or credentials.get('remote_user')
     )
     _logger.info("failed login: %r", username)

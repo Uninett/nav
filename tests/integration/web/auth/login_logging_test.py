@@ -15,8 +15,10 @@
 #
 """Tests that logins are recorded in the audit log and the application log.
 
-Logins go through django-allauth, so these exercise the real login flow (via the
-``log_in`` helper).
+Ordinary logins go through django-allauth, so these exercise the real login flow
+(via the ``log_in`` helper). REMOTE_USER logins reach the same signal receiver by
+a different route, and name their credential differently, so they are covered
+here too.
 """
 
 import logging
@@ -46,13 +48,21 @@ class TestLoginLogging:
 
         assert f"{non_admin_account.login} successfully logged in" in caplog.text
 
-    def test_when_a_login_attempt_fails_then_it_should_log_to_the_application_log(
+    def test_when_a_login_attempt_fails_then_it_should_log_the_rejected_username(
         self, db, non_admin_account, log_in, caplog
     ):
         with caplog.at_level(logging.INFO):
             log_in(Client(), non_admin_account.login, "wrong-password")
 
-        assert "failed login" in caplog.text
+        assert f"failed login: '{non_admin_account.login}'" in caplog.text
+
+    def test_when_a_remote_user_login_fails_then_it_should_log_the_rejected_username(
+        self, db, anonymous_client, remote_user_auth, caplog
+    ):
+        with remote_user_auth(), caplog.at_level(logging.INFO):
+            anonymous_client.get("/", REMOTE_USER="nosuchuser")
+
+        assert "failed login: 'nosuchuser'" in caplog.text
 
     def test_when_a_login_attempt_fails_then_it_should_not_record_an_audit_log_entry(
         self, db, non_admin_account, log_in
