@@ -89,8 +89,12 @@ class Status2Widget(Navlet):
         request.account = request.user = account
         response = view(request)
         if response.status_code != status.HTTP_200_OK:
-            _logger.error("Error when querying alerts: %s", response.data.get("detail"))
-            raise QueryError
+            _logger.warning(
+                "Error when querying alerts: %s - %s",
+                response.status_code,
+                response.data.get("detail"),
+            )
+            raise QueryError(response.data.get("detail"))
         return response.data.get('results')
 
     def add_formatted_time(self, results):
