@@ -35,9 +35,9 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
 
 
 @pytest.mark.parametrize("widget", [RoomStatus, LocationStatus, Status2Widget])
-def test_status_widget_should_show_error_on_failed_query(widget, default_account):
+def test_status_widget_should_show_error_on_failed_query(widget, locked_account):
     widget = widget()
-    request = Mock(user=default_account)
+    request = Mock(user=locked_account)
     view = Mock(request=request)
     result = widget.get_context_data_view({"view": view})
     assert not result["results"]
