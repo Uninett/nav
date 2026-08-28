@@ -25,7 +25,7 @@ from IPy import IP
 from django.db import DatabaseError, transaction
 
 from nav import asyncdns
-from nav.models.manage import Prefix, Netbox, Interface
+from nav.models.manage import Arp, Prefix, Netbox, Interface
 
 _cached_hostname = {}
 _logger = logging.getLogger(__name__)
@@ -126,6 +126,28 @@ def ip_dict(rows):
             result[ip] = []
         result[ip].append(row)
     return result
+
+
+def collapse_overlapping(rows: list[Arp]) -> list[Arp]:
+    """Drops rows whose active period overlaps a newer kept row.
+
+    `rows` is the list of Arp result rows for a single (ip, mac) pair, already
+    ordered newest-first (by -start_time). Rows with disjoint time windows
+    (genuine connect/disconnect history) are preserved, while rows that overlap
+    an already-kept row are dropped.
+
+    NAV records one Arp row per collecting router by design, so a single
+    address served by several routers (e.g. an HSRP pair) shows up as multiple
+    overlapping rows. This collapses those into one for callers that opt in.
+    """
+    kept = []
+    for row in rows:
+        overlaps = any(
+            row.start_time < k.end_time and k.start_time < row.end_time for k in kept
+        )
+        if not overlaps:
+            kept.append(row)
+    return kept
 
 
 def process_ip_row(row, dns):
