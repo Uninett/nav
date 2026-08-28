@@ -34,6 +34,7 @@ class IpdevpollConfig(NAVConfigParser):
 [ipdevpoll]
 logfile = ipdevpolld.log
 max_concurrent_jobs = 500
+shutdown_timeout = 30
 
 [netbox_filters]
 groups_included=
