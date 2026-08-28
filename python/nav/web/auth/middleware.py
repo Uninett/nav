@@ -101,13 +101,15 @@ class NAVRemoteUserMiddleware(RemoteUserMiddleware):
         )
 
         self._logger.debug(
-            'request.META["REMOTE_USER"]: "%s"',
-            request.META.get("REMOTE_USER", "NOT SET"),
+            'request.META["%s"]: "%s"',
+            self.header,
+            request.META.get(self.header, "NOT SET"),
         )
         next = super().process_request(request)
         remote_userobj = get_account(request)
         self._logger.debug(
-            'REMOTE_USER: "%s" from "%s"',
+            '%s resolved to account "%s" from "%s"',
+            self.header,
             remote_userobj.get_username(),
             path,
         )
