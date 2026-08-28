@@ -39,8 +39,6 @@ class RoomStatus(Status2Widget):
 
     def get_context_data_view(self, context):
         context = super(RoomStatus, self).get_context_data_view(context)
-        if context.get("error"):
-            return context
 
         assert 'results' in context
 

@@ -38,9 +38,6 @@ class LocationStatus(RoomStatus):
     def get_context_data_view(self, context):
         context = super(LocationStatus, self).get_context_data_view(context)
 
-        if context.get("error"):
-            return context
-
         assert 'results' in context
 
         result_ids = [r.get('id') for r in context['results']]
