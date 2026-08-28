@@ -1,8 +1,28 @@
+#
+# Copyright (C) 2026 Sikt
+#
+# This file is part of Network Administration Visualized (NAV).
+#
+# NAV is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 3 as published by the Free
+# Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with
+# NAV. If not, see <http://www.gnu.org/licenses/>.
+#
+"""Authentication backends for NAV's web interface."""
+
 import logging
+from typing import Optional
 
 from django.contrib.auth.backends import RemoteUserBackend
+from django.http import HttpRequest
 
 from nav.auditlog.models import LogEntry
+from nav.models.profiles import Account
 from nav.web.auth import remote_user
 
 
@@ -15,7 +35,15 @@ class NAVRemoteUserBackend(RemoteUserBackend):
     def __init__(self):
         self.create_unknown_user = remote_user.CONFIG.will_autocreate_user()
 
-    def authenticate(self, request, user):
+    def authenticate(
+        self, request: Optional[HttpRequest], user: str
+    ) -> Optional[Account]:
+        """Authenticates the username supplied by the web server.
+
+        Returns the matching account, or None if REMOTE_USER authentication is
+        disabled in NAV's configuration, or the username matches no account
+        that is allowed to log in.
+        """
         if not remote_user.CONFIG.is_remote_user_enabled():
             return None
 
