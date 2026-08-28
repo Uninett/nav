@@ -26,11 +26,16 @@ CREATE INDEX arp_ip_btree ON arp USING btree (ip);
 CREATE INDEX arp_start_time_btree ON arp USING btree (start_time);
 CREATE INDEX arp_end_time_btree ON arp USING btree (end_time);
 CREATE INDEX arp_prefixid_btree ON arp USING btree (prefixid);
+-- Covering indexes for Machine Tracker IP and MAC address searches
+CREATE INDEX arp_ip_end_time_btree ON arp USING btree (ip, end_time) INCLUDE (mac, start_time);
+CREATE INDEX arp_mac_end_time_btree ON arp USING btree (mac, end_time);
 
 CREATE INDEX cam_mac_btree ON cam USING btree (mac);
 CREATE INDEX cam_end_time_btree ON cam USING btree (end_time);
 CREATE INDEX cam_misscnt_btree ON cam USING btree (misscnt);
 CREATE INDEX cam_netboxid_ifindex_end_time_btree ON cam USING btree (netboxid, ifindex, end_time);
+-- Covering index for Machine Tracker MAC address search
+CREATE INDEX cam_mac_end_time_btree ON cam USING btree (mac, end_time) INCLUDE (netboxid, port, sysname);
 -- Index to speed up ipdevinfo queries for the first cam entry from a box
 CREATE INDEX cam_netboxid_start_time_btree ON cam USING btree (netboxid, start_time);
 
