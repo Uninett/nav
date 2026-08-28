@@ -69,16 +69,8 @@
     </script>
 
 
-  {% else %}
-    {% if error %}
-      <div class="alert-box error">
-        {{ error }}
-      </div>
-
-    {% else %}
-      <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
-    {% endif %}
-
+  {% elif not error_message %}
+    <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
   {% endif %}
 
   <small class="right">
