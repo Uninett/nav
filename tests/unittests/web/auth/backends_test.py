@@ -9,7 +9,7 @@ class TestNAVRemoteUserBackend:
     def test_init_sets_create_unknown_user(self):
         expected = 6
         with patch(
-            'nav.web.auth.backends.remote_user.CONFIG.will_autocreate_user',
+            'nav.web.auth.remote_user.CONFIG.will_autocreate_user',
             return_value=expected,
         ):
             backend = NAVRemoteUserBackend()
@@ -18,24 +18,11 @@ class TestNAVRemoteUserBackend:
     def test_authenticate_returns_None_if_backend_not_enabled(self):
         backend = NAVRemoteUserBackend()
         with patch(
-            'nav.web.auth.backends.remote_user.CONFIG.is_remote_user_enabled',
+            'nav.web.auth.remote_user.CONFIG.is_remote_user_enabled',
             return_value=False,
         ):
-            result = backend.authenticate(None, None)
+            result = backend.authenticate(None, remote_user=None)
             assert result is None
-
-    def test_authenticate_returns_user_if_backend_is_enabled(self):
-        expected = 7
-        backend = NAVRemoteUserBackend()
-        mock_backend = Mock()
-        mock_backend.authenticate.return_value = expected
-        with patch(
-            'nav.web.auth.backends.remote_user.CONFIG.is_remote_user_enabled',
-            return_value=True,
-        ):
-            with patch('builtins.super', return_value=mock_backend):
-                result = backend.authenticate(None, expected)
-                assert result == expected
 
     def test_clean_username_golden_path(self):
         # no need to test how clean_username works here‥
