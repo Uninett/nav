@@ -58,7 +58,6 @@ class Status2Widget(Navlet):
             results = self.do_query(
                 status_filter, account=get_account(context["view"].request)
             )
-        # Catch error here and display it
         except QueryError:
             context["results"] = []
             context["error"] = "NAV was not able to get the alerts"
