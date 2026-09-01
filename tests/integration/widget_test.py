@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta
+from unittest.mock import Mock
 
+from django.test import Client
 from django.urls import reverse
 
-from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.feedreader import FeedReaderNavlet
+from nav.web.navlets.locationstatus import LocationStatus
+from nav.web.navlets.roomstatus import RoomStatus
+from nav.web.navlets.status2 import Status2Widget
 from nav.models.event import AlertHistory, AlertHistoryMessage
 from nav.models.profiles import AccountDashboard, AccountNavlet
 from nav.models.fields import INFINITY
@@ -11,9 +15,13 @@ from nav.models.fields import INFINITY
 import pytest
 
 
-def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_messages):
+def test_roomstatus_should_not_fail_on_multiple_messages(
+    alerthist_with_two_messages, admin_account
+):
     widget = RoomStatus()
-    result = widget.get_context_data_view({})
+    request = Mock(user=admin_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
     print(result)
     assert 'results' in result
 
@@ -24,6 +32,45 @@ def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_mess
     ]
     assert len(matching) == 1
     assert matching[0]['netbox_object'] == alerthist_with_two_messages.netbox
+
+
+@pytest.mark.parametrize("widget", [RoomStatus, LocationStatus, Status2Widget])
+def test_status_widget_should_show_error_on_failed_query(widget, locked_account):
+    widget = widget()
+    request = Mock(user=locked_account)
+    view = Mock(request=request)
+    result = widget.get_context_data_view({"view": view})
+    assert not result["results"]
+    assert "NAV was not able to get the alerts" in result["error_message"]
+
+
+def test_when_admin_account_is_inactive_then_status_widget_should_still_list_alerts(
+    log_in, admin_account, non_admin_account, alerthist_with_two_messages
+):
+    """Regression test for https://github.com/Uninett/nav/issues/4163"""
+    admin_account.is_active = False
+    admin_account.save()
+
+    dashboard = AccountDashboard.objects.create(
+        account=non_admin_account, name="Dashboard"
+    )
+    navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.status2.Status2Widget",
+        account=non_admin_account,
+        dashboard=dashboard,
+        preferences={
+            "status_filter": "event_type=boxState&stateless_threshold=24",
+            "refresh_interval": 60000,
+        },
+    )
+    client = Client()
+    log_in(client, "other_user", "password")
+
+    response = client.get(reverse("get-user-navlet", kwargs={"navlet_id": navlet.id}))
+
+    assert response.status_code == 200
+    assert not response.context.get("error_message")
+    assert response.context["results"]
 
 
 def test_feedreader_widget_should_get_nav_blog_posts():

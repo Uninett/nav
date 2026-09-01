@@ -69,12 +69,12 @@
     </script>
 
 
-  {% else %}
+  {% elif not error_message %}
     <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
   {% endif %}
 
   <small class="right">
-    Last update: <span class="last-update">{{ last_update }}</span>
+    Last updated: <span class="last-updated">{{ last_updated }}</span>
   </small>
 
 {% endblock %}
