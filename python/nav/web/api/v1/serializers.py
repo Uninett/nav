@@ -523,6 +523,9 @@ class InlineInterfaceSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'ifindex',
+            'ifname',
+            'ifalias',
+            'ifdescr',
             'netbox',
         )
 
