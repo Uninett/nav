@@ -1,6 +1,6 @@
-=====================================
-Using NAV with Docker for development
-=====================================
+=============================================
+Legacy: Using NAV with Docker for development
+=============================================
 
 .. highlight:: sh
 
