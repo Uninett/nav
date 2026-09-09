@@ -15,6 +15,7 @@
 #
 """Status2 widget"""
 
+import logging
 from datetime import datetime
 from operator import itemgetter
 
@@ -22,12 +23,20 @@ from django.http import QueryDict
 from django.test.client import RequestFactory
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.dateparse import parse_datetime
+from rest_framework import status
 
-from nav.models.profiles import Account
 from nav.models.manage import Netbox
-from nav.web.status2.forms import StatusWidgetForm
+from nav.models.profiles import Account
 from nav.web.api.v1.views import AlertHistoryViewSet
+from nav.web.auth.utils import get_account
+from nav.web.status2.forms import StatusWidgetForm
 from . import Navlet
+
+_logger = logging.getLogger(__name__)
+
+
+class QueryError(Exception):
+    """The requested data could not be queried"""
 
 
 class Status2Widget(Navlet):
@@ -45,7 +54,19 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        results = self.do_query(status_filter)
+        account = get_account(context["view"].request)
+        # This is a hack to get the status widget to work when the user is not logged in
+        # (aka the default account, which is locked, leading the query to fail)
+        if account.is_default_account():
+            account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+        try:
+            results = self.do_query(query_string=status_filter, account=account)
+        except QueryError:
+            context["results"] = []
+            context["error_message"] = "NAV was not able to get the alerts"
+            context['last_updated'] = datetime.now()
+            return context
+
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
@@ -63,17 +84,20 @@ class Status2Widget(Navlet):
         context['interval'] = self.preferences['refresh_interval'] / 1000
         return context
 
-    def do_query(self, query_string):
+    def do_query(self, query_string: str, account: Account) -> list[dict]:
         """Queries for alerts given a query string"""
         factory = RequestFactory()
         view = AlertHistoryViewSet.as_view({'get': 'list'})
         request = factory.get("?%s" % query_string)
-        account = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
-        # Fake request! This is safe
-        # We cannot know whether the user is sudo'ed...
-        # but since we operate as admin it is irrelevant
         request.account = request.user = account
         response = view(request)
+        if response.status_code != status.HTTP_200_OK:
+            _logger.warning(
+                "Error when querying alerts: %s - %s",
+                response.status_code,
+                response.data.get("detail"),
+            )
+            raise QueryError(response.data.get("detail"))
         return response.data.get('results')
 
     def add_formatted_time(self, results):
