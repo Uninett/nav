@@ -10,8 +10,7 @@ The feature is enabled by setting ``enabled=yes`` in this section (A missing
 section or value, or the value ``off`` is interpreted as the support being
 off). When enabled, NAV will check for the HTTP header in ``varname`` (set to
 ``REMOTE_USER`` by default), on every page load. If there is a string there, NAV
-will attempt to use it as a username to log in with. An account will be created
-if one does not already exist for that username.
+will attempt to use it as a username to log in with.
 
 ``REMOTE_USER`` (or another header) can be set by the web server hosting NAV,
 and is a simple way of supporting federated logins via eg. Kerberors or SAML,
