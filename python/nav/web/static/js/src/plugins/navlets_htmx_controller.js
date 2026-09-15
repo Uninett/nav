@@ -117,8 +117,16 @@ define([
         },
 
         reinitializeSortable: function () {
-            const $sorterSelectors = this.container.find(SELECTORS.SORTER);
-            $sorterSelectors.sortable('destroy');
+            // The htmx swap replaces the columns wholesale, so in practice
+            // there is never an instance left to destroy here. The filter is
+            // belt and braces: without it, the columns we are handed are ones
+            // sortable was never initialized on, and any widget method call on
+            // those makes jQuery UI throw, aborting this function before it
+            // reaches initSortable(). Keeping the teardown means the method
+            // stays correct should the swap ever start preserving columns.
+            this.container.find(SELECTORS.SORTER)
+                .filter((_index, column) => $(column).sortable('instance') !== undefined)
+                .sortable('destroy');
             this.initSortable();
         },
 
