@@ -11,10 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     name: Check test naming convention
     steps:
+    # This job runs on pull_request_target, so it has a write token and access
+    # to secrets even when the pull request comes from a fork. Never check out
+    # or execute anything from the pull request here. Leaving this checkout
+    # bare keeps us on the default branch, which is the only reason it is safe
+    # to run check_test_names.py below. Adding a ref: pointing at the pull
+    # request head would hand its author our credentials.
     - uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
+    # Fetch only. The head is read as data by git diff, never checked out.
     - name: Fetch PR head
       run: git fetch origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
       env:
