@@ -22,8 +22,11 @@ jobs:
 
     - name: Check new test names
       id: check
+      env:
+        BASE_REF: ${{ github.event.pull_request.base.ref }}
       run: |
-        merge_base=$(git merge-base HEAD refs/remotes/pull/head)
+        # Name the base branch explicitly; HEAD is not it
+        merge_base=$(git merge-base "origin/$BASE_REF" refs/remotes/pull/head)
         output=$(git diff "$merge_base" refs/remotes/pull/head --unified=0 | python3 checks/check_test_names.py --stdin --format markdown 2>&1) && has_violations=false || has_violations=true
         echo "$output"
         {
