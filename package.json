@@ -24,7 +24,7 @@
     "spin.js": "2.3.2",
     "tablesort": "5.7.0",
     "underscore": "1.13.7",
-    "vue": "2.2.0"
+    "vue": "2.7.16"
   },
   "scripts": {
     "watch:sass": "cd python/nav/web && sass --quiet --watch sass/nav.scss:static/css/nav.css sass/nav/:static/css/nav/ sass/font-awesome/font-awesome.scss:static/css/font-awesome/font-awesome.css",

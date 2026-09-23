@@ -25,7 +25,7 @@ var require = {
         "underscore": "libs/underscore-1.13.7.min",
         "marionette": "libs/backbone.marionette-4.1.3.min",
         "backbone.radio": "libs/backbone.radio-2.0.0.min",
-        "vue": "libs/vue-2.2.0.min",
+        "vue": "libs/vue-2.7.16.min",
         "driver": "libs/driver-1.3.6.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
         "jquery": "libs/jquery-4.0.0.min",
