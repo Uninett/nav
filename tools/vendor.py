@@ -102,7 +102,19 @@ def resolve_source(npm_name):
 
 GENERIC_STEMS = {"cdn", "index", "dist", "main", "umd", "bundle"}
 
-_STRIP_SUFFIXES = (".min", "-min", ".iife", ".esm", ".cjs", ".umd", ".js")
+_STRIP_SUFFIXES = (
+    ".min",
+    "-min",
+    ".iife",
+    "-iife",
+    ".esm",
+    "-esm",
+    ".cjs",
+    "-cjs",
+    ".umd",
+    "-umd",
+    ".js",
+)
 
 
 def _derive_name(npm_name, source_path):
