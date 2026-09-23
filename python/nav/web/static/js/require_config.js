@@ -39,7 +39,7 @@ var require = {
             exports: '_'
         },
         'backbone': {
-            deps: ["underscore"],
+            deps: ["plugins/globalize-underscore"],
             exports: 'Backbone'
         },
         'backbone.radio': {
@@ -61,5 +61,5 @@ var require = {
             exports: 'Tablesort'
         },
     },
-    deps: ['jquery']
+    deps: ['jquery', 'plugins/globalize-underscore']
 };
