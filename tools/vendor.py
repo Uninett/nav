@@ -39,6 +39,10 @@ OVERRIDES = {
     "requirejs": "require.js",
 }
 
+# Packages whose resolved dist file (see OVERRIDES above) isn't actually
+# minified upstream. We run it through terser ourselves before vendoring.
+NEEDS_MINIFY = {"requirejs"}
+
 
 def _load_json(path):
     with open(path) as f:
@@ -147,6 +151,19 @@ def find_old_file(base):
     return None
 
 
+def _minify(src, dest):
+    terser = NODE / ".bin" / "terser"
+    if not terser.exists():
+        sys.exit(f"{terser} not found; run 'npm install --legacy-peer-deps'")
+    r = subprocess.run(
+        [str(terser), str(src), "-c", "-m", "-o", str(dest)],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0:
+        sys.exit(f"terser failed on {src}:\n{r.stderr}")
+
+
 def sync_one(npm_name, config_text=None):
     """Sync one package. Returns (old, new, updated_config_text) or None.
 
@@ -164,7 +181,10 @@ def sync_one(npm_name, config_text=None):
 
     old = find_old_file(name)
 
-    shutil.copy2(NODE / npm_name / source, LIBS / new)
+    if npm_name in NEEDS_MINIFY:
+        _minify(NODE / npm_name / source, LIBS / new)
+    else:
+        shutil.copy2(NODE / npm_name / source, LIBS / new)
 
     if old and old != new:
         (LIBS / old).unlink(missing_ok=True)

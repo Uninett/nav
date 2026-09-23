@@ -4,7 +4,8 @@
   "version": "5",
   "private": true,
   "devDependencies": {
-    "sass": "^1.71.1"
+    "sass": "^1.71.1",
+    "terser": "^5.51.2"
   },
   "dependencies": {
     "backbone": "1.0.0",
