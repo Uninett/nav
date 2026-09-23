@@ -3,7 +3,7 @@ var require = {
     waitSeconds: 90, // default 7
     paths: {
         "libs": "libs",
-        "moment": "libs/moment-2.18.1.min",
+        "moment": "libs/moment-2.29.4.min",
         "resources": "resources",
         "libs-amd": "resources/libs",
         "plugins": "src/plugins",
