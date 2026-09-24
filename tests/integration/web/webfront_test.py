@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 import pytest
 from django.http import Http404
-from django.test import Client
+from django.test import Client, RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
@@ -17,6 +17,7 @@ from nav.models.profiles import (
 )
 from nav.web.webfront import find_dashboard, get_dashboards_for_account
 from nav.web.webfront.utils import tool_list
+from nav.web.webfront.views import index
 
 
 def test_tools_should_be_readable():
@@ -255,6 +256,25 @@ def test_shows_password_issue_banner_on_own_password_issues(db, client):
     assert (
         "Your account has an insecure or old password. It should be reset."
         in smart_str(response.content)
+    )
+
+
+def test_do_not_show_password_issue_banner_on_empty_password(db):
+    """
+    Remote user login sets the password to empty which lead to showing the password
+    issues banner, even though there are no issues
+    """
+
+    factory = RequestFactory()
+
+    request = factory.get(reverse('webfront-index'))
+    request.user = Account.objects.create(login="emptypassword", password="")
+
+    response = index(request)
+
+    assert (
+        "Your account has an insecure or old password. It should be reset."
+        not in smart_str(response.content)
     )
 
 
