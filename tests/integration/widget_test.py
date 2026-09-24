@@ -19,9 +19,8 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
     alerthist_with_two_messages, admin_account
 ):
     widget = RoomStatus()
-    request = Mock(user=admin_account)
-    view = Mock(request=request)
-    result = widget.get_context_data_view({"view": view})
+    widget.request = Mock(user=admin_account)
+    result = widget.get_context_data_view({})
     print(result)
     assert 'results' in result
 
@@ -37,9 +36,8 @@ def test_roomstatus_should_not_fail_on_multiple_messages(
 @pytest.mark.parametrize("widget", [RoomStatus, LocationStatus, Status2Widget])
 def test_status_widget_should_show_error_on_failed_query(widget, locked_account):
     widget = widget()
-    request = Mock(user=locked_account)
-    view = Mock(request=request)
-    result = widget.get_context_data_view({"view": view})
+    widget.request = Mock(user=locked_account)
+    result = widget.get_context_data_view({})
     assert not result["results"]
     assert "NAV was not able to get the alerts" in result["error_message"]
 

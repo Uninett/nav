@@ -54,7 +54,7 @@ class Status2Widget(Navlet):
     def get_context_data_view(self, context):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
-        account = get_account(context["view"].request)
+        account = get_account(self.request)
         # This is a hack to get the status widget to work when the user is not logged in
         # (aka the default account, which is locked, leading the query to fail)
         if account.is_default_account():
