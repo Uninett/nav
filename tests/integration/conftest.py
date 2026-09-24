@@ -474,6 +474,16 @@ def default_account(db):
 
 
 @pytest.fixture()
+def locked_account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="locked_user", is_active=False)
+    account.save()
+    yield account
+    account.delete()
+
+
+@pytest.fixture()
 def netbox_factory(db):
     """Returns a factory for minimal Netboxes.
 

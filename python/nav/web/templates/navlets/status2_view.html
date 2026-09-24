@@ -79,17 +79,16 @@
 
     </table>
 
-  {% else %}
+  {% elif not error_message %}
     <div class="alert-box success">
       According to your criteria, everything seems ok
     </div>
-
-    <div class="status2-widget-footer">
-      <a href="{% url 'status2-index' %}" title="Go to the status page">Go to the status page</a>
-      <small class="last-updated">Last updated: {{ last_updated }}</small>
-    </div>
-
   {% endif %}
+
+  <div class="status2-widget-footer">
+    <a href="{% url 'status2-index' %}" title="Go to the status page">Go to the status page</a>
+    <small class="last-updated">Last updated: {{ last_updated }}</small>
+  </div>
 
   <script>
   (function () {

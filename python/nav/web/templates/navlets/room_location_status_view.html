@@ -69,12 +69,12 @@
     </script>
 
 
-  {% else %}
+  {% elif not error_message %}
     <div class="alert-box success with-icon">No alerts in any {{name_plural}}</div>
   {% endif %}
 
-  <small class="right">
-    Last update: <span class="last-update">{{ last_update }}</span>
-  </small>
+  <div class="status2-widget-footer">
+    <small class="last-updated">Last updated: {{ last_updated }}</small>
+  </div>
 
 {% endblock %}
