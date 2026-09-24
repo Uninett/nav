@@ -1,3 +1,5 @@
+import logging
+
 from nav.web.auth.utils import set_account
 from nav.web.auth.sudo import sudo, desudo
 
@@ -28,3 +30,17 @@ def test_desudo_should_change_session_id(
     post_desudo_session_id = session_request.session.session_key
 
     assert pre_desudo_session_id != post_desudo_session_id
+
+
+def test_desudo_should_log_original_user_and_sudoed_user(
+    db, caplog, session_request, admin_account, non_admin_account
+):
+    # login with admin acount
+    set_account(session_request, admin_account)
+    sudo(session_request, non_admin_account)
+
+    with caplog.at_level(logging.INFO):
+        desudo(session_request)
+
+    assert admin_account.login in caplog.text
+    assert non_admin_account.login in caplog.text

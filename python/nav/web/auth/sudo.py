@@ -77,7 +77,7 @@ def desudo(request: HttpRequest) -> None:
     clear_session(request)
     set_account(request, original_user)
     update_session_auth_hash(request, original_user)
-    _logger.info('DeSudo: "%s" no longer acting as "%s"', original_user, request.user)
+    _logger.info('DeSudo: "%s" no longer acting as "%s"', original_user, other_user)
     _logger.debug(
         'DeSudo: (session: %s, account: %s)', dict(request.session), request.user
     )
