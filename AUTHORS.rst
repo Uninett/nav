@@ -24,18 +24,15 @@ Currently active contributors/maintainers
   Joined in 2021. Currently hacking away at open issues and learning the NAV
   codebase.
 
-* Ilona Podliashanyk <ilona.podliashanyk at sikt.no>
-  Joined in 2022, working mainly as a front-end developer. Currently hacking
-  away at open issues and learning the NAV codebase.
-
 * Jørund Hellebø <jorund.hellebo at sikt.no>
   Joined part-time in 2024, working on DHCP statistics integration and building
   HTTP/REST API management profiles for Palo Alto API implementations, among
   other things.
 
-* Simen Abelsen <simen.abelsen at sikt.no>
-  Joined in August 2025, working on cleanup and modernization of the front-end
-  codebase.
+* Aleksander Fløtten <aleksander.flotten at sikt.no>
+  Joined in October 2025, working on API improvements such as room and
+  location aliases, CI tooling, and general bugfixes and maintenance across
+  the codebase.
 
 Other contributors and previous maintainers
 -------------------------------------------
@@ -47,7 +44,19 @@ Other contributors and previous maintainers
 
 * John-Magne Bredal
   Joined in 2000, and was instrumental in anything related to end user
-  detentions (Arnold), the web interface and the API.
+  detentions (Arnold), the web interface and the API. Left the core team
+  in 2018.
+
+* Ilona Podliashanyk <ilona.podliashanyk at sikt.no>
+  Joined in 2022, working mainly as a front-end developer. Removed NAV's
+  dependency on ``django-crispy-forms`` across most forms, and reworked the
+  SCSS build pipeline (``sassbuild``/``sasswatch``, dropping ``libsass``). Left
+  the core team in 2025 to work on other projects.
+
+* Simen Abelsen <simen.abelsen at sikt.no>
+  Joined in August 2025 as an external consultat, working on cleanup and
+  modernization of the front-end codebase. Made great strides in modernization
+  before leaving the core team again in 2026.
 
 * Sigmund Augdal
   Active from 2017, until he left Uninett in 2019. An experienced Python
