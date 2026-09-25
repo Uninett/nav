@@ -1,0 +1,1 @@
+Added covering database indexes on `arp` and `cam` to speed up Machine Tracker IP and MAC address searches. Note that creating these indexes may take a while during `navsyncdb`, as the `arp` and `cam` tables are typically large.
