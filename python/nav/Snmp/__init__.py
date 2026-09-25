@@ -21,9 +21,6 @@ multiple implementations
 
 """
 
-import os
-import sys
-
 BACKEND = None
 
 try:
@@ -34,16 +31,14 @@ except ImportError:
 else:
     BACKEND = 'pynetsnmp'
 
-if BACKEND == 'pynetsnmp':
-    if sys.platform == "darwin" and not os.getenv("DYLD_LIBRARY_PATH"):
-        # horrible workaround for MacOS problems, described at length at
-        # https://hynek.me/articles/macos-dyld-env/
-        os.environ["DYLD_LIBRARY_PATH"] = os.getenv(
-            "LD_LIBRARY_PATH", "/usr/local/opt/openssl/lib"
-        )
-    from .pynetsnmp import *
-else:
+if BACKEND is None:
     raise ImportError("No supported SNMP backend was found")
+
+
+from ._macos_workaround import safe_libcrypto_import
+
+with safe_libcrypto_import():
+    from .pynetsnmp import *  # noqa: E402, F403
 
 
 def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
