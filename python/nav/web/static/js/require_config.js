@@ -3,7 +3,7 @@ var require = {
     waitSeconds: 90, // default 7
     paths: {
         "libs": "libs",
-        "moment": "libs/moment-2.18.1.min",
+        "moment": "libs/moment-2.29.4.min",
         "resources": "resources",
         "libs-amd": "resources/libs",
         "plugins": "src/plugins",
@@ -22,10 +22,10 @@ var require = {
         "nav-url-utils": "src/plugins/nav-url-utils",
         "rickshaw-utils": "src/plugins/rickshaw-utils",
         "backbone": "libs/backbone-1.0.0.min",
-        "underscore": "libs/underscore-1.7.0.min",
+        "underscore": "libs/underscore-1.13.7.min",
         "marionette": "libs/backbone.marionette-4.1.3.min",
         "backbone.radio": "libs/backbone.radio-2.0.0.min",
-        "vue": "libs/vue-2.2.0.min",
+        "vue": "libs/vue-2.7.16.min",
         "driver": "libs/driver-1.3.6.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
         "jquery": "libs/jquery-4.0.0.min",
@@ -39,7 +39,7 @@ var require = {
             exports: '_'
         },
         'backbone': {
-            deps: ["underscore"],
+            deps: ["plugins/globalize-underscore"],
             exports: 'Backbone'
         },
         'backbone.radio': {
@@ -61,5 +61,5 @@ var require = {
             exports: 'Tablesort'
         },
     },
-    deps: ['jquery']
+    deps: ['jquery', 'plugins/globalize-underscore']
 };

@@ -4,7 +4,8 @@
   "version": "5",
   "private": true,
   "devDependencies": {
-    "sass": "^1.71.1"
+    "sass": "^1.71.1",
+    "terser": "^5.51.2"
   },
   "dependencies": {
     "backbone": "1.0.0",
@@ -17,13 +18,13 @@
     "htmx.org": "2.0.4",
     "jquery": "4.0.0",
     "jquery-ui": "1.14.0",
-    "moment": "2.18.1",
-    "requirejs": "2.0.4",
+    "moment": "2.29.4",
+    "requirejs": "2.3.7",
     "select2": "4.1.0-rc.0",
     "spin.js": "2.3.2",
     "tablesort": "5.7.0",
-    "underscore": "1.7.0",
-    "vue": "2.2.0"
+    "underscore": "1.13.7",
+    "vue": "2.7.16"
   },
   "scripts": {
     "watch:sass": "cd python/nav/web && sass --quiet --watch sass/nav.scss:static/css/nav.css sass/nav/:static/css/nav/ sass/font-awesome/font-awesome.scss:static/css/font-awesome/font-awesome.css",
