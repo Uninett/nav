@@ -21,12 +21,16 @@ from django.template.defaultfilters import urlize
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.html import strip_tags
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from nav.models import event, profiles
 from nav.models.fields import INFINITY
 
 
+# Distinct OpenAPI component name to avoid colliding with the unrelated
+# AccountSerializer in nav.web.api.v1.serializers.
+@extend_schema_serializer(component_name="AlertAcknowledgementAccount")
 class AccountSerializer(serializers.ModelSerializer):
     """Serializer for Accounts that have acknowledged alerts"""
 
