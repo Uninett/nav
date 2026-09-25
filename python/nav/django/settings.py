@@ -403,8 +403,22 @@ MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = (
     _auth_config.mfa.get_MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN_setting()
 )
 
-# SOCIALACCOUNT_AUTO_SIGNUP = True
-# SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
+# Provisioning a brand-new NAV account from a social (OIDC) identity is disabled
+# by default; see NAVSocialAccountAdapter.is_open_for_signup. Enable
+# NAV_ALLOW_SIGNUPS to auto-provision accounts for first-time social logins
+# instead of pre-creating each account manually -- only sound when the IdP
+# itself restricts who may authenticate to NAV. It is a provisional, unsupported
+# power-user escape hatch (set in local_settings): a NAV-specific setting, not an
+# allauth one, expected to be replaced by a single authentication.toml option
+# once an authorization design (who may sign up, who becomes admin) lands.
+#
+# AUTO_SIGNUP is on so NAV_ALLOW_SIGNUPS is the single gate: while it is closed
+# (default) is_open_for_signup returns False and first-time sign-in is cleanly
+# refused; when opened, the account is provisioned directly. Without AUTO_SIGNUP,
+# opening the gate would instead route to allauth's stock signup form, which NAV
+# does not have.
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'
 
 SOCIALACCOUNT_PROVIDERS = {}
 
