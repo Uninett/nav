@@ -21,6 +21,7 @@ Packages:
 
 """
 
+from nav.enterprise.ids import VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
 from nav.models import manage
 from nav.ipdevpoll.config import IpdevpollConfig
 from .log import ContextLogger, ContextFormatter
@@ -58,6 +59,14 @@ class Plugin(object):
 
     def __repr__(self):
         return '%s(%s)' % (self.full_name(), repr(self.netbox))
+
+    def is_arista(self):
+        """Returns True if this is an Arista device"""
+        return (
+            self.netbox.type
+            and self.netbox.type.get_enterprise_id()
+            == VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
+        )
 
     def handle(self):
         """Handle plugin business, return a deferred."""
