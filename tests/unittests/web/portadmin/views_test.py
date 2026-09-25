@@ -1,9 +1,32 @@
 from unittest.mock import Mock, patch
 
+import pytest
 from django.test import RequestFactory
 
 from nav.portadmin.handlers import ManagementError
+from nav.portadmin.privileges import PortadminPrivilege
 from nav.web.portadmin.views import commit_configuration
+
+
+@pytest.fixture(autouse=True)
+def all_privileges_granted():
+    """Grants every PortAdmin privilege, so these tests exercise handler behavior
+    rather than authorization.
+
+    `get_account` is patched as well, since resolving the account of a request
+    without a session would otherwise require database access.
+    """
+    with (
+        patch("nav.web.portadmin.views.get_account", return_value=Mock(login="tester")),
+        patch("nav.web.portadmin.views.PortadminPermissions") as mock_permissions,
+    ):
+        mock_permissions.return_value = Mock(
+            account=Mock(login="tester"),
+            can_edit_something=True,
+            allowed=frozenset(PortadminPrivilege),
+            can=lambda privilege: True,
+        )
+        yield mock_permissions
 
 
 class TestCommitConfiguration:

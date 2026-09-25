@@ -51,6 +51,7 @@ from nav.web.portadmin.utils import (
     add_poe_info,
 )
 from nav.portadmin.config import CONFIG
+from nav.portadmin.privileges import PortadminPermissions, PortadminPrivilege
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.handlers import (
@@ -267,11 +268,12 @@ def populate_infodict(request, netbox, interfaces):
     voice_vlan = None
     supports_poe = False
     poe_options = []
+    permissions = PortadminPermissions(get_account(request), netbox)
 
     if not has_error:
         account = get_account(request)
         allowed_vlans = find_and_populate_allowed_vlans(
-            account, netbox, interfaces, handler
+            account, netbox, interfaces, handler, permissions=permissions
         )
         voice_vlan = _setup_voice_vlan(request, netbox, interfaces, handler)
         mark_detained_interfaces(interfaces)
@@ -294,10 +296,11 @@ def populate_infodict(request, netbox, interfaces):
         'allowed_vlans': allowed_vlans,
         'readonly': has_error,
         'aliastemplate': _get_alias_template(),
-        'trunk_edit': CONFIG.get_trunk_edit(),
+        'trunk_edit': CONFIG.get_trunk_edit() and permissions.trunk,
         'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
         'supports_poe': supports_poe,
         'poe_options': poe_options,
+        'permissions': permissions,
     }
 
     if handler:
@@ -500,19 +503,34 @@ def set_interface_values(account, interface, request):
     handler = get_management_handler(interface.netbox)
 
     if handler:
+        permissions = PortadminPermissions(account, interface.netbox)
         # Order is important here, set_voice need to be before set_vlan
-        set_voice_vlan(handler, interface, request)
-        set_ifalias(account, handler, interface, request)
-        set_vlan(account, handler, interface, request)
-        set_admin_status(handler, interface, request)
-        set_poe_state(handler, interface, request)
+        set_voice_vlan(handler, interface, request, permissions)
+        set_ifalias(account, handler, interface, request, permissions)
+        set_vlan(account, handler, interface, request, permissions)
+        set_admin_status(handler, interface, request, permissions)
+        set_poe_state(handler, interface, request, permissions)
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
 
 
-def set_poe_state(handler, interface, request):
+def set_poe_state(handler, interface, request, permissions: PortadminPermissions):
+    """Set the PoE state on the interface if it is requested
+
+    :raises ValueError: If the requested state is not one of the states the device
+                        reports as supported.
+    """
     if 'poe_state' in request.POST:
+        if not permissions.poe:
+            _logger.debug(
+                "%s: denied PoE state change on %s - missing %s privilege",
+                permissions.account.login,
+                interface,
+                PortadminPrivilege.POE,
+            )
+            messages.error(request, "Not allowed to change PoE state on this IP device")
+            return
         poe_state_name = request.POST.get('poe_state')
         for option in handler.get_poe_state_options():
             if option.name == poe_state_name:
@@ -536,9 +554,26 @@ def build_ajax_messages(request):
     return ajax_messages
 
 
-def set_ifalias(account, handler: ManagementHandler, interface, request):
+def set_ifalias(
+    account,
+    handler: ManagementHandler,
+    interface,
+    request,
+    permissions: PortadminPermissions,
+):
     """Set ifalias on netbox if it is requested"""
     if 'ifalias' in request.POST:
+        if not permissions.description:
+            _logger.debug(
+                "%s: denied port description change on %s - missing %s privilege",
+                account.login,
+                interface,
+                PortadminPrivilege.DESCRIPTION,
+            )
+            messages.error(
+                request, "Not allowed to change port description on this IP device"
+            )
+            return
         ifalias = request.POST.get('ifalias')
         if check_format_on_ifalias(ifalias):
             try:
@@ -565,9 +600,24 @@ def set_ifalias(account, handler: ManagementHandler, interface, request):
             messages.error(request, "Wrong format on port description")
 
 
-def set_vlan(account, handler: ManagementHandler, interface, request):
+def set_vlan(
+    account,
+    handler: ManagementHandler,
+    interface,
+    request,
+    permissions: PortadminPermissions,
+):
     """Set vlan on netbox if it is requested"""
     if 'vlan' in request.POST:
+        if not permissions.vlan:
+            _logger.debug(
+                "%s: denied vlan change on %s - missing %s privilege",
+                account.login,
+                interface,
+                PortadminPrivilege.VLAN,
+            )
+            messages.error(request, "Not allowed to change vlan on this IP device")
+            return
         try:
             vlan = int(request.POST.get('vlan'))
         except ValueError:
@@ -609,7 +659,9 @@ def set_vlan(account, handler: ManagementHandler, interface, request):
             messages.error(request, "Error setting vlan: %s" % error)
 
 
-def set_voice_vlan(handler: ManagementHandler, interface, request):
+def set_voice_vlan(
+    handler: ManagementHandler, interface, request, permissions: PortadminPermissions
+):
     """Set voicevlan on interface
 
     A voice vlan is a normal vlan that is defined by the user of NAV as
@@ -620,6 +672,17 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
 
     """
     if 'voicevlan' in request.POST:
+        if not permissions.voice_vlan:
+            _logger.debug(
+                "%s: denied voice vlan change on %s - missing %s privilege",
+                permissions.account.login,
+                interface,
+                PortadminPrivilege.VOICE_VLAN,
+            )
+            messages.error(
+                request, "Not allowed to change voice vlan on this IP device"
+            )
+            return
         cdp_changed = False
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler)
         use_cisco_voice_vlan = CONFIG.is_cisco_voice_enabled() and is_cisco(
@@ -667,13 +730,29 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
             messages.error(request, "Error setting voicevlan: %s" % error)
 
 
-def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest):
+def set_admin_status(
+    handler: ManagementHandler,
+    interface,
+    request: HttpRequest,
+    permissions: PortadminPermissions,
+):
     """Set admin status for the interface"""
     status_up = '1'
     status_down = '2'
     account = get_account(request)
 
     if 'ifadminstatus' in request.POST:
+        if not permissions.admin_status:
+            _logger.debug(
+                "%s: denied enable/disable on %s - missing %s privilege",
+                account.login,
+                interface,
+                PortadminPrivilege.ADMIN_STATUS,
+            )
+            messages.error(
+                request, "Not allowed to enable or disable ports on this IP device"
+            )
+            return
         adminstatus = request.POST['ifadminstatus']
         try:
             if adminstatus == status_up:
@@ -727,15 +806,26 @@ def render_trunk_edit(request, interfaceid):
 
     interface = Interface.objects.get(pk=interfaceid)
     handler = get_management_handler(interface.netbox)
-    if request.method == 'POST':
-        try:
-            handle_trunk_edit(request, handler, interface)
-        except ManagementError as error:
-            messages.error(request, 'Error editing trunk: %s' % error)
-        else:
-            messages.success(request, 'Trunk edit successful')
-
     account = get_account(request)
+    permissions = PortadminPermissions(account, interface.netbox)
+
+    if request.method == 'POST':
+        if not permissions.trunk:
+            messages.error(request, 'Not allowed to edit trunks on this IP device')
+            _logger.debug(
+                "%s: denied trunk edit on %s - missing %s privilege",
+                account.login,
+                interface,
+                PortadminPrivilege.TRUNK,
+            )
+        else:
+            try:
+                handle_trunk_edit(request, handler, interface)
+            except ManagementError as error:
+                messages.error(request, 'Error editing trunk: %s' % error)
+            else:
+                messages.success(request, 'Trunk edit successful')
+
     netbox = interface.netbox
     add_readonly_reason(request, handler)
     try:
@@ -768,8 +858,9 @@ def render_trunk_edit(request, interfaceid):
             'native_vlan': native_vlan,
             'trunked_vlans': trunked_vlans,
             'allowed_vlans': allowed_vlans,
-            'trunk_edit': CONFIG.get_trunk_edit(),
-            'readonly': not handler.is_configurable(),
+            'trunk_edit': CONFIG.get_trunk_edit() and permissions.trunk,
+            'readonly': not handler.is_configurable() or not permissions.trunk,
+            'permissions': permissions,
         }
     )
 
@@ -837,6 +928,19 @@ def restart_interfaces(request):
         )
     netbox = list(netboxes)[0]
 
+    # Restarting an interface is an admin status change, but is also done implicitly
+    # after a vlan change, so either privilege permits it
+    permissions = PortadminPermissions(get_account(request), netbox)
+    if not (permissions.admin_status or permissions.vlan):
+        _logger.debug(
+            "%s: denied interface restart on %s - insufficient privileges",
+            permissions.account.login,
+            netbox.sysname,
+        )
+        return HttpResponse(
+            status=403, content=b"Not allowed to restart interfaces on this IP device"
+        )
+
     handler = get_management_handler(netbox)
     if handler:
         try:
@@ -858,6 +962,19 @@ def commit_configuration(request):
         return HttpResponse("Configuration commit is configured to not be done")
 
     interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
+
+    # Committing only persists changes already made, so any edit privilege permits it
+    permissions = PortadminPermissions(get_account(request), interface.netbox)
+    if not permissions.can_edit_something:
+        _logger.debug(
+            "%s: denied configuration commit on %s - no edit privileges",
+            permissions.account.login,
+            interface.netbox.sysname,
+        )
+        return HttpResponse(
+            status=403,
+            content=b"Not allowed to commit configuration on this IP device",
+        )
 
     handler = get_management_handler(interface.netbox)
     if handler:

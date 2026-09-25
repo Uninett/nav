@@ -37,3 +37,31 @@ class TestSetEditableFlagOnInterfaces:
                 for ifc in mock_interfaces
                 if ifc is not editable_interface
             )
+
+    def test_when_user_may_not_edit_anything_no_interface_should_be_editable(self):
+        permissions = Mock(can_edit_something=False)
+        interfaces = [Mock(vlan=1, iseditable=True) for _ in range(3)]
+
+        with patch(
+            "nav.web.portadmin.utils.should_check_access_rights", return_value=False
+        ):
+            set_editable_flag_on_interfaces(
+                interfaces, [Mock(vlan=1)], Mock(), permissions=permissions
+            )
+
+        assert not any(ifc.iseditable for ifc in interfaces)
+
+    def test_when_user_may_edit_something_it_should_still_apply_the_vlan_rules(self):
+        permissions = Mock(can_edit_something=True)
+        editable = Mock(vlan=666, iseditable=False, to_netbox=None)
+        interfaces = [Mock(vlan=99, iseditable=False, to_netbox=None), editable]
+
+        with patch(
+            "nav.web.portadmin.utils.should_check_access_rights", return_value=True
+        ):
+            set_editable_flag_on_interfaces(
+                interfaces, [Mock(vlan=666)], Mock(), permissions=permissions
+            )
+
+        assert editable.iseditable
+        assert not interfaces[0].iseditable

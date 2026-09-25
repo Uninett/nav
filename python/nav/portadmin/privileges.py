@@ -21,6 +21,7 @@ from enum import StrEnum
 
 from nav.models.manage import Netbox
 from nav.models.profiles import Account
+from nav.portadmin.config import CONFIG
 
 _logger = logging.getLogger(__name__)
 
@@ -53,6 +54,12 @@ class PortadminPermissions:
     Since a target only ever matches group names, a netbox that belongs to no device
     group matches no target, and no privilege applies to it.
 
+    Enforcement is controlled by the ``require_privileges`` option in the
+    ``[authorization]`` section of :file:`portadmin.conf`, and is off by default. While
+    it is off, any user allowed to edit an interface may change every attribute on it,
+    which is how PortAdmin behaved before these privileges existed. This is independent
+    of the ``vlan_auth`` option, which governs *which* interfaces a user may edit.
+
     Instances are cheap to pass around and evaluate the account's privileges only
     once, so a single instance can be reused for every interface on a netbox.
     """
@@ -61,9 +68,10 @@ class PortadminPermissions:
         self.account = account
         self.netbox = netbox
         self._is_admin = account.is_admin()
+        self._enforced = CONFIG.is_privilege_authorization_enabled()
         self._allowed = (
             set(PortadminPrivilege)
-            if self._is_admin
+            if self._is_admin or not self._enforced
             else self._resolve_allowed_privileges()
         )
 
