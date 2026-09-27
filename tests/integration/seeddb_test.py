@@ -7,6 +7,7 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from django.utils.encoding import smart_str
+from nav.auditlog.models import LogEntry
 from nav.models.manage import Interface, Netbox, NetboxInfo, Room
 from nav.models.cabling import Cabling, Patch
 from nav.web.auth.utils import set_account
@@ -45,6 +46,36 @@ def test_editing_deleted_netboxes_should_raise_404(admin_account):
 
     with pytest.raises(Http404):
         netbox_edit(request, netboxid)
+
+
+def test_saving_copied_netbox_should_auditlog_as_new_netbox(
+    db, client, netbox, management_profile
+):
+    url = reverse(
+        'seeddb-netbox-copy',
+        args=(
+            "copy",
+            netbox.id,
+        ),
+    )
+    ip = "10.254.254.253"
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "ip": ip,
+            "room": "myroom",
+            "category": "GW",
+            "organization": "myorg",
+            "profiles": [management_profile.id],
+        },
+    )
+
+    assert response.status_code == 200
+    assert Netbox.objects.filter(ip=ip).exists()
+    assert not LogEntry.objects.filter(verb='edit-netbox-ip').exists()
+    assert LogEntry.objects.filter(verb='create-netbox').exists()
 
 
 def test_adding_netbox_with_invalid_ip_should_fail(db, client):
