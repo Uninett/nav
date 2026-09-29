@@ -117,7 +117,7 @@ def create_parser():
 
 
 def view_dump():
-    "Print dump suitable for further processing"
+    """Print dump suitable for further processing"""
     verbs = LogEntry.objects.values_list("verb", flat=True).distinct()
     for verb in verbs:
         entries = LogEntry.objects.filter(verb=verb).order_by('actor_model', 'actor_pk')
@@ -149,7 +149,7 @@ register_argument(
 
 
 def view_lurkers():
-    "Print list of current accounts never recorded as actors in the audit log"
+    """Print list of current accounts never recorded as actors in the audit log"""
     lurkers = get_lurkers()
     print("Lurkers:", lurkers.count())
     for lurker in lurkers:
@@ -247,7 +247,7 @@ register_argument(
 
 
 def delete_account_remove_zombies():
-    "Delete accounts that have an entry in the object column of delete-account"
+    """Delete accounts that have an entry in the object column of delete-account"""
     zombies = get_zombies()
     zombies.delete()
 

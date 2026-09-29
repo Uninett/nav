@@ -69,7 +69,7 @@ def get_auditlog_entries(
 
 
 def get_all_historical_actors():
-    "List all recorded actors (need not be accounts!), including deleted ones"
+    """List all recorded actors (need not be accounts!), including deleted ones"""
     actors = set()
     for pk, summary in LogEntry.objects.values_list("actor_pk", "summary").distinct():
         name = summary.split(' ', 1)[0].strip(':')
@@ -78,7 +78,7 @@ def get_all_historical_actors():
 
 
 def get_lurkers():
-    "Get a list of current accounts that have no actor entries in the audit log"
+    """Get a list of current accounts that have no actor entries in the audit log"""
     actor_pks = [pk for _, pk in get_all_historical_actors()]
     return Account.objects.exclude(pk__in=actor_pks)
 
