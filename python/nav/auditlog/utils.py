@@ -69,7 +69,10 @@ def get_auditlog_entries(
 
 
 def get_all_historical_actors():
-    """List all recorded actors (need not be accounts!), including deleted ones"""
+    """List all recorded actors including deleted ones
+
+    (The actor-field can point to a row in any table, not just accounts.)
+    """
     actors = set()
     for pk, summary in LogEntry.objects.values_list("actor_pk", "summary").distinct():
         name = summary.split(' ', 1)[0].strip(':')
@@ -91,7 +94,7 @@ def get_zombies():
     deleted_account_ids = [
         int(pk)
         for pk in deleted_accounts.exclude(
-                object_pk__isnull=True,
+            object_pk__isnull=True,
         ).values_list("object_pk", flat=True)
     ]
     return Account.objects.filter(pk__in=deleted_account_ids)
