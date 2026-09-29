@@ -40,7 +40,7 @@
           <td style="width: 200px"><div id="sparkline-bullet-basic"></div></td>
         </tr>
         <tr>
-          <!-- Used in: js/src/info_room_rack.js, js/src/plugins/vue_rack.js -->
+          <!-- Used in: js/src/plugins/rack_sensors.js -->
           <th>Sensor style</th>
           <td><div id="sparkline-bullet-sensor"></div></td>
         </tr>
@@ -90,7 +90,7 @@ require(['plugins/d3_sparkline'], function(d3Sparkline) {
 
     // Bullet sparklines
     d3Sparkline.bullet(document.getElementById('sparkline-bullet-basic'), [null, 75, 100]);
-    // Used in: js/src/info_room_rack.js, js/src/plugins/vue_rack.js
+    // Used in: js/src/plugins/rack_sensors.js
     d3Sparkline.bullet(document.getElementById('sparkline-bullet-sensor'), [null, 75, 100], {
         performanceColor: 'lightsteelblue',
         rangeColors: ['#fff']
