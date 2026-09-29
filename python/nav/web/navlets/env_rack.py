@@ -46,6 +46,7 @@ class EnvironmentRackWidget(Navlet):
     title = 'Environment rack'
     description = 'Displays a selected rack of environment sensors from a specific room'
     refresh_interval = 60000  # 60 seconds
+    ajax_reload = True
     is_editable = True
 
     def get_template_basename(self):

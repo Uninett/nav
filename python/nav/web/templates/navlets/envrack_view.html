@@ -35,16 +35,27 @@
 
     <script>
      require(['plugins/rack_sensors'], function (RackSensors) {
-         {# The dashboard reloads the whole widget, so no timer is needed here #}
-         RackSensors.updateRack(
-             document.querySelector('[data-id="{{ navlet.navlet_id }}"] .rack'),
-             {
-                 barForAllUnits: true,
-                 unitSymbols: false,
-                 missingValueText: '',
-                 gaugeColor: 'lightsteelblue'
+         {# The dashboard sends a refresh event every interval (ajax_reload) #}
+         const navlet = document.querySelector('[data-id="{{ navlet.navlet_id }}"]');
+         const rack = navlet.querySelector('.rack');
+         const options = {
+             barForAllUnits: true,
+             unitSymbols: false,
+             missingValueText: '',
+             gaugeColor: 'lightsteelblue'
+         };
+
+         {# Stop listening once this content has been replaced, e.g. by a mode switch #}
+         function update() {
+             if (!rack.isConnected) {
+                 navlet.removeEventListener('refresh', update);
+                 return;
              }
-         );
+             RackSensors.updateRack(rack, options);
+         }
+
+         update();
+         navlet.addEventListener('refresh', update);
      });
     </script>
 
