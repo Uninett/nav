@@ -13,8 +13,9 @@
     if (!refreshScript) return;
 
     let navletIntervalId = setInterval(function () {
-        const refreshScript = document.getElementById("navlet-ajax-refresh-{{ navlet.navlet_id }}")
-        if (refreshScript) {
+        // Stop when this script has been swapped out. Looking it up by id would
+        // find the replacement script, which has the same id.
+        if (refreshScript.isConnected) {
             console.log("Refreshing navlet {{ navlet.navlet_id }} via AJAX");
             // Trigger 'refresh' event on the navlet element
             const navletElement = refreshScript.closest('.navlet');
