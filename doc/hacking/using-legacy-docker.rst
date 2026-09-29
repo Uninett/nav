@@ -1,12 +1,14 @@
-=====================================
-Using NAV with Docker for development
-=====================================
+=============================================
+Legacy: Using NAV with Docker for development
+=============================================
 
 .. highlight:: sh
 
-Docker is a lightweight "virtualization" framework for creating isolated
-environments, useful both in development and production.
 For more information on Docker visit their homepage_ or read the documentation_.
+
+This is the legacy method that dockerises *everything* needed. We are not using
+it ourselves anymore, see the new, `minimalist setup <minimalist-docker-dev>`_
+or the `devcontainer setup <devcontainers>`_.
 
 Installing Docker and docker compose
 ------------------------------------
