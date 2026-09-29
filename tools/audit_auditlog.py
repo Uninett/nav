@@ -160,7 +160,7 @@ register_argument(
     KNOWN_REPORTS,
     "lurkers",
     (
-        "List currently existing accounts that have not done anything "
+        "List currently existing accounts that have no audit logged activity "
         "in this NAV instance"
     ),
     view_lurkers,
