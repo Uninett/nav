@@ -52,10 +52,18 @@ class EnvironmentRackWidget(Navlet):
         return 'envrack'
 
     def get_context_data_view(self, context):
-        context['rackid'] = self.preferences.get('rack')
+        rackid = self.preferences.get('rack')
+        context['rackid'] = rackid
         context['refresh_interval'] = self.preferences.get(
             'refresh_interval', self.refresh_interval
         )
+        if not rackid:
+            return context
+
+        try:
+            context['rack'] = Rack.objects.get(pk=rackid)
+        except (Rack.DoesNotExist, ValueError):
+            context['doesnotexist'] = rackid
         return context
 
     def get_context_data_edit(self, context):
