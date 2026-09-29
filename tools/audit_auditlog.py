@@ -34,7 +34,7 @@ def register_argument(registry, name, description, function):
 
 
 def list_registered_commands(registry):
-    "List registered commands in given registry"
+    """List registered commands in given registry"""
     for key, value in registry.items():
         print(f"{key}:")
         for line in wrap(

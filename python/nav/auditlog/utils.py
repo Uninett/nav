@@ -84,7 +84,7 @@ def get_lurkers():
 
 
 def get_zombies():
-    "Get a list of accounts that should have been deleted according to the auditlog"
+    """Get a list of accounts that should have been deleted according to the auditlog"""
     deleted_accounts = LogEntry.objects.filter(
         verb="delete-account",
     )
