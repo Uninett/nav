@@ -23,6 +23,7 @@
         "Modernizr",
         "Foundation"
     ],
+    "esversion": 11,
     "browser":  true,
     "devel":    true,
     "bitwise":  true,
