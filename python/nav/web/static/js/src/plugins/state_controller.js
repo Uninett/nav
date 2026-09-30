@@ -8,14 +8,15 @@ define(function(require) {
     function _getFormState(form) {
         // [{name: "name1", value: "value1"}, {name: "name2", value: "value1"}]
         // => { "name1": "value1", "name2": "value2"}
-        return _.reduce($(form).serializeArray(), function(result, obj) {
+        return $(form).serializeArray().reduce(function(result, obj) {
             result[obj.name] = obj.value;
             return result;
         }, {});
     }
 
     function _setFormState(form, storageKey) {
-        _.each(_getFormStateFromStorage(storageKey), function(value, key) {
+        const state = _getFormStateFromStorage(storageKey) || {};
+        Object.entries(state).forEach(function([key, value]) {
             form.elements[key].value = value;
         })
     }

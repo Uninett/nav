@@ -35,7 +35,7 @@ define([
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
-        this.config = _.extend({}, config);
+        this.config = Object.assign({}, config);
 
         this.buttons = {
             'day': 'Day',
@@ -216,14 +216,11 @@ define([
          * Find minimum value for a dataset from Graphite
          */
         getMin: function(data) {
-            return _.min(data.map(function(d) {
-                return _.min(
-                    d.datapoints.filter(function(point) {
-                        return point[0] !== null;
-                    }).map(function(point) {
-                        return point[0];
-                    }));
-            }));
+            return data.reduce(function(min, d) {
+                return d.datapoints.reduce(function(dMin, point) {
+                    return point[0] === null ? dMin : Math.min(dMin, point[0]);
+                }, min);
+            }, Infinity);
         },
 
         /**

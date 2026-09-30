@@ -46,7 +46,7 @@ require([
         $('.sensor-value').each(function(i, element) {
             metricMap[$(element).data('metric')] = element;
         });
-        if (_.isEmpty(metricMap)) { return; }
+        if (Object.keys(metricMap).length === 0) { return; }
         getSensorData(metricMap, function(data, metricMap) {
             $.each(data, function(i, metricData) {
                 var target = metricData.target;
@@ -73,7 +73,7 @@ require([
         var url = NAV.graphiteRenderUrl;
         // under the assumption that all sensors on a single device have a
         // common parent node in the metric tree:
-        var target = commonPrefix(_.keys(metricMap)) + '*';
+        var target = commonPrefix(Object.keys(metricMap)) + '*';
         var data = $.param({
             target: target,
             format: 'json',

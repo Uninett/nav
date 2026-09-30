@@ -14,7 +14,7 @@ define(function(require) {
         this.sensorname = this.$node.attr('data-sensorname');
         this.displayRange = this.$node.data('displayRange');
         this.dashboardUrl = this.$node.attr('data-dashboard_url') || '';
-        this.showGraph = ! _.contains([false, 'False', 'false', 0, '0'], this.$node.data('showGraph'));
+        this.showGraph = ! [false, 'False', 'false', 0, '0'].includes(this.$node.data('showGraph'));
         this.thresholds = this.parseThresholds();
 
         this.displayGauge = true;
