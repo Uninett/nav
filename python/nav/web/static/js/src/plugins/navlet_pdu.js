@@ -36,10 +36,10 @@ define(function(require, exports, module) {
         const self = this;
 
         const request = $.post(this.dataUrl, this.parameters, function(response) {
-            _.each(response, function(data) {
+            response.forEach(function(data) {
                 const $el = self.$navlet.find('[data-metric="' + data.target + '"]');
 
-                const point = _.find(data.datapoints.reverse(), function(datapoint) {
+                const point = data.datapoints.reverse().find(function(datapoint) {
                     return datapoint[0] !== null;
                 });
 
