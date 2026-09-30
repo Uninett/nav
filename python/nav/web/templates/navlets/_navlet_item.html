@@ -11,6 +11,8 @@
         hx-target="[data-id='{{ navlet.id }}']"
         hx-trigger="load"
         hx-swap="innerHTML"
+        hx-on::response-error="this.parentElement.innerHTML = '<div class=&quot;alert-box alert&quot;>' + ([401, 403].includes(event.detail.xhr.status) ? 'Not allowed' : 'Could not load widget') + '</div>'"
+        hx-on::send-error="this.parentElement.innerHTML = '<div class=&quot;alert-box alert&quot;>Could not load widget</div>'"
     ></div>
     <script>
         require(['spin'], function (Spinner) {
