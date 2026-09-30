@@ -26,13 +26,14 @@ require(['plugins/csrf-utils'], function(CsrfUtils) {
 
 require([
     'plugins/accordion_maker',
+    'plugins/throttle',
     'select2',
     'plugins/megadrop',
     'plugins/alert',
     'plugins/popover',
     'plugins/tooltip',
     'underscore'
-], function (accordionMaker) {
+], function (accordionMaker, throttle) {
     /** Enable slash to navigate to search, whereas escape removes focus from search */
     function addSearchFocusHandlers() {
         var $searchInput = $('#query');
@@ -110,7 +111,7 @@ require([
         });
 
         // Cleanup topbar if we resize to large screen
-        $(window).on('resize', _.throttle(function () {
+        $(window).on('resize', throttle(function () {
             if (window.matchMedia('(min-width: 40em)').matches) {
                 $('.top-bar').removeClass('expanded');
             }
