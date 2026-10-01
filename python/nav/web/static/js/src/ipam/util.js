@@ -19,6 +19,12 @@ define(function (require, exports, module) {
     return fmt({xOffset: x, yOffset: y});
   }
 
+  // True for any object except null. Unlike underscore's _.isObject,
+  // functions are not counted as objects.
+  function isObject(value) {
+    return value !== null && typeof value === 'object';
+  }
+
   // Remove zero elements and calculate relative steps (spanning [0, 1]) for
   // each data element, e.g. normalization. 'valueFieldOrFunction' is a function
   // that takes a data row and returns a numeric or value, or the field which
@@ -26,7 +32,7 @@ define(function (require, exports, module) {
   // denotes the start of the step, and delta1 denotes the end
   function normalize(arrayOfObj, valueFieldOrFunction, scaleFn) {
     var lookup = valueFieldOrFunction;
-    if (!_.isFunction(valueFieldOrFunction)) {
+    if (typeof valueFieldOrFunction !== 'function') {
       lookup = function(row) {
         return row[valueFieldOrFunction];
       };
@@ -37,18 +43,18 @@ define(function (require, exports, module) {
     // parse options
     var _scaleFn = scaleFn || function(n) { return n; };
     // remove zero rows
-    newData = _.reject(newData, function (row) {
-      return lookup(row) === 0;
+    newData = newData.filter(function (row) {
+      return lookup(row) !== 0;
     });
     // calculate steps
-    newData = _.map(newData, function (row) {
+    newData = newData.map(function (row) {
       row.delta0 = step;
       step += _scaleFn(lookup(row));
       row.delta1 = step;
       return row;
     });
     // normalize steps
-    newData = _.map(newData, function (row) {
+    newData = newData.map(function (row) {
       row.delta0 /= step;
       row.delta1 /= step;
       return row;
@@ -63,6 +69,7 @@ define(function (require, exports, module) {
 
   module.exports = {
     "calculateAvailable": calculateAvailable,
+    "isObject": isObject,
     "normalize": normalize,
     "translate": translate,
     "ipam_debug": Debugger("IPAM_DEBUG"),

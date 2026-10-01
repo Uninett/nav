@@ -44,7 +44,6 @@ define(function(require, exports, module) {
     var partition = d3.partition();
     var root = d3.hierarchy(data);
     root.each(function (node) {
-      if (_.isUndefined(node.data.prefixlen === "undefined")) return;
       node.value = Math.pow(2, 32 - node.data.prefixlen);
     });
     partition(root);
@@ -64,7 +63,7 @@ define(function(require, exports, module) {
           .style("opacity", 0);
 
     // Draw static top node, e.g. not enhanced by zoom
-    var rootElem = _.first(root.descendants());
+    var rootElem = root.descendants()[0];
     var rootNode = svg.selectAll("g")
           .data([rootElem])
           .enter()
@@ -141,7 +140,7 @@ define(function(require, exports, module) {
 
     // Draw legends for the viz
     var legend = d3.select(mountElem).select(".legends").selectAll(".legends")
-          .data(_.keys(colorMap))
+          .data(Object.keys(colorMap))
           .enter()
           .append("g");
     var legendDot = legend
@@ -270,7 +269,7 @@ define(function(require, exports, module) {
     if (d.depth === 0) {
       return d3.hsl(199, 0.91, 0.64);
     }
-    if (_.has(colorMap, d.data.net_type)) {
+    if (Object.prototype.hasOwnProperty.call(colorMap, d.data.net_type)) {
       return colorMap[d.data.net_type];
     }
     return colorMap["used"];
