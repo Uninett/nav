@@ -1,7 +1,6 @@
 define(function (require, exports, module) {
 
     var d3 = require('d3v7');
-    var _ = require('underscore');
 
     function NeighborMap(node) {
         this.motherNode = d3.select(node);  // Use this for selecting prior to svg
@@ -67,8 +66,15 @@ define(function (require, exports, module) {
             var self = this;
             d3.json('/ajax/open/neighbormap/' + this.netboxid).then(function (json) {
                 if (json) {
-                    // Filter duplicates
-                    json.nodes = _.uniq(json.nodes, function(node) { return node.netboxid; });
+                    // Filter duplicates, keeping the first node for each netboxid
+                    const seen = new Set();
+                    json.nodes = json.nodes.filter(function(node) {
+                        if (seen.has(node.netboxid)) {
+                            return false;
+                        }
+                        seen.add(node.netboxid);
+                        return true;
+                    });
 
                     self.data = json;
                     self.render();
@@ -113,13 +119,13 @@ define(function (require, exports, module) {
 
             return {
                 'nodes': data.nodes.filter(function(node) {
-                    return _.contains(categories, node.category) || node.netboxid === self.netboxid;
+                    return categories.includes(node.category) || node.netboxid === self.netboxid;
                 }),
                 'links': data.links.filter(function(link) {
                     if (link.target.category) {
-                        return _.contains(categories, link.target.category);
+                        return categories.includes(link.target.category);
                     } else {
-                        return _.contains(categories, nodeLookup[link.target].category);
+                        return categories.includes(nodeLookup[link.target].category);
                     }
                 })
             };
@@ -127,7 +133,7 @@ define(function (require, exports, module) {
 
         /** Sets the node to be in the center */
         setCenterNode: function(nodes) {
-            var centerNode = _.find(nodes, this.isFocusNode.bind(this));
+            var centerNode = nodes.find(this.isFocusNode.bind(this));
             centerNode.fx = this.width / 2;
             centerNode.fy = this.height / 2;
         },
