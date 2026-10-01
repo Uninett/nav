@@ -3,10 +3,11 @@ define([
     'netmap/models',
     'netmap/graph',
     'plugins/csrf-utils',
+    'underscore',
     'backbone',
     'libs/backbone-eventbroker',
     'jquery-ui'
-], function (Collections, Models, Graph, CsrfUtils) {
+], function (Collections, Models, Graph, CsrfUtils, _) {
 
     const csrfToken = CsrfUtils.getCsrfToken();
 
@@ -225,8 +226,10 @@ define([
 
             // Update `display_elinks` and remove 'ELINKS' from categories if present
             var categories = this.currentView.get('categories');
-            this.currentView.set('display_elinks', _.indexOf(categories, 'ELINK') >= 0);
-            this.currentView.set('categories', _.without(categories, 'ELINK'));
+            this.currentView.set('display_elinks', categories.includes('ELINK'));
+            this.currentView.set('categories', categories.filter(function (category) {
+                return category !== 'ELINK';
+            }));
             this.currentView.set('last_modified', new Date());
             this.currentView.set('location_room_filter', this.currentView.filterStrings.join('|'));
             this.currentView.baseZoom = this.currentView.get('zoom');
@@ -365,8 +368,11 @@ define([
         },
 
         createView: function () {
-            var newView = new Models.NetmapView(_.omit(
-                this.currentView.attributes, 'viewid', 'title', 'description', 'is_public'));
+            const attributes = Object.assign({}, this.currentView.attributes);
+            ['viewid', 'title', 'description', 'is_public'].forEach(function (key) {
+                delete attributes[key];
+            });
+            var newView = new Models.NetmapView(attributes);
             newView.set({owner: window.netmapData.userLogin});
             this.netmapViews.add(newView);
             this.currentView = newView;
@@ -523,8 +529,8 @@ define([
         setCategoriesForCurrentView: function () {
 
             var newCategories = this.currentView.get('categories');
-            _.each(this.$('.filter-category'), function (elem) {
-                elem.checked = _.contains(newCategories, elem.value);
+            this.$('.filter-category').each(function (index, elem) {
+                elem.checked = newCategories.includes(elem.value);
             });
             this.$('#filter-orphan-nodes').prop(
                 'checked',
@@ -540,7 +546,7 @@ define([
 
             if (filters) {
                 filters = filters.split('|');
-                _.each(filters, function (filter) {
+                filters.forEach(function (filter) {
                     elem.append(self.filterLabelTemplate({filter: filter}));
                 });
                 this.currentView.filterStrings = filters;

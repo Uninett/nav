@@ -111,7 +111,7 @@ define([
 
             this.set('loadingTraffic', true);
             console.log('Start fetching traffic data');
-            _.each(filterStrings, function(location) {
+            filterStrings.forEach(function(location) {
                 $.getJSON('traffic/layer' + layer + '/' + location)
                     .done(function (data) {
                         self.trafficSuccess.call(self, location, data);
@@ -131,13 +131,13 @@ define([
             links.each(function (link) {
                 var source = parseInt(link.get('source').id);
                 var target = parseInt(link.get('target').id);
-                var traffic = _.find(data, function (o) {
+                var traffic = data.find(function (o) {
                     return source === o.source && target === o.target;
                 });
                 if (traffic === undefined) {
                     // The source/target relationship might be
                     // reversed between links and edges in some cases.
-                    traffic = _.find(data, function (o) {
+                    traffic = data.find(function (o) {
                         return source === o.target && target === o.source;
                     });
                 }

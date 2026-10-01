@@ -71,7 +71,7 @@ define([
         setModel: function (_model) {
 
             var title;
-            var model = _.extend({}, _model); // Make a copy
+            var model = Object.assign({}, _model); // Make a copy
 
             if (model.sysname) { // Model is a node
 
@@ -79,7 +79,7 @@ define([
                 this.attachNodeMeta(model);
                 title = model.sysname;
 
-            } else if (_.isArray(model.edges)) { // Model is a layer2 link
+            } else if (Array.isArray(model.edges)) { // Model is a layer2 link
 
                 this.template = linkTemplate;
                 this.attachLayer2LinkMeta(model);
@@ -105,7 +105,8 @@ define([
             model.img = window.netmapData.staticURL +
                 model.category.toLowerCase() + '.png';
 
-            model.vlans = _.map(model.vlans, function (vlanId) {
+            // Layer 3 nodes have no vlans
+            model.vlans = (model.vlans || []).map(function (vlanId) {
                 var vlan = this.vlans.get(vlanId).attributes;
                 vlan.isSelected = vlanId === this.selectedVlan;
                 return vlan;
@@ -124,15 +125,15 @@ define([
             model.targetImg = window.netmapData.staticURL +
                 model.target.category.toLowerCase() + '.png';
 
-            model.vlans = _.map(_.uniq(model.vlans), function (vlanId) {
+            model.vlans = [...new Set(model.vlans)].map(function (vlanId) {
                 var vlan = this.vlans.get(vlanId).attributes;
                 vlan.isSelected = vlanId === this.selectedVlan;
                 return vlan;
             }, this).sort(function (a, b) { return a.vlan - b.vlan; });
 
-            _.each(model.edges, function (edge) {
+            model.edges.forEach(function (edge) {
                 if (model.traffic === undefined) return;
-                edge.traffic = _.find(model.traffic.edges, function (traffic) {
+                edge.traffic = model.traffic.edges.find(function (traffic) {
                     var sourceTraffic, targetTraffic;
                     if (edge.source.interface) {
                         sourceTraffic = edge.source.interface.ifname === traffic.source_ifname ||
@@ -159,7 +160,8 @@ define([
             model.targetImg = window.netmapData.staticURL +
                 model.target.category.toLowerCase() + '.png';
 
-            model.edges = _.map(model.edges, function (edges, vlanId) {
+            // Layer 3 link edges are grouped by VLAN id
+            model.edges = Object.entries(model.edges).map(function ([vlanId, edges]) {
                 return  {
                     vlan: this.vlans.get(vlanId).attributes,
                     edges: edges
