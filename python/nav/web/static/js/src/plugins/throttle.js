@@ -5,21 +5,20 @@ define([], function () {
      * is false. Calls made while waiting are collapsed into one trailing call
      * with the latest arguments.
      *
-     * Replacement for underscore's _.throttle.
+     * Unlike underscore's _.throttle, which this replaces, func is called
+     * without a `this`. Use an arrow function or bind() if func needs one.
      */
     function throttle(func, wait, options) {
         const leading = options?.leading !== false;
         let previous = 0;
         let timeout = null;
-        let pendingThis = null;
         let pendingArgs = null;
 
         function invoke(now) {
             previous = now;
-            const context = pendingThis;
             const args = pendingArgs;
-            pendingThis = pendingArgs = null;
-            func.apply(context, args);
+            pendingArgs = null;
+            func(...args);
         }
 
         function trailing() {
@@ -27,14 +26,13 @@ define([], function () {
             invoke(leading ? Date.now() : 0);
         }
 
-        return function () {
+        return (...args) => {
             const now = Date.now();
             if (!previous && !leading) {
                 previous = now;
             }
             const remaining = wait - (now - previous);
-            pendingThis = this;
-            pendingArgs = arguments;
+            pendingArgs = args;
 
             if (remaining <= 0 || remaining > wait) {
                 if (timeout) {

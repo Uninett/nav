@@ -39,18 +39,5 @@ define(['plugins/throttle'], function (throttle) {
                 done();
             }, WAIT * 2);
         });
-
-        it("should call the function with the context of the last call", function (done) {
-            let context = null;
-            const throttled = throttle(function () { context = this; }, WAIT, {leading: false});
-            const target = {name: 'target'};
-
-            throttled.call(target);
-
-            setTimeout(function () {
-                assert.strictEqual(context, target);
-                done();
-            }, WAIT * 2);
-        });
     });
 });
