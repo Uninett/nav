@@ -2,45 +2,83 @@
 
 {% block navlet-content %}
 
-  {% if rackid %}
+  {% if rack %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/rack.css">
 
-    <div id="envrack-{{ rackid }}" style="display: flex; justify-content: center;">
-      <my-rack :rack="rack"></my-rack>
+    <div style="display: flex; justify-content: center;">
+      <div class="rack" data-rackid="{{ rack.pk }}">
+        <h5 class="rack-heading">
+          <span class="rackname">{{ rack.rackname }}</span>
+        </h5>
+
+        <div class="rack-body">
+          <div class="rack-left rack-pdu rack-column">
+            {% for racksensor in rack.left_column %}
+              {% include 'info/room/fragment_rackpdusensor.html' with column=0 %}
+            {% endfor %}
+          </div>
+
+          <div class="rack-center rack-column">
+            {% for racksensor in rack.center_column %}
+              {% include 'info/room/fragment_racksensor.html' with column=1 %}
+            {% endfor %}
+          </div>
+
+          <div class="rack-right rack-pdu rack-column">
+            {% for racksensor in rack.right_column %}
+              {% include 'info/room/fragment_rackpdusensor.html' with column=2 %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-     (function(){
-         require(['plugins/vue_rack', 'vue'], function(rack, Vue){
-             var vm = new Vue({
-                 el: '#envrack-{{ rackid }}',
-                 data: {
-                     rack: null
-                 },
-                 components: {
-                     'my-rack': rack
-                 },
-                 methods: {
-                     loadRack: function () {
-                         var self = this;
-                         $.getJSON('{% url 'api:1:rack-detail' rackid %}', function (data) {
-                             self.rack = data;
-                         });
-                     }
-                 },
-                 mounted: function () {
-                     this.loadRack();
-                 }
-             });
-         });
+     require(['plugins/rack_sensors'], function (RackSensors) {
+         {# The dashboard sends a refresh event every interval (ajax_reload) #}
+         const navlet = document.querySelector('[data-id="{{ navlet.navlet_id }}"]');
+         const rack = navlet.querySelector('.rack');
+         const options = {
+             barForAllUnits: true,
+             unitSymbols: false,
+             missingValueText: '',
+             gaugeColor: 'lightsteelblue'
+         };
 
+         {# Stop listening once this content has been replaced, e.g. by a mode switch #}
+         function update() {
+             if (!rack.isConnected) {
+                 navlet.removeEventListener('refresh', update);
+                 return;
+             }
+             RackSensors.updateRack(rack, options);
+         }
+
+         update();
+         navlet.addEventListener('refresh', update);
+     });
+    </script>
+
+  {% elif doesnotexist %}
+    <div class="alert-box error">
+      The rack <q>{{ doesnotexist }}</q> no longer exists.
+      <a href="#" class="configure-link">Choose a new rack</a> to show.
+    </div>
+    <script>
+     (function(){
+         const $navlet = $('[data-id="{{ navlet.navlet_id }}"]');
+         $navlet.find('.configure-link').click(function(e) {
+             e.preventDefault();
+             const $switch = $navlet.find('.navlet-mode-switch')[0];
+             if ($switch) {
+                 htmx.trigger($switch, 'click');
+             }
+         });
      })();
     </script>
 
   {% else %}
     <p class="alert-box">Configure the widget to add a rack</p>
   {% endif %}
-
-
 
 {% endblock %}
