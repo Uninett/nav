@@ -31,8 +31,7 @@ require([
     'plugins/megadrop',
     'plugins/alert',
     'plugins/popover',
-    'plugins/tooltip',
-    'underscore'
+    'plugins/tooltip'
 ], function (accordionMaker, throttle) {
     /** Enable slash to navigate to search, whereas escape removes focus from search */
     function addSearchFocusHandlers() {

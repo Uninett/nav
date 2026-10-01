@@ -7,7 +7,7 @@ define([
     'underscore',
     'backbone',
     'libs/backbone-eventbroker'
-], function (Graph, Models, GraphInfoView, Fullscreen, d3) {
+], function (Graph, Models, GraphInfoView, Fullscreen, d3, _) {
 
     var Transparent = 0.2;
     var TransitionDuration = 500;

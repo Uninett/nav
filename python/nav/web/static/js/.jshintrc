@@ -13,7 +13,6 @@
         "d3",
         "OpenLayers",
         "Proj4js",
-        "_",
         "Backbone",
         "Backbone.EventBroker",
         "Handlebars",
