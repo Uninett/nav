@@ -269,7 +269,7 @@ define(function(require, exports, module) {
     if (d.depth === 0) {
       return d3.hsl(199, 0.91, 0.64);
     }
-    if (Object.prototype.hasOwnProperty.call(colorMap, d.data.net_type)) {
+    if (Object.hasOwn(colorMap, d.data.net_type)) {
       return colorMap[d.data.net_type];
     }
     return colorMap["used"];

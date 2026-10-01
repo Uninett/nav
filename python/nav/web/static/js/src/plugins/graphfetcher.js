@@ -35,7 +35,7 @@ define([
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
-        this.config = Object.assign({}, config);
+        this.config = {...config};
 
         this.buttons = {
             'day': 'Day',

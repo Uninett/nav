@@ -368,7 +368,7 @@ define([
         },
 
         createView: function () {
-            const attributes = Object.assign({}, this.currentView.attributes);
+            const attributes = {...this.currentView.attributes};
             ['viewid', 'title', 'description', 'is_public'].forEach(function (key) {
                 delete attributes[key];
             });

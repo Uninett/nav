@@ -620,17 +620,17 @@ define([
         updateSelectedVlan: function (vlanId) {
 
             // Layer 3 nodes and links have no vlans list
-            var nodesInVlan = this.nodes.filter(function (node) {
+            const nodesInVlan = new Set(this.nodes.filter(function (node) {
                 return (node.vlans || []).includes(vlanId);
-            });
+            }));
 
-            var linksInVlan = this.links.filter(function (link) {
+            const linksInVlan = new Set(this.links.filter(function (link) {
                 return (link.vlans || []).includes(vlanId);
-            });
+            }));
 
             this.nodeGroup.selectAll('.node').style('opacity', 1)
                 .filter(function (node) {
-                    return !nodesInVlan.includes(node);
+                    return !nodesInVlan.has(node);
                 })
                 .transition()
                 .duration(TransitionDuration)
@@ -638,7 +638,7 @@ define([
 
             this.linkGroup.selectAll('.link').style('opacity', 1)
                 .filter(function (link) {
-                    return !linksInVlan.includes(link);
+                    return !linksInVlan.has(link);
                 })
                 .transition()
                 .duration(TransitionDuration)
@@ -988,12 +988,14 @@ define([
             yCenter: (topRight.y + botLeft.y) / 2
         };
 
-        return Object.assign({
+        return {
             topLeft: topLeft,
             topRight: topRight,
             botLeft: botLeft,
-            botRight: botRight
-        }, dimensions, center);
+            botRight: botRight,
+            ...dimensions,
+            ...center
+        };
     }
 
 

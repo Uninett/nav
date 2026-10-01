@@ -71,7 +71,7 @@ define([
         setModel: function (_model) {
 
             var title;
-            var model = Object.assign({}, _model); // Make a copy
+            var model = {..._model}; // Make a copy
 
             if (model.sysname) { // Model is a node
 
@@ -106,11 +106,11 @@ define([
                 model.category.toLowerCase() + '.png';
 
             // Layer 3 nodes have no vlans
-            model.vlans = (model.vlans || []).map(function (vlanId) {
+            model.vlans = (model.vlans || []).map((vlanId) => {
                 var vlan = this.vlans.get(vlanId).attributes;
                 vlan.isSelected = vlanId === this.selectedVlan;
                 return vlan;
-            }, this);
+            });
 
             return model;
         },
@@ -125,11 +125,11 @@ define([
             model.targetImg = window.netmapData.staticURL +
                 model.target.category.toLowerCase() + '.png';
 
-            model.vlans = [...new Set(model.vlans)].map(function (vlanId) {
+            model.vlans = [...new Set(model.vlans)].map((vlanId) => {
                 var vlan = this.vlans.get(vlanId).attributes;
                 vlan.isSelected = vlanId === this.selectedVlan;
                 return vlan;
-            }, this).sort(function (a, b) { return a.vlan - b.vlan; });
+            }).sort(function (a, b) { return a.vlan - b.vlan; });
 
             model.edges.forEach(function (edge) {
                 if (model.traffic === undefined) return;
@@ -161,12 +161,12 @@ define([
                 model.target.category.toLowerCase() + '.png';
 
             // Layer 3 link edges are grouped by VLAN id
-            model.edges = Object.entries(model.edges).map(function ([vlanId, edges]) {
+            model.edges = Object.entries(model.edges).map(([vlanId, edges]) => {
                 return  {
                     vlan: this.vlans.get(vlanId).attributes,
                     edges: edges
                 };
-            }, this);
+            });
 
             /*
              * Sometimes the backend will supply multiple linknets.

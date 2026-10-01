@@ -8,7 +8,7 @@ define([], function () {
      * Replacement for underscore's _.throttle.
      */
     function throttle(func, wait, options) {
-        const leading = !options || options.leading !== false;
+        const leading = options?.leading !== false;
         let previous = 0;
         let timeout = null;
         let pendingThis = null;

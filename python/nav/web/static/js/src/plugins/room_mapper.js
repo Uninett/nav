@@ -17,7 +17,7 @@ define(['ol-debug', 'plugins/throttle'], function (ol, throttle) {
     function RoomMapper(node, options) {
         this.node = typeof node === 'string' ? document.getElementById(node) : node;
 
-        this.options = Object.assign({}, options);
+        this.options = {...options};
         this.room_id = this.options.room;
         this.location_id = this.options.location;
 
