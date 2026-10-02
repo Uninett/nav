@@ -66,4 +66,11 @@ ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
 # named volume mount inherits it (Docker initializes empty volumes from the image)
 RUN mkdir -p /home/vscode/.claude && chown vscode:vscode /home/vscode/.claude
 
+# Install Claude Code with the native installer as the vscode user, so that it
+# lives in ~/.local and can update itself without root access
+USER vscode
+RUN curl -fsSL https://claude.ai/install.sh | bash
+USER root
+ENV PATH="/home/vscode/.local/bin:${PATH}"
+
 RUN echo "This is the original base image for NAV devcontainer" > /README.TXT
