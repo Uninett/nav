@@ -33,6 +33,7 @@ from nav import asyncdns
 from nav.web.machinetracker import forms
 from nav.web.machinetracker.utils import ip_dict, UplinkTracker, InterfaceTracker
 from nav.web.machinetracker.utils import process_ip_row, track_mac
+from nav.web.machinetracker.utils import collapse_overlapping
 from nav.web.machinetracker.utils import (
     min_max_mac,
     ProcessInput,
@@ -115,7 +116,12 @@ def ip_do_search(request):
         )
         ip_range = create_ip_range(inactive, from_ip, to_ip, ip_result)
         tracker = create_tracker(
-            active, form.cleaned_data['dns'], inactive, ip_range, ip_result
+            active,
+            form.cleaned_data['dns'],
+            inactive,
+            ip_range,
+            ip_result,
+            form.cleaned_data['collapse'],
         )
         row_count = sum(len(mac_ip_pair) for mac_ip_pair in tracker.values())
 
@@ -181,7 +187,7 @@ def create_ip_range(inactive, from_ip, to_ip, ip_result):
     return ip_range
 
 
-def create_tracker(active, dns, inactive, ip_range, ip_result):
+def create_tracker(active, dns, inactive, ip_range, ip_result, collapse=False):
     """Creates a result tracker based on form data"""
     dns_lookups = None
     if dns:
@@ -196,16 +202,17 @@ def create_tracker(active, dns, inactive, ip_range, ip_result):
     tracker = OrderedDict()
     for ip_key in ip_range:
         if active and ip_key in ip_result:
-            create_active_row(tracker, dns, dns_lookups, ip_key, ip_result)
+            create_active_row(tracker, dns, dns_lookups, ip_key, ip_result, collapse)
         elif inactive and ip_key not in ip_result:
             create_inactive_row(tracker, dns, dns_lookups, ip_key)
     return tracker
 
 
-def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result):
+def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result, collapse=False):
     """Creates a tracker tuple where the result is active"""
     ip = str(ip_key)
     rows = ip_result[ip_key]
+    touched_keys = set()
     for row in rows:
         row = process_ip_row(row, dns=False)
         if dns:
@@ -214,9 +221,12 @@ def create_active_row(tracker, dns, dns_lookups, ip_key, ip_result):
             else:
                 row.dns_lookup = dns_lookups[ip][0]
         row.ip_int_value = normalize_ip_to_string(row.ip)
-        if (row.ip, row.mac) not in tracker:
-            tracker[(row.ip, row.mac)] = []
-        tracker[(row.ip, row.mac)].append(row)
+        key = (row.ip, row.mac)
+        tracker.setdefault(key, []).append(row)
+        touched_keys.add(key)
+    if collapse:
+        for key in touched_keys:
+            tracker[key] = collapse_overlapping(tracker[key])
 
 
 def create_inactive_row(tracker, dns, dns_lookups, ip_key):
