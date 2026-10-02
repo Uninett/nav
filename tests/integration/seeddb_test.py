@@ -48,7 +48,7 @@ def test_editing_deleted_netboxes_should_raise_404(admin_account):
         netbox_edit(request, netboxid)
 
 
-def test_saving_copied_netbox_should_auditlog_as_new_netbox(
+def test_when_saving_copied_netbox_then_it_should_auditlog_as_new_netbox(
     db, client, netbox, management_profile
 ):
     url = reverse(
