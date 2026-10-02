@@ -13,6 +13,10 @@ services:
     volumes:
       # MacOS users may want to add a :cached flag to the volume
       - ../..:/workspaces
+      # Personal Claude Code config, linked into the container by
+      # scripts/link-claude-host-config.sh. Compose creates the host directory
+      # if it is missing, so this works for people who do not use Claude Code.
+      - ${HOME}/.claude:/home/vscode/.claude-host:ro
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
