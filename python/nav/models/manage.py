@@ -1868,6 +1868,88 @@ class SwPortAllowedVlan(models.Model):
         return 'Allowed vlans for swport %s' % self.interface
 
 
+class InterfaceAccessSession(models.Model):
+    """A client authentication session (802.1X, MAB or web auth) currently
+    active on an interface, as reported by the switch.
+
+    The table is a snapshot of the latest poll; it keeps no history.
+    `first_seen` is set when a session first appears and is never updated.
+    Whether the snapshot is stale is told by the ipdevpoll job log, not here.
+    `vlan_tag` is only a claim of which VLAN tag the switch placed the
+    session in.  Which broadcast domain that tag belongs to is left to the
+    topology detector.  `client_mac` and `username` identify the client, and
+    are only collected when the operator has explicitly opted in.
+    """
+
+    METHOD_DOT1X = 'dot1x'
+    METHOD_MAB = 'mab'
+    METHOD_WEBAUTH = 'webauth'
+    METHOD_UNKNOWN = 'unknown'
+    METHOD_CHOICES = (
+        (METHOD_DOT1X, '802.1X'),
+        (METHOD_MAB, 'MAC Authentication Bypass'),
+        (METHOD_WEBAUTH, 'Web authentication'),
+        (METHOD_UNKNOWN, 'unknown'),
+    )
+
+    DOMAIN_DATA = 'data'
+    DOMAIN_VOICE = 'voice'
+    DOMAIN_UNKNOWN = 'unknown'
+    DOMAIN_CHOICES = (
+        (DOMAIN_DATA, 'data'),
+        (DOMAIN_VOICE, 'voice'),
+        (DOMAIN_UNKNOWN, 'unknown'),
+    )
+
+    STATUS_PENDING = 'pending'
+    STATUS_AUTHENTICATED = 'authenticated'
+    STATUS_AUTHORIZED = 'authorized'
+    STATUS_AUTHENTICATION_FAILED = 'authentication_failed'
+    STATUS_AUTHORIZATION_FAILED = 'authorization_failed'
+    STATUS_UNKNOWN = 'unknown'
+    STATUS_CHOICES = (
+        (STATUS_PENDING, 'pending'),
+        (STATUS_AUTHENTICATED, 'authenticated'),
+        (STATUS_AUTHORIZED, 'authorized'),
+        (STATUS_AUTHENTICATION_FAILED, 'authentication failed'),
+        (STATUS_AUTHORIZATION_FAILED, 'authorization failed'),
+        (STATUS_UNKNOWN, 'unknown'),
+    )
+
+    id = models.AutoField(db_column='interface_access_sessionid', primary_key=True)
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="access_sessions",
+    )
+    # A keyed hash of the switch's own session identifier, never the raw value
+    session_key = VarcharField()
+    vlan_tag = models.IntegerField(null=True, blank=True)
+    method = VarcharField(choices=METHOD_CHOICES, default=METHOD_UNKNOWN)
+    domain = VarcharField(choices=DOMAIN_CHOICES, default=DOMAIN_UNKNOWN)
+    status = VarcharField(choices=STATUS_CHOICES, default=STATUS_UNKNOWN)
+    first_seen = models.DateTimeField(auto_now_add=True)
+    client_mac = models.CharField(max_length=17, null=True, blank=True)
+    username = VarcharField(null=True, blank=True)
+
+    class Meta(object):
+        db_table = 'interface_access_session'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('interface', 'session_key'),
+                name='interface_access_session_interfaceid_session_key_key',
+            )
+        ]
+
+    def __str__(self):
+        return '%s session on %s, vlan %s' % (
+            self.get_method_display(),
+            self.interface,
+            self.vlan_tag,
+        )
+
+
 class SwPortBlocked(models.Model):
     """This table defines the spanning tree blocked ports for a given vlan for
     a given switch port."""
