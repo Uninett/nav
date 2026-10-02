@@ -154,7 +154,7 @@ define(function(require, exports, module) {
 
     onBeforeDestroy: function() {
       // Kill pending fetches upon destroying this component
-      if (!_.isUndefined(this.xhr)) {
+      if (this.xhr !== undefined) {
         this.xhr.abort();
       }
     }
@@ -321,9 +321,7 @@ define(function(require, exports, module) {
     // STATE MACHINE END
 
     toggleOpen: function(evt) {
-      if (_.isObject(evt)) {
-        evt.preventDefault();
-      }
+      evt.preventDefault();
       this.fsm.step("TOGGLE_OPEN");
     },
 
@@ -433,7 +431,7 @@ define(function(require, exports, module) {
 
     // Force the tree to resort itself
     resort: function(self) {
-      if (_.isUndefined(self.model)) {
+      if (self.model === undefined) {
         return;
       }
       // all nodes will be closed, so reset counter

@@ -166,13 +166,13 @@ define(function (require, exports, module) {
         },
         getDomain: function(min, max, steps) {
             var step = (max - min) / (steps - 1);
-            return _.range(steps).map(function(m) {
+            return Array.from({length: steps}, function(v, m) {
                 return min + (step * m);
             });
         },
         getConfigThresholds: function(values) {
-            var min = this.findThreshold(values.thresholds, '<', _.max);
-            var max = this.findThreshold(values.thresholds, '>', _.min);
+            var min = this.findThreshold(values.thresholds, '<', Math.max);
+            var max = this.findThreshold(values.thresholds, '>', Math.min);
             var colors = values.colors;
 
             /* Create special range where the mid-range between the > and < is
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
                 thresholds: thresholds
             };
 
-            var config = _.extend(defaults, this.getConfigThresholds(defaults));
+            var config = Object.assign(defaults, this.getConfigThresholds(defaults));
             var domain = this.getDomain(config.min, config.max, config.colors.length);
 
             /* Special case for negative minimum - let it start blue and then
@@ -275,11 +275,11 @@ define(function (require, exports, module) {
             return +threshold.replace(/\D/, '');
         },
         findThreshold: function(thresholds, prefix, selectFunction) {
-            var candidates = _.map(_.filter(thresholds, function(t) {
+            var candidates = thresholds.filter(function(t) {
                 return t.substr(0, 1) === prefix;
-            }), this.trimThreshold);
+            }).map(this.trimThreshold);
             if (candidates.length > 0) {
-                return selectFunction(candidates);
+                return selectFunction(...candidates);
             }
             return undefined;
         }

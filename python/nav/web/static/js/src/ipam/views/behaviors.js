@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 
-  const _ = require("underscore");
   const Backbone = require("backbone");
   const Marionette = require("marionette");
   const FSM = require("libs/statist");
+  const isObject = require("src/ipam/util").isObject;
 
   // Simple mixin to add a state machine to a view. See 'subnetallocator.js' for
   // example usage.
@@ -19,7 +19,7 @@ define(function(require, exports, module) {
       const handlers = this.getOption('handlers') || {};
 
       const fsm = initFn(new FSM(states));
-      if (!_.isObject(fsm)) {
+      if (!isObject(fsm)) {
         throw new Error("FSM init error: Didn't (or forgot to) return FSM object in 'init' function");
       }
       const self = this.view;
@@ -31,9 +31,9 @@ define(function(require, exports, module) {
       }
       // Mount handlers (if any). This is used to make a single function
       // responsible for any state in the state machine.
-      _.each(handlers, function(handler, state) {
+      Object.entries(handlers).forEach(function([state, handler]) {
         const fn = self[handler];
-        if (!_.isFunction(fn)) {
+        if (typeof fn !== 'function') {
           throw new Error("Handler " + handler + " is not a function (or undefined)");
         }
         fsm.on(state, self[handler].bind(this, self));

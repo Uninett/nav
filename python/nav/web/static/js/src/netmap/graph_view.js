@@ -4,7 +4,6 @@ define([
     'netmap/graph_info_view',
     'plugins/fullscreen',
     'd3v7',
-    'underscore',
     'backbone',
     'libs/backbone-eventbroker'
 ], function (Graph, Models, GraphInfoView, Fullscreen, d3) {
@@ -133,8 +132,8 @@ define([
             this.syncZoomState();
 
             var selectedCategories = this.netmapView.get('categories');
-            _.each(this.model.get('filter_categories'), function (category) {
-                category.checked = _.indexOf(selectedCategories, category.name) >= 0;
+            this.model.get('filter_categories').forEach(function (category) {
+                category.checked = selectedCategories.includes(category.name);
             });
         },
 
@@ -309,11 +308,11 @@ define([
         updateNodesAndLinks: function () {
 
             // Get selected categories
-            var categories = _.pluck(_.filter(
-                this.model.get('filter_categories'),
-                function (category) {
-                    return category.checked;
-            }), 'name');
+            var categories = this.model.get('filter_categories').filter(function (category) {
+                return category.checked;
+            }).map(function (category) {
+                return category.name;
+            });
 
             var nodes = this.model.get('nodeCollection').getGraphObjects();
             var links = this.model.get('linkCollection').getGraphObjects();
@@ -337,7 +336,7 @@ define([
             this.links = this.force.force('link').links();
 
             // Set fixed positions
-            _.each(this.nodes, function (node) {
+            this.nodes.forEach(function (node) {
                 if (node.position) {
                     node.x = node.position.x;
                     node.y = node.position.y;
@@ -541,8 +540,8 @@ define([
             this.syncZoomState();
 
             var selectedCategories = this.netmapView.get('categories');
-            _.each(this.model.get('filter_categories'), function (category) {
-                category.checked = _.indexOf(selectedCategories, category.name) >= 0;
+            this.model.get('filter_categories').forEach(function (category) {
+                category.checked = selectedCategories.includes(category.name);
             });
 
             this.fetchGraphModel();
@@ -551,7 +550,7 @@ define([
         updateCategories: function (categoryId, checked) {
 
             var categories = this.model.get('filter_categories');
-            _.find(categories, function (category) {
+            categories.find(function (category) {
                 return category.name === categoryId;
             }).checked = checked;
 
@@ -574,8 +573,9 @@ define([
         },
 
         removeRoomOrLocationFilter: function (filter) {
-            this.netmapView.filterStrings = _.without(
-                this.netmapView.filterStrings, filter.toString());
+            this.netmapView.filterStrings = this.netmapView.filterStrings.filter(function (filterString) {
+                return filterString !== filter.toString();
+            });
             this.update();
         },
 
@@ -583,19 +583,16 @@ define([
 
             var self = this;
 
-            var dirtyNodes = _.map(
-                _.filter(this.force.nodes(), function (node) {
-                    return node.fx != null && node.category && !node.is_elink_node;
-                }),
-                function (dirtyNode) {
-                    return {
-                        viewid: self.netmapView.id,
-                        netbox: dirtyNode.id,
-                        x: dirtyNode.x,
-                        y: dirtyNode.y
-                    };
-                }
-            );
+            var dirtyNodes = this.force.nodes().filter(function (node) {
+                return node.fx != null && node.category && !node.is_elink_node;
+            }).map(function (dirtyNode) {
+                return {
+                    viewid: self.netmapView.id,
+                    netbox: dirtyNode.id,
+                    x: dirtyNode.x,
+                    y: dirtyNode.y
+                };
+            });
 
             if (dirtyNodes.length) {
 
@@ -622,17 +619,18 @@ define([
 
         updateSelectedVlan: function (vlanId) {
 
-            var nodesInVlan = _.filter(this.nodes, function (node) {
-                return _.contains(node.vlans, vlanId);
-            });
+            // Layer 3 nodes and links have no vlans list
+            const nodesInVlan = new Set(this.nodes.filter(function (node) {
+                return (node.vlans || []).includes(vlanId);
+            }));
 
-            var linksInVlan = _.filter(this.links, function (link) {
-                return _.contains(link.vlans, vlanId);
-            });
+            const linksInVlan = new Set(this.links.filter(function (link) {
+                return (link.vlans || []).includes(vlanId);
+            }));
 
             this.nodeGroup.selectAll('.node').style('opacity', 1)
                 .filter(function (node) {
-                    return !_.contains(nodesInVlan, node);
+                    return !nodesInVlan.has(node);
                 })
                 .transition()
                 .duration(TransitionDuration)
@@ -640,7 +638,7 @@ define([
 
             this.linkGroup.selectAll('.link').style('opacity', 1)
                 .filter(function (link) {
-                    return !_.contains(linksInVlan, link);
+                    return !linksInVlan.has(link);
                 })
                 .transition()
                 .duration(TransitionDuration)
@@ -667,7 +665,7 @@ define([
 
         unfixNodes: function () {
 
-            _.each(this.nodes, function (node) {
+            this.nodes.forEach(function (node) {
                 node.fx = null;
                 node.fy = null;
             });
@@ -679,7 +677,7 @@ define([
 
         fixNodes: function () {
             console.log("Fixing nodes");
-            _.each(this.nodes, function (node) {
+            this.nodes.forEach(function (node) {
                 node.fx = node.x;
                 node.fy = node.y;
             });
@@ -735,7 +733,7 @@ define([
 
             this.nodeGroup.selectAll('.node').style('opacity', 1);
 
-            var matchingNodes = _.filter(this.nodes, function (node) {
+            var matchingNodes = this.nodes.filter(function (node) {
                     return node.sysname.search(query) !== -1;
                 }
             );
@@ -749,7 +747,7 @@ define([
 
                 this.nodeGroup.selectAll('.node')
                     .filter(function (node) {
-                        return !_.contains(matchingNodes, node);
+                        return !matchingNodes.includes(node);
                     })
                     .transition()
                     .duration(TransitionDuration)
@@ -816,8 +814,8 @@ define([
      */
     function filterNodesByCategories(nodes, categories) {
 
-        return _.filter(nodes, function (node) {
-            return _.contains(categories, node.category.toUpperCase());
+        return nodes.filter(function (node) {
+            return categories.includes(node.category.toUpperCase());
         });
     }
 
@@ -828,8 +826,8 @@ define([
      * @param filters
      */
     function filterNodesByRoomsOrLocations(nodes, filters) {
-        return _.filter(nodes, function (node) {
-            return _.some(filters, function (filter) {
+        return nodes.filter(function (node) {
+            return filters.some(function (filter) {
                 return filter === node.roomid || filter === node.locationid;
             });
         });
@@ -842,9 +840,9 @@ define([
      */
     function filterLinksByCategories(links, categories) {
 
-        return _.filter(links, function (link) {
-            return _.contains(categories, link.source.category.toUpperCase()) &&
-                _.contains(categories, link.target.category.toUpperCase());
+        return links.filter(function (link) {
+            return categories.includes(link.source.category.toUpperCase()) &&
+                categories.includes(link.target.category.toUpperCase());
         });
     }
 
@@ -856,9 +854,9 @@ define([
      */
     function filterLinksByRoomsOrLocations(links, filters) {
 
-        return _.filter(links, function (link) {
-            return (_.contains(filters, link.source.roomid) && _.contains(filters, link.target.roomid) ||
-                _.contains(filters, link.source.locationid) && _.contains(filters, link.target.locationid));
+        return links.filter(function (link) {
+            return (filters.includes(link.source.roomid) && filters.includes(link.target.roomid) ||
+                filters.includes(link.source.locationid) && filters.includes(link.target.locationid));
         });
 
     }
@@ -871,27 +869,12 @@ define([
      */
     function removeOrphanNodes(nodes, links) {
 
-        return _.filter(nodes, function (node) {
-            return _.some(links, function (link) {
+        return nodes.filter(function (node) {
+            return links.some(function (link) {
                 return node.id === link.source.id || node.id === link.target.id;
             });
         });
     }
-
-    /**
-     * Helper function for filtering out any links whose source or target
-     * is not in the node list.
-     * @param nodes
-     * @param links
-     * @returns {*}
-     */
-    function filterLinksByNodes(nodes, links) {
-
-        return _.filter(links, function (link) {
-           return _.contains(nodes, link.source) && _.contains(nodes, link.target);
-        });
-    }
-
 
     /**
      * Helper function to find the max speed of a link objects
@@ -905,13 +888,37 @@ define([
         the link belongs to. This is needed because the JSON format
         of the object will be different depending on the layer.
          */
-        var speed;
-        if (_.isArray(link.edges)) {
-            speed = _.max(_.pluck(link.edges, 'link_speed'));
-        } else {
-            speed = _.max(_.pluck(_.flatten(_.values(link.edges)), 'link_speed'));
-        }
-        return speed;
+        var edges = Array.isArray(link.edges) ? link.edges : Object.values(link.edges).flat();
+        return max(edges.map(function (edge) {
+            return edge.link_speed;
+        }));
+    }
+
+    /**
+     * Returns the largest value. Like underscore's max, values that cannot
+     * be compared (such as a link speed of 'N/A') are ignored, and an empty
+     * list gives -Infinity.
+     */
+    function max(values) {
+        return values.reduce(function (result, value) {
+            return value > result ? value : result;
+        }, -Infinity);
+    }
+
+    /**
+     * Returns the item for which iteratee returns the largest value
+     */
+    function maxBy(items, iteratee) {
+        var result;
+        var resultValue = -Infinity;
+        items.forEach(function (item) {
+            var value = iteratee(item);
+            if (value > resultValue) {
+                result = item;
+                resultValue = value;
+            }
+        });
+        return result;
     }
 
     /**
@@ -955,7 +962,7 @@ define([
         var botLeft = {x: Number.MAX_VALUE, y: -Number.MAX_VALUE};
         var botRight = {x: -Number.MAX_VALUE, y: -Number.MAX_VALUE};
 
-        _.each(nodes, function (node) {
+        nodes.forEach(function (node) {
 
             if (node.y < (topLeft.y && topRight.y)) {
                 topLeft.y = topRight.y = node.y;
@@ -981,12 +988,14 @@ define([
             yCenter: (topRight.y + botLeft.y) / 2
         };
 
-        return _.extend({
+        return {
             topLeft: topLeft,
             topRight: topRight,
             botLeft: botLeft,
-            botRight: botRight
-        }, dimensions, center);
+            botRight: botRight,
+            ...dimensions,
+            ...center
+        };
     }
 
 
@@ -994,13 +1003,14 @@ define([
         var inCss = UndefinedLoad;
         var outCss = UndefinedLoad;
 
-        if (link.traffic !== undefined && !_.isEmpty(link.traffic)) {
+        // traffic is null in the initial graph data, and undefined or an object later
+        if (link.traffic && Object.keys(link.traffic).length > 0) {
 
-            if (_.isArray(link.edges)) {
-                inCss = _.max(link.traffic.edges, function (edge) {
+            if (Array.isArray(link.edges)) {
+                inCss = maxBy(link.traffic.edges, function (edge) {
                     return edge.source.load_in_percent;
                 }).source.css;
-                outCss = _.max(link.traffic.edges, function (edge) {
+                outCss = maxBy(link.traffic.edges, function (edge) {
                     return edge.target.load_in_percent;
                 }).target.css;
             } else if (link.traffic.traffic_data !== undefined) {

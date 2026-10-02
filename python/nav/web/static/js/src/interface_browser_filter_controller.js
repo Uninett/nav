@@ -17,7 +17,7 @@ define(function(require) {
     function addFilterParameters(uri) {
         filters = [netboxFilter, ifClassFilter, queryFilter, linkFilter, vlanFilter];
         uri.addSearch(filters.reduce(function(obj, func) {
-            return _.extend(obj, func());
+            return Object.assign(obj, func());
         }, {}));
         console.log(uri.toString());
         return uri;
@@ -77,32 +77,10 @@ define(function(require) {
         });
     }
 
-    /* Reloads data from the api */
-    function reload(table) {
-        table.ajax.reload();
-    }
-
-    /* Adds listeners for reloading when the filters change */
-    function reloadOnFilterChange(table) {
-        var reloadInterval = 500  // ms
-        var _reload = reload.bind(this, table)
-        var throttledReload = _.throttle(_reload, reloadInterval, {leading: false});
-
-        $(selectors.filterForm).on('change', _reload);
-        $(selectors.filterForm).on('keyup', '#queryfilter', function(event) {
-            var isWordCharacter = event.key.length === 1;
-            var isBackspaceOrDelete = (event.keyCode === 8 || event.keyCode === 46);
-            if (isWordCharacter || isBackspaceOrDelete) {
-                throttledReload();
-            }
-        });
-    }
-
     /* Initialize everything with given config */
     function filterController(table) {
         addNetboxFilter();
         addSubmitListener(table);
-        /*         reloadOnFilterChange(table);*/
     }
 
     function addSubmitListener(table) {

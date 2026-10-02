@@ -65,8 +65,8 @@ define(function (require, exports, module) {
   };
 
   function normalizeData(data, opts) {
-    return _.map(opts.data, function (row) {
-      row.parts = _.map(row.parts, function(d) {
+    return opts.data.map(function (row) {
+      row.parts = row.parts.map(function(d) {
         if (d.prefix !== "available") {
           d.usage = Math.random();
         }
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
   // Draw a subnet chart.
   function subnetChart(inOpts) {
     // parse options
-    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var opts = Object.assign(DEFAULT_OPTS, inOpts);
     var mountElem = opts.mountElem;
     var inData = opts.data;
     // size options
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
           .round(true);
 
     // Adapt yScale to data dimensions to ensure consistent spacing
-    yScale.domain(_.map(data, function(d) { return d.prefix; }));
+    yScale.domain(data.map(function(d) { return d.prefix; }));
 
     var svg;
     if (d3.select(mountElem).select("svg").empty()) {
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
   // Simple percent vertical bar chart.
   function usageChart(inOpts) {
     // parse options
-    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var opts = Object.assign(DEFAULT_OPTS, inOpts);
     var mountElem = opts.mountElem;
     var inData = opts.data;
     // size options
@@ -245,7 +245,7 @@ define(function (require, exports, module) {
 
 
   function subnetMatrix(inOpts) {
-    var opts = _.extend(DEFAULT_OPTS, inOpts);
+    var opts = Object.assign(DEFAULT_OPTS, inOpts);
     var mountElem = opts.mountElem;
     var inData = opts.data;
     // size options
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
     const yScale = d3.scaleLinear().range([0, height]).domain([0, 1]);
 
     const colors = d3.scaleOrdinal(d3.schemeCategory10);
-    colors.domain(_.map(data, function(d){ return d.prefix; }));
+    colors.domain(data.map(function(d){ return d.prefix; }));
 
 
     // === Drawing phase
