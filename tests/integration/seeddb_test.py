@@ -73,9 +73,14 @@ def test_when_saving_copied_netbox_then_it_should_auditlog_as_new_netbox(
     )
 
     assert response.status_code == 200
-    assert Netbox.objects.filter(ip=ip).exists()
-    assert not LogEntry.objects.filter(verb='edit-netbox-ip').exists()
-    assert LogEntry.objects.filter(verb='create-netbox').exists()
+    new_netbox = Netbox.objects.filter(ip=ip).first()
+    assert new_netbox
+    assert not LogEntry.objects.filter(
+        verb='edit-netbox-ip', object_pk=str(new_netbox.pk)
+    ).exists()
+    assert LogEntry.objects.filter(
+        verb='create-netbox', object_pk=str(new_netbox.pk)
+    ).exists()
 
 
 def test_adding_netbox_with_invalid_ip_should_fail(db, client):
