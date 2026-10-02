@@ -665,15 +665,13 @@ class MultiMibMixIn(MibRetriever):
         device rejecting a community-indexed query with noAccess) for anything
         but the primary (base) instance.
 
-        pynetsnmp raises noAccess, resourceUnavailable and authorizationError
-        only as the base SnmpError (distinguished by message string), so there
-        is no narrower class to trap here. Note that Snmpv3Error subclasses
-        SnmpError, so a v3 auth/context failure on an alternate instance is
-        swallowed too; this is a conscious choice, consistent with tolerating
-        timeouts on alternates, and only ever affects non-base instances.
-
         """
         if self.agent_proxy is not self._base_agent:
+            # pynetsnmp raises noAccess/resourceUnavailable/authorizationError
+            # only as the base SnmpError (distinguished by message), so there is
+            # no narrower class. Snmpv3Error subclasses SnmpError, so v3
+            # auth/context failures on alternates are swallowed too — deliberate,
+            # consistent with tolerating timeouts here.
             failure.trap(TimeoutError, defer.TimeoutError, SnmpError)
             self._logger.debug(
                 "ignoring error from %r: %s", descr, failure.getErrorMessage()
