@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from unittest.mock import Mock
 
 from django.urls import reverse
 
@@ -11,8 +12,11 @@ from nav.models.fields import INFINITY
 import pytest
 
 
-def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_messages):
+def test_roomstatus_should_not_fail_on_multiple_messages(
+    alerthist_with_two_messages, admin_account
+):
     widget = RoomStatus()
+    widget.request = Mock(user=admin_account)
     result = widget.get_context_data_view({})
     print(result)
     assert 'results' in result
