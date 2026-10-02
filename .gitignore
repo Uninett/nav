@@ -63,3 +63,6 @@ package-lock.json
 # AI related files
 CLAUDE.md
 CLAUDE.local.md
+
+# Feature version lock written by the Dev Containers tooling
+.devcontainer/devcontainer-lock.json
