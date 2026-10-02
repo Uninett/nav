@@ -56,3 +56,43 @@ def authenticated_page(page: Page, live_server, admin_username, admin_password):
     page.get_by_role("button", name="Log in").click()
     page.wait_for_url(f"{live_server}/")
     yield page, live_server
+
+
+@pytest.fixture(scope='session')
+def admin_storage_state(browser, live_server, admin_username, admin_password):
+    """Log in once per session and return the resulting Playwright storage state.
+
+    Reusing this avoids repeating a full interactive login (and the
+    dashboard load that follows it) for every test that just needs an
+    authenticated session and doesn't care how it got one.
+    """
+    from django.conf import settings
+    from django.shortcuts import resolve_url
+
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto(f"{live_server}{resolve_url(settings.LOGIN_URL)}")
+    page.locator("#id_login").fill(admin_username)
+    page.locator("#id_password").fill(admin_password)
+    page.get_by_role("button", name="Log in").click()
+    page.wait_for_url(f"{live_server}/")
+    state = context.storage_state()
+    context.close()
+    return state
+
+
+@pytest.fixture
+def fresh_authenticated_page(browser, admin_storage_state, live_server):
+    """An authenticated Playwright page that has never visited any NAV page.
+
+    Unlike `authenticated_page`, this doesn't land on the dashboard as a
+    side effect of logging in -- the session cookie comes from
+    `admin_storage_state` instead. Use this when a test needs to control
+    exactly what the first page load is, e.g. to listen for console errors
+    without picking up noise from an unrelated page the login flow happened
+    to visit.
+    """
+    context = browser.new_context(storage_state=admin_storage_state)
+    page = context.new_page()
+    yield page, live_server
+    context.close()
