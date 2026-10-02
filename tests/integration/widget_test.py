@@ -71,6 +71,38 @@ def test_when_admin_account_is_inactive_then_status_widget_should_still_list_ale
     assert response.context["results"]
 
 
+def test_when_user_is_not_logged_in_then_status_widget_should_still_list_alerts(
+    log_in, default_account, admin_account, alerthist_with_two_messages
+):
+    """
+    As fix for https://github.com/Uninett/nav/issues/4163 we usually use the requesting
+    user for querying the alert history
+
+    This does not work when the alert widget is on the dashboard of the default user
+    (when the user is not logged in), so in that case we use the admin user to query
+    """
+
+    dashboard = AccountDashboard.objects.create(
+        account=default_account, name="Dashboard"
+    )
+    navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.status2.Status2Widget",
+        account=default_account,
+        dashboard=dashboard,
+        preferences={
+            "status_filter": "event_type=boxState&stateless_threshold=24",
+            "refresh_interval": 60000,
+        },
+    )
+    client = Client()
+
+    response = client.get(reverse("get-user-navlet", kwargs={"navlet_id": navlet.id}))
+
+    assert response.status_code == 200
+    assert not response.context.get("error_message")
+    assert response.context["results"]
+
+
 def test_feedreader_widget_should_get_nav_blog_posts():
     widget = FeedReaderNavlet()
     feed = widget._get_feed('http://blog.nav.uninett.no/rss', maxposts=0)

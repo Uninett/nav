@@ -55,6 +55,10 @@ class Status2Widget(Navlet):
         self.title = self.preferences.get('title', self.title)
         status_filter = self.preferences.get('status_filter')
         account = get_account(self.request)
+        # This is a hack to get the status widget to work when the user is not logged in
+        # (aka the default account, which is locked, leading the query to fail)
+        if account.is_default_account():
+            account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
         try:
             results = self.do_query(query_string=status_filter, account=account)
         except QueryError:
