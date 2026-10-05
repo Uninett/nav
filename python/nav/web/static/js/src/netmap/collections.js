@@ -13,7 +13,7 @@ define([
 
         populate: function (nodes) {
 
-            var models = _.map(nodes, function (node) {
+            var models = Object.values(nodes).map(function (node) {
                 return new Models.Node (node);
             });
 
@@ -34,7 +34,7 @@ define([
 
         populate: function (links) {
 
-            var models = _.map(links, function (link) {
+            var models = links.map(function (link) {
                 return new Models.Link (link);
             });
 
@@ -56,7 +56,7 @@ define([
 
         populate: function (vlans) {
 
-            var models = _.map(vlans, function (vlan) {
+            var models = Object.values(vlans).map(function (vlan) {
                 return new Models.Vlan (vlan);
             });
 

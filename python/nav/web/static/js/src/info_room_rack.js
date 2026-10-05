@@ -248,7 +248,7 @@ require([
 
     function addColorChooser() {
         $('#racks-container').on('change', 'form.color-chooser', function(event) {
-            var classes = _.map(this.querySelectorAll("input[type=radio]"), function(element) {
+            var classes = Array.from(this.querySelectorAll("input[type=radio]"), function(element) {
                 return element.value;
             }).join(' ');
 

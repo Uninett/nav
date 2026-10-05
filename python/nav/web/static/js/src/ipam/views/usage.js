@@ -31,7 +31,7 @@ define(function(require, exports, module) {
 
     onBeforeDestroy: function() {
       // Kill pending fetches upon destroying this component
-      if (!_.isUndefined(this.xhr)) {
+      if (this.xhr !== undefined) {
         this.xhr.abort();
       }
     },

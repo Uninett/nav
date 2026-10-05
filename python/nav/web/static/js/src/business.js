@@ -72,7 +72,7 @@ require(['jquery'], function() {
             var $form = $(this);
             $.post($form.attr("action"), $form.serialize())
              .then(function() {
-                 if (_.has($form.get(0).elements, 'new_address')) {
+                 if ($form.get(0).elements.namedItem('new_address')) {
                      window.location.reload();
                  } else {
                      $('body').trigger(subscriptionReloadEvent);

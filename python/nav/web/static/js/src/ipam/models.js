@@ -25,7 +25,7 @@ define(function(require, exports, module) {
 
     hasChildren: function() {
       var children = this.get("children") || this.children.models;
-      if (_.isUndefined(children) || _.isEmpty(children)) {
+      if (children === undefined || Object.keys(children).length === 0) {
         return false;
       }
       return true;
@@ -35,7 +35,7 @@ define(function(require, exports, module) {
     // Probably not a smart idea. Rather, filter the list of prefix nodes
     // directly and then construct a new view of the resulting collection.
     matches: function(filter) {
-      if (!filter || _.isUndefined(filter)) {
+      if (!filter) {
         return true;
       }
       return true;

@@ -1,6 +1,5 @@
 define([
     'plugins/csrf-utils',
-    'underscore',
     'backbone'
 ], function (CsrfUtils) {
     /**

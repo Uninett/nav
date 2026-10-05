@@ -15,7 +15,7 @@ define(function(require, exports, module) {
             self.sensors[$node.attr('data-metric')] = $node;
         });
 
-        this.metricList = _.keys(this.sensors);
+        this.metricList = Object.keys(this.sensors);
         this.isDestroyed = false;
 
         // Run collection and listen to events
@@ -42,7 +42,7 @@ define(function(require, exports, module) {
             response.forEach(function(data) {
                 var datapoints = data.datapoints.reverse();
                 // Find the first point that has data and use that.
-                var point = _.find(datapoints, function(point){
+                var point = datapoints.find(function(point){
                     return point[0] !== null;
                 });
                 var $node = self.sensors[data.target];
@@ -50,7 +50,7 @@ define(function(require, exports, module) {
 
                 // Convert value if applicable
                 var converted = convertValue($node, value);
-                if (_.isArray(converted)) {
+                if (Array.isArray(converted)) {
                     value = converted[0] || 'N/A';
                     $node.parent().find('.unit-of-measurement').text(converted[1]);
                 }

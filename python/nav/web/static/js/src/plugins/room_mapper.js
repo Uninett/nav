@@ -1,4 +1,4 @@
-define(['ol-debug'], function (ol) {
+define(['ol-debug', 'plugins/throttle'], function (ol, throttle) {
 
     var imagePath = NAV.imagePath + '/openlayers/';
     var primaryMarkerImage = imagePath + 'marker-blue.png';
@@ -17,7 +17,7 @@ define(['ol-debug'], function (ol) {
     function RoomMapper(node, options) {
         this.node = typeof node === 'string' ? document.getElementById(node) : node;
 
-        this.options = _.extend({}, options);
+        this.options = {...options};
         this.room_id = this.options.room;
         this.location_id = this.options.location;
 
@@ -155,7 +155,7 @@ define(['ol-debug'], function (ol) {
 
             // Throttle the zoom detection
             var throttleInterval = 200;  // ms
-            var detectMaxZoom = _.throttle(_detectMaxZoom, throttleInterval, {leading: false});
+            var detectMaxZoom = throttle(_detectMaxZoom, throttleInterval, {leading: false});
             this.view.on('change:resolution', detectMaxZoom);
             _detectMaxZoom();
         },
@@ -201,7 +201,7 @@ define(['ol-debug'], function (ol) {
         },
 
         hideOverlays: function() {
-            _.each(this.overlays, function(overlay) {
+            Object.values(this.overlays).forEach(function(overlay) {
                 overlay.setPosition(undefined);
             });
             this.overlaysVisible = false;
