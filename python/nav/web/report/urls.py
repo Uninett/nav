@@ -25,6 +25,11 @@ from nav.web.report import views
 urlpatterns = [
     path('', views.index, name='report-index'),
     path('matrix', views.matrix_report, name='report-matrix'),
+    path(
+        'matrix/popover/<int:prefix_id>',
+        views.matrix_popover,
+        name='report-matrix-popover',
+    ),
     re_path(
         r'^matrix/(?P<scope>[^&]+)$', views.matrix_report, name='report-matrix-scope'
     ),

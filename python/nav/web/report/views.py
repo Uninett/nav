@@ -31,10 +31,12 @@ from IPy import IP
 
 from django.core.cache import cache
 from django.core.paginator import Paginator, InvalidPage
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.urls import reverse
 
+from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.templates import metric_path_for_prefix
 from nav.models.manage import Prefix
 
 from nav.report.IPtree import get_max_leaf, build_tree
@@ -44,6 +46,8 @@ from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
 from nav.config import find_config_file, find_config_dir, list_config_files_from_dir
 
+from nav.web.api.v1.helpers.prefix_collector import fetch_usage
+from nav.web.api.v1.views import MINIMUMPREFIXLENGTH
 from nav.web.auth.utils import get_account
 from nav.web.navlets import add_navlet
 
@@ -184,6 +188,24 @@ def matrix_report(request, scope=None):
     )
 
     return render(request, 'report/matrix.html', context)
+
+
+def matrix_popover(request, prefix_id):
+    """Renders the usage popover for a prefix in the subnet matrix"""
+    prefix = get_object_or_404(Prefix.objects.select_related('vlan'), pk=prefix_id)
+    ip = IP(prefix.net_address)
+    if ip.len() < MINIMUMPREFIXLENGTH:
+        raise Http404("Prefix is too small")
+
+    sparkline_url = get_simple_graph_url(
+        [metric_path_for_prefix(ip.strCompressed(), 'ip_count')], format='json'
+    )
+    context = {
+        'usage': fetch_usage(prefix, None, None),
+        'ipv4': ip.version() == 4,
+        'sparkline_url': sparkline_url,
+    }
+    return render(request, 'report/frag_matrix_report.html#cell_popover', context)
 
 
 def group_scopes(scopes):

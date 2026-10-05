@@ -21,6 +21,7 @@ Dependency changes
 These Python modules are new requirements:
 
 * :mod:`pydantic` (``>=2.0``)
+* :mod:`django-template-partials`
 
 Python modules with changed version requirements:
 

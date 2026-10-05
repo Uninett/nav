@@ -160,7 +160,10 @@ TEMPLATES = [
                 'django.template.context_processors.static',
             ],
             'debug': DEBUG,
-            "builtins": ["nav.django.templatetags.query"],
+            "builtins": [
+                "nav.django.templatetags.query",
+                "template_partials.templatetags.partials",
+            ],
         },
     }
 ]
@@ -285,6 +288,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_filters',
     'django_htmx',
+    'template_partials',
     'rest_framework',
     'nav.auditlog',
     'nav.web.macwatch',
