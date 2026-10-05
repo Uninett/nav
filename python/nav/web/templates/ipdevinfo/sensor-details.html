@@ -98,6 +98,18 @@
             </td>
         </tr>
         {% endif %}
+        {% with threshold_sensors=sensor.thresholds.all %}
+          {% if threshold_sensors %}
+          <tr>
+            <th>Threshold sensors</th>
+            <td>
+              {% for threshold in threshold_sensors %}
+                <a href="{% url 'sensor-details' threshold.id %}">{{threshold.name}}</a>{% if not forloop.last %}<br>{% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+          {% endif %}
+        {% endwith %}
       </table>
     </div>
     <div class="large-6 column">
