@@ -1,11 +1,11 @@
-/** Tests regarding Rickshaw and graphs */
-define(['graph-utils'], function (RickshawUtils) {
+/** Tests regarding graphs */
+define(['graph-utils'], function (GraphUtils) {
 
     describe("convertToRickshaw", function () {
         var timestamp = 1457425529;
         var value = 3;
         var datapoint = [value, timestamp];
-        var result = RickshawUtils.convertToRickshaw(datapoint);
+        var result = GraphUtils.convertToRickshaw(datapoint);
 
         it("should return an object with an x and y member", function () {
             assert.notStrictEqual(typeof result.x, 'undefined',
@@ -29,27 +29,35 @@ define(['graph-utils'], function (RickshawUtils) {
         var doubleCallWithTrend = "alias(scale(nav.devices.buick_lab_uninett_no.system.sysuptime, 0.00000011574074074074), 'buick') (1 week ago)";
 
         it("should remove a single function call", function () {
-            var result = RickshawUtils.filterFunctionCalls(singleCall);
+            var result = GraphUtils.filterFunctionCalls(singleCall);
             assert.strictEqual(result, 'nav.devices.buick_lab_uninett_no.ipdevpoll.1minstats.runtime');
         });
         it("should remove a single function call with arguments", function () {
-            var result = RickshawUtils.filterFunctionCalls(singleCallWithArguments);
+            var result = GraphUtils.filterFunctionCalls(singleCallWithArguments);
             assert.strictEqual(result, 'nav.devices.buick_lab_uninett_no.system.sysuptime');
         });
         it("should remove a single function call with extra", function () {
-            var result = RickshawUtils.filterFunctionCalls(singleCallWithTrend);
+            var result = GraphUtils.filterFunctionCalls(singleCallWithTrend);
             assert.strictEqual(result, 'nav.devices.buick_lab_uninett_no (1 day ago)');
         });
         it("should remove a double function call", function () {
-            var result = RickshawUtils.filterFunctionCalls(doubleCall);
+            var result = GraphUtils.filterFunctionCalls(doubleCall);
             assert.strictEqual(result, 'nav.devices.buick_lab_uninett_no.system.sysuptime');
         });
         it("should remove a double function call", function () {
-            var result = RickshawUtils.filterFunctionCalls(doubleCallWithTrend);
+            var result = GraphUtils.filterFunctionCalls(doubleCallWithTrend);
             assert.strictEqual(result, 'nav.devices.buick_lab_uninett_no.system.sysuptime (1 week ago)');
         });
+        it("should keep hyphens in metric names", function () {
+            const result = GraphUtils.filterFunctionCalls('scaleToSeconds(nonNegativeDerivative(nav.devices.gw_example_org.ports.ge-1_1_0.ifInErrors),1)');
+            assert.strictEqual(result, 'nav.devices.gw_example_org.ports.ge-1_1_0.ifInErrors');
+        });
+        it("should remove calls that are left empty by removing inner calls", function () {
+            const result = GraphUtils.filterFunctionCalls('scaleToSeconds(nonNegativeDerivative(scale(nav.devices.gw_example_org.ports.ge-1_1_0.ifInOctets,8)),1)');
+            assert.strictEqual(result, 'nav.devices.gw_example_org.ports.ge-1_1_0.ifInOctets');
+        });
         it("should not remove other stuff", function () {
-            var result = RickshawUtils.filterFunctionCalls('buick');
+            var result = GraphUtils.filterFunctionCalls('buick');
             assert.strictEqual(result, 'buick');
         });
     });

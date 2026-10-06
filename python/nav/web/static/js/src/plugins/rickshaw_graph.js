@@ -4,7 +4,7 @@ define([
     'libs/urijs/URI',
     'graph-utils',
     'handlebars'
-], function (Rickshaw, Template, URI, RickshawUtils, Handlebars) {
+], function (Rickshaw, Template, URI, GraphUtils, Handlebars) {
 
     var template = Handlebars.compile(Template);
     var resizeTimeout = 250;  // resize throttled at resizeTimeout ms
@@ -19,7 +19,7 @@ define([
         var element = container.getElementsByClassName('rickshaw-graph')[0];
         var graph = new Rickshaw.Graph({
             element: element,
-            series: RickshawUtils.createSeries(data),
+            series: GraphUtils.createSeries(data),
             renderer: 'line',
             min: typeof minValue === 'undefined' ? 0 : minValue,
             stack: false  // Need to set this so that data is not stacked
@@ -33,7 +33,7 @@ define([
         $(window).on('resize', function () {
             if (!timer) {
                 timer = setTimeout(function () {
-                    RickshawUtils.resizeGraph(graph);
+                    GraphUtils.resizeGraph(graph);
                     timer = null;
                 }, resizeTimeout);
             }
@@ -43,19 +43,6 @@ define([
     }
 
 
-    function buildObject(parts) {
-        var obj = {};
-        for(var i = 0; i < parts.length; i++) {
-            var keyValue = parts[i].split('=');
-            obj[keyValue[0]] = keyValue[1];
-        }
-        return obj;
-    }
-
-    function getSeriesMeta(name) {
-        return name.split(';;');
-    }
-
     /** Add all utility stuff to the graph */
     function addUtility(container, graph, url) {
         var $element = $(graph.element);
@@ -63,22 +50,13 @@ define([
 
         graph.setRenderer('multi');
         graph.series.forEach(function (serie) {
-            var metaParts = getSeriesMeta(serie.name),
-                name = metaParts.pop(),
-                meta = buildObject(metaParts);
+            const {name, meta} = GraphUtils.parseSeriesMeta(serie.name);
             serie.key = name;
-            serie.name = RickshawUtils.filterFunctionCalls(name);
+            serie.name = GraphUtils.displayName(name);
             serie.renderer = meta.renderer ? meta.renderer : 'line';
             if (meta.color !== undefined) {
                 serie.color = meta.color;
             }
-
-            // If this is a nav-metric, typically very long, display only the last two "parts"
-            if (serie.name.substr(0, 4) === 'nav.') {
-                var parts = serie.name.split('.');
-                serie.name = [parts[parts.length - 2], parts[parts.length - 1]].join('.');
-            }
-
         });
 
         new Rickshaw.Graph.Axis.Time({
@@ -90,13 +68,13 @@ define([
             graph: graph,
             orientation: 'left',
             element: $element.siblings('.rickshaw-y-axis')[0],
-            tickFormat: RickshawUtils.formatKMGT
+            tickFormat: GraphUtils.formatKMGT
         });
 
         // Display information about series when hovering over the graph
         new NavHover({
             graph: graph,
-            yFormatter: RickshawUtils.siNumbers,
+            yFormatter: GraphUtils.siNumbers,
             urlparams: urlParams
         });
 
