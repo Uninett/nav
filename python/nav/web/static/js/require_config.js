@@ -25,6 +25,9 @@ var require = {
         "underscore": "libs/underscore-1.7.0.min",
         "marionette": "libs/backbone.marionette-4.1.3.min",
         "backbone.radio": "libs/backbone.radio-2.0.0.min",
+        "chartjs": "libs/chart-4.5.1.min",
+        "chartjs-adapter-moment": "libs/chartjs-adapter-moment-1.0.1.min",
+        "chartjs-plugin-zoom": "libs/chartjs-plugin-zoom-2.2.0.min",
         "driver": "libs/driver-1.3.6.min",
         "flatpickr": "libs/flatpickr-4.6.13.min",
         "jquery": "libs/jquery-4.0.0.min",
@@ -33,6 +36,15 @@ var require = {
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
         "select2": "libs/select2-4.1.0-rc.0.min",
         "uplot": "libs/uplot-1.6.32.min",
+    },
+    map: {
+        // The Chart.js plugins require these module names. RequireJS treats
+        // a name that ends in ".js" as a file URL, so map them to our names.
+        '*': {
+            'chart.js': 'chartjs',
+            'chart.js/helpers': 'plugins/chartjs-helpers',
+            'hammerjs': 'plugins/hammerjs-stub'
+        }
     },
     shim: {
         'underscore': {
