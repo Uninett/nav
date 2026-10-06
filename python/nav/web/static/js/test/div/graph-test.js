@@ -1,5 +1,5 @@
 /** Tests regarding Rickshaw and graphs */
-define(['rickshaw-utils'], function (RickshawUtils) {
+define(['graph-utils'], function (RickshawUtils) {
 
     describe("convertToRickshaw", function () {
         var timestamp = 1457425529;

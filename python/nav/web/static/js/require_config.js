@@ -20,7 +20,7 @@ var require = {
         "handlebars": "libs/handlebars-5.0.0-alpha.1.min",
         "spin": "libs/spin-2.3.2.min",
         "nav-url-utils": "src/plugins/nav-url-utils",
-        "rickshaw-utils": "src/plugins/rickshaw-utils",
+        "graph-utils": "src/plugins/graph-utils",
         "backbone": "libs/backbone-1.0.0.min",
         "underscore": "libs/underscore-1.7.0.min",
         "marionette": "libs/backbone.marionette-4.1.3.min",

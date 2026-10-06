@@ -2,7 +2,7 @@ define([
     'libs/rickshaw.min',
     'libs-amd/text!resources/rickshawgraph/graphtemplate.hbs',
     'libs/urijs/URI',
-    'rickshaw-utils',
+    'graph-utils',
     'handlebars'
 ], function (Rickshaw, Template, URI, RickshawUtils, Handlebars) {
 

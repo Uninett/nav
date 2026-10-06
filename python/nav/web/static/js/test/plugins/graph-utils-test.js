@@ -1,5 +1,5 @@
 define([
-    'rickshaw-utils',
+    'graph-utils',
     'jquery'], function (plugin) {
     describe("siNumbers", function () {
         it("should format two-digit numbers right", function() {
