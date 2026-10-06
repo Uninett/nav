@@ -1,8 +1,8 @@
 define([
-    'plugins/rickshaw_graph',
+    'plugins/graphlib_switch',
     'libs/urijs/URI',
     'spin'
-], function (RickshawGraph, URI, Spinner) {
+], function (GraphlibSwitch, URI, Spinner) {
     /*
      * GraphFetcher
      *
@@ -31,7 +31,7 @@ define([
     function GraphFetcher(node, urls, config) {
         this.checkInput(node, urls);
         this.node = node;
-        this.graphContainer = this.node.find('.rickshaw-container')[0];
+        this.graphContainer = this.node.find('.rickshaw-container, .nav-graph-container')[0];
         this.urls = urls.split(';');
         this.lastUrlIndex = -1;
         this.urlIndex = 0;  // Index of this.urls
@@ -205,9 +205,8 @@ define([
                 };
             } else {
                 $.get(url, function (data) {
-                    self.rickshawgraph = self.getMin(data) < 0 ?
-                                         new RickshawGraph(self.graphContainer, data, url, 'auto'):
-                                         new RickshawGraph(self.graphContainer, data, url);
+                    const minValue = self.getMin(data) < 0 ? 'auto' : undefined;
+                    self.rickshawgraph = GraphlibSwitch.drawGraph(self.graphContainer, data, url, minValue);
                 });
             }
         },
