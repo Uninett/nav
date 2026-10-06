@@ -41,6 +41,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        cron \
        inotify-tools \
        vim \
+       jq \
        less \
        nbtscan \
        # Python package build deps: \
@@ -62,9 +63,11 @@ ENV UV_PROJECT_ENVIRONMENT=/home/vscode/.venv
 ENV UV_PYTHON=${MAIN_PYTHON_VERSION}
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
 
-# Pre-create the Claude config directory with correct ownership so that the
-# named volume mount inherits it (Docker initializes empty volumes from the image)
-RUN mkdir -p /home/vscode/.claude && chown vscode:vscode /home/vscode/.claude
+# Pre-create the Claude and GitHub CLI config directories with correct ownership
+# so that the named volume mounts inherit it (Docker initializes empty volumes
+# from the image)
+RUN mkdir -p /home/vscode/.claude /home/vscode/.config/gh \
+    && chown -R vscode:vscode /home/vscode/.claude /home/vscode/.config
 
 # Install Claude Code with the native installer as the vscode user, so that it
 # lives in ~/.local and can update itself without root access
