@@ -32,6 +32,7 @@ var require = {
         "tablesort": "libs/tablesort-5.7.0.min",
         "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
         "select2": "libs/select2-4.1.0-rc.0.min",
+        "uplot": "libs/uplot-1.6.32.min",
     },
     shim: {
         'underscore': {
@@ -58,6 +59,9 @@ var require = {
         },
         'tablesort': {
             exports: 'Tablesort'
+        },
+        'uplot': {
+            exports: 'uPlot'
         },
     },
     deps: ['jquery']
