@@ -106,6 +106,22 @@ define([], () => {
         else { return y; }
     }
 
+    /**
+     * Formats a value for hover details and legends, with an SI prefix and
+     * the unit: "4.20 Mbits/s", "12.00 errors/s". Missing values become "–".
+     */
+    function formatValue(value, unit = '') {
+        if (value === null || value === undefined) {
+            return '–';
+        }
+        const number = String(siNumbers(value));
+        if (!unit) {
+            return number;
+        }
+        // An SI prefix joins the unit: "4.20 M" + "bits/s" is "4.20 Mbits/s"
+        return /[a-zµ]$/i.test(number) ? number + unit : `${number} ${unit}`;
+    }
+
     // Rickshaw-only, removed together with Rickshaw
     function resizeGraph(graph) {
         var boundingRect = graph.element.getBoundingClientRect();
@@ -196,6 +212,7 @@ define([], () => {
         removeFunctionCalls,
         siNumbers,
         formatKMGT,
+        formatValue,
         createSeries,
         convertToRickshaw,
         resizeGraph

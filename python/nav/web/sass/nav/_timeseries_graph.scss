@@ -1,0 +1,33 @@
+/*
+ * Time series graphs (plugins/timeseries_graph_*.js) are drawn inside an
+ * element with this class.
+ */
+.nav-graph-container {
+    background-color: white;
+    border: 1px solid gainsboro;
+    padding: .5em;
+
+    // uPlot draws the title and the legend as HTML around the canvas
+    .u-title {
+        font-size: 1rem;
+        font-weight: normal;
+    }
+
+    // Foundation styles every table, which includes uPlot's legend
+    .u-legend {
+        background: none;
+        border: none;
+        margin: .25em auto 0;
+
+        tr,
+        tr:nth-of-type(even) {
+            background: none;
+        }
+
+        th,
+        td {
+            font-size: .875rem;
+            padding: 0 .25em;
+        }
+    }
+}

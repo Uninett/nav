@@ -114,6 +114,28 @@ define([
         });
     });
 
+    describe("formatValue", function () {
+        it("should join an SI prefix to the unit", function () {
+            assert.equal(plugin.formatValue(4200000, "bits/s"), "4.20 Mbits/s");
+        });
+
+        it("should put a space between a plain number and the unit", function () {
+            assert.equal(plugin.formatValue(12, "errors/s"), "12.00 errors/s");
+        });
+
+        it("should format zero", function () {
+            assert.equal(plugin.formatValue(0, "errors/s"), "0 errors/s");
+        });
+
+        it("should leave out a missing unit", function () {
+            assert.equal(plugin.formatValue(4200), "4.20 k");
+        });
+
+        it("should show a missing value as a dash", function () {
+            assert.equal(plugin.formatValue(null, "bits/s"), "–");
+        });
+    });
+
     describe("palette", function () {
         it("should contain eight hex colours", function () {
             assert.lengthOf(plugin.palette, 8);
