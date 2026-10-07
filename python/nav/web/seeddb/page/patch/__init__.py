@@ -23,6 +23,8 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_GET, require_POST
 
+from nav.auditlog.models import LogEntry
+from nav.web.auth.utils import get_account
 from nav.models.cabling import Patch, Cabling
 from nav.models.manage import Netbox, Interface, Room
 from nav.bulkparse import PatchBulkParser
@@ -181,10 +183,13 @@ def patch_save(request):
     _logger.debug('Creating patch for interface %s and cable %s', interface, cable)
 
     try:
-        Patch.objects.create(interface=interface, cabling=cable, split=split)
+        new_patch = Patch.objects.create(
+            interface=interface, cabling=cable, split=split
+        )
     except Exception as error:  # noqa: BLE001
         _logger.debug(error)
         return render_modal_alert(request, "Error creating patch", 'patch-modal')
+    LogEntry.add_create_entry(get_account(request), new_patch)
 
     updated_interface = Interface.objects.get(pk=interface.id)
     return resolve_modal(

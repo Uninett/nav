@@ -7,6 +7,7 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from django.utils.encoding import smart_str
+from nav.auditlog.models import LogEntry
 from nav.models.manage import Interface, Netbox, NetboxInfo, Room
 from nav.models.cabling import Cabling, Patch
 from nav.web.auth.utils import set_account
@@ -398,6 +399,37 @@ class TestRemovePatchView:
         response = client.post(url, data=data)
         assert f'tr data-interfaceid="{interface.pk}"' in smart_str(response.content)
         assert 'Add patch' in smart_str(response.content)
+
+
+class TestRoomEditAuditLog:
+    def test_given_new_room_it_should_log_creation(self, db, client):
+        client.post(reverse('seeddb-room-edit'), data=_room_post_data('newroom'))
+
+        assert LogEntry.objects.filter(verb='create-room', object_pk='newroom').exists()
+
+    def test_given_copied_room_it_should_log_creation(self, db, client):
+        url = reverse(
+            'seeddb-room-copy', kwargs={'action': 'copy', 'room_id': 'myroom'}
+        )
+        client.post(url, data=_room_post_data('copiedroom'))
+
+        assert LogEntry.objects.filter(
+            verb='create-room', object_pk='copiedroom'
+        ).exists()
+
+    def test_given_existing_room_it_should_not_log_creation(self, db, client):
+        url = reverse('seeddb-room-edit', args=('myroom',))
+        client.post(url, data=_room_post_data('myroom'))
+
+        assert not LogEntry.objects.filter(verb='create-room').exists()
+
+
+def _room_post_data(room_id):
+    return {
+        'id': room_id,
+        'location': Room.objects.get(id='myroom').location_id,
+        'description': 'Audit log test room',
+    }
 
 
 @pytest.fixture

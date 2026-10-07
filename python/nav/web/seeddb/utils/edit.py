@@ -31,6 +31,8 @@ from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.urls import reverse, NoReverseMatch
 
+from nav.auditlog.models import LogEntry
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
 
@@ -62,6 +64,7 @@ def render_edit(
     original_pk = getattr(obj, 'pk', None)
     if action == 'copy' and original_pk:
         obj.pk = None
+    is_new = not getattr(obj, 'pk', None)
     if request.method == 'POST':
         form = form_model(request.POST, instance=obj)
         if form.is_valid():
@@ -80,6 +83,8 @@ def render_edit(
             else:
                 obj = form.save()
 
+            if is_new:
+                LogEntry.add_create_entry(get_account(request), obj)
             new_message(request, "Saved %s %s" % (verbose_name, obj), Messages.SUCCESS)
             try:
                 return HttpResponseRedirect(reverse(redirect, args=(obj.pk,)))
