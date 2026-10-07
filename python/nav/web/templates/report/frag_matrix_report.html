@@ -1,5 +1,25 @@
 {% load report %}
 
+{% partialdef cell_popover %}
+  <div class="matrix-popover">
+    <h5>{{ usage.prefix }}</h5>
+    <p>
+      {% if ipv4 %}
+        Active IPs: {{ usage.active_addresses }} (of max {{ usage.max_hosts }})<br>
+        Usage: {{ usage.usage|floatformat:1 }}%<br>
+      {% else %}
+        Active IPs: {{ usage.active_addresses }}<br>
+      {% endif %}
+      {% if usage.vlan_id %}VLAN: {{ usage.vlan_id }}<br>{% endif %}
+      {% if usage.net_ident %}netident: {{ usage.net_ident }}<br>{% endif %}
+    </p>
+    <a href="{{ usage.url_machinetracker }}" title="View active addresses in MachineTracker">View active addresses</a><br>
+    <a href="{{ usage.url_report }}" title="View report for {{ usage.prefix }}">View report</a><br>
+    <a href="{{ usage.url_vlan }}" title="View vlan info for related vlan">View vlan info</a>
+    <div class="usage-sparkline" data-sparkline-url="{{ sparkline_url }}">&nbsp;</div>
+  </div>
+{% endpartialdef cell_popover %}
+
 <h3>Subnet matrix for {{ matrix.start_net.strCompressed }}</h3>
 
 <p class="panel">
@@ -75,7 +95,6 @@
                   rowspan="{{ cell.rowspan }}"
                   class="has-data"
                   {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
-                  {% if cell.dataurl %}data-url="{{ cell.dataurl }}"{% endif %}
               >
                 <div id="cell-tooltip-{{ cell.prefixid }}" class="popover with-arrow" data-side="bottom">
                     <span
@@ -95,7 +114,14 @@
                           {% endif %}
                         {% endif %}
                     </span>
-                    {% if cell.netaddr %}
+                    {% if cell.netaddr and cell.prefixid %}
+                        <div class="popover-content"
+                             hx-get="{% url 'report-matrix-popover' cell.prefixid %}"
+                             hx-trigger="click from:previous .popover-trigger once"
+                             hx-on::send-error="this.innerHTML='<i class=&quot;fa fa-exclamation-triangle&quot;></i> Error fetching data'"
+                             hx-on::response-error="this.innerHTML='<i class=&quot;fa fa-exclamation-triangle&quot;></i> Error fetching data'"
+                        ><i class="fa fa-spinner fa-spin"></i> Fetching...</div>
+                    {% elif cell.netaddr %}
                         <div class="popover-content"></div>
                     {% endif %}
                 </div>

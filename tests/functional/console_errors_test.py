@@ -56,6 +56,7 @@ PAGES = [
     ("alertprofiles", "/alertprofiles/"),
     ("radius", "/radius/"),
     ("report", "/report/"),
+    ("subnet_matrix", "/report/matrix"),
     ("networkexplorer", "/networkexplorer/"),
     ("arnold", "/arnold/"),
 ]

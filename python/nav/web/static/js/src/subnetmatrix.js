@@ -1,4 +1,4 @@
-require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
+require(['plugins/d3_sparkline'], function(d3Sparkline) {
 
     function UsageFetcher(container) {
         this.page_size = 10;  // Results per query
@@ -12,31 +12,6 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
             10: 'usage-low',
             0: ' usage-vlow'
         };
-        this.popoverTemplateV4 = _.template(
-            '<h5><%= heading %></h5>' +
-                '<p>Active IPs: <%= active %> (of max <%= max %>)<br>' +
-                'Usage: <%= usage %>%<br>' +
-                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
-                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
-                '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
-                '<%= linktext_machinetracker %></a><br>' +
-                '<a href="<%= url_report %>" title="<%= title_report %>">' +
-                '<%= linktext_report %></a><br>' +
-                '<a href="<%= url_vlan %>" title="<%= title_vlan %>">' +
-                '<%= linktext_vlan %></a>'
-        );
-        this.popoverTemplateV6 = _.template(
-            '<h5><%= heading %></h5>' +
-                '<p>Active IPs: <%= active %><br>' +
-                '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
-                '<% if (net_ident) { %>netident: <%= net_ident %><br><% } %></p>' +
-                '<a href="<%= url_machinetracker %>" title="<%= title_machinetracker %>">' +
-                '<%= linktext_machinetracker %></a><br>' +
-                '<a href="<%= url_report %>" title="<%= title_report %>">' +
-                '<%= linktext_report %></a><br>' +
-                '<a href="<%= url_vlan %>" title="<%= title_vlan %>">' +
-                '<%= linktext_vlan %></a>'
-        );
     }
 
     UsageFetcher.prototype = {
@@ -89,12 +64,10 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
                 const triggerElement = $element.find('[aria-haspopup]');
                 triggerElement.append(this.usageString(result));
             }
-            this.createPopoverText($element, this.popoverTemplateV4, result);
         },
 
         modifyV6Cell: function($element, result) {
             $element.attr('style', 'background-color: ' + this.getIpv6Color(result));
-            this.createPopoverText($element, this.popoverTemplateV6, result);
         },
 
 
@@ -118,29 +91,6 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
             }
 
             return 'subnet-other';
-        },
-
-
-        createPopoverText: function($element, template, data) {
-            var text = template({
-                heading: data.prefix,
-                active: data.active_addresses,
-                max: data.max_hosts,
-                usage: data.usage.toFixed(1),
-                url_machinetracker: data.url_machinetracker,
-                net_ident: data.net_ident,
-                vlan_id: data.vlan_id,
-                title_machinetracker: "View active addresses in MachineTracker",
-                linktext_machinetracker: "View active addresses",
-                url_report: data.url_report,
-                title_report: "View report for " + data.prefix,
-                linktext_report: "View report",
-                url_vlan: data.url_vlan,
-                title_vlan: "View vlan info for related vlan",
-                linktext_vlan: "View vlan info"
-            });
-            const popoverContent = $element.find('.popover-content');
-            popoverContent.html(text);
         },
 
 
@@ -183,11 +133,19 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
     PopoverHandler.prototype = {
         addListeners: function() {
             const self = this;
-            // When a cell is clicked, adjust the popover position and add sparkline if needed
+            // When a cell is clicked, adjust the popover position
             this.container.on('click', function(event) {
                 const $cell = event.target.nodeName === 'TD' ? $(event.target) : $(event.target).closest('td');
                 self.adjustPopoverPosition($cell);
-                self.addSparkline($cell);
+            });
+            // When htmx has loaded the popover content, draw the sparkline and
+            // adjust the position again, as the size of the content has changed
+            htmx.onLoad(function(element) {
+                $(element).find('[data-sparkline-url]').each(function() {
+                    const $sparkline = $(this);
+                    self.addSparkline($sparkline);
+                    self.adjustPopoverPosition($sparkline.closest('td'));
+                });
             });
         },
 
@@ -198,6 +156,9 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
         adjustPopoverPosition: function (cell) {
             const popover = cell.find('.popover');
             const popoverContent = cell.find('.popover-content');
+            if (!popoverContent.length) {
+                return;
+            }
             const rect = popoverContent[0].getBoundingClientRect();
             if (rect.right > window.innerWidth) {
               popover[0].dataset.align = "end";
@@ -205,37 +166,27 @@ require(['underscore', 'plugins/d3_sparkline'], function(_, d3Sparkline) {
         },
 
         /**
-         * Add sparklines to popovers.
+         * Draw a sparkline in the container, using the Graphite data from its URL
          */
-        addSparkline: function($target) {
+        addSparkline: function($sparkline) {
             const self = this;
-            const $popoverContent = $target.find('.popover-content').first();
+            const request = $.getJSON($sparkline.data('sparkline-url'));
 
-            if ($popoverContent.find('.usage-sparkline').length === 0) {
-                var request = $.getJSON($target.data('url'));
-                var sparkContainer = $('<div class="usage-sparkline">&nbsp;</div>');
-                sparkContainer.appendTo($popoverContent);
+            request.done(function(response) {
+                if (response.length > 0) {
+                    const dataPoints = response[0].datapoints.map(point => [point[1], point[0]]);
+                    d3Sparkline.line($sparkline, dataPoints, {
+                        tooltipFormatter: self.formatter,
+                        width: '100%'
+                    });
+                } else {
+                    $sparkline.text('No data from Graphite');
+                }
+            });
 
-                request.done(function(response) {
-                    if (response.length > 0) {
-                        var data = response[0],
-                            dataPoints = data.datapoints.map(function(point) {
-                                return [point[1], point[0]];
-                            });
-
-                        d3Sparkline.line(sparkContainer, dataPoints, {
-                            tooltipFormatter: self.formatter,
-                            width: '100%'
-                        });
-                    } else {
-                        sparkContainer.html('No data from Graphite');
-                    }
-                });
-
-                request.fail(function() {
-                    sparkContainer.html('Error fetching data from Graphite');
-                });
-            }
+            request.fail(function() {
+                $sparkline.text('Error fetching data from Graphite');
+            });
         },
 
         /**

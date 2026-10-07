@@ -37,6 +37,7 @@ dependencies = [
     "django-filter>=2",
     "djangorestframework>=3.14",
     "django-htmx",
+    "django-template-partials",
     "django-allauth[mfa,socialaccount]",
 
     "iso8601",

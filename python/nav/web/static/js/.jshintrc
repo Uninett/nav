@@ -10,6 +10,7 @@
         "buster",
         "$",
         "jQuery",
+        "htmx",
         "d3",
         "OpenLayers",
         "Proj4js",
