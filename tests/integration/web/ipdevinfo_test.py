@@ -4,12 +4,14 @@ import re
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
+from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
 from nav.event2 import EventFactory
 from nav.models.event import EventQueue
 from nav.models.manage import (
+    AdjacencyCandidate,
     Netbox,
     Module,
     Interface,
@@ -433,3 +435,86 @@ class TestPortDetailsTopology:
         assert '(Down)' in content
         assert '<del>xe-0/2/3</del>' in content  # the down physical member
         assert '<del>xe-0/2/2</del>' not in content  # the up physical is not struck
+
+
+class TestClearPortTopology:
+    def test_when_port_is_down_then_it_should_clear_neighbor_and_candidates(
+        self, client, down_port_with_neighbor
+    ):
+        response = client.post(_clear_topology_url(down_port_with_neighbor))
+        assert response.status_code == 200
+        down_port_with_neighbor.refresh_from_db()
+        assert down_port_with_neighbor.to_netbox is None
+        assert down_port_with_neighbor.to_interface is None
+        assert not AdjacencyCandidate.objects.filter(
+            interface=down_port_with_neighbor
+        ).exists()
+
+    def test_when_port_is_up_then_it_should_be_rejected(
+        self, client, netbox_factory, interface_factory
+    ):
+        peer = netbox_factory("peer.example.org", "10.6.0.2")
+        remote = interface_factory(peer, "Gi0/2", 1)
+        box = netbox_factory("sw.example.org", "10.6.0.1")
+        port = interface_factory(box, "Gi1/0/1", 1, to_interface=remote)
+
+        response = client.post(_clear_topology_url(port))
+        assert response.status_code == 400
+        port.refresh_from_db()
+        assert port.to_interface == remote
+
+    def test_when_user_is_not_admin_then_it_should_be_forbidden(
+        self, non_admin_client, down_port_with_neighbor
+    ):
+        response = non_admin_client.post(_clear_topology_url(down_port_with_neighbor))
+        assert response.status_code == 403
+        down_port_with_neighbor.refresh_from_db()
+        assert down_port_with_neighbor.to_netbox is not None
+
+    def test_get_should_not_be_allowed(self, client, down_port_with_neighbor):
+        response = client.get(_clear_topology_url(down_port_with_neighbor))
+        assert response.status_code == 405
+
+    def test_when_admin_views_down_port_with_neighbor_then_button_should_be_shown(
+        self, client, down_port_with_neighbor
+    ):
+        response = client.get(_interface_details_url(down_port_with_neighbor))
+        assert _clear_topology_url(down_port_with_neighbor) in smart_str(
+            response.content
+        )
+
+    def test_when_non_admin_views_down_port_then_button_should_not_be_shown(
+        self, non_admin_client, down_port_with_neighbor
+    ):
+        response = non_admin_client.get(_interface_details_url(down_port_with_neighbor))
+        assert response.status_code == 200
+        assert _clear_topology_url(down_port_with_neighbor) not in smart_str(
+            response.content
+        )
+
+
+def _clear_topology_url(interface):
+    return reverse('ipdevinfo-clear-port-topology', args=[interface.id])
+
+
+@pytest.fixture
+def down_port_with_neighbor(netbox_factory, interface_factory):
+    peer = netbox_factory("moved.example.org", "10.7.0.2")
+    remote = interface_factory(peer, "Gi0/2", 1)
+    box = netbox_factory("old-uplink.example.org", "10.7.0.1")
+    port = interface_factory(box, "Gi1/0/1", 1, oper_up=False, to_interface=remote)
+    AdjacencyCandidate.objects.create(
+        netbox=box,
+        interface=port,
+        to_netbox=peer,
+        to_interface=remote,
+        source='lldp',
+    )
+    return port
+
+
+@pytest.fixture
+def non_admin_client(non_admin_account, log_in):
+    client_ = Client()
+    log_in(client_, non_admin_account.login, 'password')
+    return client_

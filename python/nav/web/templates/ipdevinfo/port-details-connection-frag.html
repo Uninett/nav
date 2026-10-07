@@ -26,6 +26,14 @@
           {% endif %}
         </figure>
       {% endwith %}
+      {% if request.user.is_admin and port.to_netbox and not port.is_oper_up %}
+        <button class="button tiny secondary"
+                hx-post="{% url 'ipdevinfo-clear-port-topology' port.id %}"
+                hx-confirm="Remove neighbor information from {{ port }}? It will be restored only if new neighbor data is collected."
+                title="Remove neighbor information from this inoperative port">
+          Clear topology
+        </button>
+      {% endif %}
     </td>
   </tr>
 
