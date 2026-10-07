@@ -25,6 +25,8 @@ from django.utils.html import format_html, mark_safe
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
 from nav.bulkimport import ManagementProfileImporter
+from nav.auditlog.models import LogEntry
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb import SeeddbInfo
@@ -150,6 +152,8 @@ def management_profile_edit(request, management_profile_id=None):
             )
             if protocol_form.is_valid():
                 profile = form.save()
+                if not management_profile_id:
+                    LogEntry.add_create_entry(get_account(request), profile)
 
                 new_message(
                     request, "Saved %s %s" % (verbose_name, profile), Messages.SUCCESS
