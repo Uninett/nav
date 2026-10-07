@@ -505,7 +505,7 @@ class TestImportDashboardViews:
         file_obj.name = name
         return file_obj
 
-    def test_should_render_import_dashboard_modal(self, client):
+    def test_when_calling_view_then_should_render_import_dashboard_modal(self, client):
         """
         Tests that calling the import_dashboard_modal view will return a fragment
         with a form to import a dashboard
@@ -782,7 +782,9 @@ class TestExportDashboardView:
 
         assert response.status_code == 404
 
-    def test_exported_file_should_have_correct_headers(self, db, client, admin_account):
+    def test_when_exporting_dashboard_then_file_should_have_correct_headers(
+        self, db, client, admin_account
+    ):
         """Tests that the exported file has the correct headers"""
         dashboard = create_dashboard(admin_account, name="My Dashboard")
         create_widget(dashboard)
@@ -994,7 +996,7 @@ class TestGetDashboardsForAccount:
 
 
 class TestDashboardSearchViews:
-    def test_should_render_search_dashboard_modal(self, client):
+    def test_when_calling_view_then_should_render_search_dashboard_modal(self, client):
         """
         Tests that calling the search_dashboard_modal view will return a fragment
         with a form to search dashboards
@@ -1168,7 +1170,7 @@ class TestSaveDashboardColumns:
 
         assert response.status_code == 400
 
-    def test_response_should_contain_nav_dashboard_reload_event(
+    def test_when_saving_dashboard_then_response_should_contain_dashboard_reload_event(
         self, db, client, admin_account
     ):
         """Tests that response triggers client event for dashboard reload"""
@@ -1255,7 +1257,7 @@ class TestLoadDashboardView:
         assert response.context['has_navlets'] is False
         assert "no-widgets-message" in smart_str(response.content)
 
-    def test_dashboard_load_should_contain_correct_number_of_columns(
+    def test_when_loading_dashboard_then_should_contain_correct_number_of_columns(
         self, db, client, admin_account
     ):
         """Tests that the loaded dashboard contains the correct number of columns"""
