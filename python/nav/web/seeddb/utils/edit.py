@@ -31,6 +31,8 @@ from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.urls import reverse, NoReverseMatch
 
+from nav.auditlog.models import LogEntry
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
 
@@ -80,6 +82,11 @@ def render_edit(
             else:
                 obj = form.save()
 
+            # Changed pk means the object is new,
+            # copied or has had its primary-key changed.
+            # This needs to be logged in the Audit log.
+            if obj.pk != original_pk:
+                LogEntry.add_create_entry(get_account(request), obj)
             new_message(request, "Saved %s %s" % (verbose_name, obj), Messages.SUCCESS)
             try:
                 return HttpResponseRedirect(reverse(redirect, args=(obj.pk,)))
