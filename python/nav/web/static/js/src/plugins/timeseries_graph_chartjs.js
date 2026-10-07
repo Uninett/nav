@@ -132,7 +132,10 @@ define(function (require) {
                     },
                     zoom: {
                         zoom: {drag: {enabled: true}, mode: 'x'},
-                        pan: {enabled: true, mode: 'x'}
+                        // Shift-drag pans, because a plain drag zooms. Panning needs Hammer.js.
+                        pan: {enabled: true, mode: 'x', modifierKey: 'shift'},
+                        // Stops panning outside the data
+                        limits: {x: {min: 'original', max: 'original'}},
                     },
                 },
             },

@@ -43,7 +43,7 @@ var require = {
         '*': {
             'chart.js': 'chartjs',
             'chart.js/helpers': 'plugins/chartjs-helpers',
-            'hammerjs': 'plugins/hammerjs-stub'
+            'hammerjs': 'libs/hammer-2.0.8.min'
         }
     },
     shim: {
