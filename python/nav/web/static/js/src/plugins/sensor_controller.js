@@ -4,6 +4,7 @@ define(function(require) {
     var CounterDisplay = require("plugins/counterdisplay");
     var JohnGauge = require("plugins/gauge");
     var Rickshaw = require("libs/rickshaw.min");
+    const GraphlibSwitch = require("plugins/graphlib_switch");
     var _handlebars = require("handlebars");
 
     function SensorController($node, templates) {
@@ -41,6 +42,8 @@ define(function(require) {
         this.graphYnode = $html.find('.rs-ynode');
         this.currentNode = $html.find('.current');
         this.sliderNode = $html.find('.rs-slidernode');
+        // Spike only: holds the graphs that ?graphlib= chooses
+        this.graphlibNode = $('<div>').insertAfter($html.find('.rs-graph')).get(0);
 
         this.addDashboardListener($html);
 
@@ -105,7 +108,7 @@ define(function(require) {
 
                     self.updateCurrent(last);
                     if (self.showGraph) {
-                        self.updateGraph(datapoints);
+                        self.updateGraph(datapoints, data);
                     }
                 }
             });
@@ -132,7 +135,13 @@ define(function(require) {
                 return new CounterDisplay(this.counterTemplate, this.currentNode.prop('id'), 9999, this.unit);
             }
         },
-        updateGraph: function (values) {
+        updateGraph: function (values, data) {
+            // Spike only: draws the graphs that ?graphlib= chooses
+            const drawRickshaw = GraphlibSwitch.drawCompactGraphs(this.graphlibNode, data, this.url, 'auto');
+            this.graphNode.parent().toggle(drawRickshaw);
+            if (!drawRickshaw) {
+                return;
+            }
             if (!this.graph) {
                 this.graph = this.createGraph();
             }

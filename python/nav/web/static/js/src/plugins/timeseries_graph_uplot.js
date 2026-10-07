@@ -1,7 +1,7 @@
 /*
  * A time series graph of Graphite render data, drawn with uPlot.
  *
- *   new TimeSeriesGraph(container, data, url, minValue)
+ *   new TimeSeriesGraph(container, data, url, minValue, options)
  *
  * - container: the element to draw in. A graph that is already there is
  *   destroyed first, so the same container can be drawn into again.
@@ -9,6 +9,8 @@
  * - url: the URL the data came from. Its "title" and "vtitle" (unit)
  *   parameters are used unless the container has data-title or data-unit.
  * - minValue: undefined to start the Y axis at 0, or 'auto' to fit the data.
+ * - options: {compact: true} for a small graph, such as a sensor graph:
+ *   lower, with no Y axis label and no zoom.
  *
  * Returns {uplot, destroy()}.
  */
@@ -21,6 +23,7 @@ define(function (require) {
     const GraphUtils = require('graph-utils');
 
     const HEIGHT = 200;
+    const COMPACT_HEIGHT = 150;
 
     /*
      * Time axis labels with a 24-hour clock. Each row is: tick step in
@@ -89,7 +92,7 @@ define(function (require) {
                 frame = null;
                 const width = contentWidth(container);
                 if (width !== plot.width) {
-                    plot.setSize({width: width, height: HEIGHT});
+                    plot.setSize({width: width, height: plot.height});
                 }
             });
         });
@@ -102,7 +105,7 @@ define(function (require) {
         };
     }
 
-    function TimeSeriesGraph(container, data, url, minValue) {
+    function TimeSeriesGraph(container, data, url, minValue, options = {}) {
         container._navGraph?.destroy();
         container.replaceChildren();
 
@@ -112,9 +115,10 @@ define(function (require) {
         const series = data.map((graphiteSeries, index) =>
             createSeries(graphiteSeries.target, index, unit));
 
+        const compact = Boolean(options.compact);
         const plot = new UPlot({
             width: contentWidth(container),
-            height: HEIGHT,
+            height: compact ? COMPACT_HEIGHT : HEIGHT,
             title: title,
             series: [{value: '{YYYY}-{MM}-{DD} {HH}:{mm}'}, ...series],
             scales: {
@@ -124,8 +128,10 @@ define(function (require) {
             axes: [
                 {values: TIME_AXIS_VALUES},
                 {
-                    label: unit,
-                    size: 60,
+                    label: compact ? undefined : unit,
+                    size: compact ? 40 : 60,
+                    // Smallest gap between Y ticks in pixels, so a compact graph gets more than two
+                    space: compact ? 20 : 30,
                     values: (self, splits) => splits.map(GraphUtils.formatKMGT),
                 },
             ],
@@ -133,7 +139,7 @@ define(function (require) {
             focus: {alpha: 0.3},
             cursor: {
                 focus: {prox: 16},
-                drag: {x: true, y: false},
+                drag: {x: !compact, y: false},
             },
         }, GraphUtils.toColumnar(data), container);
 

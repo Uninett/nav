@@ -1,7 +1,7 @@
 /*
  * A time series graph of Graphite render data, drawn with Chart.js.
  *
- *   new TimeSeriesGraph(container, data, url, minValue)
+ *   new TimeSeriesGraph(container, data, url, minValue, options)
  *
  * - container: the element to draw in. A graph that is already there is
  *   destroyed first, so the same container can be drawn into again.
@@ -9,6 +9,8 @@
  * - url: the URL the data came from. Its "title" and "vtitle" (unit)
  *   parameters are used unless the container has data-title or data-unit.
  * - minValue: undefined to start the Y axis at 0, or 'auto' to fit the data.
+ * - options: {compact: true} for a small graph, such as a sensor graph:
+ *   lower, with no legend, no Y axis title and no zoom.
  *
  * Returns {chart, destroy()}.
  */
@@ -23,6 +25,7 @@ define(function (require) {
     // The legend is drawn inside the canvas, so this is taller than the
     // uPlot graph to give the plot itself about the same height
     const HEIGHT = 230;
+    const COMPACT_HEIGHT = 150;
 
 
     function createDataset(series, index) {
@@ -67,7 +70,7 @@ define(function (require) {
     }
 
 
-    function TimeSeriesGraph(container, data, url, minValue) {
+    function TimeSeriesGraph(container, data, url, minValue, options = {}) {
         container._navGraph?.destroy();
         container.replaceChildren();
 
@@ -75,11 +78,12 @@ define(function (require) {
         const title = container.dataset.title || params.title || '';
         const unit = container.dataset.unit || params.vtitle || '';
         const datasets = data.map(createDataset);
+        const compact = Boolean(options.compact);
 
         // Chart.js sizes the canvas to its parent, which must have its own size
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
-        wrapper.style.height = `${HEIGHT}px`;
+        wrapper.style.height = `${compact ? COMPACT_HEIGHT : HEIGHT}px`;
         const canvas = document.createElement('canvas');
         wrapper.appendChild(canvas);
         container.appendChild(wrapper);
@@ -103,18 +107,20 @@ define(function (require) {
                                 month: 'MMM YYYY',
                             },
                         },
-                        ticks: {maxRotation: 0},
+                        // Leaves room between the labels, which can touch in narrow graphs
+                        ticks: {maxRotation: 0, autoSkipPadding: 20},
                     },
                     y: {
                         min: minValue === 'auto' ? undefined : 0,
                         grace: '5%',
-                        title: {display: Boolean(unit), text: unit},
+                        title: {display: Boolean(unit) && !compact, text: unit},
                         ticks: {callback: GraphUtils.formatKMGT},
                     },
                 },
                 plugins: {
                     title: {display: Boolean(title), text: title},
                     legend: {
+                        display: !compact,
                         position: 'bottom',
                         onHover: (event, item, legend) => highlightDataset(legend.chart, item.datasetIndex),
                         onLeave: (event, item, legend) => highlightDataset(legend.chart, null),
@@ -126,6 +132,7 @@ define(function (require) {
                     },
                     zoom: {
                         zoom: {drag: {enabled: true}, mode: 'x'},
+                        pan: {enabled: true, mode: 'x'}
                     },
                 },
             },

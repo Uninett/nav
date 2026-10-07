@@ -6,6 +6,9 @@
  * - no graphlib parameter: Rickshaw, as before
  * - ?graphlib=uplot or ?graphlib=chartjs: that library only
  * - ?graphlib=all: all three side by side
+ *
+ * The sensor graphs draw Rickshaw with their own code, so they use
+ * drawCompactGraphs instead of drawGraph.
  */
 define(function (require) {
 
@@ -30,9 +33,10 @@ define(function (require) {
 
     /**
      * Replaces the content of the container with one labelled box per
-     * library, side by side. Returns the boxes by library key.
+     * library, side by side, or stacked if direction is 'column'. Returns
+     * the boxes by library key.
      */
-    function createBoxes(container, libraries) {
+    function createBoxes(container, libraries, direction = 'row') {
         const boxes = {};
         const columns = libraries.map(key => {
             const column = document.createElement('div');
@@ -58,6 +62,7 @@ define(function (require) {
         // The container is no longer a graph itself, only a row of graphs
         container.className = '';
         container.style.display = 'flex';
+        container.style.flexDirection = direction;
         container.style.gap = '1em';
         container.replaceChildren(...columns);
         return boxes;
@@ -81,6 +86,24 @@ define(function (require) {
         return graphs[0];
     }
 
-    return {drawGraph};
+    /**
+     * Draws a compact graph with each chosen library except Rickshaw,
+     * stacked in the container. Returns true if the caller should draw its
+     * own Rickshaw graph too.
+     */
+    function drawCompactGraphs(container, data, url, minValue) {
+        const libraries = chosenLibraries();
+        const others = libraries.filter(key => key !== 'rickshaw');
+        if (others.length > 0) {
+            if (!container._graphlibBoxes) {
+                container._graphlibBoxes = createBoxes(container, others, 'column');
+            }
+            others.forEach(key => new LIBRARIES[key].Graph(
+                container._graphlibBoxes[key], data, url, minValue, {compact: true}));
+        }
+        return libraries.length === 0 || libraries.includes('rickshaw');
+    }
+
+    return {drawGraph, drawCompactGraphs};
 
 });
