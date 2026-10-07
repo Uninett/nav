@@ -29,7 +29,7 @@ from nav.web.auth.sudo import get_sudoer
 from nav.web.auth.utils import get_account
 from nav.web.message import Messages
 from nav.web.webfront.utils import (
-    get_password_issues,
+    get_banner_warnings,
     quick_read,
     split_tools,
     tool_list,
@@ -90,7 +90,7 @@ def account_processor(request):
         'my_links': my_links,
         'tools': tools,
         'split_tools': split_tools(tools),
-        'password_issues': get_password_issues(account),
+        'banner_warnings': get_banner_warnings(account),
     }
     return {
         'current_user_data': current_user_data,
