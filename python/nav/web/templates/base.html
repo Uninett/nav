@@ -182,10 +182,12 @@
 {% endif %}
 
 {% for banner_warning in current_user_data.banner_warnings %}
-    <div id="warning-banner" class="info-bar">
+    <div id="warnings-banner" class="info-bar">
         <img src="{{ STATIC_URL }}images/main/emblem-important.png"/>
         {{ banner_warning.message }}
-        <a href="{{ banner_warning.link }}">{{ banner_warning.link_message }}</a>
+        {% if banner_warning.link %}
+          <a href="{{ banner_warning.link }}">{{ banner_warning.link_message }}</a>
+        {% endif %}
     </div>
 {% endfor %}
 
