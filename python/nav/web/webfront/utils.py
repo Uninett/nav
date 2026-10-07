@@ -16,18 +16,20 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import io
+import logging
 import os
 from datetime import datetime
-import logging
 
 from django.db.models import Q
+from django.urls import reverse
 
 from nav.config import get_config_locations
-from nav.web import webfrontConfig
-from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
-from nav.models.profiles import AccountTool
+from nav.models.msgmaint import Message
+from nav.models.profiles import Account, AccountTool
+from nav.web import webfrontConfig
+from nav.web.auth.utils import get_number_of_accounts_with_password_issues
 
 _logger = logging.getLogger('nav.web.tools.utils')
 
@@ -163,3 +165,27 @@ def split_tools(tools, parts=3):
         columns.append(tools[first_index:last_index])
         first_index += tools_in_this_column
     return columns
+
+
+def get_password_issues(account: Account):
+    password_issues = dict()
+    if account.has_password_issues():
+        password_issues["message"] = (
+            "Your account has an insecure or old password. It should be reset."
+        )
+        password_issues["link"] = reverse("webfront-preferences")
+        password_issues["link_message"] = "Change your password here."
+    else:
+        if account.is_staff:
+            number_accounts_with_password_issues = (
+                get_number_of_accounts_with_password_issues()
+            )
+            if number_accounts_with_password_issues > 0:
+                password_issues["message"] = (
+                    f"There are {number_accounts_with_password_issues} accounts that "
+                    "have insecure or old passwords."
+                )
+                password_issues["link"] = reverse("useradmin")
+                password_issues["link_message"] = "See which users are affected here."
+
+    return password_issues

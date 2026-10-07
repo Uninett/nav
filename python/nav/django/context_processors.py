@@ -22,15 +22,18 @@ import os
 from operator import attrgetter
 
 from django.conf import settings
-from django.urls import reverse
 
 from nav.config import find_config_file
 from nav.web.auth import get_login_url, get_logout_url
 from nav.web.auth.sudo import get_sudoer
 from nav.web.auth.utils import get_account
-from nav.web.auth.utils import get_number_of_accounts_with_password_issues
 from nav.web.message import Messages
-from nav.web.webfront.utils import tool_list, quick_read, split_tools
+from nav.web.webfront.utils import (
+    get_password_issues,
+    quick_read,
+    split_tools,
+    tool_list,
+)
 from nav.models.profiles import NavbarLink
 from nav.buildconf import VERSION
 from nav.metrics import CONFIG
@@ -79,26 +82,6 @@ def account_processor(request):
 
     tools = sorted(tool_list(account), key=attrgetter('name'))
 
-    password_issues = dict()
-    if account.has_password_issues():
-        password_issues["message"] = (
-            "Your account has an insecure or old password. It should be reset."
-        )
-        password_issues["link"] = reverse("webfront-preferences")
-        password_issues["link_message"] = "Change your password here."
-    else:
-        if admin:
-            number_accounts_with_password_issues = (
-                get_number_of_accounts_with_password_issues()
-            )
-            if number_accounts_with_password_issues > 0:
-                password_issues["message"] = (
-                    f"There are {number_accounts_with_password_issues} accounts that "
-                    "have insecure or old passwords."
-                )
-                password_issues["link"] = reverse("useradmin")
-                password_issues["link_message"] = "See which users are affected here."
-
     current_user_data = {
         'account': account,
         'is_admin': admin,
@@ -107,7 +90,7 @@ def account_processor(request):
         'my_links': my_links,
         'tools': tools,
         'split_tools': split_tools(tools),
-        'password_issues': password_issues,
+        'password_issues': get_password_issues(account),
     }
     return {
         'current_user_data': current_user_data,
