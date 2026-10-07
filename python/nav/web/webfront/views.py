@@ -572,6 +572,8 @@ def set_default_dashboard(request, did):
 def add_dashboard(request):
     """Add a new dashboard to this user"""
     name = request.POST.get('dashboard-name', 'New dashboard')
+    if not name:
+        return JsonResponse({'error': 'Dashboard name must not be empty'}, status=400)
     account = get_account(request)
     dashboard = AccountDashboard(account=account, name=name)
     dashboard.save()
@@ -620,7 +622,10 @@ def rename_dashboard(request, did):
     """Rename this dashboard"""
     account = get_account(request)
     dash = get_object_or_404(AccountDashboard, pk=did, account=account)
-    dash.name = request.POST.get('dashboard-name', dash.name)
+    name = request.POST.get('dashboard-name', dash.name)
+    if not name:
+        return HttpResponse('Dashboard name must not be empty', status=400)
+    dash.name = name
     dash.save()
     return HttpResponse('Dashboard renamed to «{}»'.format(dash.name))
 
