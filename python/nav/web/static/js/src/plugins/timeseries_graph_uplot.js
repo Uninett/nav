@@ -40,7 +40,7 @@ define(function (require) {
         [1, '{HH}:{mm}:{ss}', '\n{D} {MMM} {YYYY}', null, '\n{D} {MMM}', null, null, null, 1],
     ];
 
-    function createSeries(target, index, unit) {
+    function createSeries(target, index, unit, columns) {
         const {name, meta} = GraphUtils.parseSeriesMeta(target);
         const color = meta.color || GraphUtils.palette[index % GraphUtils.palette.length];
         return {
@@ -48,8 +48,42 @@ define(function (require) {
             stroke: color,
             fill: meta.renderer === 'area' ? GraphUtils.withAlpha(color, 0.3) : undefined,
             width: 1.5,
-            value: (self, value) => GraphUtils.formatValue(value, unit),
+            // The plotted values of stacked areas are sums, so show the original value
+            value: (self, value, seriesIndex, dataIndex) =>
+                GraphUtils.formatValue(columns[seriesIndex][dataIndex] ?? null, unit),
         };
+    }
+
+
+    /**
+     * Stacks the area series on each other, as Rickshaw does, and returns
+     * the columns to plot. Line series are not stacked. A hidden area adds
+     * nothing to the stack but keeps its place, so the bands stay valid.
+     */
+    function stackAreas(columns, isArea, shown) {
+        const base = columns[0].map(() => 0);
+        return columns.map((column, index) => {
+            if (index === 0 || !isArea[index]) {
+                return column;
+            }
+            return column.map((value, i) => {
+                if (!shown[index]) {
+                    return base[i];
+                }
+                if (value === null) {
+                    return null;
+                }
+                base[i] += value;
+                return base[i];
+            });
+        });
+    }
+
+
+    /** Fills the space between each stacked area and the area below it */
+    function bandsBetweenAreas(isArea) {
+        const areas = isArea.flatMap((area, index) => area ? [index] : []);
+        return areas.slice(1).map((index, i) => ({series: [index, areas[i]]}));
     }
 
 
@@ -112,8 +146,10 @@ define(function (require) {
         const params = new URI(url).query(true);
         const title = container.dataset.title || params.title || '';
         const unit = container.dataset.unit || params.vtitle || '';
+        const columns = GraphUtils.toColumnar(data);
         const series = data.map((graphiteSeries, index) =>
-            createSeries(graphiteSeries.target, index, unit));
+            createSeries(graphiteSeries.target, index, unit, columns));
+        const isArea = [false, ...data.map(s => GraphUtils.parseSeriesMeta(s.target).meta.renderer === 'area')];
 
         const compact = Boolean(options.compact);
         const plot = new UPlot({
@@ -121,6 +157,7 @@ define(function (require) {
             height: compact ? COMPACT_HEIGHT : HEIGHT,
             title: title,
             series: [{value: '{YYYY}-{MM}-{DD} {HH}:{mm}'}, ...series],
+            bands: bandsBetweenAreas(isArea),
             scales: {
                 x: {time: true},
                 y: minValue === 'auto' ? {} : {range: rangeFromZero},
@@ -141,7 +178,18 @@ define(function (require) {
                 focus: {prox: 16},
                 drag: {x: !compact, y: false},
             },
-        }, GraphUtils.toColumnar(data), container);
+            hooks: {
+                // Stacks the areas again when a series is shown or hidden.
+                // Setting the X scale again keeps the zoom and fits the Y axis.
+                setSeries: [(self, seriesIndex, opts) => {
+                    if ('show' in opts) {
+                        const {min, max} = self.scales.x;
+                        self.setData(stackAreas(columns, isArea, self.series.map(s => s.show)), false);
+                        self.setScale('x', {min, max});
+                    }
+                }],
+            },
+        }, stackAreas(columns, isArea, isArea.map(() => true)), container);
 
         labelCanvas(plot, title, unit, series);
         const resizer = followWidth(container, plot);

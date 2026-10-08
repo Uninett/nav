@@ -137,7 +137,7 @@
   {% comment %} Graph with stacked ip-address count from all ipv4 and ipv6 prefixes {% endcomment %}
   <h2>Vlan graphs</h2>
 
-  <ul class="small-block-grid-1 large-block-grid-2">
+  <ul class="small-block-grid-1">
     {% for graph_url in vlan.get_graph_urls %}
       <li class="vlangraph graphitegraph" data-url="{{ graph_url }}">
         <div class="rickshaw-container"></div>
@@ -149,7 +149,7 @@
   {% comment %} Graph for each prefix containing ip-addresses, mac-addresses and size of range {% endcomment %}
   <h2>Prefix graphs</h2>
 
-  <ul class="small-block-grid-1 large-block-grid-2">
+  <ul class="small-block-grid-1">
     {% for prefix in prefixes %}
       <li class="prefixgraph graphitegraph" data-url="{{ prefix.get_graph_url }}">
         <div class="rickshaw-container"></div>
@@ -163,7 +163,7 @@
     {% if graphite_error %}
       <span class="label alert">Graphite unreachable</span>
     {% else %}
-      <ul class="small-block-grid-1 large-block-grid-2">
+      <ul class="small-block-grid-1">
         {% for graph in dhcp_graph_urls %}
           <li class="dhcpgraph graphitegraph" data-url="{{ graph }}">
             <div class="rickshaw-container"></div>

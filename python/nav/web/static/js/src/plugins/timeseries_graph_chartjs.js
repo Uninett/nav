@@ -38,7 +38,10 @@ define(function (require) {
             data: series.datapoints.map(([value, timestamp]) => ({x: timestamp * 1000, y: value})),
             borderColor: color,
             backgroundColor: fillColor,
-            fill: isArea ? 'origin' : false,
+            // Area series are stacked on each other, as Rickshaw does. Each
+            // line has a stack of its own, so it is not stacked.
+            stack: isArea ? 'areas' : `line ${index}`,
+            fill: isArea ? 'stack' : false,
             borderWidth: 1.5,
             pointRadius: 0,
             pointHoverRadius: 3,
@@ -80,6 +83,9 @@ define(function (require) {
         const datasets = data.map(createDataset);
         const compact = Boolean(options.compact);
 
+        console.log(datasets);
+
+
         // Chart.js sizes the canvas to its parent, which must have its own size
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
@@ -111,6 +117,7 @@ define(function (require) {
                         ticks: {maxRotation: 0, autoSkipPadding: 20},
                     },
                     y: {
+                        stacked: true,
                         min: minValue === 'auto' ? undefined : 0,
                         grace: '5%',
                         title: {display: Boolean(unit) && !compact, text: unit},
