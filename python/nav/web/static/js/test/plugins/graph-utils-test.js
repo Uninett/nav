@@ -134,6 +134,22 @@ define([
         it("should show a missing value as a dash", function () {
             assert.equal(plugin.formatValue(null, "bits/s"), "–");
         });
+
+        it("should show a whole number without decimals in the integer format", function () {
+            assert.equal(plugin.formatValue(97, "addresses", "integer"), "97 addresses");
+        });
+
+        it("should round an average in the integer format", function () {
+            assert.equal(plugin.formatValue(96.25, "", "integer"), "96");
+        });
+
+        it("should keep the SI prefix for large values in the integer format", function () {
+            assert.equal(plugin.formatValue(65660, "", "integer"), "65.66 k");
+        });
+
+        it("should show a missing value as a dash in the integer format", function () {
+            assert.equal(plugin.formatValue(null, "", "integer"), "–");
+        });
     });
 
     describe("palette", function () {

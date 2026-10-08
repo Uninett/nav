@@ -8,6 +8,7 @@
  * - data: Graphite render JSON, [{target, datapoints: [[value, ts], ...]}].
  * - url: the URL the data came from. Its "title" and "vtitle" (unit)
  *   parameters are used unless the container has data-title or data-unit.
+ *   "valueformat=integer" (or data-valueformat) shows values as whole numbers.
  * - minValue: undefined to start the Y axis at 0, or 'auto' to fit the data.
  * - options: {compact: true} for a small graph, such as a sensor graph:
  *   lower, with no Y axis label and no zoom.
@@ -40,7 +41,7 @@ define(function (require) {
         [1, '{HH}:{mm}:{ss}', '\n{D} {MMM} {YYYY}', null, '\n{D} {MMM}', null, null, null, 1],
     ];
 
-    function createSeries(target, index, unit, columns) {
+    function createSeries(target, index, unit, valueFormat, columns) {
         const {name, meta} = GraphUtils.parseSeriesMeta(target);
         const color = meta.color || GraphUtils.palette[index % GraphUtils.palette.length];
         return {
@@ -50,7 +51,7 @@ define(function (require) {
             width: 1.5,
             // The plotted values of stacked areas are sums, so show the original value
             value: (self, value, seriesIndex, dataIndex) =>
-                GraphUtils.formatValue(columns[seriesIndex][dataIndex] ?? null, unit),
+                GraphUtils.formatValue(columns[seriesIndex][dataIndex] ?? null, unit, valueFormat),
         };
     }
 
@@ -146,9 +147,10 @@ define(function (require) {
         const params = new URI(url).query(true);
         const title = container.dataset.title || params.title || '';
         const unit = container.dataset.unit || params.vtitle || '';
+        const valueFormat = container.dataset.valueformat || params.valueformat || '';
         const columns = GraphUtils.toColumnar(data);
         const series = data.map((graphiteSeries, index) =>
-            createSeries(graphiteSeries.target, index, unit, columns));
+            createSeries(graphiteSeries.target, index, unit, valueFormat, columns));
         const isArea = [false, ...data.map(s => GraphUtils.parseSeriesMeta(s.target).meta.renderer === 'area')];
 
         const compact = Boolean(options.compact);

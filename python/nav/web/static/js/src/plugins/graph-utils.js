@@ -109,12 +109,15 @@ define([], () => {
     /**
      * Formats a value for hover details and legends, with an SI prefix and
      * the unit: "4.20 Mbits/s", "12.00 errors/s". Missing values become "–".
+     * The format 'integer' rounds values below 1000 to whole numbers, for
+     * counts such as active addresses: "97", "1.23 k".
      */
-    function formatValue(value, unit = '') {
+    function formatValue(value, unit = '', format = '') {
         if (value === null || value === undefined) {
             return '–';
         }
-        const number = String(siNumbers(value));
+        const integer = format === 'integer' && Math.abs(value) < 1000;
+        const number = integer ? String(Math.round(value)) : String(siNumbers(value));
         if (!unit) {
             return number;
         }

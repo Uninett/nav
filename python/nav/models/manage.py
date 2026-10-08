@@ -1664,6 +1664,7 @@ class Vlan(models.Model):
                 series,
                 title="VLAN {}".format(str(self)),
                 subtitle="Total IPv{} addresses - stacked".format(family),
+                valueformat='integer',
                 format='json',
             )
 

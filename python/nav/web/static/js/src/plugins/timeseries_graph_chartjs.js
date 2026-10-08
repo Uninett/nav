@@ -8,6 +8,7 @@
  * - data: Graphite render JSON, [{target, datapoints: [[value, ts], ...]}].
  * - url: the URL the data came from. Its "title" and "vtitle" (unit)
  *   parameters are used unless the container has data-title or data-unit.
+ *   "valueformat=integer" (or data-valueformat) shows values as whole numbers.
  * - minValue: undefined to start the Y axis at 0, or 'auto' to fit the data.
  * - options: {compact: true} for a small graph, such as a sensor graph
  *
@@ -78,6 +79,7 @@ define(function (require) {
         const title = container.dataset.title || params.title || '';
         const subtitle = container.dataset.subtitle || params.subtitle || '';
         const unit = container.dataset.unit || params.vtitle || '';
+        const valueFormat = container.dataset.valueformat || params.valueformat || '';
         const datasets = data.map(createDataset);
         const compact = Boolean(options.compact);
 
@@ -131,7 +133,7 @@ define(function (require) {
                     },
                     tooltip: {
                         callbacks: {
-                            label: item => `${item.dataset.label}: ${GraphUtils.formatValue(item.parsed.y, unit)}`,
+                            label: item => `${item.dataset.label}: ${GraphUtils.formatValue(item.parsed.y, unit, valueFormat)}`,
                         },
                     },
                     zoom: {
