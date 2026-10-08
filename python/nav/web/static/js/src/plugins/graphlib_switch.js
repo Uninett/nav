@@ -5,6 +5,8 @@
  *
  * - no graphlib parameter: Rickshaw, as before
  * - ?graphlib=uplot or ?graphlib=chartjs: that library only
+ * - ?graphlib=rickshaw&graphlib=chartjs: those libraries side by side, in
+ *   that order
  * - ?graphlib=all: all three side by side
  *
  * The sensor graphs draw Rickshaw with their own code, so they use
@@ -22,12 +24,14 @@ define(function (require) {
     };
 
 
+    /** Returns the keys of the chosen libraries, in the order of the URL */
     function chosenLibraries() {
-        const choice = new URI(window.location.href).query(true).graphlib;
-        if (choice === 'all') {
+        // A repeated parameter comes as an array, a single one as a string
+        const choices = [].concat(new URI(window.location.href).query(true).graphlib ?? []);
+        if (choices.includes('all')) {
             return Object.keys(LIBRARIES);
         }
-        return choice in LIBRARIES ? [choice] : [];
+        return [...new Set(choices)].filter(choice => choice in LIBRARIES);
     }
 
 
