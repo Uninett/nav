@@ -1662,9 +1662,8 @@ class Vlan(models.Model):
                 )
             return get_simple_graph_url(
                 series,
-                title="Total IPv{} addresses on vlan {} - stacked".format(
-                    family, str(self)
-                ),
+                title="VLAN {}".format(str(self)),
+                subtitle="Total IPv{} addresses - stacked".format(family),
                 format='json',
             )
 

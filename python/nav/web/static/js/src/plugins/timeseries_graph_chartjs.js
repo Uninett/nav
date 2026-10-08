@@ -9,8 +9,7 @@
  * - url: the URL the data came from. Its "title" and "vtitle" (unit)
  *   parameters are used unless the container has data-title or data-unit.
  * - minValue: undefined to start the Y axis at 0, or 'auto' to fit the data.
- * - options: {compact: true} for a small graph, such as a sensor graph:
- *   lower, with no legend, no Y axis title and no zoom.
+ * - options: {compact: true} for a small graph, such as a sensor graph
  *
  * Returns {chart, destroy()}.
  */
@@ -24,7 +23,7 @@ define(function (require) {
 
     // The legend is drawn inside the canvas, so this is taller than the
     // uPlot graph to give the plot itself about the same height
-    const HEIGHT = 230;
+    const HEIGHT = 250;
     const COMPACT_HEIGHT = 150;
 
 
@@ -38,8 +37,6 @@ define(function (require) {
             data: series.datapoints.map(([value, timestamp]) => ({x: timestamp * 1000, y: value})),
             borderColor: color,
             backgroundColor: fillColor,
-            // Area series are stacked on each other, as Rickshaw does. Each
-            // line has a stack of its own, so it is not stacked.
             stack: isArea ? 'areas' : `line ${index}`,
             fill: isArea ? 'stack' : false,
             borderWidth: 1.5,
@@ -79,12 +76,10 @@ define(function (require) {
 
         const params = new URI(url).query(true);
         const title = container.dataset.title || params.title || '';
+        const subtitle = container.dataset.subtitle || params.subtitle || '';
         const unit = container.dataset.unit || params.vtitle || '';
         const datasets = data.map(createDataset);
         const compact = Boolean(options.compact);
-
-        console.log(datasets);
-
 
         // Chart.js sizes the canvas to its parent, which must have its own size
         const wrapper = document.createElement('div');
@@ -125,10 +120,12 @@ define(function (require) {
                     },
                 },
                 plugins: {
-                    title: {display: Boolean(title), text: title},
+                    title: {display: Boolean(title), text: title, font: {size: 16}},
+                    subtitle: { display: Boolean(subtitle), text: subtitle },
                     legend: {
                         display: !compact,
                         position: 'bottom',
+                        labels: { font: { size: 14 }},
                         onHover: (event, item, legend) => highlightDataset(legend.chart, item.datasetIndex),
                         onLeave: (event, item, legend) => highlightDataset(legend.chart, null),
                     },

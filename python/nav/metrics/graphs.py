@@ -135,6 +135,7 @@ class Graph(object):
     def __init__(
         self,
         title='',
+        subtitle='',
         width=480,
         height=250,
         targets=None,
@@ -145,6 +146,9 @@ class Graph(object):
         self.args.update(kwargs)
         if title:
             self.args['title'] = title
+
+        if subtitle:
+            self.args['subtitle'] = subtitle
 
         if targets:
             for target in targets:
@@ -213,6 +217,7 @@ def get_simple_graph_url(
     metric_paths,
     time_frame="1day",
     title=None,
+    subtitle=None,
     width=480,
     height=250,
     magic=True,
@@ -239,7 +244,9 @@ def get_simple_graph_url(
     target_spec = (
         {'magic_targets': metric_paths} if magic else {'targets': metric_paths}
     )
-    graph = Graph(title=title, width=width, height=height, **target_spec)
+    graph = Graph(
+        title=title, subtitle=subtitle, width=width, height=height, **target_spec
+    )
     graph.set_timeframe(time_frame)
 
     if kwargs:
