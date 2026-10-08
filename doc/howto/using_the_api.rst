@@ -10,6 +10,24 @@ database. You need a token and some way of sending an https request and you're
 good to go.
 
 
+Interactive API documentation
+=============================
+
+NAV publishes a machine-readable `OpenAPI 3`_ specification of the REST API,
+generated dynamically with `drf-spectacular`_, along with two interactive
+documentation browsers:
+
+* OpenAPI schema: ``https://<host>/api/schema/``
+* Swagger UI: ``https://<host>/api/schema/swagger-ui/``
+* ReDoc: ``https://<host>/api/schema/redoc/``
+
+The schema is generated on the fly from the running code, so it always reflects
+the API of the running NAV instance.
+
+.. _OpenAPI 3: https://www.openapis.org/
+.. _drf-spectacular: https://drf-spectacular.readthedocs.io/
+
+
 Tokens
 ======
 
