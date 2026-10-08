@@ -345,6 +345,9 @@ class TestLoadConnectivityTestResultsView:
         assert response.context['netbox_type'] is None
         assert profile_data['name'] == unhandled_profile.name
         assert profile_data['status'] is False
+        assert profile_data['error_message'].startswith(
+            "Connectivity check not supported for profile with protocol"
+        )
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')

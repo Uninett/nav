@@ -39,6 +39,7 @@ class RoomStatus(Status2Widget):
 
     def get_context_data_view(self, context):
         context = super(RoomStatus, self).get_context_data_view(context)
+
         assert 'results' in context
 
         result_ids = [r.get('id') for r in context['results']]
@@ -55,7 +56,7 @@ class RoomStatus(Status2Widget):
             rooms.append(room)
 
         context['items'] = rooms
-        context['last_update'] = datetime.now()
+        context['last_updated'] = datetime.now()
         context['name'] = 'room'
         context['name_plural'] = 'rooms'
         context['history_route'] = 'devicehistory-view-room'

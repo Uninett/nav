@@ -239,8 +239,8 @@ def load_connectivity_test_results(request):
                     "name": profile.name,
                     "status": False,
                     "error_message": (
-                        "Connectivity check not supported for profile with",
-                        f"protocol {profile.get_protocol_display()}",
+                        "Connectivity check not supported for profile with "
+                        f"protocol {profile.get_protocol_display()}"
                     ),
                 }
             )
