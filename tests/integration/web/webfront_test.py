@@ -1,7 +1,7 @@
 import re
 
 from django.core.cache import cache
-from django.test import Client, RequestFactory
+from django.test import Client, RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock
@@ -102,8 +102,10 @@ class TestBannerWarnings:
         assert (
             "Your account has an insecure or old password. It should be reset."
         ) in smart_str(response.content)
+        # The test setup uses the default secret key, so a warning banner for that is
+        # additionally shown
         assert (
-            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 2
+            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 3
         )
 
     def test_given_other_accounts_password_issues_then_show_only_other_issues_banner(
@@ -145,9 +147,22 @@ class TestBannerWarnings:
         assert (
             "There are 1 accounts that have insecure or old passwords."
         ) in smart_str(response.content)
+        # The test setup uses the default secret key, so a warning banner for that is
+        # additionally shown
         assert (
-            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 1
+            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 2
         )
+
+    @override_settings(SECRET_KEY='YouShouldReallyChangeThis')
+    def test_when_secret_key_is_default_then_show_settings_issue_banner_warning(
+        self, db, client
+    ):
+        index_url = reverse('webfront-index')
+        response = client.get(index_url)
+        assert (
+            "The SECRET_KEY of this NAV installation is still the default value. Set a "
+            "random SECRET_KEY in nav.conf and restart NAV."
+        ) in smart_str(response.content)
 
 
 def test_show_qr_code_returns_fragment_with_qr_code(client):
