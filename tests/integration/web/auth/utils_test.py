@@ -1,8 +1,10 @@
+from mock import patch
+
 from django.contrib.auth import SESSION_KEY as DJANGO_USER_SESSION_KEY
 from django.core.cache import cache
 from django.test import RequestFactory
-from django.urls import reverse
 
+from nav.models.profiles import Account
 from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.utils import (
     default_account,
@@ -13,6 +15,7 @@ from nav.web.auth.utils import (
     get_number_of_accounts_with_password_issues,
     PASSWORD_ISSUES_CACHE_KEY,
 )
+from nav.web.useradmin.views import account_delete
 
 
 class TestGetAccount:
@@ -158,13 +161,15 @@ class TestGetNumberOfAccountsWithPasswordIssues:
 
         assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is None
 
+    @patch('nav.web.useradmin.views.messages')
     def test_cache_entry_gets_deleted_on_user_deletion(
-        self, db, client, non_admin_account
+        self, mock_messages, db, admin_account, non_admin_account
     ):
         get_number_of_accounts_with_password_issues()
 
-        url = reverse('useradmin-account_delete', args=(non_admin_account.id,))
+        request = RequestFactory().post('/')
+        request.user = admin_account
+        account_delete(request, non_admin_account.id)
 
-        client.post(url, follow=True)
-
+        assert not Account.objects.filter(id=non_admin_account.id).exists()
         assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is None
