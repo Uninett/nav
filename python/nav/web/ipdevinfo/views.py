@@ -704,6 +704,15 @@ def clear_port_topology(request, port_id):
     if port.is_oper_up():
         return HttpResponseBadRequest("Topology can only be cleared for down ports")
 
+    if request.POST.get('confirm_clear') != 'true':
+        return render_modal(
+            request,
+            'ipdevinfo/_clear_port_topology_confirmation.html',
+            context={'port': port},
+            modal_id='clear-port-topology-confirmation',
+            size='small',
+        )
+
     AdjacencyCandidate.objects.filter(interface=port).delete()
     port.to_netbox = port.to_interface = None
     port.save(update_fields=['to_netbox', 'to_interface'])

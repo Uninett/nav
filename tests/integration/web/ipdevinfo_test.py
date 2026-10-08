@@ -438,10 +438,24 @@ class TestPortDetailsTopology:
 
 
 class TestClearPortTopology:
-    def test_when_port_is_down_then_it_should_clear_neighbor_and_candidates(
+    def test_when_not_confirmed_then_it_should_show_confirmation_modal(
         self, client, down_port_with_neighbor
     ):
         response = client.post(_clear_topology_url(down_port_with_neighbor))
+        assert response.status_code == 200
+        assert 'clear-port-topology-confirmation' in smart_str(response.content)
+        down_port_with_neighbor.refresh_from_db()
+        assert down_port_with_neighbor.to_netbox is not None
+        assert AdjacencyCandidate.objects.filter(
+            interface=down_port_with_neighbor
+        ).exists()
+
+    def test_when_confirmed_then_it_should_clear_neighbor_and_candidates(
+        self, client, down_port_with_neighbor
+    ):
+        response = client.post(
+            _clear_topology_url(down_port_with_neighbor), {'confirm_clear': 'true'}
+        )
         assert response.status_code == 200
         down_port_with_neighbor.refresh_from_db()
         assert down_port_with_neighbor.to_netbox is None
@@ -458,7 +472,7 @@ class TestClearPortTopology:
         box = netbox_factory("sw.example.org", "10.6.0.1")
         port = interface_factory(box, "Gi1/0/1", 1, to_interface=remote)
 
-        response = client.post(_clear_topology_url(port))
+        response = client.post(_clear_topology_url(port), {'confirm_clear': 'true'})
         assert response.status_code == 400
         port.refresh_from_db()
         assert port.to_interface == remote
@@ -466,7 +480,9 @@ class TestClearPortTopology:
     def test_when_user_is_not_admin_then_it_should_be_forbidden(
         self, non_admin_client, down_port_with_neighbor
     ):
-        response = non_admin_client.post(_clear_topology_url(down_port_with_neighbor))
+        response = non_admin_client.post(
+            _clear_topology_url(down_port_with_neighbor), {'confirm_clear': 'true'}
+        )
         assert response.status_code == 403
         down_port_with_neighbor.refresh_from_db()
         assert down_port_with_neighbor.to_netbox is not None

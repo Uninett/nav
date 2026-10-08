@@ -1,0 +1,17 @@
+<h4>Clear topology?</h4>
+<p>
+    Are you sure you want to remove the neighbor information from <em>{{ port }}</em>?
+</p>
+<p>
+    The current neighbor is
+    <em>{{ port.to_netbox }}{% if port.to_interface %} ({{ port.to_interface.ifname }}){% endif %}</em>.
+    It will only be restored if new neighbor data is collected for this port.
+</p>
+<form hx-post="{% url 'ipdevinfo-clear-port-topology' port.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_clear" value="true">
+    <button class="small alert" type="submit">Yes, clear topology</button>
+    <button class="small secondary" type="button" hx-on:click="htmx.remove(this.closest('.nav-modal'))">
+        Cancel
+    </button>
+</form>
