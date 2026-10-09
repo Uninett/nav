@@ -1,4 +1,5 @@
 import json
+import re
 from io import BytesIO
 from urllib.parse import quote
 
@@ -245,70 +246,103 @@ def test_non_expired_session_id_should_not_be_changed_on_request_unrelated_to_lo
     assert session_id_post_login == session_id_pre_login
 
 
-def test_shows_password_issue_banner_on_own_password_issues(db, client):
-    """
-    The admin user has a password with an outdated password hashing method, so a
-    banner indicating a problem with the password should be shown
-    """
-    index_url = reverse('webfront-index')
-    response = client.get(index_url)
+class TestBannerWarnings:
+    def test_given_own_password_issues_then_show_password_issue_banner(
+        self, db, client
+    ):
+        """
+        The admin user has a password with an outdated password hashing method, so a
+        banner indicating a problem with the password should be shown
+        """
+        index_url = reverse('webfront-index')
+        response = client.get(index_url)
 
-    assert (
-        "Your account has an insecure or old password. It should be reset."
-        in smart_str(response.content)
-    )
+        assert (
+            "Your account has an insecure or old password. It should be reset."
+            in smart_str(response.content)
+        )
 
+    def test_when_password_is_empty_then_navbar_should_not_show_password_issue_banner(
+        self, db
+    ):
+        """
+        Remote user login sets the password to empty which led to showing the password
+        issues banner, even though there are no issues
+        """
 
-def test_when_password_is_empty_then_navbar_should_not_show_password_issue_banner(db):
-    """
-    Remote user login sets the password to empty which lead to showing the password
-    issues banner, even though there are no issues
-    """
+        factory = RequestFactory()
 
-    factory = RequestFactory()
+        request = factory.get(reverse('webfront-index'))
+        request.user = Account.objects.create(login="emptypassword", password="")
 
-    request = factory.get(reverse('webfront-index'))
-    request.user = Account.objects.create(login="emptypassword", password="")
+        response = index(request)
 
-    response = index(request)
+        assert (
+            "Your account has an insecure or old password. It should be reset."
+            not in smart_str(response.content)
+        )
 
-    assert (
-        "Your account has an insecure or old password. It should be reset."
-        not in smart_str(response.content)
-    )
+    def test_given_own_and_other_accounts_password_issues_then_show_two_banners_to_admin_account(  # noqa: E501
+        self, db, client
+    ):
+        """
+        If other users have insecure or old passwords a banner should be shown to admins
+        """
+        account = Account.objects.create(
+            login="plaintext_pw_user", password="plaintext_pw"
+        )
 
+        assert account.has_password_issues(), 'Test account SHOULD have password issues'
 
-def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
-    db, admin_account, log_in
-):
-    """
-    If other users have insecure or old passwords a banner should be shown to admins
-    """
+        index_url = reverse('webfront-index')
+        response = client.get(index_url)
+        assert re.search(
+            r"There are \d+ accounts that have insecure or old passwords.",
+            smart_str(response.content),
+        )
+        assert (
+            "Your account has an insecure or old password. It should be reset."
+        ) in smart_str(response.content)
 
-    # Admin account has a password with outdated password hashing method
-    # This needs to be fixed, otherwise the "Your password is insecure..." banner will
-    # be shown
-    new_password = 'new_password'
-    admin_account.set_password(new_password)
-    admin_account.save()
-    assert not admin_account.has_password_issues(), (
-        'Admin account should not have password issues'
-    )
+    def test_given_other_accounts_password_issues_then_show_only_other_issues_banner(
+        self, db, admin_account, log_in
+    ):
+        """
+        If admin doesn't have password issues, but other users do a banner should be
+        shown to admin
+        """
 
-    account = Account.objects.create(login="plaintext_pw_user", password="plaintext_pw")
+        # Admin account has a password with outdated password hashing method
+        # This needs to be fixed, otherwise the "Your password is insecure..." banner
+        # will be shown
+        new_password = 'new_password'
+        admin_account.set_password(new_password)
+        admin_account.save()
+        assert not admin_account.has_password_issues(), (
+            'Admin account should not have password issues'
+        )
 
-    assert account.has_password_issues(), 'Test account SHOULD have password issues'
+        account = Account.objects.create(
+            login="plaintext_pw_user", password="plaintext_pw"
+        )
 
-    # login with a password only used for this test
-    client_ = Client()
-    log_in(client_, admin_account.login, new_password)
+        assert account.has_password_issues(), 'Test account SHOULD have password issues'
 
-    # test
-    index_url = reverse('webfront-index')
-    response = client_.get(index_url)
-    assert "There are 1 accounts that have insecure or old passwords." in smart_str(
-        response.content
-    )
+        # login with a password only used for this test
+        client_ = Client()
+        log_in(client_, admin_account.login, new_password)
+
+        # test
+        index_url = reverse('webfront-index')
+        response = client_.get(index_url)
+
+        assert (
+            "Your account has an insecure or old password. It should be reset."
+        ) not in smart_str(response.content)
+        assert re.search(
+            r"There are \d+ accounts that have insecure or old passwords.",
+            smart_str(response.content),
+        )
 
 
 def test_show_qr_code_returns_fragment_with_qr_code(client):

@@ -16,18 +16,21 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import io
-import os
-from datetime import datetime
 import logging
+import os
+from collections import namedtuple
+from datetime import datetime
 
 from django.db.models import Q
+from django.urls import reverse
 
 from nav.config import get_config_locations
-from nav.web import webfrontConfig
-from nav.models.msgmaint import Message
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
-from nav.models.profiles import AccountTool
+from nav.models.msgmaint import Message
+from nav.models.profiles import Account, AccountTool
+from nav.web import webfrontConfig
+from nav.web.auth.utils import get_number_of_accounts_with_password_issues
 
 _logger = logging.getLogger('nav.web.tools.utils')
 
@@ -163,3 +166,57 @@ def split_tools(tools, parts=3):
         columns.append(tools[first_index:last_index])
         first_index += tools_in_this_column
     return columns
+
+
+BannerWarningElement = namedtuple("BannerWarningElement", "message link link_message")
+
+
+def get_banner_warnings(account: Account) -> list[BannerWarningElement]:
+    """
+    Returns a list of BannerWarningElements describing warnings that should be shown to
+    the current user
+
+    """
+    banner_warnings = []
+    banner_warnings.extend(_get_password_issues_banner_warnings(account))
+
+    return banner_warnings
+
+
+def _get_password_issues_banner_warnings(
+    account: Account,
+) -> list[BannerWarningElement]:
+    """
+    Returns a list of banner warnings describing current password issues
+
+    Potential issues are that the current account has an insecure/old password or in
+    case the account is admin that other accounts have insecure/old passwords
+    """
+    password_issues = []
+    if account.has_password_issues():
+        password_issues.append(
+            BannerWarningElement(
+                message=(
+                    "Your account has an insecure or old password. It should be reset."
+                ),
+                link=reverse("webfront-preferences"),
+                link_message="Change your password here.",
+            )
+        )
+    if account.is_staff:
+        number_accounts_with_password_issues = (
+            get_number_of_accounts_with_password_issues()
+        )
+        if number_accounts_with_password_issues > 0:
+            password_issues.append(
+                BannerWarningElement(
+                    message=(
+                        f"There are {number_accounts_with_password_issues} "
+                        "accounts that have insecure or old passwords."
+                    ),
+                    link=reverse("useradmin"),
+                    link_message="See which users are affected here.",
+                )
+            )
+
+    return password_issues
