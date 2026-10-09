@@ -1,6 +1,7 @@
 import socket
 
 import pytest
+import requests
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.encoding import smart_str
@@ -8,6 +9,7 @@ from mock import Mock, patch
 
 from nav.models.manage import ManagementProfile, Netbox, NetboxType, Vendor
 from nav.Snmp.errors import SnmpError
+from nav.web.seeddb.page.netbox import edit
 from nav.web.seeddb.page.netbox.edit import (
     get_snmp_read_only_variables,
     netbox_do_save,
@@ -350,6 +352,24 @@ class TestLoadConnectivityTestResultsView:
         )
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
+    @patch('nav.web.seeddb.page.netbox.edit.test_http_api_connectivity')
+    def test_given_http_api_profile_then_return_http_api_data(
+        self, mock_http_api, mock_sysname, client, http_api_profile, valid_ipv4
+    ):
+        """Test that HTTP API profile returns HTTP API connectivity data"""
+        mock_sysname.return_value = 'test-device.example.com'
+        mock_http_api.return_value = {'status': True}
+
+        response = client.post(
+            self.url,
+            {'ip': valid_ipv4, 'profiles': [str(http_api_profile.id)]},
+        )
+        profile_data = self._get_profile_from_response(response, http_api_profile.id)
+
+        assert profile_data['name'] == http_api_profile.name
+        assert profile_data['status'] is True
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')
     @patch('nav.web.seeddb.page.netbox.edit.test_napalm_connectivity')
     def test_given_multiple_profiles_then_return_all_profiles(
@@ -508,6 +528,102 @@ class TestSnmpWriteTest:
         assert result['error_message'] == "Could not decode SNMP response"
 
 
+class TestHttpApiConnectivity:
+    """Test cases for test_http_api_connectivity function"""
+
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_successful_api_response_then_return_success_status(
+        self, mock_get, http_api_profile, valid_ipv4
+    ):
+        """Test successful Palo Alto API response"""
+        mock_get.return_value = Mock(
+            status_code=200, content=b'<response status="success"><result/></response>'
+        )
+
+        result = edit.test_http_api_connectivity(valid_ipv4, http_api_profile)
+
+        _, kwargs = mock_get.call_args
+        assert result == {'status': True}
+        assert kwargs['params']['key'] == 'secret-key'
+
+    @pytest.mark.parametrize(
+        "content, message",
+        [
+            (
+                b"<response status = 'error' code = '403'>"
+                b"<result><msg>Invalid Credential</msg></result></response>",
+                "Invalid Credential",
+            ),
+            (
+                b'<response status="error" code="17"><msg>'
+                b'<line>Invalid command</line><line>Try again</line></msg></response>',
+                "Invalid command Try again",
+            ),
+        ],
+    )
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_api_error_response_then_return_device_error_message(
+        self, mock_get, http_api_profile, valid_ipv4, content, message
+    ):
+        """Test that API errors show the device's message"""
+        mock_get.return_value = Mock(status_code=403, content=content)
+
+        result = edit.test_http_api_connectivity(valid_ipv4, http_api_profile)
+
+        assert result == {'status': False, 'error_message': message}
+
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_non_xml_response_then_return_failed_status(
+        self, mock_get, http_api_profile, valid_ipv4
+    ):
+        """Test that a non-XML response fails with its HTTP status"""
+        mock_get.return_value = Mock(status_code=404, content=b'<html>Not found')
+
+        result = edit.test_http_api_connectivity(valid_ipv4, http_api_profile)
+
+        assert result['status'] is False
+        assert 'HTTP 404' in result['error_message']
+
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_connection_error_then_it_should_not_reveal_api_key(
+        self, mock_get, http_api_profile, valid_ipv4
+    ):
+        """Test that connection errors do not show the API key"""
+        mock_get.side_effect = requests.ConnectionError(
+            "Max retries exceeded with url: /api/?key=secret-key"
+        )
+
+        result = edit.test_http_api_connectivity(valid_ipv4, http_api_profile)
+
+        assert result['status'] is False
+        assert 'secret-key' not in result['error_message']
+
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_timeout_then_return_timeout_message(
+        self, mock_get, http_api_profile, valid_ipv4
+    ):
+        """Test that a timeout returns a timeout message"""
+        mock_get.side_effect = requests.Timeout()
+
+        result = edit.test_http_api_connectivity(valid_ipv4, http_api_profile)
+
+        assert result == {'status': False, 'error_message': 'Connection timed out'}
+
+    @patch('nav.web.seeddb.page.netbox.edit.requests.get')
+    def test_given_ipv6_address_then_request_bracketed_host(
+        self, mock_get, http_api_profile, valid_ipv6
+    ):
+        """Test that IPv6 addresses are bracketed in the URL"""
+        mock_get.return_value = Mock(
+            status_code=200, content=b'<response status="success"/>'
+        )
+
+        edit.test_http_api_connectivity(valid_ipv6, http_api_profile)
+
+        args, _ = mock_get.call_args
+        assert args[0] == f"https://[{valid_ipv6}]/api/"
+
+
 class TestNetboxModelFormSave:
     """Regression tests for `NetboxModelForm` save behaviour."""
 
@@ -616,22 +732,27 @@ def napalm_profile():
 
 
 @pytest.fixture()
+def http_api_profile():
+    yield from create_profile(
+        "Test HTTP API profile",
+        ManagementProfile.PROTOCOL_HTTP_API,
+        configuration={"service": "Palo Alto ARP", "api_key": "secret-key"},
+    )
+
+
+@pytest.fixture()
 def unhandled_profile():
     yield from create_profile("Unsupported profile", 99)
 
 
-# This configuration dict is only relevant for SNMP profiles.
+# The default configuration is only relevant for SNMP profiles.
 # For NAPALM and unsupported profiles, it is dummy data and not used,
 # since all external interactions are mocked in tests.
-def create_profile(name: str, protocol: int, write=False):
+def create_profile(name: str, protocol: int, write=False, configuration=None):
+    if configuration is None:
+        configuration = {"version": 2, "community": "public", "write": write}
     profile = ManagementProfile(
-        name=name,
-        protocol=protocol,
-        configuration={
-            "version": 2,
-            "community": "public",
-            "write": write,
-        },
+        name=name, protocol=protocol, configuration=configuration
     )
     profile.save()
     yield profile

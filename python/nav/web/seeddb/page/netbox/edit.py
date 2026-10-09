@@ -20,6 +20,11 @@ import copy
 import socket
 from socket import error as SocketError
 import logging
+import warnings
+import xml.etree.ElementTree as ET
+
+import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 from django.db import transaction
 from django.contrib import messages
@@ -231,6 +236,8 @@ def load_connectivity_test_results(request):
             response = get_snmp_read_only_variables(ip_address, profile)
         elif profile.protocol == profile.PROTOCOL_NAPALM:
             response = test_napalm_connectivity(ip_address, profile)
+        elif profile.protocol == profile.PROTOCOL_HTTP_API:
+            response = test_http_api_connectivity(ip_address, profile)
         else:
             response = None
             result[profile.id].update(
@@ -351,6 +358,52 @@ def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dic
         if error_message == 'None':
             error_message = 'Connection failed'
         return {"status": False, "error_message": error_message}
+
+
+def test_http_api_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
+    """Tests connectivity of an HTTP API profile and returns a status dictionary"""
+    service = profile.configuration.get("service")
+    if service != "Palo Alto ARP":
+        return {
+            "status": False,
+            "error_message": f"Connectivity check not supported for service {service}",
+        }
+
+    host = f"[{ip_address}]" if ":" in ip_address else ip_address
+    try:
+        # Firewalls commonly use self-signed certificates, as in the paloaltoarp plugin
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", InsecureRequestWarning)
+            response = requests.get(
+                f"https://{host}/api/",
+                params={
+                    "type": "op",
+                    "cmd": "<show><arp><entry name = 'all'/></arp></show>",
+                    "key": profile.configuration.get("api_key"),
+                },
+                verify=False,
+                timeout=10,
+            )
+    # Never show request errors, as they include the URL with the API key
+    except requests.Timeout:
+        return {"status": False, "error_message": "Connection timed out"}
+    except requests.RequestException:
+        return {"status": False, "error_message": "Could not connect to the API"}
+
+    try:
+        root = ET.fromstring(response.content)
+    except ET.ParseError:
+        root = ET.Element("response")
+    if root.get("status") == "success":
+        return {"status": True}
+
+    message = " ".join(
+        text.strip() for msg in root.iter("msg") for text in msg.itertext()
+    ).strip()
+    return {
+        "status": False,
+        "error_message": message or f"API request failed (HTTP {response.status_code})",
+    }
 
 
 def get_sysname(ip_address):
