@@ -206,6 +206,30 @@ class TestDeleteDashboardView:
         assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
 
 
+class TestAddDashboardView:
+    """Tests for the add_dashboard view which allows adding dashboards"""
+
+    def test_given_valid_name_then_create_dashboard(self, db, client, admin_account):
+        url = reverse("add-dashboard")
+        response = client.post(url, data={"dashboard-name": "New name"})
+
+        assert response.status_code == 200
+        dashboard_id = json.loads(smart_str(response.content))["dashboard_id"]
+        assert AccountDashboard.objects.get(pk=dashboard_id).name == "New name"
+
+    @pytest.mark.parametrize("name", ["", "      "])
+    def test_given_empty_name_then_show_error_message(
+        self, db, client, admin_account, name
+    ):
+        count = AccountDashboard.objects.filter(account=admin_account).count()
+        url = reverse("add-dashboard")
+        response = client.post(url, data={"dashboard-name": name})
+
+        assert response.status_code == 400
+        assert "Dashboard name must not be empty" in smart_str(response.content)
+        assert AccountDashboard.objects.filter(account=admin_account).count() == count
+
+
 class TestRenameDashboardView:
     """Tests for the rename_dashboard view which allows renaming dashboards"""
 
@@ -227,7 +251,7 @@ class TestRenameDashboardView:
         url = reverse("rename-dashboard", args=(dashboard.pk,))
         response = client.post(url, data={"dashboard-name": ""})
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         assert "Dashboard name must not be empty" in smart_str(response.content)
         dashboard.refresh_from_db()
         assert dashboard.name == old_name
@@ -240,7 +264,7 @@ class TestRenameDashboardView:
         url = reverse("rename-dashboard", args=(dashboard.pk,))
         response = client.post(url, data={"dashboard-name": "      "})
 
-        assert response.status_code == 200
+        assert response.status_code == 400
         assert "Dashboard name must not be empty" in smart_str(response.content)
         dashboard.refresh_from_db()
         assert dashboard.name == old_name
