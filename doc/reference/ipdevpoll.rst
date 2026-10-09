@@ -82,6 +82,12 @@ Section [prefix]
   A list of IPv4 and/or IPv6 prefixes that should never be inserted into the
   database, even if they are collected from a device's interfaces.
 
+``vlan_pattern``
+  A regular expression used to extract VLANs from interface names.
+  The expression must contain a named group called ``vlan`` that captures the VLAN id.
+  Matching is case-insensitive. The default value is
+
+    ``(Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)``
 
 Section [netbox_filters]
 ------------------------
