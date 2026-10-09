@@ -25,6 +25,7 @@ from django.db.models import Q
 from django.urls import reverse
 
 from nav.config import get_config_locations
+from nav.django.checks import secret_key_is_default
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox
 from nav.models.msgmaint import Message
@@ -179,6 +180,7 @@ def get_banner_warnings(account: Account) -> list[BannerWarningElement]:
     """
     banner_warnings = []
     banner_warnings.extend(_get_password_issues_banner_warnings(account))
+    banner_warnings.extend(_get_settings_issues_banner_warnings(account))
 
     return banner_warnings
 
@@ -220,3 +222,28 @@ def _get_password_issues_banner_warnings(
             )
 
     return password_issues
+
+
+def _get_settings_issues_banner_warnings(
+    account: Account,
+) -> list[BannerWarningElement]:
+    """
+    Returns a list of banner warnings describing issues with the settings of the NAV
+    installation
+
+    One potential issue is the setting SECRET_KEY being the default one/not being set in
+    the config
+    """
+    if account.is_staff and secret_key_is_default():
+        return [
+            BannerWarningElement(
+                message=(
+                    "The SECRET_KEY of this NAV installation is still the default "
+                    "value. Set a random SECRET_KEY in nav.conf and restart NAV."
+                ),
+                link=None,
+                link_message=None,
+            )
+        ]
+
+    return []
