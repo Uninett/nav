@@ -26,6 +26,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.views.decorators.debug import sensitive_variables
 
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap
 
@@ -116,6 +117,14 @@ class LdapBackend(ModelBackend):
         # active before the login process moves on:
         nav_account.set_password(password)
         nav_account.save()
+        LogEntry.add_log_entry(
+            nav_account,
+            'create-account',
+            template='{actor} created due to LDAP login',
+            subsystem='auth',
+            object=nav_account,
+            after=nav_account,
+        )
         return nav_account
 
     @classmethod

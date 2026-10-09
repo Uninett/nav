@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.exceptions import PermissionDenied
 
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account
 from nav.web.auth.ldap import NoAnswerError
 from nav.web.auth.ldap_auth_backend import LdapBackend
@@ -56,6 +57,23 @@ class TestAuthenticate:
         assert new_nav_user
         assert new_nav_user not in ldap_synced_accounts
         assert new_nav_user.login == non_admin_ldap_user.username
+
+    @patch('nav.web.auth.ldap_auth_backend.ldap.available', True)
+    @patch('nav.web.auth.ldap_auth_backend.ldap.authenticate')
+    def test_given_ldap_user_without_linked_nav_account_log_account_creation(
+        self, mock_authenticate, db, non_admin_ldap_user
+    ):
+        mock_authenticate.return_value = non_admin_ldap_user
+        new_nav_user = LdapBackend().authenticate(
+            username="username",
+            password="password",
+        )
+        assert LogEntry.objects.filter(
+            verb='create-account',
+            actor_pk=str(new_nav_user.pk),
+            object_model='account',
+            object_pk=str(new_nav_user.pk),
+        ).exists()
 
     @patch('nav.web.auth.ldap_auth_backend.ldap.available', True)
     @patch('nav.web.auth.ldap_auth_backend.ldap.authenticate')
