@@ -213,7 +213,7 @@ require([
             // Validate dashboard name
             feedback.errorElement.detach();
             var nameElement = this.elements["dashboard-name"];
-            if (nameElement.value.length === 0) {
+            if (nameElement.value.trim().length === 0) {
                 feedback.errorElement.insertAfter(nameElement);
                 return;
             }
@@ -221,6 +221,9 @@ require([
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function (response) {
                 window.location = NAV.urls.dashboard_index + response.dashboard_id;
+            });
+            request.fail(function (xhr) {
+                feedback.addFeedback(xhr.responseText, 'alert');
             });
         });
     }
@@ -244,6 +247,9 @@ require([
                 $('#dashboard-nav').find('.current a span').text(newName);
 
                 feedback.addFeedback(responseText);
+            });
+            request.fail(function (xhr) {
+                feedback.addFeedback(xhr.responseText, 'alert');
             });
         });
     }
