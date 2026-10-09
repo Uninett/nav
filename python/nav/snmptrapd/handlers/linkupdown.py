@@ -23,6 +23,7 @@ import nav.errors
 
 from nav.db import getConnection
 from nav.event import Event
+from nav.models.event import AlertType, EventType
 
 _logger = logging.getLogger('nav.snmptrapd.linkupdown')
 
@@ -138,34 +139,20 @@ def verify_event_type():
     Safe way of verifying that the event- and alarmtypes exist in the
     database. Should be run when module is imported.
     """
-    connection = getConnection('default')
-    cursor = connection.cursor()
-
-    sql = """
-    INSERT INTO eventtype (
-    SELECT 'linkState','Tells us whether a link is up or down.','y'
-    WHERE NOT EXISTS (
-    SELECT * FROM eventtype WHERE eventtypeid = 'linkState'));
-
-    INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkUp',
-    'Link active'
-    WHERE NOT EXISTS (
-    SELECT * FROM alerttype WHERE alerttype = 'linkUp'));
-
-    INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'linkState', 'linkDown',
-    'Link inactive'
-    WHERE NOT EXISTS (
-    SELECT * FROM alerttype WHERE alerttype = 'linkDown'));
-    """
-
-    queries = sql.split(';')
-    for query in queries:
-        if query.rstrip():
-            cursor.execute(query)
-
-    connection.commit()
+    event_type, _ = EventType.objects.get_or_create(
+        id='linkState',
+        defaults={
+            'description': 'Tells us whether a link is up or down.',
+            'stateful': EventType.STATEFUL_TRUE,
+        },
+    )
+    for name, description in (
+        ('linkUp', 'Link active'),
+        ('linkDown', 'Link inactive'),
+    ):
+        AlertType.objects.get_or_create(
+            event_type=event_type, name=name, defaults={'description': description}
+        )
 
 
 def initialize():

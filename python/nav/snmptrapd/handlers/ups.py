@@ -23,8 +23,8 @@ off battery.
 """
 
 import logging
-from nav.db import getConnection
 from nav.event import Event
+from nav.models.event import AlertType, EventType
 from nav.Snmp import Snmp
 
 # Create logger with modulename here
@@ -176,34 +176,20 @@ def verifyEventtype():
     database. Should be run when module is imported.
     """
 
-    db = getConnection('default')
-    c = db.cursor()
-
-    # NB: Remember to replace the values with the one you need.
-
-    sql = """
-    INSERT INTO eventtype (
-    SELECT 'upsPowerState','UPS running on battery or utility power','y'
-    WHERE NOT EXISTS (
-    SELECT * FROM eventtype WHERE eventtypeid = 'upsPowerState'));
-
-    INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'upsPowerState',
-    'upsOnBatteryPower', 'Ups running on battery power' WHERE NOT EXISTS (
-    SELECT * FROM alerttype WHERE alerttype = 'upsOnBatteryPower'));
-
-    INSERT INTO alertType (
-    SELECT nextval('alerttype_alerttypeid_seq'), 'upsPowerState',
-    'upsOnUtilityPower', 'Ups running on utility power' WHERE NOT EXISTS (
-    SELECT * FROM alerttype WHERE alerttype = 'upsOnUtilityPower'));
-    """
-
-    queries = sql.split(';')
-    for q in queries:
-        if q.rstrip():
-            c.execute(q)
-
-    db.commit()
+    event_type, _ = EventType.objects.get_or_create(
+        id='upsPowerState',
+        defaults={
+            'description': 'UPS running on battery or utility power',
+            'stateful': EventType.STATEFUL_TRUE,
+        },
+    )
+    for name, description in (
+        ('upsOnBatteryPower', 'Ups running on battery power'),
+        ('upsOnUtilityPower', 'Ups running on utility power'),
+    ):
+        AlertType.objects.get_or_create(
+            event_type=event_type, name=name, defaults={'description': description}
+        )
 
 
 def initialize():
