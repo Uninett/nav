@@ -80,6 +80,11 @@ urlpatterns = [
         name='ipdevinfo-interface-details-by-name',
     ),
     path(
+        'interface=<int:port_id>/clear_topology/',
+        views.clear_port_topology,
+        name='ipdevinfo-clear-port-topology',
+    ),
+    path(
         'g/port/<int:interfaceid>/',
         views.port_counter_graph,
         name='interface-counter-graph',
