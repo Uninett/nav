@@ -225,12 +225,16 @@ and their corresponding vendors. This enables NAV to display the vendor name
 of a device based on its MAC address, helping to identify whether a device is,
 for example, from Juniper or Cisco.
 
+The OUI file is downloaded from the IEEE over HTTP(S). Installations behind a
+firewall with no direct outbound access can route the download through an
+HTTP(S) proxy by setting the ``proxy`` option in :file:`update_ouis.conf`.
+
 :Dependencies:
   None
 :Run mode:
   cron
 :Configuration:
-  None
+  :file:`update_ouis.conf`
 :Logs:
   Logs to STDERR.
 
