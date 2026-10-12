@@ -26,14 +26,20 @@ import argparse
 import signal
 from functools import reduce
 
+from django.db import connection
+
 # Import NAV libraries
-from nav import daemon
+from nav.bootstrap import bootstrap_django
 from nav.config import NAV_CONFIG, NAVConfigParser
+
+bootstrap_django(__file__)
+
+from nav import daemon
 import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 from nav.util import is_valid_ip, address_to_string
-from nav.db import getConnection
 import nav.logs
+from nav.models.event import Subsystem
 
 from nav.snmptrapd import agent
 
@@ -124,10 +130,8 @@ def main():
         # Daemonized
         _logger.info('snmptrapd is now running in daemon mode')
 
-        # Reopen lost db connection
-        # This is a workaround for a double free bug in psycopg 2.0.7
-        # which is why we don't need to keep the return value
-        getConnection('default')
+        # Force reopening connection after fork
+        connection.close()
 
         # Reopen log files on SIGHUP
         _logger.debug('Adding signal handler for reopening log files on SIGHUP.')
@@ -198,7 +202,6 @@ def trap_handler(trap):
 
     """
     _traplogger.debug("%s", trap)
-    connection = getConnection('default')
     handled_by = []
 
     for mod in handlermodules:
@@ -250,13 +253,8 @@ def _log_trap_handle_result(handled_by, trap):
 
 def verify_subsystem():
     """Verify that subsystem exists, if not insert it into database"""
-    db = getConnection('default')
-    c = db.cursor()
 
-    sql = """INSERT INTO subsystem (SELECT 'snmptrapd', '' WHERE
-    NOT EXISTS (SELECT * FROM subsystem WHERE name = 'snmptrapd'))"""
-    c.execute(sql)
-    db.commit()
+    Subsystem.objects.get_or_create(name="snmptrapd", defaults={"description": ""})
 
 
 def signal_handler(signum, _):

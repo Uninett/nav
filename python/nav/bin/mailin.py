@@ -24,11 +24,15 @@ import configparser
 
 import argparse
 
+from nav.bootstrap import bootstrap_django
 from nav.config import find_config_file
+
+bootstrap_django(__file__)
 
 import nav
 import nav.mailin
 from nav import logs
+from nav.models.event import Subsystem
 
 import logging
 
@@ -123,13 +127,7 @@ def read_and_process_input(plugins, test=False):
 def add_mailin_subsystem():
     """Ensure that the 'mailin' subsystem exists in the db"""
 
-    conn = nav.db.getConnection('default', 'manage')
-    cursor = conn.cursor()
-
-    cursor.execute("select * from subsystem where name='mailin'")
-    if cursor.rowcount == 0:
-        cursor.execute("INSERT INTO subsystem (name, descr) VALUES ('mailin', '')")
-    conn.commit()
+    Subsystem.objects.get_or_create(name="mailin", defaults={"description": ""})
 
 
 def load_plugins(paths):
