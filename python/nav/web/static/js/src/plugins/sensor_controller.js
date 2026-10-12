@@ -134,12 +134,13 @@ define(function(require) {
         },
         updateGraph: function (values) {
             if (!this.graph) {
-                this.graph = this.createGraph();
+                this.graph = this.createGraph(values);
+            } else {
+                this.graph.series[0].data = values;
+                this.graph.render();
             }
-            this.graph.series[0].data = values;
-            this.graph.render();
         },
-        createGraph: function () {
+        createGraph: function (values) {
             var graph = new Rickshaw.Graph({
                 element: this.graphNode.get(0),
                 width: 230,
@@ -148,13 +149,9 @@ define(function(require) {
                 min: 'auto',
                 series: [{
                     color: 'steelblue',
-                    data: [{x: 0, y: 0}], // Data is overridden on update
+                    data: values,
                     name: this.sensorname
                 }]
-            });
-            var slider = new Rickshaw.Graph.RangeSlider({
-                graph: graph,
-                element: this.sliderNode.get(0)
             });
             // Time formatter for the x-axis
             var unit_formatter = {
@@ -187,6 +184,14 @@ define(function(require) {
                         number: +y.toFixed(2)
                     });
                 }
+            });
+
+            graph.render();
+            // The slider initialises asynchronously, so it must be created
+            // after the first render to avoid being updated before it exists
+            var slider = new Rickshaw.Graph.RangeSlider({
+                graph: graph,
+                element: this.sliderNode.get(0)
             });
 
             return graph;
