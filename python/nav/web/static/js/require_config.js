@@ -38,7 +38,7 @@ var require = {
             exports: '_'
         },
         'backbone': {
-            deps: ["underscore"],
+            deps: ["plugins/globalize-underscore"],
             exports: 'Backbone'
         },
         'backbone.radio': {
