@@ -108,6 +108,35 @@ Section [cam]
   off by default.  The default may change to ``yes`` in a future release once
   the feature has been validated in production environments.
 
+Section [access_sessions]
+-------------------------
+
+ipdevpoll collects the client authentication sessions (802.1X, MAB and web
+authentication) active on switch ports, including any VLANs the clients were
+dynamically assigned.  Currently, this is only supported on Cisco switches.
+The sessions are collected by the ``cisco_access_sessions`` plugin, which runs
+in the ``topo`` job every 15 minutes by default.  The plugin does not depend on
+the other plugins in that job.  If 15 minutes is too infrequent, you can move
+it to a job that runs more often, such as ``statuscheck``, or to a job of its
+own, at the cost of more SNMP queries.  By default, sessions are recorded
+anonymously.
+
+Sessions are identified across polls by a hash keyed with the ``SECRET_KEY``
+setting in :file:`nav.conf`, so that the switches' own session identifiers
+never need to be stored.  These identifiers may also appear in RADIUS logs,
+and the hash can't be matched against them without knowing the key.  This
+protection only holds if you have changed ``SECRET_KEY`` from its default
+value.  Changing the key makes every session look new on the next poll.
+
+``collect_client_identity``
+  When set to ``yes``, the client's MAC address and authenticated user name
+  are also collected for each session.  This is personally identifiable
+  information, so make sure your organization is allowed to track it before
+  enabling this option.
+
+  The default value is ``no``.  Changing it back to ``no`` clears any
+  collected MAC addresses and user names as each switch is polled.
+
 Section [linkstate]
 -------------------
 
