@@ -1,16 +1,28 @@
 import uuid
 
 import pytest
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.http import HttpResponse
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from jnpr.junos.exception import ConnectRefusedError
-from mock import patch, Mock
+from mock import ANY, patch, Mock
 
-from nav.models.manage import Interface, Netbox, NetboxProfile
+from nav.models.manage import Interface, Netbox, NetboxGroup, NetboxProfile
+from nav.models.profiles import AccountGroup, PrivilegeType
 from nav.portadmin.handlers import ManagementHandler
-from nav.web.portadmin.views import populate_infodict, load_portadmin_data_by_kwargs
+from nav.portadmin.privileges import PortadminPermissions, PortadminPrivilege
+from nav.web.portadmin.views import (
+    commit_configuration,
+    load_portadmin_data_by_kwargs,
+    populate_infodict,
+    set_admin_status,
+    set_ifalias,
+    set_poe_state,
+    set_vlan,
+    set_voice_vlan,
+)
 
 
 class TestPortadminSearchViews:
@@ -227,7 +239,7 @@ class TestPortadminDataLoading:
         result = populate_infodict(mock_request, netbox, interfaces)
 
         mock_find_vlans.assert_called_once_with(
-            mock_request.account, netbox, interfaces, mock_handler
+            mock_request.account, netbox, interfaces, mock_handler, permissions=ANY
         )
         mock_setup_voice.assert_called_once_with(
             mock_request, netbox, interfaces, mock_handler
@@ -405,3 +417,243 @@ def create_interface(netbox, **kwargs):
     )
     interface.save()
     return interface
+
+
+# --- PortAdmin per-attribute privileges ---------------------------------------
+
+
+@pytest.fixture
+def privileges_enforced():
+    """Enforces per-attribute privileges
+
+    Enforcement is off by default, in which case every attribute is editable and
+    there would be nothing to assert.
+    """
+    with patch(
+        "nav.portadmin.privileges.CONFIG.is_privilege_authorization_enabled",
+        return_value=True,
+    ) as mock_enabled:
+        yield mock_enabled
+
+
+@pytest.fixture
+def privileged_netbox(interface, privileges_enforced):
+    """The netbox of the test interface, placed in a device group"""
+    group = NetboxGroup.objects.create(id="SDN", description="SDN switches")
+    interface.netbox.groups.add(group)
+    yield interface.netbox
+    group.delete()
+
+
+@pytest.fixture
+def account_group(db, non_admin_account):
+    """An account group holding the account whose privileges are under test"""
+    group = AccountGroup.objects.create(name="portadmin view test group")
+    non_admin_account.groups.add(group)
+    return group
+
+
+def grant_privilege(account_group, privilege, target=".*"):
+    """Grants a PortAdmin privilege to an account group, scoped to a target"""
+    return account_group.privileges.create(
+        type=PrivilegeType.objects.get(name=privilege), target=target
+    )
+
+
+def request_with_messages(**post_data):
+    """Builds a POST request the messages framework can add messages to
+
+    The setters report refused changes with messages.error(), which needs message
+    storage on the request.
+    """
+    request = RequestFactory().post("/portadmin/save", post_data)
+    request.session = {}
+    request._messages = FallbackStorage(request)
+    return request
+
+
+class TestSetterPrivilegeGuards:
+    """Each setter must refuse its change when the privilege is missing
+
+    The management handler is mocked, since these tests are about authorization and
+    must not attempt to talk to a real device.
+    """
+
+    def test_when_description_privilege_is_missing_it_should_not_set_ifalias(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = request_with_messages(interfaceid="1", ifalias="new description")
+        handler = Mock()
+
+        set_ifalias(
+            non_admin_account,
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_interface_description.assert_not_called()
+
+    def test_when_description_privilege_is_granted_it_should_set_ifalias(
+        self, non_admin_account, privileged_netbox, interface, account_group
+    ):
+        grant_privilege(account_group, PortadminPrivilege.DESCRIPTION)
+        request = request_with_messages(interfaceid="1", ifalias="new description")
+        handler = Mock()
+
+        set_ifalias(
+            non_admin_account,
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_interface_description.assert_called_once()
+
+    def test_when_vlan_privilege_is_missing_it_should_not_set_vlan(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = request_with_messages(interfaceid="1", vlan="42")
+        handler = Mock()
+
+        set_vlan(
+            non_admin_account,
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_vlan.assert_not_called()
+        handler.set_native_vlan.assert_not_called()
+
+    def test_when_admin_status_privilege_is_missing_it_should_not_change_status(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = request_with_messages(interfaceid="1", ifadminstatus="2")
+        handler = Mock()
+
+        with patch(
+            "nav.web.portadmin.views.get_account", return_value=non_admin_account
+        ):
+            set_admin_status(
+                handler,
+                interface,
+                request,
+                PortadminPermissions(non_admin_account, privileged_netbox),
+            )
+
+        handler.set_interface_down.assert_not_called()
+        handler.set_interface_up.assert_not_called()
+
+    def test_when_poe_privilege_is_missing_it_should_not_set_poe_state(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = request_with_messages(interfaceid="1", poe_state="auto")
+        handler = Mock()
+
+        set_poe_state(
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_poe_state.assert_not_called()
+
+    def test_when_voice_vlan_privilege_is_missing_it_should_not_set_voice_vlan(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = request_with_messages(interfaceid="1", voicevlan="true")
+        handler = Mock()
+
+        set_voice_vlan(
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_interface_voice_vlan.assert_not_called()
+        handler.set_cisco_voice_vlan.assert_not_called()
+
+    def test_when_a_privilege_is_missing_it_should_not_block_the_others(
+        self, non_admin_account, privileged_netbox, interface, account_group
+    ):
+        """A refused attribute must not prevent permitted ones from being applied"""
+        grant_privilege(account_group, PortadminPrivilege.DESCRIPTION)
+        request = request_with_messages(
+            interfaceid="1", ifalias="new description", vlan="42"
+        )
+        handler = Mock()
+        permissions = PortadminPermissions(non_admin_account, privileged_netbox)
+
+        set_ifalias(non_admin_account, handler, interface, request, permissions)
+        set_vlan(non_admin_account, handler, interface, request, permissions)
+
+        handler.set_interface_description.assert_called_once()
+        handler.set_vlan.assert_not_called()
+
+    def test_when_netbox_is_outside_the_privilege_target_it_should_not_set_vlan(
+        self, non_admin_account, privileged_netbox, interface, account_group
+    ):
+        """A grant scoped to other device groups must not apply here"""
+        grant_privilege(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+        request = request_with_messages(interfaceid="1", vlan="42")
+        handler = Mock()
+
+        set_vlan(
+            non_admin_account,
+            handler,
+            interface,
+            request,
+            PortadminPermissions(non_admin_account, privileged_netbox),
+        )
+
+        handler.set_vlan.assert_not_called()
+
+
+class TestCommitConfigurationPrivileges:
+    """Committing requires at least one edit privilege on the device"""
+
+    def test_when_user_has_no_privileges_it_should_return_403(
+        self, non_admin_account, privileged_netbox, interface
+    ):
+        request = RequestFactory().post(
+            "/portadmin/commit", {"interfaceid": str(interface.id)}
+        )
+
+        with (
+            patch(
+                "nav.web.portadmin.views.get_account", return_value=non_admin_account
+            ),
+            patch("nav.web.portadmin.views.get_management_handler") as get_handler,
+        ):
+            response = commit_configuration(request)
+
+        assert response.status_code == 403
+        get_handler.assert_not_called()
+
+    def test_when_user_has_an_edit_privilege_it_should_commit(
+        self, non_admin_account, privileged_netbox, interface, account_group
+    ):
+        grant_privilege(account_group, PortadminPrivilege.DESCRIPTION)
+        request = RequestFactory().post(
+            "/portadmin/commit", {"interfaceid": str(interface.id)}
+        )
+        handler = Mock()
+
+        with (
+            patch(
+                "nav.web.portadmin.views.get_account", return_value=non_admin_account
+            ),
+            patch(
+                "nav.web.portadmin.views.get_management_handler", return_value=handler
+            ),
+        ):
+            response = commit_configuration(request)
+
+        assert response.status_code == 200
+        handler.commit_configuration.assert_called_once()

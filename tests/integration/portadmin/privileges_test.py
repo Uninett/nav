@@ -1,10 +1,26 @@
 """Tests for per-attribute PortAdmin authorization, against real database objects"""
 
+from unittest.mock import patch
+
 import pytest
 
 from nav.models.manage import NetboxGroup
 from nav.models.profiles import AccountGroup, PrivilegeType
 from nav.portadmin.privileges import PortadminPermissions, PortadminPrivilege
+
+
+@pytest.fixture
+def privileges_enforced():
+    """Switches on enforcement of the per-attribute privileges
+
+    Enforcement is off by default, in which case every attribute is editable and
+    there would be nothing to assert.
+    """
+    with patch(
+        "nav.portadmin.privileges.CONFIG.is_privilege_authorization_enabled",
+        return_value=True,
+    ):
+        yield
 
 
 def _grant(account_group, privilege, target):
@@ -46,6 +62,7 @@ def legacy_netbox(localhost, legacy_group):
     return localhost
 
 
+@pytest.mark.usefixtures("privileges_enforced")
 class TestPortadminPermissions:
     def test_when_user_is_admin_it_should_allow_everything(
         self, admin_account, sdn_netbox
@@ -158,3 +175,32 @@ class TestPortadminPermissions:
 
         assert getattr(permissions, accessor)
         assert permissions.allowed == frozenset([privilege])
+
+
+class TestPrivilegeEnforcementSwitch:
+    """The require_privileges option decides whether privileges are enforced at all"""
+
+    def test_when_enforcement_is_off_it_should_allow_everything(
+        self, non_admin_account, sdn_netbox
+    ):
+        permissions = PortadminPermissions(non_admin_account, sdn_netbox)
+
+        assert permissions.can_edit_something
+        assert permissions.allowed == frozenset(PortadminPrivilege)
+
+    def test_when_enforcement_is_off_it_should_ignore_the_target(
+        self, non_admin_account, sdn_netbox, account_group
+    ):
+        """A grant scoped away from this netbox must not restrict anything"""
+        _grant(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+
+        permissions = PortadminPermissions(non_admin_account, sdn_netbox)
+
+        assert permissions.vlan
+
+    def test_when_enforcement_is_on_it_should_deny_by_default(
+        self, non_admin_account, sdn_netbox, privileges_enforced
+    ):
+        permissions = PortadminPermissions(non_admin_account, sdn_netbox)
+
+        assert not permissions.can_edit_something

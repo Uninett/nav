@@ -96,7 +96,13 @@
 
   {% else %}
     {% if not trunk_edit %}
-      <div class="alert-box info">Trunk editing is disabled</div>
+      {% if interface and not permissions.trunk %}
+        <div class="alert-box info">
+          You do not have permission to edit trunks on this IP device.
+        </div>
+      {% else %}
+        <div class="alert-box info">Trunk editing is disabled</div>
+      {% endif %}
     {% else %}
       <p class="error">This interface does not exist</p>
     {% endif %}

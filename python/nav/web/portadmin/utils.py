@@ -27,6 +27,7 @@ from nav.models.profiles import Account
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.handlers import ManagementHandler
+from nav.portadmin.privileges import PortadminPermissions
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
@@ -73,10 +74,13 @@ def find_and_populate_allowed_vlans(
     netbox: manage.Netbox,
     interfaces: Sequence[manage.Interface],
     handler: ManagementHandler,
+    permissions: Optional[PortadminPermissions] = None,
 ):
     """Finds allowed vlans and indicate which interfaces can be edited"""
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox, handler)
-    set_editable_flag_on_interfaces(interfaces, allowed_vlans, account)
+    set_editable_flag_on_interfaces(
+        interfaces, allowed_vlans, account, permissions=permissions
+    )
     return allowed_vlans
 
 
@@ -129,6 +133,7 @@ def set_editable_flag_on_interfaces(
     interfaces: Sequence[manage.Interface],
     vlans: Sequence[FantasyVlan],
     user: Optional[Account] = None,
+    permissions: Optional[PortadminPermissions] = None,
 ):
     """Sets the pseudo-attribute `iseditable` on each interface in the interfaces
     list, indicating whether the PortAdmin UI should allow edits to it or not.
@@ -136,11 +141,20 @@ def set_editable_flag_on_interfaces(
     An interface will be considered "editable" only if its native vlan matches one of
     the vlan tags from `vlans`. An interface may be considered non-editable if it is
     an uplink, depending on how portadmin is configured.
+
+    If `permissions` is given, no interface is editable unless the user has been
+    granted at least one per-attribute PortAdmin privilege on the netbox. Which
+    individual attributes may be changed is decided per attribute, elsewhere.
     """
     vlan_tags = {vlan.vlan for vlan in vlans}
     allow_everything = not should_check_access_rights(account=user) if user else False
+    may_edit_something = permissions.can_edit_something if permissions else True
 
     for interface in interfaces:
+        if not may_edit_something:
+            interface.iseditable = False
+            continue
+
         if allow_everything:
             interface.iseditable = True
             continue
