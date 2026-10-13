@@ -1,4 +1,5 @@
 import json
+import re
 from io import BytesIO
 from urllib.parse import quote
 
@@ -305,6 +306,9 @@ class TestBannerWarnings:
         assert (
             "Your account has an insecure or old password. It should be reset."
         ) in smart_str(response.content)
+        assert (
+            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 2
+        )
 
     def test_given_other_accounts_password_issues_then_show_only_other_issues_banner(
         self, db, admin_account, log_in
@@ -345,6 +349,9 @@ class TestBannerWarnings:
         assert (
             "There are 1 accounts that have insecure or old passwords."
         ) in smart_str(response.content)
+        assert (
+            len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 1
+        )
 
 
 def test_show_qr_code_returns_fragment_with_qr_code(client):
