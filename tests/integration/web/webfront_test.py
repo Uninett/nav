@@ -1,9 +1,9 @@
 import json
-import re
 from io import BytesIO
 from urllib.parse import quote
 
 import pytest
+from django.core.cache import cache
 from django.http import Http404
 from django.test import Client, RequestFactory
 from django.urls import reverse
@@ -16,6 +16,7 @@ from nav.models.profiles import (
     AccountDashboardSubscription,
     AccountNavlet,
 )
+from nav.web.auth.utils import PASSWORD_ISSUES_CACHE_KEY
 from nav.web.webfront import find_dashboard, get_dashboards_for_account
 from nav.web.webfront.utils import tool_list
 from nav.web.webfront.views import index
@@ -288,6 +289,8 @@ class TestBannerWarnings:
         """
         If other users have insecure or old passwords a banner should be shown to admins
         """
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
+
         account = Account.objects.create(
             login="plaintext_pw_user", password="plaintext_pw"
         )
@@ -296,10 +299,9 @@ class TestBannerWarnings:
 
         index_url = reverse('webfront-index')
         response = client.get(index_url)
-        assert re.search(
-            r"There are \d+ accounts that have insecure or old passwords.",
-            smart_str(response.content),
-        )
+        assert (
+            "There are 2 accounts that have insecure or old passwords."
+        ) in smart_str(response.content)
         assert (
             "Your account has an insecure or old password. It should be reset."
         ) in smart_str(response.content)
@@ -315,6 +317,7 @@ class TestBannerWarnings:
         # Admin account has a password with outdated password hashing method
         # This needs to be fixed, otherwise the "Your password is insecure..." banner
         # will be shown
+
         new_password = 'new_password'
         admin_account.set_password(new_password)
         admin_account.save()
@@ -339,10 +342,9 @@ class TestBannerWarnings:
         assert (
             "Your account has an insecure or old password. It should be reset."
         ) not in smart_str(response.content)
-        assert re.search(
-            r"There are \d+ accounts that have insecure or old passwords.",
-            smart_str(response.content),
-        )
+        assert (
+            "There are 1 accounts that have insecure or old passwords."
+        ) in smart_str(response.content)
 
 
 def test_show_qr_code_returns_fragment_with_qr_code(client):
