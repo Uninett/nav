@@ -116,8 +116,8 @@ class Pinger(object):
                 # instances with different reachability would then flip-flop the
                 # box's state forever.
                 _logger.info(
-                    "Netbox %s is marked down in database but up internally, "
-                    "re-syncing internal state to match database",
+                    "Database and internal pping state of %s are out of sync, "
+                    "re-announcing its state",
                     netbox.ip,
                 )
                 self.down.append(netbox.netboxid)
