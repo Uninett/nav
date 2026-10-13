@@ -356,6 +356,9 @@ class ArgumentParser(object):
                     )
                     value = [None, None]
 
+        if operat == "ilike":
+            # ILIKE needs text, concat() keeps inet values as displayed
+            field = f"concat({field})"
         where_string = f"{field} {negate}{operat} %s"
         if multi:
             _combinator = " and " if negate else " or "

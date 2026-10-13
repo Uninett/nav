@@ -46,3 +46,17 @@ def test_non_ascii_filter_should_work(client):
     url = "{}?roomid=æøå".format(url)
     response = client.get(url, follow=True)
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize("query", ["ip=10.*&op_ip=like", "ip=10.*,192.*&op_ip=in"])
+def test_when_filtering_ip_address_with_complext_terms_then_it_should_not_fail(query):
+    db.closeConnections()
+    _, _, _, _, _, _, dbresult = Generator().make_report(
+        "netbox",
+        list_config_files_from_dir(config_files_dir),
+        QueryDict(query).copy(),
+        None,
+        None,
+    )
+
+    assert not dbresult.error, dbresult.error
