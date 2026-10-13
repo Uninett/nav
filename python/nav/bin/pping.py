@@ -109,8 +109,12 @@ class Pinger(object):
                     )
                     self.down.append(netbox.netboxid)
             elif netbox.up != 'y' and netbox.netboxid not in self.down:
-                # Ensure reconciliation with the database
-                # when external state changes occur
+                # The database says this box is down, but we think it's up. Mark
+                # it down and clear its replies, so that we re-announce it as up
+                # in this cycle if it still answers. We deliberately never do the
+                # opposite (trust the database when it says up): two pping
+                # instances with different reachability would then flip-flop the
+                # box's state forever.
                 _logger.info(
                     "Netbox %s is marked down in database but up internally, "
                     "re-syncing internal state to match database",
