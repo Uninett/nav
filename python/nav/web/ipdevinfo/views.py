@@ -20,16 +20,25 @@ import logging
 import datetime as dt
 
 from django.conf import settings
-from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.db import transaction
 from django.db.models import Q
+from django.http import (
+    HttpResponseRedirect,
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django_htmx.http import (
     HttpResponseClientRedirect,
     HttpResponseClientRefresh,
 )
 
+from nav.auditlog.models import LogEntry
+from nav.django.decorators import require_admin
 from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
 from nav.metrics.data import get_metric_data
@@ -38,6 +47,7 @@ from nav.web.auth.utils import get_account
 from nav.web.modals import render_modal
 
 from nav.models.manage import (
+    AdjacencyCandidate,
     Netbox,
     Module,
     Interface,
@@ -683,6 +693,37 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
             'alert_info': get_recent_alerts_interface(port),
         },
     )
+
+
+@require_POST
+@require_admin
+@transaction.atomic
+def clear_port_topology(request, port_id):
+    """Removes stale topology information from an operationally down port"""
+    port = get_object_or_404(Interface, id=port_id)
+    if port.is_oper_up():
+        return HttpResponseBadRequest("Topology can only be cleared for down ports")
+
+    if request.POST.get('confirm_clear') != 'true':
+        return render_modal(
+            request,
+            'ipdevinfo/_clear_port_topology_confirmation.html',
+            context={'port': port},
+            modal_id='clear-port-topology-confirmation',
+            size='small',
+        )
+
+    AdjacencyCandidate.objects.filter(interface=port).delete()
+    port.to_netbox = port.to_interface = None
+    port.save(update_fields=['to_netbox', 'to_interface'])
+    LogEntry.add_log_entry(
+        get_account(request),
+        'clear-topology',
+        '{actor}: {object} - topology cleared',
+        subsystem='ipdevinfo',
+        object=port,
+    )
+    return HttpResponseClientRefresh()
 
 
 def poe_status_hint_modal(request):
