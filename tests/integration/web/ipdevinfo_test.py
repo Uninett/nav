@@ -4,7 +4,6 @@ import re
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
@@ -487,7 +486,9 @@ class TestClearPortTopology:
         down_port_with_neighbor.refresh_from_db()
         assert down_port_with_neighbor.to_netbox is not None
 
-    def test_get_should_not_be_allowed(self, client, down_port_with_neighbor):
+    def test_when_using_get_then_it_should_not_be_allowed(
+        self, client, down_port_with_neighbor
+    ):
         response = client.get(_clear_topology_url(down_port_with_neighbor))
         assert response.status_code == 405
 
@@ -527,10 +528,3 @@ def down_port_with_neighbor(netbox_factory, interface_factory):
         source='lldp',
     )
     return port
-
-
-@pytest.fixture
-def non_admin_client(non_admin_account, log_in):
-    client_ = Client()
-    log_in(client_, non_admin_account.login, 'password')
-    return client_

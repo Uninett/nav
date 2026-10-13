@@ -474,6 +474,13 @@ def non_admin_account(db):
     account.delete()
 
 
+@pytest.fixture
+def non_admin_client(non_admin_account):
+    client_ = Client()
+    log_in_client(client_, non_admin_account.login, 'password')
+    return client_
+
+
 @pytest.fixture()
 def default_account(db):
     from nav.models.profiles import Account
