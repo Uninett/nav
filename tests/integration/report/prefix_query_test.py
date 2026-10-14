@@ -32,24 +32,6 @@ from nav.report.IPtree import get_subnets
 from nav.report.metaIP import MetaIP
 
 
-@pytest.fixture
-def seeded_prefix(db):
-    net_type, _ = NetType.objects.get_or_create(
-        id="lan", defaults={"description": "lan"}
-    )
-    vlan = Vlan.objects.create(vlan=10, net_type=net_type)
-    return Prefix.objects.create(net_address="10.0.0.0/24", vlan=vlan)
-
-
-@pytest.fixture(autouse=True)
-def _clear_metaip_cache():
-    # MetaMap is a class-level cache built inside the rolled-back test
-    # transaction; clear it both ways so it never leaks between tests.
-    MetaIP.invalidateCache()
-    yield
-    MetaIP.invalidateCache()
-
-
 class TestGetSubnets:
     def test_when_queried_then_it_should_return_seeded_subnet_from_db(
         self, seeded_prefix
@@ -67,3 +49,21 @@ class TestMetaIP:
         assert meta.prefixid == seeded_prefix.id
         assert meta.nettype == "lan"
         assert meta.getTreeNet() == "10.0.0"
+
+
+@pytest.fixture
+def seeded_prefix(db):
+    net_type, _ = NetType.objects.get_or_create(
+        id="lan", defaults={"description": "lan"}
+    )
+    vlan = Vlan.objects.create(vlan=10, net_type=net_type)
+    return Prefix.objects.create(net_address="10.0.0.0/24", vlan=vlan)
+
+
+@pytest.fixture(autouse=True)
+def _clear_metaip_cache():
+    # MetaMap is a class-level cache built inside the rolled-back test
+    # transaction; clear it both ways so it never leaks between tests.
+    MetaIP.invalidateCache()
+    yield
+    MetaIP.invalidateCache()
