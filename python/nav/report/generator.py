@@ -407,8 +407,6 @@ class ReportConfig(object):
     def wherestring(self):
         where = self.where
         if where:
-            alias_remover = re.compile(r"(.+)\s+AS\s+\S+", re.I)
-            where = [alias_remover.sub(r"\g<1>", word) for word in where]
             return " WHERE " + " AND ".join(where)
         else:
             return ""
