@@ -126,8 +126,7 @@ def tool_list(account):
                     try:
                         tool = parse_tool(fullpath)
                     except Exception as error:  # noqa: BLE001
-                        _logger.error(
-                            'Error parsing tool in %s: %s', filename, error)
+                        _logger.error('Error parsing tool in %s: %s', filename, error)
                         continue
 
                     if account.has_perm('web_access', tool.uri):
@@ -169,8 +168,7 @@ def split_tools(tools, parts=3):
     return columns
 
 
-BannerWarningElement = namedtuple(
-    "BannerWarningElement", "message link link_message")
+BannerWarningElement = namedtuple("BannerWarningElement", "message link link_message")
 
 
 def get_banner_warnings(account: Account) -> list[BannerWarningElement]:
