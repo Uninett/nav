@@ -406,11 +406,11 @@ class ReportConfig(object):
 
     def add_trusted_sort(self, tokens):
         """Prepend trusted sort tokens defined in report.conf."""
-        self._order_by_trusted = list(tokens) + self._order_by_trusted
+        self._order_by_trusted = _clean_tokens(tokens) + self._order_by_trusted
 
     def add_untrusted_sort(self, tokens):
         """Prepend untrusted sort tokens taken from the request query string."""
-        self._order_by_untrusted = list(tokens) + self._order_by_untrusted
+        self._order_by_untrusted = _clean_tokens(tokens) + self._order_by_untrusted
 
     def add_trusted_where(self, clause):
         """Append a trusted WHERE clause defined in report.conf."""
@@ -521,3 +521,12 @@ def _split_descending(token):
     """
     descending = token.startswith("-")
     return descending, token[1:] if descending else token
+
+
+def _clean_tokens(tokens):
+    """Strip whitespace from sort tokens and drop empty ones.
+
+    Sort columns are quoted, so a stray space would become part of the column
+    name. Empty tokens (from a trailing comma) would quote the empty string.
+    """
+    return [stripped for token in tokens if (stripped := token.strip())]

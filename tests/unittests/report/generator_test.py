@@ -67,3 +67,15 @@ class TestOrderByProperty:
         config.add_trusted_sort(["roomid"])
         ArgumentParser(config).parse_query({"order_by": "sysname"})
         assert config.order_by == ["sysname", "roomid"]
+
+
+class TestSortTokenNormalisation:
+    def test_when_sort_tokens_have_whitespace_then_order_by_should_strip_them(self):
+        config = ReportConfig()
+        ArgumentParser(config).parse_query({"order_by": "sysname, ifindex"})
+        assert config.order_by == ["sysname", "ifindex"]
+
+    def test_when_a_sort_token_is_empty_then_order_by_should_drop_it(self):
+        config = ReportConfig()
+        ArgumentParser(config).parse_query({"order_by": "sysname,"})
+        assert config.order_by == ["sysname"]

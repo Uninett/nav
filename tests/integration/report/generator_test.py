@@ -121,6 +121,10 @@ class TestMakeSqlQuotesUntrustedIdentifiers:
         sql = build_sql({"order_by": "-sysname"})
         assert 'ORDER BY "sysname" DESC' in sql
 
+    def test_when_order_by_has_whitespace_then_make_sql_should_strip_the_token(self):
+        sql = build_sql({"order_by": "sysname, ifindex"})
+        assert 'ORDER BY "sysname","ifindex"' in sql
+
 
 class TestMakeSqlRendersTrustedClauses:
     def test_when_config_defines_a_sort_expression_then_make_sql_should_pass_it_verbatim(  # noqa: E501
