@@ -27,7 +27,7 @@ import pytest
 from IPy import IP as IPyIP
 
 from nav.ip import IP
-from nav.models.manage import NetType, Prefix, Vlan
+from nav.models.manage import Prefix, Vlan
 from nav.report.IPtree import get_subnets
 from nav.report.metaIP import MetaIP
 
@@ -53,10 +53,7 @@ class TestMetaIP:
 
 @pytest.fixture
 def seeded_prefix(db):
-    net_type, _ = NetType.objects.get_or_create(
-        id="lan", defaults={"description": "lan"}
-    )
-    vlan = Vlan.objects.create(vlan=10, net_type=net_type)
+    vlan = Vlan.objects.create(vlan=10, net_type_id="lan")
     return Prefix.objects.create(net_address="10.0.0.0/24", vlan=vlan)
 
 

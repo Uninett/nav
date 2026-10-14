@@ -38,8 +38,7 @@ class TestDatabaseResult:
         assert config.sql_select == ["the_answer"]
 
     def test_when_report_sql_is_malformed_then_error_is_set_without_raising(self, db):
-        # A malformed report definition must not turn into an HTTP 500. Before
-        # catching Django's wrapped exception this raised uncaught.
+        # A malformed report definition must not turn into an HTTP 500.
         result = DatabaseResult(
             _config("SELECT * FROM does_not_exist_xyz", title="broken report")
         )
