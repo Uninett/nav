@@ -15,7 +15,41 @@
 #
 """Unit tests for the connection-free parts of the report generator."""
 
-from nav.report.generator import ReportConfig, ArgumentParser
+from nav.report.generator import (
+    ReportConfig,
+    ArgumentParser,
+    _split_descending,
+    _verbatim_sort_term,
+)
+
+
+class TestSplitDescending:
+    def test_when_token_is_plain_then_it_should_be_ascending(self):
+        assert _split_descending("sysname") == (False, "sysname")
+
+    def test_when_token_has_leading_dash_then_it_should_be_descending(self):
+        assert _split_descending("-sysname") == (True, "sysname")
+
+    def test_when_token_has_an_inner_dash_then_it_should_keep_the_dash_in_the_name(
+        self,
+    ):
+        assert _split_descending("a-b") == (False, "a-b")
+
+    def test_when_descending_token_has_an_inner_dash_then_it_should_keep_the_inner_dash(  # noqa: E501
+        self,
+    ):
+        assert _split_descending("-a-b") == (True, "a-b")
+
+
+class TestVerbatimSortTerm:
+    def test_when_token_is_ascending_then_it_should_be_emitted_verbatim(self):
+        assert _verbatim_sort_term("priority") == "priority"
+
+    def test_when_token_is_descending_then_it_should_get_a_desc_suffix(self):
+        assert _verbatim_sort_term("-priority") == "priority DESC"
+
+    def test_when_token_is_an_expression_then_it_should_not_be_quoted(self):
+        assert _verbatim_sort_term("count(*)") == "count(*)"
 
 
 class TestOrderByProperty:

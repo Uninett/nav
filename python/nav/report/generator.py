@@ -21,6 +21,8 @@ from collections import namedtuple
 from operator import attrgetter
 from os.path import basename
 
+from psycopg2 import sql
+
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
 
@@ -356,11 +358,11 @@ class ArgumentParser(object):
                     )
                     value = [None, None]
 
-        where_string = f"{field} {negate}{operat} %s"
+        term = f"{{col}} {negate}{operat} %s"
         if multi:
             _combinator = " and " if negate else " or "
-            where_string = f"({_combinator.join(where_string for _ in value)})"
-        self.config.add_untrusted_where(where_string)
+            term = f"({_combinator.join(term for _ in value)})"
+        self.config.add_untrusted_where(field, term)
         if isinstance(value, list):
             self.config.parameters.extend(value)
         else:
@@ -414,43 +416,56 @@ class ReportConfig(object):
         """Append a trusted WHERE clause defined in report.conf."""
         self._where_trusted.append(clause)
 
-    def add_untrusted_where(self, clause):
-        """Append an untrusted WHERE clause from the request query string."""
-        self._where_untrusted.append(clause)
+    def add_untrusted_where(self, field, term):
+        """Register an untrusted WHERE clause from the request query string.
+
+        `field` is the raw column name. `term` is the rest of the clause as a
+        template with a `{col}` placeholder. wherestring() quotes `field` and
+        fills the template.
+        """
+        self._where_untrusted.append((field, term))
 
     def __repr__(self):
         template = (
             "<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
             "parameters={3!r}, order_by={4!r} >"
         )
-        where = self._where_trusted + self._where_untrusted
+        where = self._where_trusted + [
+            term.format(col=field) for field, term in self._where_untrusted
+        ]
         return template.format(
             self.sql, self.sql_select, where, self.parameters, self.order_by
         )
 
-    def make_sql(self):
+    def make_sql(self, connection):
+        """Build the final SQL and its parameters.
+
+        The connection is used to quote request-supplied identifiers (see
+        quote_identifier).
+        """
         sql = "SELECT * FROM (%s) AS foo %s%s" % (
             self.escaped_sql,
-            self.wherestring(),
-            self.orderstring(),
+            self.wherestring(connection),
+            self.orderstring(connection),
         )
         return sql, self.parameters
 
-    def wherestring(self):
-        where = self._where_trusted + self._where_untrusted
-        if where:
-            return " WHERE " + " AND ".join(where)
+    def wherestring(self, connection):
+        clauses = list(self._where_trusted)
+        for field, term in self._where_untrusted:
+            quoted = quote_identifier(field, connection)
+            clauses.append(term.format(col=quoted))
+        if clauses:
+            return " WHERE " + " AND ".join(clauses)
         else:
             return ""
 
-    def orderstring(self):
-        def _transform(arg):
-            if arg.startswith("-"):
-                arg = "%s DESC" % arg.replace("-", "")
-            return arg
-
-        sort = [_transform(s) for s in self.order_by]
-        return " ORDER BY %s" % ",".join(sort) if sort else ""
+    def orderstring(self, connection):
+        terms = [
+            _quoted_sort_term(token, connection) for token in self._order_by_untrusted
+        ]
+        terms += [_verbatim_sort_term(token) for token in self._order_by_trusted]
+        return " ORDER BY %s" % ",".join(terms) if terms else ""
 
     @property
     def escaped_sql(self):
@@ -461,3 +476,42 @@ class ReportConfig(object):
         """
         if self.sql:
             return self.sql.replace("%", "%%")
+
+
+def _verbatim_sort_term(token):
+    """Render a config-defined ORDER BY term verbatim.
+
+    A leading '-' selects descending order. The name is emitted unquoted, since
+    config tokens may be expressions rather than bare column names.
+    """
+    descending, name = _split_descending(token)
+    return "%s DESC" % name if descending else name
+
+
+def _quoted_sort_term(token, connection):
+    """Render a request-supplied ORDER BY term with a quoted identifier.
+
+    A leading '-' selects descending order. The column name is quoted by the
+    driver so it cannot inject SQL.
+    """
+    descending, name = _split_descending(token)
+    quoted = quote_identifier(name, connection)
+    return "%s DESC" % quoted if descending else quoted
+
+
+def quote_identifier(name, connection):
+    """Quote an untrusted string as a single SQL identifier.
+
+    psycopg2 needs a live connection to quote an identifier. psycopg 3 does not,
+    so its migration can drop the argument.
+    """
+    return sql.Identifier(name).as_string(connection)
+
+
+def _split_descending(token):
+    """Split a sort token into (descending, name).
+
+    Only a leading '-' marks descending order; any other dash stays in the name.
+    """
+    descending = token.startswith("-")
+    return descending, token[1:] if descending else token
