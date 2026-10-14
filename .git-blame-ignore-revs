@@ -14,3 +14,7 @@ e0496b75789656f5abca770e928988fd09bf7803
 a48942953b76e85f09094ed90e09c4e227f90b02
 # Reformat codebase using ruff v0.11.9 @johannaengland 15/05/2025
 2c3d056a25e7a190074a0feb79fbc0104e91284c
+# Reformat codebase using ruff v0.17.0 @johannaengland 14/10/2026
+96a67f5e9117150f038b410ede68fbd38bc9dc73
+# Fix linting error @johannaengland 14/10/2026
+48cb0c02bc500e69cf11f86095987321d4a742bb
