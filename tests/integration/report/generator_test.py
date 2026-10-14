@@ -73,6 +73,19 @@ def test_when_filter_field_is_injected_then_report_should_error_not_execute():
     assert "does not exist" in dbresult.error
 
 
+def test_when_filter_field_has_a_percent_then_report_should_error_not_crash():
+    """A % in a field name must give a handled error, not an HTTP 500.
+
+    An unescaped % reached psycopg2's parameter interpolation and raised an
+    exception. With % doubled, the query fails with "column does not exist".
+    """
+    query = QueryDict(mutable=True)
+    query["sysname%s"] = "x"
+    dbresult = run_report("room", query)
+    assert dbresult.error
+    assert "does not exist" in dbresult.error
+
+
 class TestMakeSqlQuotesUntrustedIdentifiers:
     def test_when_filter_field_is_malicious_then_make_sql_should_quote_it(self):
         sql = build_sql({"(SELECT 1 FROM pg_sleep(3)) OR sysname": "x"})
@@ -81,6 +94,10 @@ class TestMakeSqlQuotesUntrustedIdentifiers:
     def test_when_filter_field_has_a_quote_then_make_sql_should_double_it(self):
         sql = build_sql({'x"y': "v"})
         assert '"x""y" = %s' in sql
+
+    def test_when_filter_field_has_a_percent_then_make_sql_should_double_it(self):
+        sql = build_sql({"a%s": "v"})
+        assert '"a%%s" = %s' in sql
 
     @pytest.mark.parametrize(
         "query, expected",

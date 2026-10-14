@@ -504,8 +504,14 @@ def quote_identifier(name, connection):
 
     psycopg2 needs a live connection to quote an identifier. psycopg 3 does not,
     so its migration can drop the argument.
+
+    The driver leaves '%' alone. psycopg2 reads it as a placeholder when
+    parameters are bound, so it is doubled here. Without bound parameters the
+    doubling survives, and a column named with '%' then fails to match, which is
+    safe.
     """
-    return sql.Identifier(name).as_string(connection)
+    quoted = sql.Identifier(name).as_string(connection)
+    return quoted.replace("%", "%%")
 
 
 def _split_descending(token):
