@@ -189,8 +189,7 @@ def parse_conf(lines, filename):
             pop(new_indent)
             if new_indent != current_indent():
                 error(
-                    'New indentation of %d spaces does not match any '
-                    + 'previous indentation' % new_indent
+                    'New indentation of %d spaces does not match any previous indentation' % new_indent
                 )
         add_line(line, linenr)
     if expect_more_indent_p():

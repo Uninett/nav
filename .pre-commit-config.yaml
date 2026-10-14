@@ -1,14 +1,14 @@
 exclude: smidumps/
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
     -   id: trailing-whitespace
     -   id: mixed-line-ending
     -   id: end-of-file-fixer
         exclude: &exclude_pattern '^changelog.d/'
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+    rev: v0.17.0
     hooks:
         # Run the formatter
     -   id: ruff-format
