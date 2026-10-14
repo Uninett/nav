@@ -195,7 +195,7 @@ def get_formatted_data(
     variant -- name of the map variant to create data for (variants
     are defined in the configuration file)
 
-    db -- a database connection object.
+    db -- a database cursor.
 
     format -- the name of a format (see output_formats.py)
 

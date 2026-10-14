@@ -21,11 +21,16 @@ def test_geomap_data_should_leave_django_connection_in_autocommit(client):
     assert response.status_code == 200
     # The view must not flip autocommit/isolation on the raw connection,
     # which would leave the thread's connection idle in a transaction.
-    assert connection.get_autocommit()
+    # get_autocommit() only reports Django's cached flag, so ask the driver.
+    assert connection.connection is not None
+    assert connection.connection.autocommit
 
 
-def test_geomap_data_should_not_use_legacy_nav_db_cache(client):
-    before = len(list(nav.db._connection_cache.values()))
+def test_geomap_data_should_not_use_legacy_nav_db_cache(client, monkeypatch):
+    monkeypatch.setattr(nav.db, "getConnection", _fail_if_called)
     response = client.get(DATA_URL)
     assert response.status_code == 200
-    assert len(list(nav.db._connection_cache.values())) == before
+
+
+def _fail_if_called(*args, **kwargs):
+    raise AssertionError("legacy nav.db.getConnection() was called")
