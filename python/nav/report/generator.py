@@ -204,7 +204,7 @@ class ConfigParser(object):
             elif key == "title":
                 config.title = value
             elif key == "order_by" or key == "sort":
-                config.order_by = value.split(",") + config.order_by
+                config.add_trusted_sort(value.split(","))
             elif key == "skjul" or key == "hidden" or key == "hide":
                 config.hidden.extend(value.split(","))
             elif key == "ekstra" or key == "extra":
@@ -230,7 +230,7 @@ class ConfigParser(object):
                         config.explain[match.group('groupkey')] = value
 
                 else:
-                    config.where.append(key + "=" + value)
+                    config.add_trusted_where(key + "=" + value)
 
 
 class ArgumentParser(object):
@@ -266,7 +266,7 @@ class ArgumentParser(object):
         if arg == "title":
             self.config.title = value
         elif arg in ("order_by", "sort"):
-            self.config.order_by = value.split(",") + self.config.order_by
+            self.config.add_untrusted_sort(value.split(","))
         elif arg in ("skjul", "hidden", "hide"):
             self.config.hidden.extend(value.split(","))
         elif arg in ("ekstra", "extra"):
@@ -360,7 +360,7 @@ class ArgumentParser(object):
         if multi:
             _combinator = " and " if negate else " or "
             where_string = f"({_combinator.join(where_string for _ in value)})"
-        self.config.where.append(where_string)
+        self.config.add_untrusted_where(where_string)
         if isinstance(value, list):
             self.config.parameters.extend(value)
         else:
@@ -376,24 +376,56 @@ class ReportConfig(object):
         self.limit = ""
         self.name = {}
         self.offset = ""
-        self.order_by = []
         self.sql = None
         self.sql_select = []
         self.sum = []
         self.title = ""
         self.uri = {}
-        self.where = []
         self.parameters = []
         self.report_id = ''
         self.error = None
+        # Sort and filter clauses are tracked by provenance. The _trusted lists
+        # hold admin-defined entries from report.conf. The _untrusted lists hold
+        # entries derived from the request query string. They are kept apart so
+        # they can be rendered differently when the SQL is built.
+        self._order_by_trusted = []
+        self._order_by_untrusted = []
+        self._where_trusted = []
+        self._where_untrusted = []
+
+    @property
+    def order_by(self):
+        """All sort tokens, untrusted (request) ones first, as plain strings.
+
+        Kept unquoted so UI code (make_table_headers) can match them against
+        column names.
+        """
+        return self._order_by_untrusted + self._order_by_trusted
+
+    def add_trusted_sort(self, tokens):
+        """Prepend trusted sort tokens defined in report.conf."""
+        self._order_by_trusted = list(tokens) + self._order_by_trusted
+
+    def add_untrusted_sort(self, tokens):
+        """Prepend untrusted sort tokens taken from the request query string."""
+        self._order_by_untrusted = list(tokens) + self._order_by_untrusted
+
+    def add_trusted_where(self, clause):
+        """Append a trusted WHERE clause defined in report.conf."""
+        self._where_trusted.append(clause)
+
+    def add_untrusted_where(self, clause):
+        """Append an untrusted WHERE clause from the request query string."""
+        self._where_untrusted.append(clause)
 
     def __repr__(self):
         template = (
             "<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
             "parameters={3!r}, order_by={4!r} >"
         )
+        where = self._where_trusted + self._where_untrusted
         return template.format(
-            self.sql, self.sql_select, self.where, self.parameters, self.order_by
+            self.sql, self.sql_select, where, self.parameters, self.order_by
         )
 
     def make_sql(self):
@@ -405,7 +437,7 @@ class ReportConfig(object):
         return sql, self.parameters
 
     def wherestring(self):
-        where = self.where
+        where = self._where_trusted + self._where_untrusted
         if where:
             return " WHERE " + " AND ".join(where)
         else:
