@@ -16,8 +16,8 @@
 """Unit tests for the connection-free parts of the report generator."""
 
 from nav.report.generator import (
-    ReportConfig,
     ArgumentParser,
+    ReportConfig,
     _split_descending,
     _verbatim_sort_term,
 )

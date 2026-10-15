@@ -12,7 +12,7 @@ from django.http import QueryDict
 from django.urls import reverse
 
 from nav import db
-from nav.report.generator import ReportList, Generator, ReportConfig, ArgumentParser
+from nav.report.generator import ArgumentParser, Generator, ReportConfig, ReportList
 from nav.config import find_config_dir, list_config_files_from_dir
 
 from os.path import join
