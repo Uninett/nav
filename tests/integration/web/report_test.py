@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along with
 # NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Tests that untrusted input cannot inject markup into reports"""
+"""Tests that untrusted input cannot inject markup or links into reports"""
 
 import pytest
 from django.core.cache import cache
@@ -35,6 +35,19 @@ def test_when_room_description_has_markup_then_report_should_escape_it(
     content = response.content.decode("utf-8")
     assert ESCAPED_MARKER in content
     assert MARKER not in content
+
+
+@pytest.mark.parametrize("view_name", ["report-by-name", "widget-report-by-name"])
+def test_when_uri_argument_has_javascript_scheme_then_report_should_not_link_it(
+    client, view_name
+):
+    url = reverse(view_name, kwargs={"report_name": "room"})
+    payload = "javascript:xss_marker()"
+    response = client.get(url, {"roomid": "myroom", "uri_roomid": payload})
+
+    content = response.content.decode("utf-8")
+    assert f'href="{payload}"' not in content
+    assert 'href="/search/room/myroom/"' in content  # the link from report.conf
 
 
 @pytest.fixture(autouse=True)

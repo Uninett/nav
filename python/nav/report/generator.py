@@ -291,7 +291,10 @@ class ArgumentParser(object):
         if group in ("navn", "name"):
             self.config.name[group_key] = value
         elif group in ("url", "uri"):
-            self.config.uri[group_key] = value
+            # Links come from report configuration only. The argument is still
+            # consumed, so a stale one saved in a widget does not fall through
+            # to become a column filter.
+            pass
         elif group in ("forklar", "explain", "description"):
             self.config.explain[group_key] = value
         elif group == "not":
