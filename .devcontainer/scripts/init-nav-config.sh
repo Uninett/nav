@@ -18,11 +18,13 @@ update_nav_conf() {
   NAV_USER=${USER:-nav}
   NAV_CONF="${NAV_CONFIG_DIR}/nav.conf"
   NAV_UPLOAD_DIR="${UV_PROJECT_ENVIRONMENT}/var/nav/uploads"
+  SECRET_KEY="$(gpg -a --gen-random 1 51)"
   mkdir -p "$NAV_UPLOAD_DIR"
   echo "Updating $NAV_CONF"
   sed -i "s/^NAV_USER=.*/NAV_USER=${NAV_USER}/" "$NAV_CONF"
   sed -i '/^#DJANGO_DEBUG=True/s/^#//' "$NAV_CONF" || echo "DJANGO_DEBUG=True" >> "$NAV_CONF"
   sed -i "s,^#UPLOAD_DIR=.*,UPLOAD_DIR=${NAV_UPLOAD_DIR}," "$NAV_CONF" || echo "UPLOAD_DIR=${NAV_UPLOAD_DIR}" >> "$NAV_CONF"
+  sed -i "s/^SECRET_KEY=.*/SECRET_KEY=${SECRET_KEY}/" "$NAV_CONF"
 }
 
 update_graphite_conf() {
