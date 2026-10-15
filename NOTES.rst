@@ -33,6 +33,26 @@ These Python modules are no longer required:
 * :mod:`pytz`
 * :mod:`tomli`
 
+Report cell data is escaped, and report URLs are stricter
+---------------------------------------------------------
+
+As part of a security fix, the report subsystem now HTML-escapes the data it
+renders in table cells. Report data that contains literal HTML or HTML entities
+is now shown as text instead of being interpreted by the browser.
+
+The report URL also no longer honours these query parameters:
+
+* ``uri_<column>`` / ``url_<column>`` (cell hyperlinks)
+* ``extra`` / ``ekstra`` (synthesised columns)
+
+Cell hyperlinks and extra columns are now taken only from the report
+configuration files. A hand-written report URL or a saved report widget that
+relied on these parameters will no longer apply them.
+
+See security advisory `GHSA-8gqp-wvmf-4hjj
+<https://github.com/Uninett/nav/security/advisories/GHSA-8gqp-wvmf-4hjj>`_ for
+details.
+
 Juniper optical (DOM) threshold values
 --------------------------------------
 
