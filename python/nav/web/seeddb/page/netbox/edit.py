@@ -20,6 +20,10 @@ import copy
 import socket
 from socket import error as SocketError
 import logging
+import warnings
+import xml.etree.ElementTree as ET
+
+import requests
 
 from django.db import transaction
 from django.contrib import messages
@@ -28,6 +32,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 
+from nav import buildconf
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
@@ -231,6 +236,8 @@ def load_connectivity_test_results(request):
             response = get_snmp_read_only_variables(ip_address, profile)
         elif profile.protocol == profile.PROTOCOL_NAPALM:
             response = test_napalm_connectivity(ip_address, profile)
+        elif profile.protocol == profile.PROTOCOL_HTTP_API:
+            response = test_http_api_connectivity(ip_address, profile)
         else:
             response = None
             result[profile.id].update(
@@ -351,6 +358,57 @@ def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dic
         if error_message == 'None':
             error_message = 'Connection failed'
         return {"status": False, "error_message": error_message}
+
+
+def test_http_api_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
+    """Tests connectivity of an HTTP API profile and returns a status dictionary"""
+    service = profile.configuration.get("service")
+    if service != "Palo Alto ARP":
+        return {
+            "status": False,
+            "error_message": f"Connectivity check not supported for service {service}",
+        }
+
+    host = f"[{ip_address}]" if ":" in ip_address else ip_address
+    try:
+        # Certificate verification is deliberately like in the
+        # paloaltoarp plugin, so the resulting warning is expected noise
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="Unverified HTTPS request")
+            response = requests.get(
+                f"https://{host}/api/",
+                params={
+                    "type": "op",
+                    "cmd": "<show><arp><entry name = 'all'/></arp></show>",
+                    "key": profile.configuration.get("api_key"),
+                },
+                headers={"User-Agent": f"NAV/SeedDB; version {buildconf.VERSION}"},
+                verify=False,
+                timeout=10,
+            )
+    # Never show or log request errors, as they include the URL with the API key
+    except requests.Timeout:
+        _logger.warning("Timed out connecting to %s using HTTP API profile", ip_address)
+        return {"status": False, "error_message": "Connection timed out"}
+    except requests.RequestException as error:
+        _logger.warning(
+            "Could not connect to %s using HTTP API profile: %s",
+            ip_address,
+            type(error).__name__,
+        )
+        return {"status": False, "error_message": "Could not connect to the API"}
+
+    http_error = f"API request failed (HTTP {response.status_code})"
+    try:
+        root = ET.fromstring(response.content)
+    except ET.ParseError:
+        return {"status": False, "error_message": http_error}
+    if root.get("status") == "success":
+        return {"status": True}
+
+    texts = (text.strip() for msg in root.iter("msg") for text in msg.itertext())
+    message = " ".join(text for text in texts if text)
+    return {"status": False, "error_message": message or http_error}
 
 
 def get_sysname(ip_address):
