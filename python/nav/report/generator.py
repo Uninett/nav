@@ -165,8 +165,10 @@ class ConfigParser(object):
                 io.open(config_file, encoding="utf-8").read()
                 for config_file in self.config_files
             ]
+        # Report names are matched literally. The name comes from the URL path,
+        # so it must never be interpreted as a pattern.
         report_pattern = re.compile(
-            r"^\s*" + report_name + r"\s*\{(.*?)\}$", re.M | re.S | re.I
+            r"^\s*" + re.escape(report_name) + r"\s*\{(.*?)\}$", re.M | re.S | re.I
         )
         matches = (report_pattern.search(config) for config in self.config_list)
         matches = [m for m in matches if m]
