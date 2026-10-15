@@ -30,3 +30,12 @@ class TestParseQuery:
 
         assert config.uri == {"roomid": "/search/room/$roomid/"}
         assert fields == {}
+
+    @pytest.mark.parametrize("arg", ["extra", "ekstra"])
+    def test_when_query_has_an_extra_column_then_it_should_ignore_it(self, arg):
+        config = ReportConfig()
+
+        fields, _, _ = ArgumentParser(config).parse_query({arg: "sysname"})
+
+        assert config.extra == []
+        assert fields == {}
