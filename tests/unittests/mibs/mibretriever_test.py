@@ -15,7 +15,15 @@
 #
 """Tests for nav.mibs.mibretriever module"""
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+
+import pytest
+import pytest_twisted
+
+from pynetsnmp.twistedsnmp import SnmpError
+from twisted.internet import defer
+from twisted.internet.error import TimeoutError
+from twisted.python.failure import Failure
 
 from nav.ipdevpoll.snmp.common import SNMPParameters
 from nav.mibs.mibretriever import MultiMibMixIn
@@ -25,7 +33,7 @@ from nav.mibs.types import LogicalMibInstance
 class TestMultiMibMixInGetAlternateAgent:
     """Tests for MultiMibMixIn._get_alternate_agent()"""
 
-    def test_should_use_community_for_snmpv2(self):
+    def test_it_should_use_community_for_snmpv2(self):
         agent = Mock()
         agent.community = "public"
         agent.ip = "10.0.0.1"
@@ -42,7 +50,7 @@ class TestMultiMibMixInGetAlternateAgent:
         assert alt_agent.snmp_parameters.community == "public@100"
         assert alt_agent.snmp_parameters.context_name is None
 
-    def test_should_use_context_for_snmpv3(self):
+    def test_it_should_use_context_for_snmpv3(self):
         agent = Mock()
         agent.community = "public"
         agent.ip = "10.0.0.1"
@@ -96,7 +104,7 @@ class TestMultiMibMixInGetAlternateAgent:
 
         assert alt_agent.snmp_parameters.context_engine_id is None
 
-    def test_should_copy_protocol_from_base_agent(self):
+    def test_it_should_copy_protocol_from_base_agent(self):
         agent = Mock()
         agent.community = "public"
         agent.ip = "10.0.0.1"
@@ -110,3 +118,75 @@ class TestMultiMibMixInGetAlternateAgent:
         alt_agent = mixin._get_alternate_agent(instance)
 
         assert alt_agent.protocol is agent.protocol
+
+
+class TestMultiMibMixInIgnoreAlternateInstanceError:
+    """Tests for MultiMibMixIn.__ignore_alternate_instance_error()"""
+
+    def test_when_alternate_instance_returns_snmp_error_then_it_should_be_ignored(self):
+        mixin = self._make_mixin()
+        mixin.agent_proxy = Mock()  # any non-base agent
+        failure = Failure(SnmpError("Packet for 10.0.0.1 has error: Permission denied"))
+
+        assert self._handle(mixin, failure) is None
+
+    def test_when_alternate_instance_times_out_then_it_should_be_ignored(self):
+        mixin = self._make_mixin()
+        mixin.agent_proxy = Mock()  # any non-base agent
+        failure = Failure(TimeoutError("timed out"))
+
+        assert self._handle(mixin, failure) is None
+
+    def test_when_base_instance_returns_snmp_error_then_it_should_propagate(self):
+        mixin = self._make_mixin()
+        # agent_proxy is left as the base agent
+        failure = Failure(
+            SnmpError("Packet for 10.0.0.1 has error: Authorization error")
+        )
+
+        assert self._handle(mixin, failure, descr=None) is failure
+
+    def _make_mixin(self):
+        agent = Mock()
+        agent.community = "public"
+        agent.ip = "10.0.0.1"
+        agent.port = 161
+        agent.snmp_parameters = SNMPParameters(version=2, community="public")
+        return MultiMibMixIn(agent, [])
+
+    def _handle(self, mixin, failure, descr="vlan100"):
+        # __ignore_alternate_instance_error is name-mangled
+        return mixin._MultiMibMixIn__ignore_alternate_instance_error(failure, descr)
+
+
+class TestMultiMibMixInMultiquery:
+    """Tests that error handling is wired up correctly in _multiquery()"""
+
+    @pytest.mark.twisted
+    @pytest_twisted.inlineCallbacks
+    def test_when_alternate_instance_query_fails_then_multiquery_still_returns(self):
+        mixin = self._make_mixin()
+        base_agent = mixin._base_agent
+        alt_agent = Mock()
+
+        def method():
+            if mixin.agent_proxy is base_agent:
+                return defer.succeed({"base": "ok"})
+            return defer.fail(
+                SnmpError("Packet for 10.0.0.1 has error: Permission denied")
+            )
+
+        agents = [(base_agent, None), (alt_agent, "vlan100")]
+        with patch.object(mixin, "_make_agents", return_value=agents):
+            result = yield mixin._multiquery(method)
+
+        # The failing alternate instance did not abort the job; base survived
+        assert result == {"base": "ok"}
+
+    def _make_mixin(self):
+        agent = Mock()
+        agent.community = "public"
+        agent.ip = "10.0.0.1"
+        agent.port = 161
+        agent.snmp_parameters = SNMPParameters(version=2, community="public")
+        return MultiMibMixIn(agent, [])
