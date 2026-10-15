@@ -49,9 +49,6 @@ from nav.web.seeddb.page.netbox.forms import NetboxModelForm
 
 _logger = logging.getLogger(__name__)
 
-# Firewalls commonly use self-signed certificates, as in the paloaltoarp plugin
-warnings.filterwarnings("ignore", message="Unverified HTTPS request", module="urllib3")
-
 
 def log_netbox_change(account, old, new):
     """Log specific user initiated changes to netboxes"""
@@ -374,17 +371,21 @@ def test_http_api_connectivity(ip_address: str, profile: ManagementProfile) -> d
 
     host = f"[{ip_address}]" if ":" in ip_address else ip_address
     try:
-        response = requests.get(
-            f"https://{host}/api/",
-            params={
-                "type": "op",
-                "cmd": "<show><arp><entry name = 'all'/></arp></show>",
-                "key": profile.configuration.get("api_key"),
-            },
-            headers={"User-Agent": f"NAV/SeedDB; version {buildconf.VERSION}"},
-            verify=False,
-            timeout=10,
-        )
+        # Certificate verification is deliberately like in the
+        # paloaltoarp plugin, so the resulting warning is expected noise
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="Unverified HTTPS request")
+            response = requests.get(
+                f"https://{host}/api/",
+                params={
+                    "type": "op",
+                    "cmd": "<show><arp><entry name = 'all'/></arp></show>",
+                    "key": profile.configuration.get("api_key"),
+                },
+                headers={"User-Agent": f"NAV/SeedDB; version {buildconf.VERSION}"},
+                verify=False,
+                timeout=10,
+            )
     # Never show or log request errors, as they include the URL with the API key
     except requests.Timeout:
         _logger.warning("Timed out connecting to %s using HTTP API profile", ip_address)
