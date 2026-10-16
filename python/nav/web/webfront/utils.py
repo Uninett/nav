@@ -199,7 +199,7 @@ def _get_password_issues_banner_warnings(
                 message=(
                     "Your account has an insecure or old password. It should be reset."
                 ),
-                link=reverse("webfront-preferences-changepassword"),
+                link=reverse("account_change_password"),
                 link_message="Change your password here.",
             )
         )
