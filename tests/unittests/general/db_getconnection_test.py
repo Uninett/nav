@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2026 Uninett AS
+# Copyright (C) 2026 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,11 +18,21 @@
 import threading
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from nav import db, ObjectCache
 
 
 PARAMS = ('host', 5432, 'nav', 'navuser', 'secret')
 CACHE_KEY = ('nav', 'navuser')
+
+
+@pytest.fixture(autouse=True)
+def fresh_connection_cache(monkeypatch):
+    """Give every test an empty thread-local cache, leaving no state behind."""
+    monkeypatch.setattr(
+        db, '_connection_cache_holder', db._ThreadLocalConnectionCache()
+    )
 
 
 class TestThreadLocalConnectionCache:
@@ -48,17 +58,21 @@ class TestThreadLocalConnectionCache:
             return MagicMock(name='conn')
 
         def worker(name):
-            with (
-                patch.object(db, 'get_connection_parameters', return_value=PARAMS),
-                patch.object(db.psycopg2, 'connect', side_effect=fake_connect),
-            ):
-                connections[name] = db.getConnection('default')
+            connections[name] = db.getConnection('default')
 
-        threads = [threading.Thread(target=worker, args=(name,)) for name in ('a', 'b')]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+        # Patch the module globals once in the main thread; patch.object isn't
+        # thread-safe, and the patches are process-wide anyway.
+        with (
+            patch.object(db, 'get_connection_parameters', return_value=PARAMS),
+            patch.object(db.psycopg2, 'connect', side_effect=fake_connect),
+        ):
+            threads = [
+                threading.Thread(target=worker, args=(name,)) for name in ('a', 'b')
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
 
         assert connections['a'] is not connections['b']
 
@@ -79,22 +93,18 @@ class TestThreadLocalConnectionCache:
         assert caches['a'] is not caches['b']
 
     def test_when_cache_is_empty_then_new_connection_is_opened_and_cached(self):
+        # The autouse fixture guarantees this thread's cache starts empty, so
+        # getConnection() must open and cache a fresh connection.
         conn = MagicMock(name='conn')
 
-        def worker():
-            with (
-                patch.object(db, 'get_connection_parameters', return_value=PARAMS),
-                patch.object(db.psycopg2, 'connect', return_value=conn) as connect,
-            ):
-                result = db.getConnection('default')
-                cache = db._get_connection_cache()
+        with (
+            patch.object(db, 'get_connection_parameters', return_value=PARAMS),
+            patch.object(db.psycopg2, 'connect', return_value=conn) as connect,
+        ):
+            result = db.getConnection('default')
+            cache = db._get_connection_cache()
 
-                assert result is conn
-                assert cache[CACHE_KEY].object is conn
-                connect.assert_called_once()
-                conn.close.assert_not_called()
-
-        # Run in a fresh thread to guarantee an empty thread-local cache.
-        thread = threading.Thread(target=worker)
-        thread.start()
-        thread.join()
+        assert result is conn
+        assert cache[CACHE_KEY].object is conn
+        connect.assert_called_once()
+        conn.close.assert_not_called()

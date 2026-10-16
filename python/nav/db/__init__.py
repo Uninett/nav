@@ -279,6 +279,8 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
 # collected. Here we try to clean up our act on system exit, to
 # avoid the numerous "unexpected EOF on client connection" that NAV
 # seems to generate in the PostgreSQL logs.
+# Now that caches are thread-local, this only reaches the main thread's
+# connections.
 atexit.register(closeConnections)
 
 
