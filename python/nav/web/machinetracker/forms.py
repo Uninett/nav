@@ -77,6 +77,7 @@ class IpTrackerForm(MachineTrackerForm):
     collapse = forms.BooleanField(
         required=False,
         initial=False,
+        label="Collapse duplicates",
         help_text="Collapse duplicate rows from HSRP/redundant routers",
     )
 

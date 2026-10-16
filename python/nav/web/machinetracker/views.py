@@ -33,8 +33,8 @@ from nav import asyncdns
 from nav.web.machinetracker import forms
 from nav.web.machinetracker.utils import ip_dict, UplinkTracker, InterfaceTracker
 from nav.web.machinetracker.utils import process_ip_row, track_mac
-from nav.web.machinetracker.utils import collapse_overlapping
 from nav.web.machinetracker.utils import (
+    collapse_overlapping,
     min_max_mac,
     ProcessInput,
     normalize_ip_to_string,

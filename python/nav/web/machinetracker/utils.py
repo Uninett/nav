@@ -15,6 +15,7 @@
 #
 """Common utility functions for Machine Tracker"""
 
+from copy import copy
 from datetime import datetime
 from socket import gethostbyaddr, herror
 from collections import namedtuple, OrderedDict
@@ -129,25 +130,55 @@ def ip_dict(rows):
 
 
 def collapse_overlapping(rows: list[Arp]) -> list[Arp]:
-    """Drops rows whose active period overlaps a newer kept row.
+    """Merges rows with overlapping active periods into one.
 
-    `rows` is the list of Arp result rows for a single (ip, mac) pair, already
-    ordered newest-first (by -start_time). Rows with disjoint time windows
-    (genuine connect/disconnect history) are preserved, while rows that overlap
-    an already-kept row are dropped.
+    `rows` is the list of Arp result rows for a single (ip, mac) pair. NAV
+    records one Arp row per collecting router by design, so a single address
+    served by several routers (e.g. an HSRP pair) shows up as multiple
+    overlapping rows. This merges each run of overlapping rows into one row
+    spanning the whole run, for callers that opt in.
 
-    NAV records one Arp row per collecting router by design, so a single
-    address served by several routers (e.g. an HSRP pair) shows up as multiple
-    overlapping rows. This collapses those into one for callers that opt in.
+    A merged row takes the earliest start_time and the latest end_time of its
+    group, so a period still covered by any member stays open: dropping an
+    older still-active row in favour of a newer closed one would otherwise show
+    a live address as gone. still_active is recomputed from the merged
+    end_time, and the Source column lists every router that saw the address.
+
+    Rows with disjoint time windows (genuine connect/disconnect history) stay
+    separate; a row that merely starts exactly when another ends does not
+    overlap and is kept apart too.
     """
-    kept = []
-    for row in rows:
-        overlaps = any(
-            row.start_time < k.end_time and k.start_time < row.end_time for k in kept
-        )
-        if not overlaps:
-            kept.append(row)
-    return kept
+    groups = []
+    group_end = None
+    for row in sorted(rows, key=lambda r: r.start_time):
+        # Compare against the running max end_time, not the previous row's:
+        # an open (INFINITY) row keeps the group open across later short rows.
+        if groups and row.start_time < group_end:
+            groups[-1].append(row)
+            group_end = max(group_end, row.end_time)
+        else:
+            groups.append([row])
+            group_end = row.end_time
+    return [_merge_group(group) for group in groups]
+
+
+def _merge_group(group: list[Arp]) -> Arp:
+    """Builds one row spanning a group of overlapping rows.
+
+    The group must be non-empty and sorted by start_time ascending. A copy of
+    the most recently seen member carries over per-row attributes already set
+    on the rows (dns_lookup, vendor, fishy, ...); only the merged span, the
+    recomputed still_active flag and the combined Source are overridden.
+    """
+    latest = max(group, key=lambda r: r.end_time)
+    merged = copy(latest)
+    merged.start_time = group[0].start_time
+    merged.end_time = latest.end_time
+    merged.still_active = "Still active" if merged.end_time > datetime.now() else ""
+    merged.sysname = ", ".join(
+        dict.fromkeys(row.sysname for row in group if row.sysname)
+    )
+    return merged
 
 
 def process_ip_row(row, dns):
