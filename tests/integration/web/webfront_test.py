@@ -6,7 +6,7 @@ from urllib.parse import quote
 import pytest
 from django.core.cache import cache
 from django.http import Http404
-from django.test import Client, RequestFactory
+from django.test import Client, RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
@@ -352,6 +352,17 @@ class TestBannerWarnings:
         assert (
             len(re.findall(r'<div class="info-bar">', smart_str(response.content))) == 1
         )
+
+    @override_settings(SECRET_KEY='YouShouldReallyChangeThis')
+    def test_when_secret_key_is_default_then_show_settings_issue_banner_warning(
+        self, db, client
+    ):
+        index_url = reverse('webfront-index')
+        response = client.get(index_url)
+        assert (
+            "The SECRET_KEY of this NAV installation is still the default value. Set a "
+            "random SECRET_KEY in nav.conf and restart NAV."
+        ) in smart_str(response.content)
 
 
 def test_show_qr_code_returns_fragment_with_qr_code(client):
