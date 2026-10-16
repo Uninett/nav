@@ -28,6 +28,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import SESSION_KEY
 
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account
 
 
@@ -60,6 +61,21 @@ class TestRemoteUserLogin:
         account = Account.objects.get(login="newcomer")
         assert account.ext_sync == "REMOTE_USER"
         assert anonymous_client.session.get(SESSION_KEY) == str(account.pk)
+
+    def test_when_remote_user_is_unknown_and_autocreate_is_on_then_it_should_log_the_account_creation(  # noqa: E501
+        self, db, anonymous_client, remote_user_auth
+    ):
+        with remote_user_auth(autocreate=True):
+            anonymous_client.get("/", REMOTE_USER="newcomer")
+
+        account = Account.objects.get(login="newcomer")
+
+        assert LogEntry.objects.filter(
+            verb='create-account',
+            actor_pk=str(account.pk),
+            object_model='account',
+            object_pk=str(account.pk),
+        ).exists()
 
     def test_when_remote_user_is_disabled_then_the_session_should_stay_anonymous(
         self, db, non_admin_account, anonymous_client, remote_user_auth
