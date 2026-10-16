@@ -52,6 +52,12 @@ class TestValidateDashboardData:
         with pytest.raises(ValueError, match="must not be empty"):
             validate_dashboard_data(data)
 
+    @pytest.mark.parametrize("name", ["New name", "  New name  "])
+    def test_when_name_is_valid_then_it_should_return_stripped_name(self, name):
+        data = _make_dashboard_data(name=name)
+        result = validate_dashboard_data(data)
+        assert result["name"] == "New name"
+
     def test_when_widget_is_not_a_dict_then_it_should_raise_value_error(self):
         data = _make_dashboard_data(widgets=["not a dict"])
         with pytest.raises(ValueError, match="Widget 0 must be a dict"):
