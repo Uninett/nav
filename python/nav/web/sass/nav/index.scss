@@ -61,8 +61,13 @@ and (max-width : 480px) {
     }
 }
 
+// This avoids every word being capitalized in the error box
+#form-add-dashboard label small.error { text-transform: none; }
+
 #form-rename-dashboard {
     display: flex;
+    flex-wrap: wrap;
     label { overflow: hidden; }
-    input[type=text] { width: 100%; }
+    input[type=text] { flex: 1; min-width: 0; }
+    small.error { order: 1; flex-basis: 100%; }
 }

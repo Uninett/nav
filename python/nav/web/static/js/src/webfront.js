@@ -131,7 +131,7 @@ require([
 
     function createFeedbackElements() {
         var $dashboardSettingsPanel = $('#dashboard-settings-feedback');
-        var errorElement = $('<small class="error">Name the dashboard</small>');
+        var errorElement = $('<small class="error">');
 
         function removeAlertbox() {
             $dashboardSettingsPanel.empty();
@@ -205,22 +205,26 @@ require([
     }
 
 
+    /** Only 400 responses carry a human-readable message */
+    function getDashboardErrorMessage(xhr) {
+        return xhr.status === 400 ? xhr.responseText : 'Could not save the dashboard';
+    }
+
+
     /** Functions for creating a new dashboard */
     function addCreateDashboardListener(feedback) {
         $('#form-add-dashboard').submit(function (event) {
             event.preventDefault();
 
-            // Validate dashboard name
             feedback.errorElement.detach();
             var nameElement = this.elements["dashboard-name"];
-            if (nameElement.value.length === 0) {
-                feedback.errorElement.insertAfter(nameElement);
-                return;
-            }
 
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function (response) {
                 window.location = NAV.urls.dashboard_index + response.dashboard_id;
+            });
+            request.fail(function (xhr) {
+                feedback.errorElement.text(getDashboardErrorMessage(xhr)).insertAfter(nameElement);
             });
         });
     }
@@ -232,10 +236,11 @@ require([
         $formRenameDashboard.submit(function (event) {
             event.preventDefault();
             feedback.removeAlertbox();
+            feedback.errorElement.detach();
             var self = this;
             var request = $.post(this.getAttribute('action'), $(this).serialize());
             request.done(function (responseText) {
-                var newName = self.elements['dashboard-name'].value;
+                var newName = self.elements['dashboard-name'].value.trim();
 
                 // Alter name in tab title
                 NAV.setTitle(newName);
@@ -244,6 +249,9 @@ require([
                 $('#dashboard-nav').find('.current a span').text(newName);
 
                 feedback.addFeedback(responseText);
+            });
+            request.fail(function (xhr) {
+                feedback.errorElement.text(getDashboardErrorMessage(xhr)).insertAfter(self.elements['dashboard-name']);
             });
         });
     }
