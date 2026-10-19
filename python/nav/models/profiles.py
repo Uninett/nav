@@ -1749,6 +1749,14 @@ class AccountDashboard(models.Model):
         db_table = 'account_dashboard'
         ordering = ('name',)
 
+        constraints = [
+            # Do not allow empty/whitespace names
+            models.CheckConstraint(
+                condition=~models.Q(name__regex=r"^\s*$"),
+                name="account_dashboard_name_not_blank",
+            ),
+        ]
+
 
 class AccountDefaultDashboard(models.Model):
     account = models.OneToOneField(

@@ -40,7 +40,7 @@ class DatabaseResult(object):
         connection = db.getConnection('default')
         cursor = connection.cursor()
 
-        self.sql, self.parameters = report_config.make_sql()
+        self.sql, self.parameters = report_config.make_sql(connection)
 
         # Make a dictionary of which columns to summarize
         self.sums = {sum_key: '' for sum_key in report_config.sum}

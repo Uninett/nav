@@ -159,12 +159,15 @@ class TestImportFromDict:
 
     # -- name_override --
 
-    def test_when_name_override_given_then_it_should_use_override(self, account):
+    @pytest.mark.parametrize("name_override", ["Overridden", "  Overridden  "])
+    def test_when_name_override_given_then_it_should_use_stripped_override(
+        self, account, name_override
+    ):
         result = import_from_dict(
             account,
             _make_dashboard_data(name="Original"),
             on_conflict=ConflictMode.ERROR,
-            name_override="Overridden",
+            name_override=name_override,
         )
 
         assert result.dashboard.name == "Overridden"

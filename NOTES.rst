@@ -8,8 +8,8 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-Unreleased
-==========
+NAV 5.19
+========
 
 Dependency changes
 ------------------
@@ -33,6 +33,46 @@ These Python modules are no longer required:
 
 * :mod:`pytz`
 * :mod:`tomli`
+
+Report filter and sort parameters are stricter
+-----------------------------------------------
+
+As part of a security fix, the report subsystem now quotes the filter and sort
+fields from a report URL as SQL column names. This has two consequences for
+hand-written report URLs and saved report widgets:
+
+* Field and sort names are now matched case-sensitively and must name an
+  existing column. A name that does not match yields an error, where it was
+  previously case-folded or interpreted as SQL.
+* Sort parameters no longer accept SQL expressions or ordinals (for example
+  ``order_by=1`` or ``order_by=sysname desc``). Use the column name, optionally
+  prefixed with ``-`` for descending order.
+
+Sort and filter definitions in report configuration files are not affected by
+the quoting.
+
+See security advisory `GHSA-vq8x-6j3p-qqj2
+<https://github.com/Uninett/nav/security/advisories/GHSA-vq8x-6j3p-qqj2>`_ for
+
+Report cell data is escaped, and report URLs are stricter
+---------------------------------------------------------
+
+As part of a security fix, the report subsystem now HTML-escapes the data it
+renders in table cells. Report data that contains literal HTML or HTML entities
+is now shown as text instead of being interpreted by the browser.
+
+The report URL also no longer honours these query parameters:
+
+* ``uri_<column>`` / ``url_<column>`` (cell hyperlinks)
+* ``extra`` / ``ekstra`` (synthesised columns)
+
+Cell hyperlinks and extra columns are now taken only from the report
+configuration files. A hand-written report URL or a saved report widget that
+relied on these parameters will no longer apply them.
+
+See security advisory `GHSA-8gqp-wvmf-4hjj
+<https://github.com/Uninett/nav/security/advisories/GHSA-8gqp-wvmf-4hjj>`_ for
+details.
 
 Juniper optical (DOM) threshold values
 --------------------------------------

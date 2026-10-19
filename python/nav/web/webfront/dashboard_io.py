@@ -38,6 +38,14 @@ WIDGET_FIELDS = {
 }
 
 
+def clean_dashboard_name(name: str) -> str:
+    """Strips whitespace from a dashboard name, rejecting blank names"""
+    name = name.strip()
+    if not name:
+        raise ValueError("Dashboard name must not be empty")
+    return name
+
+
 class ConflictMode(str, enum.Enum):
     """Strategy for resolving name collisions during dashboard import."""
 
@@ -85,8 +93,7 @@ def validate_dashboard_data(data: dict):
                 f"got {type(data[field]).__name__}"
             )
 
-    if not data["name"].strip():
-        raise ValueError("Dashboard name must not be empty")
+    name = clean_dashboard_name(data["name"])
 
     sanitized_widgets = []
     for i, widget in enumerate(data["widgets"]):
@@ -109,7 +116,7 @@ def validate_dashboard_data(data: dict):
         sanitized_widgets.append(sanitized)
 
     return {
-        "name": data["name"],
+        "name": name,
         "num_columns": data["num_columns"],
         "widgets": sanitized_widgets,
         "version": data["version"],
@@ -136,9 +143,9 @@ def import_from_dict(
         An ``ImportResult`` with the dashboard and the action taken.
     """
     data = validate_dashboard_data(data)
-    name = name_override if name_override is not None else data["name"]
-    if not name.strip():
-        raise ValueError("Dashboard name must not be empty")
+    name = (
+        data["name"] if name_override is None else clean_dashboard_name(name_override)
+    )
 
     dashboard, action = _resolve_or_create_dashboard(
         account, name, data["num_columns"], on_conflict

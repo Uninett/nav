@@ -111,7 +111,7 @@
                 {% if cell.text and cell.uri %}
                   <a href="{{ cell.uri }}">{{ cell.text }}</a>
                 {% else %}
-                  {{ cell.text|deep_urlize|default:""|safe }}
+                  {{ cell.text|deep_urlize|default:"" }}
                 {% endif %}
 
               </td>
