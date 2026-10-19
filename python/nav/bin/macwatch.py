@@ -23,11 +23,13 @@ from datetime import datetime
 import time
 import logging
 
+from django.db import transaction
+
 # import NAV libraries
 import nav.logs
 
 from nav.models.manage import Cam
-from nav.event import Event
+from nav.models.event import EventQueue
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.models import MacWatchMatch
 
@@ -67,29 +69,39 @@ def prioritize_location(cam_objects):
 
 
 def post_event(mac_watch, cam):
-    """Post an event on the event-queue, obviously..."""
+    """Post a stateless event to the event-queue"""
     source = "macwatch"
     target = "eventEngine"
     eventtypeid = "info"
     value = 100
     severity = 5
-    event = Event(
-        source=source,
-        target=target,
-        netboxid=cam.netbox.id,
-        eventtypeid=eventtypeid,
-        value=value,
-        severity=severity,
-    )
-    event['sysname'] = cam.sysname
+    varmap = {
+        'sysname': cam.sysname,
+        'port': cam.port,
+        'mac': cam.mac,
+        'macwatch-mac': mac_watch.mac,
+        'alerttype': 'macWarning',
+    }
     if cam.module:
-        event['module'] = cam.module
-    event['port'] = cam.port
-    event['mac'] = cam.mac
-    event['macwatch-mac'] = mac_watch.mac
-    event['alerttype'] = 'macWarning'
+        varmap['module'] = cam.module
+
     try:
-        event.post()
+        event = EventQueue(
+            source_id=source,
+            target_id=target,
+            netbox=cam.netbox,
+            event_type_id=eventtypeid,
+            value=value,
+            severity=severity,
+        )
+        event.varmap = varmap
+    except Exception:  # noqa: BLE001
+        _logger.exception("Unhandled exception while building event")
+        return False
+
+    try:
+        with transaction.atomic():
+            event.save()
     except Exception:  # noqa: BLE001
         _logger.exception("Unhandled exception while posting event")
         return False
