@@ -46,7 +46,7 @@ from nav.models.manage import Interface, Prefix
 from nav.netbiostracker.tracker import scan, parse_get_workstations
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.snmp.base import NoReadWriteManagementProfileError
-from nav.util import is_valid_ip
+from nav.util import dictfetchall, is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
 NONBLOCKFILE = os.path.join("arnold", "nonblock.conf")
@@ -246,12 +246,6 @@ def find_input_type(ip_or_mac):
         input_type = "SWPORTID"
 
     return input_type
-
-
-def dictfetchall(cursor):
-    "Returns all rows from a cursor as a dict"
-    desc = cursor.description
-    return [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
 
 
 def create_candidates(caminfos, trunk_ok=False):
