@@ -1,1 +1,0 @@
-Fixed a denial-of-service vulnerability in the report subsystem, where a report name in the URL was compiled as a regular expression; a crafted name could raise an error or consume excessive CPU. The name is now matched literally. (GHSA-c365-jj25-8rh9)

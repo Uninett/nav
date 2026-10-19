@@ -1,1 +1,0 @@
-Fixed a SQL injection vulnerability in the report subsystem, where filter and sort fields from a report URL reached the SQL query unescaped. These fields are now quoted as column names; see the release notes for the behaviour change this implies. (GHSA-vq8x-6j3p-qqj2)
