@@ -49,20 +49,35 @@ class TestPingerReconcileWithDatabase:
         _run_cycle(pinger, db_up="y", rtt=0.01)
         assert _posted_states(pinger) == [Event.UP, Event.UP]
 
-    def test_when_db_says_down_and_box_is_silent_then_generate_events_should_post_nothing(  # noqa: E501
+    def test_when_db_says_down_and_box_is_silent_then_generate_events_should_post_down(  # noqa: E501
         self,
     ):
         pinger = _make_pinger()
         _run_cycle(pinger, db_up="y", rtt=0.01)
+        for _ in range(pinger._nrping):
+            _run_cycle(pinger, db_up="n", rtt=-1)
+        assert _posted_states(pinger) == [Event.DOWN]
+
+    def test_when_box_dies_while_db_lags_behind_up_then_generate_events_should_post_down(  # noqa: E501
+        self,
+    ):
+        pinger = _make_pinger()
         _run_cycle(pinger, db_up="n", rtt=-1)
-        assert _posted_states(pinger) == []
+        _run_cycle(pinger, db_up="n", rtt=0.01)
+        _run_cycle(pinger, db_up="n", rtt=0.01)
+        for _ in range(pinger._nrping + 1):
+            _run_cycle(pinger, db_up="n", rtt=-1)
+        for _ in range(pinger._nrping + 1):
+            _run_cycle(pinger, db_up="y", rtt=-1)
+        assert _posted_states(pinger)[-1] == Event.DOWN
 
     def test_when_db_says_up_but_box_is_down_then_generate_events_should_post_nothing(  # noqa: E501
         self,
     ):
         pinger = _make_pinger()
         _run_cycle(pinger, db_up="n", rtt=-1)
-        _run_cycle(pinger, db_up="y", rtt=-1)
+        for _ in range(pinger._nrping + 1):
+            _run_cycle(pinger, db_up="y", rtt=-1)
         assert _posted_states(pinger) == []
 
     def test_when_new_box_is_down_in_db_and_silent_then_generate_events_should_post_nothing(  # noqa: E501
@@ -82,23 +97,6 @@ class TestPingerReconcileWithDatabase:
         assert pinger.down.count(1) == 1
 
 
-def _make_pinger(nrping=3):
-    """
-    Build a bare Pinger. Skips the real __init__ (which opens a DB, parses
-    config and installs signal handlers) by going through __new__.
-    """
-    pinger = Pinger.__new__(Pinger)
-    pinger.config = {}
-    pinger._nrping = nrping
-    pinger.netboxmap = {}
-    pinger.down = []
-    pinger.replies = {}
-    pinger.ip_to_netboxid = {}
-    pinger.db = MagicMock()
-    pinger.pinger = MagicMock()
-    return pinger
-
-
 def _make_main_pinger(looptime, elapsedtime):
     """
     Build a Pinger with just enough attributes to run main() for one iteration.
@@ -114,6 +112,24 @@ def _make_main_pinger(looptime, elapsedtime):
         return elapsedtime
 
     pinger.pinger.ping.side_effect = fake_ping
+    return pinger
+
+
+def _make_pinger(nrping=3):
+    """
+    Build a bare Pinger. Skips the real __init__ (which opens a DB, parses
+    config and installs signal handlers) by going through __new__.
+    """
+    pinger = Pinger.__new__(Pinger)
+    pinger.config = {}
+    pinger._nrping = nrping
+    pinger.netboxmap = {}
+    pinger.down = []
+    pinger.replies = {}
+    pinger.ip_to_netboxid = {}
+    pinger.reannounce = set()
+    pinger.db = MagicMock()
+    pinger.pinger = MagicMock()
     return pinger
 
 
