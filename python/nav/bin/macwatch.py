@@ -23,7 +23,7 @@ from datetime import datetime
 import time
 import logging
 
-from django.db import transaction
+from django.db import transaction, DatabaseError
 
 # import NAV libraries
 import nav.logs
@@ -85,25 +85,21 @@ def post_event(mac_watch, cam):
     if cam.module:
         varmap['module'] = cam.module
 
-    try:
-        event = EventQueue(
-            source_id=source,
-            target_id=target,
-            netbox=cam.netbox,
-            event_type_id=eventtypeid,
-            value=value,
-            severity=severity,
-        )
-        event.varmap = varmap
-    except Exception:  # noqa: BLE001
-        _logger.exception("Unhandled exception while building event")
-        return False
+    event = EventQueue(
+        source_id=source,
+        target_id=target,
+        netbox=cam.netbox,
+        event_type_id=eventtypeid,
+        value=value,
+        severity=severity,
+    )
+    event.varmap = varmap
 
     try:
         with transaction.atomic():
             event.save()
-    except Exception:  # noqa: BLE001
-        _logger.exception("Unhandled exception while posting event")
+    except DatabaseError:
+        _logger.exception("Error posting event")
         return False
     return True
 
