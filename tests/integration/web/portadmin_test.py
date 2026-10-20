@@ -453,7 +453,7 @@ def account_group(db, non_admin_account):
     return group
 
 
-def grant_privilege(account_group, privilege, target=".*"):
+def grant_privilege(account_group, privilege, target="SDN"):
     """Grants a PortAdmin privilege to an account group, scoped to a target"""
     return account_group.privileges.create(
         type=PrivilegeType.objects.get(name=privilege), target=target
@@ -600,7 +600,7 @@ class TestSetterPrivilegeGuards:
         self, non_admin_account, privileged_netbox, interface, account_group
     ):
         """A grant scoped to other device groups must not apply here"""
-        grant_privilege(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+        grant_privilege(account_group, PortadminPrivilege.VLAN, "LEGACY")
         request = request_with_messages(interfaceid="1", vlan="42")
         handler = Mock()
 
