@@ -94,48 +94,39 @@ class TestPortadminPermissions:
     def test_when_netbox_is_outside_the_privilege_target_it_should_not_be_allowed(
         self, non_admin_account, account_group, sdn_netbox
     ):
-        _grant(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+        _grant(account_group, PortadminPrivilege.VLAN, "LEGACY")
         permissions = PortadminPermissions(non_admin_account, sdn_netbox)
         assert not permissions.vlan
 
     def test_when_target_names_a_group_it_should_match_that_group(
         self, non_admin_account, legacy_netbox, account_group
     ):
-        _grant(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+        _grant(account_group, PortadminPrivilege.VLAN, "LEGACY")
         permissions = PortadminPermissions(non_admin_account, legacy_netbox)
         assert permissions.vlan
 
-    def test_when_target_matches_everything_it_should_match_any_group(
+    def test_when_target_is_a_regexp_it_should_not_match_any_group(
         self, non_admin_account, sdn_netbox, account_group
     ):
+        """Targets name a single device group, they are not regular expressions"""
         _grant(account_group, PortadminPrivilege.VLAN, ".*")
         permissions = PortadminPermissions(non_admin_account, sdn_netbox)
-        assert permissions.vlan
+        assert not permissions.vlan
 
     def test_when_netbox_is_in_no_group_it_should_not_match_any_target(
-        self, non_admin_account, localhost, account_group
+        self, non_admin_account, localhost, sdn_group, account_group
     ):
-        """A target only matches group names, so a netbox without any matches none"""
-        _grant(account_group, PortadminPrivilege.VLAN, ".*")
+        _grant(account_group, PortadminPrivilege.VLAN, "SDN")
         permissions = PortadminPermissions(non_admin_account, localhost)
         assert not permissions.vlan
 
-    def test_when_target_is_unanchored_it_should_match_substrings(
+    def test_when_target_is_a_prefix_of_the_group_name_it_should_not_match(
         self, non_admin_account, localhost, account_group
     ):
-        """Anchor a target with ^ and $ to match a group name exactly"""
         edge = NetboxGroup.objects.create(id="SDN-EDGE", description="Edge switches")
         localhost.groups.add(edge)
         _grant(account_group, PortadminPrivilege.VLAN, "SDN")
         permissions = PortadminPermissions(non_admin_account, localhost)
-        assert permissions.vlan
-
-    def test_when_target_is_an_invalid_regexp_it_should_not_match(
-        self, non_admin_account, sdn_netbox, account_group
-    ):
-        """A malformed target must be denied rather than raise"""
-        _grant(account_group, PortadminPrivilege.VLAN, "*")
-        permissions = PortadminPermissions(non_admin_account, sdn_netbox)
         assert not permissions.vlan
 
     def test_when_privilege_name_is_unknown_it_should_raise_error(
@@ -169,7 +160,7 @@ class TestPortadminPermissions:
         self, non_admin_account, sdn_netbox, account_group, privilege, accessor
     ):
         """Each privilege must map to the accessor that reports it"""
-        _grant(account_group, privilege, ".*")
+        _grant(account_group, privilege, "SDN")
 
         permissions = PortadminPermissions(non_admin_account, sdn_netbox)
 
@@ -192,7 +183,7 @@ class TestPrivilegeEnforcementSwitch:
         self, non_admin_account, sdn_netbox, account_group
     ):
         """A grant scoped away from this netbox must not restrict anything"""
-        _grant(account_group, PortadminPrivilege.VLAN, "^LEGACY$")
+        _grant(account_group, PortadminPrivilege.VLAN, "LEGACY")
 
         permissions = PortadminPermissions(non_admin_account, sdn_netbox)
 

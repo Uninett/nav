@@ -175,32 +175,14 @@ Privilege                       Permits changing
 
 .. important:: Once ``require_privileges`` is on, the default is to deny. A user who
    is not a NAV administrator cannot change anything in PortAdmin until at least one
-   of these privileges has been granted to one of their user groups. NAV
-   administrators always have full access.
+   of these privileges has been granted to one of their user groups.
 
 Privileges are granted per user group in the Useradmin tool, under
-:guilabel:`Groups`. Each grant has a *target* that scopes it to a set of IP
-devices. The target is a regular expression, matched against the names of the
-*device groups* defined in SeedDB, in the same way the targets of ``web_access``
-privileges are regular expressions. The privilege applies to an IP device if the
-expression matches at least one of the device groups it belongs to:
+:guilabel:`Groups`. Each privilege is scoped to one device group, so to add the
+same privilege to multiple groups you will have to add multiple entries.
 
-``^SDN$``
-    The privilege applies only to IP devices in the device group ``SDN``.
-
-``^LEGACY-.*``
-    The privilege applies to IP devices in any device group whose name starts with
-    ``LEGACY-``.
-
-``.*``
-    The privilege applies to every IP device that is in a device group.
-
-Remember to anchor a target with ``^`` and ``$`` when you mean an exact group name.
-An unanchored target such as ``SDN`` also matches a group named ``SDN-EDGE``.
-
-.. note:: Since a target only ever matches device group names, an IP device that
-   belongs to no device group at all is matched by no target, not even ``.*``. Put
-   an IP device in at least one device group before granting anyone access to it.
+.. note:: An IP Device must be in a group for you to grant privileges for that device,
+    there is no way to grant privileges on a per-device basis.
 
 
 The Config File

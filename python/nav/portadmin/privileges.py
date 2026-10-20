@@ -15,15 +15,11 @@
 #
 """Defines granular privileges for PortAdmin."""
 
-import logging
-import re
 from enum import StrEnum
 
 from nav.models.manage import Netbox
 from nav.models.profiles import Account
 from nav.portadmin.config import CONFIG
-
-_logger = logging.getLogger(__name__)
 
 
 class PortadminPrivilege(StrEnum):
@@ -45,23 +41,15 @@ class PortadminPrivilege(StrEnum):
 class PortadminPermissions:
     """The set of PortAdmin attributes an account may edit on a given netbox.
 
-    Each privilege is scoped by its ``target``, a regular expression matched against
-    the names of the device groups the netbox belongs to, in the same way the targets
-    of ``web_access`` privileges are regular expressions. The privilege applies if the
-    expression matches at least one of the groups, so `^SDN$` covers the netboxes in
-    the `SDN` device group, while `.*` covers every netbox that is in a group at all.
+    Privileges are granted per user group.
 
-    Since a target only ever matches group names, a netbox that belongs to no device
-    group matches no target, and no privilege applies to it.
+    A netbox that belongs to no device group matches no target, and no privilege
+    applies to it.
 
     Enforcement is controlled by the ``require_privileges`` option in the
-    ``[authorization]`` section of :file:`portadmin.conf`, and is off by default. While
-    it is off, any user allowed to edit an interface may change every attribute on it,
-    which is how PortAdmin behaved before these privileges existed. This is independent
-    of the ``vlan_auth`` option, which governs *which* interfaces a user may edit.
-
-    Instances are cheap to pass around and evaluate the account's privileges only
-    once, so a single instance can be reused for every interface on a netbox.
+    ``[authorization]`` section of :file:`portadmin.conf`, and is off by default.
+    This is independent of the ``vlan_auth`` option, which governs *which* interfaces
+    a user may edit.
     """
 
     def __init__(self, account: Account, netbox: Netbox):
@@ -77,39 +65,11 @@ class PortadminPermissions:
 
     def _resolve_allowed_privileges(self) -> set[str]:
         """Finds the privileges granted to this account that apply to this netbox"""
-        group_ids = self._get_netbox_group_ids()
         privileges = self.account.get_privileges().filter(
-            type__name__in=list(PortadminPrivilege)
+            type__name__in=list(PortadminPrivilege),
+            target__in=self.netbox.groups.values_list("id", flat=True),
         )
-        return {
-            privilege.type.name
-            for privilege in privileges
-            if self._target_matches_groups(privilege.target, group_ids)
-        }
-
-    def _get_netbox_group_ids(self) -> set[str]:
-        """Returns the set of device group names the netbox belongs to"""
-        return set(self.netbox.groups.values_list("id", flat=True))
-
-    @staticmethod
-    def _target_matches_groups(target: str, group_ids: set[str]) -> bool:
-        """Decides whether a privilege target matches a set of device groups
-
-        The target is a regular expression, matched against each device group name.
-        It matches if at least one of them matches. A netbox that belongs to no
-        device group therefore matches no target at all.
-
-        :param target: The ``target`` value of a privilege.
-        :param group_ids: The device group names
-        """
-        if not target:
-            return False
-        try:
-            pattern = re.compile(target)
-        except re.error:
-            _logger.error("Invalid regexp in PortAdmin privilege target: %r", target)
-            return False
-        return any(pattern.search(group_id) for group_id in group_ids)
+        return set(privileges.values_list("type__name", flat=True))
 
     def can(self, privilege: str) -> bool:
         """Returns True if the account may change the given attribute
