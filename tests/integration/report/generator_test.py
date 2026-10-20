@@ -8,10 +8,10 @@ which needs a live connection because identifier quoting is done by the driver.
 
 import pytest
 
+from django.db import connection
 from django.http import QueryDict
 from django.urls import reverse
 
-from nav import db
 from nav.report.generator import ArgumentParser, Generator, ReportConfig, ReportList
 from nav.config import find_config_dir, list_config_files_from_dir
 
@@ -29,7 +29,6 @@ def report_list():
 def test_report(report_name):
     # uri = 'http://example.com/report/%s/' % report_name
     uri = QueryDict('').copy()
-    db.closeConnections()  # Ensure clean connection for each test
 
     generator = Generator()
     report, contents, neg, operator, adv, config, dbresult = generator.make_report(
@@ -84,6 +83,16 @@ def test_when_filter_field_has_a_percent_then_report_should_error_not_crash():
     dbresult = run_report("room", query)
     assert dbresult.error
     assert "does not exist" in dbresult.error
+
+
+def test_when_connection_is_closed_then_a_sorted_report_should_run_without_error():
+    # make_sql() quotes through the raw driver connection, which is absent until
+    # ensure_connection() opens it; starting closed pins that call.
+    connection.close()
+    query = QueryDict(mutable=True)
+    query["order_by"] = "roomid"
+    dbresult = run_report("room", query)
+    assert not dbresult.error, dbresult.error
 
 
 class TestMakeSqlQuotesUntrustedIdentifiers:
@@ -148,16 +157,11 @@ def build_sql(query, trusted_sort=None, trusted_where=None):
     if trusted_where:
         config.add_trusted_where(trusted_where)
     ArgumentParser(config).parse_query(query)
-    return config.make_sql(db.getConnection("default"))[0]
+    connection.ensure_connection()
+    return config.make_sql(connection.connection)[0]
 
 
 def run_report(report_name, query):
     config_files = list_config_files_from_dir(config_files_dir)
-    try:
-        db.closeConnections()  # start each test from a clean connection
-        result = Generator().make_report(report_name, config_files, query, None, None)
-        return result[6]  # the DatabaseResult
-    finally:
-        # The injection tests deliberately error, which aborts the legacy
-        # connection's transaction. Discard it so later tests get a clean one.
-        db.closeConnections()
+    result = Generator().make_report(report_name, config_files, query, None, None)
+    return result[6]  # the DatabaseResult
