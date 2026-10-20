@@ -77,7 +77,7 @@ def post_event(mac_watch, cam):
     severity = 5
     varmap = {
         'sysname': cam.sysname,
-        'port': cam.port,
+        'port': cam.port or '',
         'mac': cam.mac,
         'macwatch-mac': mac_watch.mac,
         'alerttype': 'macWarning',
