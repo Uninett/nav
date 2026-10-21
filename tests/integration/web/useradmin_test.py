@@ -3,7 +3,9 @@ from django.urls import reverse
 import pytest
 from allauth.mfa.models import Authenticator
 
-from nav.models.profiles import Account
+from nav.models.manage import NetboxGroup
+from nav.models.profiles import Account, PrivilegeType
+from nav.web.useradmin.forms import PrivilegeForm
 
 
 def test_given_no_authenticator_then_activated_2fa_is_false(
@@ -106,3 +108,69 @@ def account_with_recovery_codes_only(non_admin_account):
 @pytest.fixture
 def mfa_globally_enabled(monkeypatch):
     monkeypatch.setattr('nav.web.useradmin.utils.is_2fa_globally_enabled', lambda: True)
+
+
+class TestPrivilegeForm:
+    @pytest.fixture
+    def device_group(self, db):
+        group = NetboxGroup.objects.create(id="SDN", description="SDN switches")
+        yield group
+        group.delete()
+
+    @pytest.fixture
+    def portadmin_type(self, db):
+        return PrivilegeType.objects.get(name="portadmin_vlan")
+
+    @pytest.fixture
+    def web_access_type(self, db):
+        return PrivilegeType.objects.get(name="web_access")
+
+    def test_when_type_is_portadmin_it_should_use_the_device_group_as_target(
+        self, portadmin_type, device_group
+    ):
+        form = PrivilegeForm(
+            {"type": portadmin_type.pk, "device_group": device_group.pk}
+        )
+        assert form.is_valid()
+        assert form.cleaned_data["target"] == "SDN"
+
+    def test_when_type_is_portadmin_it_should_ignore_the_target_field(
+        self, portadmin_type, device_group
+    ):
+        form = PrivilegeForm(
+            {
+                "type": portadmin_type.pk,
+                "target": ".*",
+                "device_group": device_group.pk,
+            }
+        )
+        assert form.is_valid()
+        assert form.cleaned_data["target"] == "SDN"
+
+    def test_when_type_is_portadmin_and_no_device_group_is_chosen_it_should_be_invalid(
+        self, portadmin_type
+    ):
+        form = PrivilegeForm({"type": portadmin_type.pk, "target": ".*"})
+        assert not form.is_valid()
+        assert "device_group" in form.errors
+
+    def test_when_device_group_does_not_exist_it_should_be_invalid(
+        self, portadmin_type
+    ):
+        form = PrivilegeForm({"type": portadmin_type.pk, "device_group": "NOPE"})
+        assert not form.is_valid()
+        assert "device_group" in form.errors
+
+    def test_when_type_is_not_portadmin_it_should_keep_the_target(
+        self, web_access_type
+    ):
+        form = PrivilegeForm({"type": web_access_type.pk, "target": "^/foo"})
+        assert form.is_valid()
+        assert form.cleaned_data["target"] == "^/foo"
+
+    def test_when_type_is_not_portadmin_and_target_is_empty_it_should_be_invalid(
+        self, web_access_type
+    ):
+        form = PrivilegeForm({"type": web_access_type.pk})
+        assert not form.is_valid()
+        assert "target" in form.errors

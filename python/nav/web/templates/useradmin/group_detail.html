@@ -11,6 +11,28 @@
    }
 
   </style>
+  <script>
+    require(['jquery'], function () {
+      $(function () {
+        /* PortAdmin privileges are scoped to a device group rather than a target */
+        var $type = $('#id_type');
+        var $target = $('#id_target');
+        var $deviceGroup = $('#id_device_group');
+
+        function toggleScopeField() {
+          var typeName = $type.find('option:selected').text();
+          var isPortadmin = typeName.indexOf('portadmin_') === 0;
+          $('#div_id_target').toggle(!isPortadmin);
+          $target.prop('disabled', isPortadmin);
+          $('#div_id_device_group').toggle(isPortadmin);
+          $deviceGroup.prop('disabled', !isPortadmin);
+        }
+
+        $type.on('change', toggleScopeField);
+        toggleScopeField();
+      });
+    });
+  </script>
 {% endblock %}
 {% block content %}
 
@@ -129,7 +151,8 @@
                     <span id="grant-tooltip" role="tooltip">
                         See the <em>How to guide</em> for more information
                         on the Regular expressions used for matching targets for
-                        privileges like 'web_access'.
+                        privileges like 'web_access'. PortAdmin privileges are
+                        instead scoped to a single device group.
                     </span>
                   </span>
               </h6>

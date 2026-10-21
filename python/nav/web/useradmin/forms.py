@@ -31,10 +31,11 @@ from nav.web.crispyforms import (
 )
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
-from nav.models.manage import Organization
+from nav.models.manage import NetboxGroup, Organization
 from nav.models.api import APIToken, JWTRefreshToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 from nav.util import auth_token
+from nav.portadmin.privileges import PortadminPrivilege
 
 
 class AccountGroupForm(forms.ModelForm):
@@ -172,11 +173,24 @@ class ExternalAccountForm(AccountForm):
 
 
 class PrivilegeForm(forms.Form):
-    """Form for adding a privilege to a group from the group page"""
+    """Form for adding a privilege to a group from the group page
+
+    Most privilege types are scoped by a free-text target, but the PortAdmin
+    privileges are scoped to exactly one device group, which is chosen from a list
+    instead. Either way, the scope ends up in ``cleaned_data['target']``.
+    """
 
     type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='')
     target = forms.CharField(
-        required=True, label='', widget=forms.TextInput(attrs={'placeholder': 'Target'})
+        required=False,
+        label='',
+        widget=forms.TextInput(attrs={'placeholder': 'Target'}),
+    )
+    device_group = forms.models.ModelChoiceField(
+        NetboxGroup.objects.all(),
+        required=False,
+        label='',
+        empty_label='Device group',
     )
 
     def __init__(self, *args, **kwargs):
@@ -190,7 +204,10 @@ class PrivilegeForm(forms.Form):
                 ),
                 FormRow(
                     fields=[
-                        FormColumn(fields=[self["target"]], css_classes="medium-9"),
+                        FormColumn(
+                            fields=[self["target"], self["device_group"]],
+                            css_classes="medium-9",
+                        ),
                         FormColumn(
                             fields=[
                                 SubmitField(
@@ -203,6 +220,22 @@ class PrivilegeForm(forms.Form):
                 ),
             ]
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        privilege_type = cleaned_data.get('type')
+        if not privilege_type:
+            return cleaned_data
+
+        if privilege_type.name in list(PortadminPrivilege):
+            device_group = cleaned_data.get('device_group')
+            if device_group:
+                cleaned_data['target'] = device_group.pk
+            else:
+                self.add_error('device_group', 'Choose a device group.')
+        elif not cleaned_data.get('target'):
+            self.add_error('target', 'This field is required.')
+        return cleaned_data
 
 
 class OrganizationAddForm(forms.Form):
