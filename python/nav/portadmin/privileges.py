@@ -42,14 +42,11 @@ class PortadminPermissions:
     """The set of PortAdmin attributes an account may edit on a given netbox.
 
     Privileges are granted per user group.
-
     A netbox that belongs to no device group matches no target, and no privilege
     applies to it.
 
     Enforcement is controlled by the ``require_privileges`` option in the
     ``[authorization]`` section of :file:`portadmin.conf`, and is off by default.
-    This is independent of the ``vlan_auth`` option, which governs *which* interfaces
-    a user may edit.
     """
 
     def __init__(self, account: Account, netbox: Netbox):
