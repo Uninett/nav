@@ -19,6 +19,8 @@ if [[ ! -f "/etc/nav/nav.conf" ]]; then
     sed -e 's/^NAV_USER\s*=.*/NAV_USER=nav/' -i nav.conf  # Set the nav user
     sed -e 's/dbhost=.*/dbhost=postgres/g' -i db.conf  # Set nav as db password.
     sed -e 's/userpw_nav=.*/userpw_nav=nav/g' -i db.conf  # Set nav as db password.
+    SECRET_KEY='$(gpg -a --gen-random 1 51)'
+    sed -e 's/^SECRET_KEY=.*/SECRET_KEY=${SECRET_KEY}/' -i nav.conf # Replace default secret key with generated one
 
     cp /source/tools/docker/graphite.conf /etc/nav/graphite.conf
 fi
