@@ -27,11 +27,12 @@ the updated IP-MIB).  It also tries a Cisco proprietary
 CISCO-IETF-IP-MIB, which is based on a draft that later became the
 revised IP-MIB.
 
-An interface with an IP address whose name matches the VLAN_PATTERN
+An interface with an IP address whose name matches the DEFAULT_VLAN_PATTERN
 will cause the corresponding prefix to be associated with the VLAN id
 parsed from the interface name.  Not all dot1q enabled routers name
 their interfaces like this, but routing switches from several vendors
-do.
+do. The pattern can be overridden by the `vlan_pattern` option in the
+`[prefix]` section of ipdevpoll.conf.
 
 """
 
@@ -51,10 +52,13 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
-VLAN_PATTERN = re.compile(
+DEFAULT_VLAN_PATTERN = re.compile(
     r"(Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)",
     re.IGNORECASE,
 )
+
+
+_logger = logging.getLogger(__name__)
 
 
 class Prefix(Plugin):
@@ -68,6 +72,7 @@ class Prefix(Plugin):
         from nav.ipdevpoll.config import ipdevpoll_conf
 
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
+        cls.vlan_pattern = get_vlan_pattern(ipdevpoll_conf)
 
     @defer.inlineCallbacks
     def handle(self):
@@ -174,8 +179,8 @@ class Prefix(Plugin):
     def get_vlan_interfaces(self):
         """Get all virtual VLAN interfaces.
 
-        Any interface whose ifName matches the VLAN_PATTERN regexp
-        will be included in the result.
+        Any interface whose ifName matches the configured VLAN pattern
+        regexp will be included in the result.
 
         Return value:
 
@@ -189,7 +194,7 @@ class Prefix(Plugin):
 
         vlan_ifs = {}
         for ifindex, ifname in interfaces.items():
-            match = VLAN_PATTERN.match(ifname)
+            match = self.vlan_pattern.match(ifname)
             if match:
                 vlan = int(match.group('vlan'))
                 vlan_ifs[ifindex] = vlan
@@ -223,6 +228,34 @@ def get_ignored_prefixes(config):
     items = raw_string.split(',')
     prefixes = [_convert_string_to_prefix(i) for i in items]
     return [prefix for prefix in prefixes if prefix is not None]
+
+
+def get_vlan_pattern(config):
+    """Returns the compiled VLAN interface name pattern from a ConfigParser
+    instance, falling back to the default pattern if none, or an invalid one, is
+    configured.
+    """
+    if config is None:
+        return DEFAULT_VLAN_PATTERN
+    # raw, since regexps may contain % characters
+    raw_string = config.get('prefix', 'vlan_pattern', raw=True, fallback='').strip()
+    if not raw_string:
+        return DEFAULT_VLAN_PATTERN
+
+    try:
+        pattern = re.compile(raw_string, re.IGNORECASE)
+    except re.error as err:
+        _logger.error(
+            "Invalid vlan_pattern %r (%s), using default pattern", raw_string, err
+        )
+        return DEFAULT_VLAN_PATTERN
+    if 'vlan' not in pattern.groupindex:
+        _logger.error(
+            "vlan_pattern %r has no named group 'vlan', using default pattern",
+            raw_string,
+        )
+        return DEFAULT_VLAN_PATTERN
+    return pattern
 
 
 def _convert_string_to_prefix(string):
