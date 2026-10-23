@@ -85,6 +85,7 @@ class Pinger(object):
         self.down = []  # list of netboxids down
         self.replies = {}  # hash netboxid -> circbuf
         self.ip_to_netboxid = {}
+        self.reannounce = set()  # netboxids to re-announce as up this cycle
 
     def update_host_list(self):
         """
@@ -97,6 +98,7 @@ class Pinger(object):
         hosts = self.db.hosts_to_ping(netbox_included_groups, netbox_excluded_groups)
         netboxmap = {}
         self.ip_to_netboxid = {}
+        self.reannounce = set()
         for host in hosts:
             netboxid, sysname, ip, up = host
             netbox = Netbox(netboxid, sysname, ip, up)
@@ -108,6 +110,22 @@ class Pinger(object):
                         netbox.ip,
                     )
                     self.down.append(netbox.netboxid)
+            elif netbox.up != 'y' and netbox.netboxid not in self.down:
+                # The database says this box is down, but we think it's up.
+                # Clear its replies and re-announce its state in this cycle: UP
+                # if it still answers, DOWN if it doesn't. We leave self.down
+                # alone, so that generate_events() can still see a box that dies
+                # while the database lags behind. We deliberately never do the
+                # opposite (trust the database when it says up): two pping
+                # instances with different reachability would then flip-flop the
+                # box's state forever.
+                _logger.info(
+                    "Database and internal pping state of %s are out of sync, "
+                    "re-announcing its state",
+                    netbox.ip,
+                )
+                self.reannounce.add(netbox.netboxid)
+                self.replies[netbox.netboxid].reset_all_to(-1)
             if netbox.netboxid not in self.replies:
                 self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
                 if netbox.up != 'y':
@@ -146,7 +164,7 @@ class Pinger(object):
         _logger.debug("No answer from %i hosts", len(down_now))
         # Detect state changes since last run
         report_down = set(down_now) - set(self.down)
-        report_up = set(self.down) - set(down_now)
+        report_up = (set(self.down) | self.reannounce) - set(down_now)
         self.down = down_now
 
         # Reporting netboxes as down
