@@ -29,8 +29,9 @@ SENSORS = [
             'pdu3GroupVoltageMeasType',
             'pdu3groupCurrentRating',
         ],
-        'filter': lambda x: x.get('pdu3GroupName') is not None
-        and x.get('pdu3GroupVoltageMeasType'),
+        'filter': lambda x: (
+            x.get('pdu3GroupName') is not None and x.get('pdu3GroupVoltageMeasType')
+        ),
         'sensors': {
             'pdu3GroupVoltage': {
                 'description': '{pdu3GroupName} Voltage ({pdu3GroupVoltageMeasType})',
