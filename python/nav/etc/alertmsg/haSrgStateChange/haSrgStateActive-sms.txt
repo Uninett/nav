@@ -1,0 +1,1 @@
+HA SRG state on SRG{{ subid }} on {{ netbox.sysname }} changed from {{ old_state }} to {{ new_state }}
