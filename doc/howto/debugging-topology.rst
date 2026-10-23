@@ -90,6 +90,28 @@ to ``cleese-sw``'s port *Gi2/1*. Do the following:
 4. Attach the results of the two report listings when posting a question to a
    developer.
 
+A port still lists a neighbor it is no longer connected to
+==========================================================
+
+NAV assumes that a port losing its link is a temporary error, so it keeps the
+port's topology information. Topology is only cleared automatically from a
+down port if the port is administratively shut down, or if its recorded link
+partner is still up. A port left unused but enabled after a device has been
+moved will therefore keep listing the moved device as its neighbor.
+
+NAV administrators can clear this stale information manually:
+
+1. Browse the device in ipdevinfo, click on the :guilabel:`Ports` tab, then
+   click on the port to see its details.
+2. Under the :guilabel:`Connection` table, click the :guilabel:`Clear
+   topology` button. The button is only shown for ports that are
+   operationally down and have a neighbor recorded.
+
+This removes the port's neighbor device and interface, along with its
+neighbor candidates, so the old neighbor is not restored by the next topology
+analysis. The port will only get a neighbor again once new neighbor data is
+collected for it. Each clear is recorded in the audit log.
+
 
 How NAV builds physical topology information
 ============================================
