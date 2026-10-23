@@ -22,9 +22,11 @@ from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.utils.html import format_html, mark_safe
 
+from nav.auditlog.models import LogEntry
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
 from nav.bulkimport import ManagementProfileImporter
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 
 from nav.web.seeddb import SeeddbInfo
@@ -149,7 +151,11 @@ def management_profile_edit(request, management_profile_id=None):
                 instance=form.instance,
             )
             if protocol_form.is_valid():
+                is_new = profile is None
                 profile = form.save()
+                if is_new:
+                    # New profile, record creation in the audit log
+                    LogEntry.add_create_entry(get_account(request), profile)
 
                 new_message(
                     request, "Saved %s %s" % (verbose_name, profile), Messages.SUCCESS
