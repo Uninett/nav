@@ -1,5 +1,9 @@
 """Integration tests for the navuser CLI tool."""
 
+import io
+import sys
+from unittest.mock import Mock
+
 import pytest
 
 from nav.auditlog.models import LogEntry
@@ -243,7 +247,118 @@ class TestUnlockCommand:
         assert not account.is_active
 
 
+class TestPasswdCommand:
+    def test_when_setting_password_then_it_should_succeed(
+        self, non_admin_account, monkeypatch, capsys
+    ):
+        monkeypatch.setattr(sys, "stdin", io.StringIO("newpassword\n"))
+        code = run_cli(main, "passwd", non_admin_account.login)
+        assert code == 0
+        output = capsys.readouterr().err
+        assert "New password saved" in output
+        non_admin_account.refresh_from_db()
+        assert non_admin_account.check_password("newpassword")
+
+    def test_when_setting_password_then_it_should_add_log_entry(
+        self, non_admin_account, monkeypatch
+    ):
+        monkeypatch.setattr(sys, "stdin", io.StringIO("newpassword\n"))
+        code = run_cli(main, "passwd", non_admin_account.login)
+        assert code == 0
+
+        log_entry = LogEntry.objects.filter(
+            verb='edit-account-password', object_pk=non_admin_account.pk
+        ).first()
+        assert log_entry
+        assert "via navuser" in log_entry.summary
+
+    def test_when_password_is_too_short_then_it_should_print_error(
+        self, non_admin_account, monkeypatch, capsys
+    ):
+        monkeypatch.setattr(sys, "stdin", io.StringIO("short\n"))
+        code = run_cli(main, "passwd", non_admin_account.login)
+        assert code == 3
+        output = capsys.readouterr().err
+        assert "Password must be at least 8 characters" in output
+        non_admin_account.refresh_from_db()
+        assert non_admin_account.check_password("password")
+
+    def test_when_setting_password_for_default_account_then_it_should_print_error(
+        self, db, capsys
+    ):
+        account = default_account()
+        code = run_cli(main, "passwd", account.login)
+        assert code != 0
+        output = capsys.readouterr().err
+        assert "It is not possible to set a password for the default account." in output
+
+    def test_when_current_password_is_wrong_then_it_should_print_error(
+        self, non_admin_account, interactive_input, capsys
+    ):
+        interactive_input("wrongpassword")
+        code = run_cli(main, "passwd", non_admin_account.login)
+        assert code != 0
+        output = capsys.readouterr().err
+        assert "Authentication error" in output
+        non_admin_account.refresh_from_db()
+        assert non_admin_account.check_password("password")
+
+    def test_when_new_passwords_do_not_match_then_it_should_print_error(
+        self, non_admin_account, interactive_input, capsys
+    ):
+        interactive_input("password", "newpassword", "otherpassword")
+        code = run_cli(main, "passwd", non_admin_account.login)
+        assert code == 2
+        output = capsys.readouterr().err
+        assert "Sorry, passwords do not match" in output
+        non_admin_account.refresh_from_db()
+        assert non_admin_account.check_password("password")
+
+    def test_when_noverify_flag_is_set_then_it_should_not_ask_for_current_password(
+        self, non_admin_account, interactive_input
+    ):
+        interactive_input("newpassword", "newpassword")
+        code = run_cli(main, "passwd", "--noverify", non_admin_account.login)
+        assert code == 0
+        non_admin_account.refresh_from_db()
+        assert non_admin_account.check_password("newpassword")
+
+
+class TestVerifyCommand:
+    def test_when_password_is_correct_then_it_should_succeed(
+        self, non_admin_account, monkeypatch
+    ):
+        monkeypatch.setattr(sys, "stdin", io.StringIO("password\n"))
+        code = run_cli(main, "verify", non_admin_account.login)
+        assert code == 0
+
+    def test_when_password_is_wrong_then_it_should_fail(
+        self, non_admin_account, monkeypatch
+    ):
+        monkeypatch.setattr(sys, "stdin", io.StringIO("wrongpassword\n"))
+        code = run_cli(main, "verify", non_admin_account.login)
+        assert code == "Password could not be verified"
+
+    def test_when_password_is_correct_in_terminal_then_it_should_succeed(
+        self, non_admin_account, interactive_input
+    ):
+        interactive_input("password")
+        code = run_cli(main, "verify", non_admin_account.login)
+        assert code == 0
+
+
 # Fixtures
+
+
+@pytest.fixture
+def interactive_input(monkeypatch):
+    """Simulates a terminal, answering password prompts in the given order"""
+
+    def answer(*passwords):
+        monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
+        monkeypatch.setattr("nav.bin.navuser.getpass", Mock(side_effect=passwords))
+
+    return answer
 
 
 @pytest.fixture
