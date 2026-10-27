@@ -249,15 +249,19 @@ def get_vlan_pattern(config):
         pattern = re.compile(raw_string, re.IGNORECASE)
     except re.error as err:
         _logger.error(
-            "Invalid vlan_pattern %r (%s), using default pattern", raw_string, err
+            "Invalid vlan_pattern %r (%s), VLANs will not be parsed from "
+            "interface names",
+            raw_string,
+            err,
         )
-        return DEFAULT_VLAN_PATTERN
+        return None
     if 'vlan' not in pattern.groupindex:
         _logger.error(
-            "vlan_pattern %r has no named group 'vlan', using default pattern",
+            "vlan_pattern %r has no named group 'vlan', VLANs will not be parsed "
+            "from interface names",
             raw_string,
         )
-        return DEFAULT_VLAN_PATTERN
+        return None
     return pattern
 
 
