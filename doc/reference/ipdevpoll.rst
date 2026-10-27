@@ -84,10 +84,21 @@ Section [prefix]
 
 ``vlan_pattern``
   A regular expression used to extract VLANs from interface names.
-  The expression must contain a named group called ``vlan`` that captures the VLAN id.
-  Matching is case-insensitive. The default value is
+  The expression must contain a named group called ``vlan`` that captures
+  the VLAN id (integers only).
+  Matching is case-insensitive. Setting this value replaces the default value,
+  it does not add to it. To add support for more interface types,
+  copy the default value and extend it.
+  Note that the pattern searches from the beginning of the interface name, not from
+  anywhere
+  The default value is::
 
-    ``(Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)``
+    (Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)
+
+  Example of custom value that extends the default value to support
+  Aggregated Ethernet (`ae`) Juniper interfaces::
+
+    (Vl(an)?|irb\.|reth\d+\.|bond\d+\.|ae\d+\.)(?P<vlan>[1-9]\d*)
 
 Section [netbox_filters]
 ------------------------
