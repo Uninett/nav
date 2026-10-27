@@ -193,7 +193,17 @@ class Prefix(Plugin):
         for ifindex, ifname in interfaces.items():
             match = self.vlan_pattern.match(ifname)
             if match:
-                vlan = int(match.group('vlan'))
+                try:
+                    vlan = int(match.group('vlan'))
+                except (TypeError, ValueError):
+                    self._logger.error(
+                        "vlan_pattern %r captured an invalid VLAN %r from interface "
+                        "%r, ignoring interface",
+                        self.vlan_pattern.pattern,
+                        match.group('vlan'),
+                        ifname,
+                    )
+                    continue
                 vlan_ifs[ifindex] = vlan
 
         return vlan_ifs

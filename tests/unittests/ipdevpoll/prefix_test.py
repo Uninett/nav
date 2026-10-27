@@ -5,6 +5,7 @@ from IPy import IP
 from random import randint
 
 import pytest
+from twisted.internet import defer
 
 from nav.ipdevpoll.config import IpdevpollConfig
 from nav.ipdevpoll.plugins import prefix
@@ -178,6 +179,42 @@ class TestVlanPatternConfig:
         """
         match = prefix.get_vlan_pattern(config).match("%vif5")
         assert match.group('vlan') == '5'
+
+
+class TestGetVlanInterfaces:
+    @pytest.mark.parametrize("config", [CUSTOM_PATTERN], indirect=True)
+    def test_given_custom_pattern_it_should_map_matching_interfaces_to_vlans(
+        self, plugin
+    ):
+        assert plugin.get_vlan_interfaces().result == {1: 100}
+
+    @pytest.mark.parametrize("config", [r"vif\w+\.(?P<vlan>\w+)"], indirect=True)
+    def test_given_non_integer_vlan_capture_it_should_skip_interface(self, plugin):
+        assert plugin.get_vlan_interfaces().result == {1: 100}
+
+    @pytest.mark.parametrize("config", [r"vif\w+\.(?P<vlan>\w+)"], indirect=True)
+    def test_given_non_integer_vlan_capture_it_should_log_error(self, plugin, caplog):
+        with caplog.at_level(logging.ERROR):
+            plugin.get_vlan_interfaces()
+        assert [record.levelno for record in caplog.records] == [logging.ERROR]
+
+
+@pytest.fixture
+def plugin(config, monkeypatch):
+    """A Prefix plugin using the VLAN pattern from config, polling a device
+    whose ifName column is stubbed.
+    """
+    ifmib = Mock()
+    ifmib.retrieve_column.return_value = defer.succeed(
+        {(1,): "vif1.100", (2,): "vifx.abc", (3,): "eth0"}
+    )
+    monkeypatch.setattr(prefix, "IfMib", Mock(return_value=ifmib))
+
+    netbox = Mock('Netbox')
+    netbox.sysname = 'foo-sw.example.org'
+    plugin = prefix.Prefix(netbox, None, None)
+    plugin.vlan_pattern = prefix.get_vlan_pattern(config)
+    return plugin
 
 
 @pytest.fixture
