@@ -1,4 +1,4 @@
-from configparser import ConfigParser
+import logging
 from unittest import TestCase
 from mock import Mock
 from IPy import IP
@@ -6,6 +6,7 @@ from random import randint
 
 import pytest
 
+from nav.ipdevpoll.config import IpdevpollConfig
 from nav.ipdevpoll.plugins import prefix
 
 
@@ -83,56 +84,80 @@ class PrefixPluginTest(TestCase):
         netbox.sysname = 'foo-sw.example.org'
         prefix.Prefix(netbox, None, None)
 
+    def test_when_vlan_pattern_is_none_it_should_find_no_vlan_interfaces(self):
+        netbox = Mock('Netbox')
+        netbox.sysname = 'foo-sw.example.org'
+        plugin = prefix.Prefix(netbox, None, None)
+        plugin.vlan_pattern = None
+
+        self.assertEqual(plugin.get_vlan_interfaces().result, {})
+
 
 class VlanPatternTest(TestCase):
     def setUp(self):
         self.vlan = str(randint(0, 4096))
+        self.pattern = prefix.get_vlan_pattern(IpdevpollConfig(default_config_files=()))
 
     def test_cisco_long_names_should_match(self):
-        match = prefix.DEFAULT_VLAN_PATTERN.match("VLAN" + self.vlan)
+        match = self.pattern.match("VLAN" + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_cisco_short_names_should_match(self):
-        match = prefix.DEFAULT_VLAN_PATTERN.match("Vl" + self.vlan)
+        match = self.pattern.match("Vl" + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_juniper_irb_names_should_match(self):
-        match = prefix.DEFAULT_VLAN_PATTERN.match("irb." + self.vlan)
+        match = self.pattern.match("irb." + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_juniper_reth_names_should_match(self):
-        match = prefix.DEFAULT_VLAN_PATTERN.match("reth0." + self.vlan)
+        match = self.pattern.match("reth0." + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_checkpoint_vlan_names_should_match(self):
-        match = prefix.DEFAULT_VLAN_PATTERN.match("bond0." + self.vlan)
+        match = self.pattern.match("bond0." + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
 
+DEFAULT_PATTERN = IpdevpollConfig(default_config_files=()).get(
+    'prefix', 'vlan_pattern', raw=True
+)
 CUSTOM_PATTERN = r"vif\d+\.(?P<vlan>\d+)"
 
 
 class TestVlanPatternConfig:
-    def test_when_config_is_none_it_should_return_default(self):
-        assert prefix.get_vlan_pattern(None) is prefix.DEFAULT_VLAN_PATTERN
+    def test_when_config_is_none_it_should_return_none(self):
+        assert prefix.get_vlan_pattern(None) is None
 
     def test_when_option_is_missing_it_should_return_default(self, config):
-        assert prefix.get_vlan_pattern(config) is prefix.DEFAULT_VLAN_PATTERN
+        assert prefix.get_vlan_pattern(config).pattern == DEFAULT_PATTERN
 
     @pytest.mark.parametrize("config", [""], indirect=True)
-    def test_when_option_is_empty_it_should_return_default(self, config):
-        assert prefix.get_vlan_pattern(config) is prefix.DEFAULT_VLAN_PATTERN
+    def test_when_option_is_empty_it_should_return_none(self, config):
+        assert prefix.get_vlan_pattern(config) is None
 
     @pytest.mark.parametrize("config", [r"(?P<vlan>\d+)["], indirect=True)
-    def test_given_invalid_pattern_it_should_return_default(self, config):
-        assert prefix.get_vlan_pattern(config) is prefix.DEFAULT_VLAN_PATTERN
+    def test_given_invalid_pattern_it_should_return_none(self, config):
+        assert prefix.get_vlan_pattern(config) is None
 
     @pytest.mark.parametrize("config", [r"vif\d+\.\d+"], indirect=True)
-    def test_given_pattern_without_vlan_group_it_should_return_default(self, config):
-        assert prefix.get_vlan_pattern(config) is prefix.DEFAULT_VLAN_PATTERN
+    def test_given_pattern_without_vlan_group_it_should_return_none(self, config):
+        assert prefix.get_vlan_pattern(config) is None
+
+    @pytest.mark.parametrize("config", [r"(?P<vlan>\d+)["], indirect=True)
+    def test_given_invalid_pattern_it_should_log_error(self, config, caplog):
+        with caplog.at_level(logging.ERROR, logger=prefix.__name__):
+            prefix.get_vlan_pattern(config)
+        assert [record.levelno for record in caplog.records] == [logging.ERROR]
+
+    @pytest.mark.parametrize("config", [r"vif\d+\.\d+"], indirect=True)
+    def test_given_pattern_without_vlan_group_it_should_log_error(self, config, caplog):
+        with caplog.at_level(logging.ERROR, logger=prefix.__name__):
+            prefix.get_vlan_pattern(config)
+        assert [record.levelno for record in caplog.records] == [logging.ERROR]
 
     @pytest.mark.parametrize("config", [CUSTOM_PATTERN], indirect=True)
-    def test_given_custom_pattern_it_should_replace_default(self, config):
+    def test_given_custom_pattern_it_should_return_it_compiled(self, config):
         assert prefix.get_vlan_pattern(config).pattern == CUSTOM_PATTERN
 
     @pytest.mark.parametrize("config", [CUSTOM_PATTERN], indirect=True)
@@ -157,11 +182,10 @@ class TestVlanPatternConfig:
 
 @pytest.fixture
 def config(request):
-    """A [prefix] config section, with vlan_pattern set to the indirectly
-    parametrized value, if any.
+    """An ipdevpoll config with only the built-in defaults, with vlan_pattern
+    overridden by the indirectly parametrized value, if any.
     """
-    config = ConfigParser()
-    config.read_string("[prefix]\n")
+    config = IpdevpollConfig(default_config_files=())
     vlan_pattern = getattr(request, "param", None)
     if vlan_pattern is not None:
         config.read_string(f"[prefix]\nvlan_pattern = {vlan_pattern}\n")
