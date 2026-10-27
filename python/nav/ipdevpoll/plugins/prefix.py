@@ -187,6 +187,9 @@ class Prefix(Plugin):
           A deferred whose result is a dictionary: { ifindex: vlan }
 
         """
+        if not self.vlan_pattern:
+            return {}
+
         ifmib = IfMib(self.agent)
         df = ifmib.retrieve_column('ifName')
         df.addCallback(reduce_index)
@@ -236,7 +239,7 @@ def get_vlan_pattern(config):
     configured.
     """
     if config is None:
-        return DEFAULT_VLAN_PATTERN
+        return None
     # raw, since regexps may contain % characters
     raw_string = config.get('prefix', 'vlan_pattern', raw=True, fallback='').strip()
     if not raw_string:
