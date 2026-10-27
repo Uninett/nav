@@ -27,12 +27,11 @@ the updated IP-MIB).  It also tries a Cisco proprietary
 CISCO-IETF-IP-MIB, which is based on a draft that later became the
 revised IP-MIB.
 
-An interface with an IP address whose name matches the DEFAULT_VLAN_PATTERN
-will cause the corresponding prefix to be associated with the VLAN id
-parsed from the interface name.  Not all dot1q enabled routers name
-their interfaces like this, but routing switches from several vendors
-do. The pattern can be overridden by the `vlan_pattern` option in the
-`[prefix]` section of ipdevpoll.conf.
+An interface with an IP address whose name matches the `vlan_pattern`
+option in the `[prefix]` section of ipdevpoll.conf will cause the
+corresponding prefix to be associated with the VLAN id parsed from the
+interface name.  Not all dot1q enabled routers name their interfaces
+like this, but routing switches from several vendors do.
 
 """
 
@@ -51,11 +50,6 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
-
-DEFAULT_VLAN_PATTERN = re.compile(
-    r"(Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)",
-    re.IGNORECASE,
-)
 
 
 _logger = logging.getLogger(__name__)
@@ -235,15 +229,15 @@ def get_ignored_prefixes(config):
 
 def get_vlan_pattern(config):
     """Returns the compiled VLAN interface name pattern from a ConfigParser
-    instance, falling back to the default pattern if none, or an invalid one, is
-    configured.
+    instance, or None if no config is given, or the configured pattern is empty
+    or invalid.
     """
     if config is None:
         return None
     # raw, since regexps may contain % characters
     raw_string = config.get('prefix', 'vlan_pattern', raw=True, fallback='').strip()
     if not raw_string:
-        return DEFAULT_VLAN_PATTERN
+        return None
 
     try:
         pattern = re.compile(raw_string, re.IGNORECASE)
