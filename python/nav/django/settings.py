@@ -334,7 +334,7 @@ SEARCHPROVIDERS = [
 # Configured in etc/webfront/webfront.conf:
 #  [security]
 #  needs_tls = yes
-#  frames_allow = self
+#  allow_frames = self
 #  proxy_tls_terminated = no
 #  csrf_trusted_origins = https://nav.example.com https://nav.example2.com
 
