@@ -30,3 +30,9 @@ csrf_trusted_origins=
 
     def get_csrf_trusted_origins(self):
         return self.get('csrf_trusted_origins').split()
+
+    def get_secure_proxy_ssl_header(self):
+        "Returns Django's SECURE_PROXY_SSL_HEADER value for a TLS-terminating proxy"
+        if self.getboolean('proxy_tls_terminated'):
+            return ('HTTP_X_FORWARDED_PROTO', 'https')
+        return None
