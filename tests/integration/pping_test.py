@@ -31,7 +31,8 @@ def get_root_method():
     if os.geteuid() == 0:
         return []
     elif os.system("sudo -nv") == 0:
-        return ["sudo", "-E"]
+        # sudo-rs (default since Ubuntu 25.10) ignores a bare -E
+        return ["sudo", "--preserve-env=NAV_CONFIG_DIR"]
     elif os.system("gosu root true") == 0:
         return ["gosu", "root"]
     else:
