@@ -52,7 +52,7 @@ jobs:
       - name: "Install libraries needed to build external dependencies"
         run: |
           set -xe
-          sudo apt-get install -y libldap2-dev libsasl2-dev libtidy5deb1 libsnmp40
+          sudo apt-get install -y libldap2-dev libsasl2-dev libtidy-dev libsnmp-dev
 
       - name: "Set up PostgreSQL"
         uses: ankane/setup-postgres@v1
