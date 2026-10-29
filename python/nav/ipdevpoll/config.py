@@ -30,7 +30,7 @@ class IpdevpollConfig(NAVConfigParser):
     """ipdevpoll config parser"""
 
     DEFAULT_CONFIG_FILES = ('ipdevpoll.conf',)
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = r"""
 [ipdevpoll]
 logfile = ipdevpolld.log
 max_concurrent_jobs = 500
@@ -54,6 +54,7 @@ ping_timeout = 10
 
 [prefix]
 ignored = <<=127.0.0.0/8, <<=fe80::/16, =128.0.0.0/2
+vlan_pattern = (Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)
 
 [linkstate]
 filter = topology
