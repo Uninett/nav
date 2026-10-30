@@ -18,6 +18,7 @@
 import unittest
 import os
 from random import shuffle
+from unittest.mock import Mock
 from IPy import IP
 
 import django
@@ -25,6 +26,12 @@ import django
 django.setup()
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
+from nav.enterprise.ids import (
+    VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC,
+    VENDOR_ID_CISCOSYSTEMS,
+)
+from nav.ipdevpoll import Plugin
+from nav.ipdevpoll.storage import ContainerRepository
 from nav.models.manage import Prefix
 from nav.ipdevpoll.utils import (
     find_prefix,
@@ -32,6 +39,29 @@ from nav.ipdevpoll.utils import (
     binary_mac_to_hex,
     is_invalid_utf8,
 )
+
+
+def _make_plugin(enterprise_id):
+    netbox = Mock()
+    if enterprise_id is None:
+        netbox.type = None
+    else:
+        netbox.type.get_enterprise_id.return_value = enterprise_id
+    return Plugin(netbox, agent=None, containers=ContainerRepository())
+
+
+class TestIsArista:
+    def test_when_device_is_arista_it_should_return_true(self):
+        plugin = _make_plugin(VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC)
+        assert plugin.is_arista()
+
+    def test_when_device_is_cisco_it_should_return_false(self):
+        plugin = _make_plugin(VENDOR_ID_CISCOSYSTEMS)
+        assert not plugin.is_arista()
+
+    def test_when_netbox_has_no_type_it_should_return_false(self):
+        plugin = _make_plugin(None)
+        assert not plugin.is_arista()
 
 
 class UtilsTest(unittest.TestCase):
