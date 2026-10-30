@@ -324,18 +324,23 @@ class Crontab(object):
     def __init__(self, user):
         self.user = user
         self.content = ''
+        self.load_error = None
         self._blocks = {}
         self.load()
 
     def load(self):
         """Loads the currently active crontab"""
         try:
-            output = subprocess.check_output(["crontab", "-u", self.user, "-l"])
+            output = subprocess.check_output(
+                ["crontab", "-u", self.user, "-l"], stderr=subprocess.PIPE
+            )
             self.content = output.decode('utf-8').splitlines()
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
             # crontab doesn't have very helpful exit codes. if we get here, it
-            # may simply be because the user has no defined crontab yet
+            # may simply be because the user has no defined crontab yet, so the
+            # error message is only kept for explaining any later failures
             self.content = []
+            self.load_error = _describe_failure(error.returncode, error.stderr)
             _error = True
         except OSError as error:
             if error.errno == errno.ENOENT:

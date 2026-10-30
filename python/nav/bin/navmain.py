@@ -26,7 +26,12 @@ import textwrap
 from nav import colors
 
 try:
-    from nav.startstop import ServiceRegistry, CommandFailedError, CrontabError
+    from nav.startstop import (
+        ServiceRegistry,
+        CommandFailedError,
+        CronService,
+        CrontabError,
+    )
 except ImportError:
     print(
         "Fatal error: Could not find the nav.startstop module.\nIs your "
@@ -195,11 +200,27 @@ def action_iterator(query_list, action, ok_string, fail_string, verbose=False):
     if len(failed):
         print("%s:" % fail_string, end=' ')
         colors.print_color(" ".join(failed), colors.COLOR_RED)
+        explain_unreadable_crontab(failed)
     if len(unknowns):
         print("Unknown: %s" % " ".join(unknowns))
     if len(errors):
         print("Errors:", end=' ')
         print(" ".join(["%s (%s)" % error for error in errors]))
+
+
+def explain_unreadable_crontab(failed):
+    """Explains failed cron services when the crontab could not be read.
+
+    An unreadable crontab looks just like an empty one, which makes every cron
+    service appear to be stopped.
+    """
+    crontab = CronService.crontab
+    if not crontab or not crontab.load_error:
+        return
+    if any(isinstance(SERVICES[name], CronService) for name in failed):
+        print(
+            f"Note: listing the crontab of {crontab.user} failed: {crontab.load_error}"
+        )
 
 
 #

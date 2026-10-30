@@ -50,6 +50,33 @@ class TestCrontabSave:
         assert b"##block navtest##\n* * * * * true\n##end##" in run.inputs[0]
 
 
+class TestCrontabLoad:
+    def test_when_crontab_command_fails_then_load_error_should_hold_crontab_message(  # noqa: E501
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(
+            subprocess, "check_output", _fake_check_output(1, stderr=DENIED_MESSAGE)
+        )
+        crontab = Crontab("navcron")
+        assert crontab.load_error == (
+            "The user navcron cannot use this program (crontab)"
+        )
+
+    def test_when_crontab_command_fails_then_it_should_load_an_empty_crontab(
+        self, monkeypatch
+    ):
+        monkeypatch.setattr(
+            subprocess, "check_output", _fake_check_output(1, stderr=DENIED_MESSAGE)
+        )
+        crontab = Crontab("navcron")
+        assert crontab.content == []
+
+    def test_when_crontab_command_succeeds_then_load_error_should_be_none(
+        self, crontab
+    ):
+        assert crontab.load_error is None
+
+
 @pytest.fixture
 def crontab(monkeypatch):
     """Returns a Crontab for navcron, loaded as if navcron had an empty crontab"""
@@ -69,3 +96,12 @@ def _fake_run(returncode, stderr=b""):
 
     run.inputs = []
     return run
+
+
+def _fake_check_output(returncode, stderr=b""):
+    """Returns a stand-in for subprocess.check_output that fails with returncode"""
+
+    def check_output(args, **kwargs):
+        raise subprocess.CalledProcessError(returncode, args, stderr=stderr)
+
+    return check_output
