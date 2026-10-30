@@ -262,7 +262,8 @@ class CronService(Service):
             CronService.crontab[self.name] = self.content
             CronService.crontab.save()
         except CrontabError as error:
-            print("Failed")
+            if not silent:
+                print("Failed")
             raise error
         else:
             if not silent:
