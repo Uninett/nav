@@ -56,6 +56,11 @@ def main(args=None):
     except AttributeError:
         parser.print_help(sys.stderr)
         sys.exit(0)
+    except CrontabError as error:
+        # stdout may be a pipe, where earlier output would otherwise end up
+        # after this error
+        sys.stdout.flush()
+        sys.exit(f"\nCould not update the crontab: {error}")
 
 
 def make_argparser():
