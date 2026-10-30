@@ -360,15 +360,14 @@ class Crontab(object):
     def save(self):
         """Saves the current state to the crontab"""
         self.update_init()
-        proc = subprocess.Popen(
-            ["crontab", "-u", self.user, "-"], stdin=subprocess.PIPE
+        result = subprocess.run(
+            ["crontab", "-u", self.user, "-"],
+            input=str(self).encode("utf-8"),
+            stderr=subprocess.PIPE,
+            check=False,
         )
-        proc.stdin.write(str(self).encode('utf-8'))
-        proc.stdin.close()
-
-        exit_code = proc.wait()
-        if exit_code:
-            raise CrontabError(exit_code)
+        if result.returncode:
+            raise CrontabError(_describe_failure(result.returncode, result.stderr))
 
     def update_init(self):
         """Update the __init__ block with current environment
@@ -446,6 +445,12 @@ class Crontab(object):
 
     def __str__(self):
         return '\n'.join(self.content)
+
+
+def _describe_failure(returncode, stderr):
+    """Returns crontab's own error message, or its exit code if it gave none"""
+    message = stderr.decode("utf-8", errors="replace").strip()
+    return message or f"crontab exited with code {returncode}"
 
 
 class ServiceRegistry(dict):
