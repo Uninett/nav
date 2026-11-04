@@ -262,7 +262,8 @@ class CronService(Service):
             CronService.crontab[self.name] = self.content
             CronService.crontab.save()
         except CrontabError as error:
-            print("Failed")
+            if not silent:
+                print("Failed")
             raise error
         else:
             if not silent:
@@ -323,18 +324,23 @@ class Crontab(object):
     def __init__(self, user):
         self.user = user
         self.content = ''
+        self.load_error = None
         self._blocks = {}
         self.load()
 
     def load(self):
         """Loads the currently active crontab"""
         try:
-            output = subprocess.check_output(["crontab", "-u", self.user, "-l"])
+            output = subprocess.check_output(
+                ["crontab", "-u", self.user, "-l"], stderr=subprocess.PIPE
+            )
             self.content = output.decode('utf-8').splitlines()
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as error:
             # crontab doesn't have very helpful exit codes. if we get here, it
-            # may simply be because the user has no defined crontab yet
+            # may simply be because the user has no defined crontab yet, so the
+            # error message is only kept for explaining any later failures
             self.content = []
+            self.load_error = _describe_failure(error.returncode, error.stderr)
             _error = True
         except OSError as error:
             if error.errno == errno.ENOENT:
@@ -360,15 +366,14 @@ class Crontab(object):
     def save(self):
         """Saves the current state to the crontab"""
         self.update_init()
-        proc = subprocess.Popen(
-            ["crontab", "-u", self.user, "-"], stdin=subprocess.PIPE
+        result = subprocess.run(
+            ["crontab", "-u", self.user, "-"],
+            input=str(self).encode("utf-8"),
+            stderr=subprocess.PIPE,
+            check=False,
         )
-        proc.stdin.write(str(self).encode('utf-8'))
-        proc.stdin.close()
-
-        exit_code = proc.wait()
-        if exit_code:
-            raise CrontabError(exit_code)
+        if result.returncode:
+            raise CrontabError(_describe_failure(result.returncode, result.stderr))
 
     def update_init(self):
         """Update the __init__ block with current environment
@@ -446,6 +451,12 @@ class Crontab(object):
 
     def __str__(self):
         return '\n'.join(self.content)
+
+
+def _describe_failure(returncode, stderr):
+    """Returns crontab's own error message, or its exit code if it gave none"""
+    message = stderr.decode("utf-8", errors="replace").strip()
+    return message or f"crontab exited with code {returncode}"
 
 
 class ServiceRegistry(dict):
