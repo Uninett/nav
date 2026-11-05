@@ -25,6 +25,7 @@ import os
 import logging
 from multiprocessing import cpu_count
 import signal
+import threading
 import time
 import argparse
 
@@ -79,6 +80,7 @@ class IPDevPollProcess(object):
         self.options = options
         self._logger = logging.getLogger('nav.ipdevpoll')
         self._shutdown_start_time = 0
+        self._shutdown_watchdog = None
         self.job_loggers = []
         self.reloaders = []
 
@@ -227,7 +229,46 @@ class IPDevPollProcess(object):
         """Cleanly shuts down logging system and the reactor."""
         self._logger.warning("%s received: Shutting down", signame(signum))
         self._shutdown_start_time = time.time()
+        self._arm_shutdown_watchdog()
         reactor.callFromThread(reactor.stop)
+
+    def _arm_shutdown_watchdog(self):
+        """Starts a watchdog timer that forcibly terminates this process if the
+        reactor fails to shut down within the configured timeout.
+
+        reactor.stop() is cooperative: it relies on the main thread reaching the
+        reactor loop to run shutdown triggers. If the main thread is blocked
+        (e.g. joining a busy thread pool) or starved of the GIL by a spinning
+        C-extension thread, shutdown never completes and SIGTERM appears
+        ignored. The watchdog runs in its own thread and uses os._exit(), which
+        bypasses the reactor and interpreter shutdown entirely, guaranteeing the
+        process eventually dies.
+        """
+        if self._shutdown_watchdog is not None:
+            return
+
+        from .config import ipdevpoll_conf
+
+        timeout = ipdevpoll_conf.getint("ipdevpoll", "shutdown_timeout", fallback=30)
+
+        def _force_exit():
+            """Terminates the process immediately via os._exit()."""
+            self._logger.error(
+                "Reactor did not shut down within %d seconds; forcing exit",
+                timeout,
+            )
+            os._exit(1)
+
+        watchdog = threading.Timer(timeout, _force_exit)
+        watchdog.daemon = True
+        watchdog.start()
+        self._shutdown_watchdog = watchdog
+
+    def _cancel_shutdown_watchdog(self):
+        """Cancels the shutdown watchdog after a clean reactor shutdown."""
+        if self._shutdown_watchdog is not None:
+            self._shutdown_watchdog.cancel()
+            self._shutdown_watchdog = None
 
     def sigusr1_handler(self, _signum, _frame):
         "Log list of active jobs on SIGUSR1"
@@ -243,6 +284,7 @@ class IPDevPollProcess(object):
 
     def shutdown(self):
         """Initiates a shutdown sequence"""
+        self._cancel_shutdown_watchdog()
         self._log_shutdown_time()
         logging.shutdown()
 
