@@ -69,7 +69,8 @@ class NAVRemoteUserBackend(RemoteUserBackend):
             LogEntry.add_log_entry(
                 user,
                 'create-account',
-                template='{actor} created due to {remote_user_varname} HTTP header',
+                template='{actor} created due to '
+                + '{} HTTP header'.format(remote_user_varname),
                 subsystem='auth',
                 object=user,
                 after=user,

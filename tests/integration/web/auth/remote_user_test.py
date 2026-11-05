@@ -77,6 +77,17 @@ class TestRemoteUserLogin:
             object_pk=str(account.pk),
         ).exists()
 
+    def test_when_remote_user_is_unknown_and_autocreate_is_on_then_it_should_log_a_readable_summary(  # noqa: E501
+        self, db, anonymous_client, remote_user_auth
+    ):
+        with remote_user_auth(autocreate=True):
+            anonymous_client.get("/", REMOTE_USER="newcomer")
+
+        account = Account.objects.get(login="newcomer")
+        entry = LogEntry.objects.get(verb='create-account', actor_pk=str(account.pk))
+
+        assert entry.summary == "newcomer created due to REMOTE_USER HTTP header"
+
     def test_when_remote_user_is_disabled_then_the_session_should_stay_anonymous(
         self, db, non_admin_account, anonymous_client, remote_user_auth
     ):
