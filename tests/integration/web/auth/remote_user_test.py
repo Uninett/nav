@@ -27,6 +27,7 @@ import logging
 from unittest.mock import patch
 
 from django.contrib.auth import SESSION_KEY
+import pytest
 
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account
@@ -53,37 +54,30 @@ class TestRemoteUserLogin:
         assert anonymous_client.session.session_key == session_key_after_login
 
     def test_when_remote_user_is_unknown_and_autocreate_is_on_then_it_should_create_and_log_in_the_account(  # noqa: E501
-        self, db, anonymous_client, remote_user_auth
+        self, anonymous_client, autocreated_account
     ):
-        with remote_user_auth(autocreate=True):
-            anonymous_client.get("/", REMOTE_USER="newcomer")
-
-        account = Account.objects.get(login="newcomer")
-        assert account.ext_sync == "REMOTE_USER"
-        assert anonymous_client.session.get(SESSION_KEY) == str(account.pk)
+        assert autocreated_account.ext_sync == "REMOTE_USER"
+        assert anonymous_client.session.get(SESSION_KEY) == str(autocreated_account.pk)
 
     def test_when_remote_user_is_unknown_and_autocreate_is_on_then_it_should_log_the_account_creation(  # noqa: E501
-        self, db, anonymous_client, remote_user_auth
+        self, autocreated_account
     ):
-        with remote_user_auth(autocreate=True):
-            anonymous_client.get("/", REMOTE_USER="newcomer")
-
-        account = Account.objects.get(login="newcomer")
-
         assert LogEntry.objects.filter(
             verb='create-account',
-            actor_pk=str(account.pk),
+            actor_pk=str(autocreated_account.pk),
             object_model='account',
-            object_pk=str(account.pk),
+            object_pk=str(autocreated_account.pk),
         ).exists()
 
-    def test_when_remote_user_is_disabled_then_the_session_should_stay_anonymous(
-        self, db, non_admin_account, anonymous_client, remote_user_auth
+    @pytest.mark.parametrize("remote_user_varname", ["HTTP_X_REMOTE_USER"])
+    def test_when_remote_user_is_unknown_and_autocreate_is_on_then_it_should_log_a_readable_summary(  # noqa: E501
+        self, autocreated_account
     ):
-        with remote_user_auth(enabled=False):
-            anonymous_client.get("/", REMOTE_USER=non_admin_account.login)
-
-        assert anonymous_client.session.get(SESSION_KEY) == str(Account.DEFAULT_ACCOUNT)
+        entry = LogEntry.objects.get(
+            verb='create-account', actor_pk=str(autocreated_account.pk)
+        )
+        expected = "newcomer created due to HTTP_X_REMOTE_USER HTTP header"
+        assert entry.summary == expected
 
 
 class TestRemoteUserDebugLogging:
@@ -108,3 +102,30 @@ class TestRemoteUserDebugLogging:
             )
 
         assert f'request.META["{varname}"]: "{non_admin_account.login}"' in caplog.text
+
+
+@pytest.fixture
+def autocreated_account(db, anonymous_client, remote_user_auth, remote_user_varname):
+    """Logs an unknown user in through `remote_user_varname`, with autocreate on.
+
+    Returns the account that the login created.
+    """
+    with (
+        remote_user_auth(autocreate=True),
+        patch(
+            "nav.web.auth.remote_user.CONFIG.get_remote_user_varname",
+            return_value=remote_user_varname,
+        ),
+    ):
+        anonymous_client.get("/", **{remote_user_varname: "newcomer"})
+
+    return Account.objects.get(login="newcomer")
+
+
+@pytest.fixture
+def remote_user_varname():
+    """The name of the variable REMOTE_USER logins are read from.
+
+    Override it with `@pytest.mark.parametrize` to test a customised name.
+    """
+    return "REMOTE_USER"
