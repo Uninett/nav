@@ -4,7 +4,8 @@ on:
   pull_request:
       # labeled/unlabeled = label is added/removed
       # synchronize = PR's head branch was updated
-      types: [labeled, unlabeled, opened, reopened, synchronize]
+      # edited = base branch was changed
+      types: [labeled, unlabeled, opened, reopened, synchronize, edited]
 
 permissions:
   contents: read
