@@ -591,3 +591,23 @@ Tells us if a Juniper device has any open red alarms.
      - The Juniper device has some red alarms.
    * - ``juniperRedAlarmOff``
      - The Juniper device has no red alarms.
+
+
+
+
+*haSrgStateChange* events
+-------------------------
+Tells us what the high-availability services-redundancy-group state is.
+
+.. list-table:: Alerts associated with haSrgStateChange events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``haSrgStateIneligible``
+     - High-availability services-redundancy-group state ineligible
+   * - ``haSrgStateActive``
+     - High-availability services-redundancy-group state active
+   * - ``haSrgStateBackup``
+     - High-availability services-redundancy-group state backup
