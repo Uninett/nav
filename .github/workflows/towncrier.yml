@@ -6,6 +6,9 @@ on:
       # synchronize = PR's head branch was updated
       types: [labeled, unlabeled, opened, reopened, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
   towncrier:
     if: ${{ github.actor != 'dependabot[bot]' && !contains(github.event.pull_request.labels.*.name, 'nonews') && !contains(github.event.pull_request.labels.*.name, 'github_actions') }}
