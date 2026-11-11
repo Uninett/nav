@@ -20,8 +20,10 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
+from nav.auditlog.models import LogEntry
 from nav.bulkimport import reset_object_foreignkeys
 from nav.bulkparse import BulkParseError
+from nav.web.auth.utils import get_account
 from nav.web.message import Messages
 from nav.web.seeddb.forms.bulk import BulkImportForm
 
@@ -38,7 +40,7 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
             importer = importer_cls(parser)
 
             if confirm:
-                saved = bulk_save(importer)
+                saved = bulk_save(importer, get_account(request))
                 post_save_message(request, saved)
                 return HttpResponseRedirect(reverse(redirect))
             else:
@@ -55,7 +57,7 @@ def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context
     return render(request, 'seeddb/bulk_import.html', info_dict)
 
 
-def bulk_save(importer):
+def bulk_save(importer, account):
     """Saves the bulk data stored in the importer"""
     saved = []
     for _, objects in importer:
@@ -63,6 +65,9 @@ def bulk_save(importer):
             for obj in objects:
                 reset_object_foreignkeys(obj)
                 obj.save()
+            # Only the primary object of each row is logged, see
+            # BulkImporter._create_objects_from_row()
+            LogEntry.add_create_entry(account, objects[0])
             saved.append(objects)
     return saved
 

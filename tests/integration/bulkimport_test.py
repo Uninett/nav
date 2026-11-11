@@ -298,8 +298,8 @@ class TestPrefixImporter(DjangoTransactionTestCase):
         if isinstance(objects, Exception):
             raise objects
         self.assertEqual(len(objects), 2)
-        self.assertTrue(isinstance(objects[0], manage.Vlan))
-        self.assertTrue(isinstance(objects[1], manage.Prefix))
+        self.assertTrue(isinstance(objects[0], manage.Prefix))
+        self.assertTrue(isinstance(objects[1], manage.Vlan))
 
 
 class TestRoomImporter(DjangoTransactionTestCase):
