@@ -31,6 +31,12 @@ from secrets import token_hex
 import IPy
 
 
+def dictfetchall(cursor):
+    """Returns all rows from a database cursor as a list of dicts"""
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
     gradient from the start value to the stop value.
