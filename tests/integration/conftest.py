@@ -18,8 +18,6 @@ from django.contrib.staticfiles.handlers import StaticFilesHandler
 from django.test import Client
 from django.test.testcases import LiveServerThread
 
-SNMP_TEST_PORT = 1024
-
 ########################################################################
 #                                                                      #
 # Set up the required components for an integration test. PostgreSQL   #
@@ -325,25 +323,31 @@ def api_client(token):
 
 
 @pytest.fixture(scope='session')
-def snmpsim():
+def snmpsim(snmp_test_port):
     """Sets up an external snmpsimd process so that SNMP communication can be simulated
     by the test that declares a dependency to this fixture. Data fixtures are loaded
     from the snmp_fixtures subdirectory.
     """
     workspace = str(Path(__file__).resolve().parent.parent.parent)
-    command = _build_snmpsim_command(workspace)
+    command = _build_snmpsim_command(workspace, snmp_test_port)
     env = {**os.environ, 'HOME': workspace}
     # uvx runs snmpsim as a grandchild of this process. A new session puts the whole
     # tree in one process group that teardown can kill.
     proc = subprocess.Popen(command, env=env, start_new_session=True)
     try:
-        _wait_for_snmpsim(proc)
+        _wait_for_snmpsim(proc, snmp_test_port)
         yield
     finally:
         _kill_process_group(proc)
 
 
-def _build_snmpsim_command(workspace):
+@pytest.fixture(scope='session')
+def snmp_test_port():
+    """Returns the UDP port the snmpsim fixture listens on."""
+    return 1024
+
+
+def _build_snmpsim_command(workspace, port):
     """Returns the command list to start snmpsim-command-responder.
 
     Prefers running via uvx in an isolated Python 3.11 environment to avoid a
@@ -355,7 +359,7 @@ def _build_snmpsim_command(workspace):
     snmpsim_args = [
         f'--data-dir={data_dir}',
         '--log-level=error',
-        '--agent-udpv4-endpoint=127.0.0.1:1024',
+        f'--agent-udpv4-endpoint=127.0.0.1:{port}',
     ]
 
     if which('uvx') and _uv_has_python('3.11'):
@@ -413,10 +417,10 @@ def _get_installed_spec(package_name: str):
         return package_name
 
 
-def _wait_for_snmpsim(proc):
+def _wait_for_snmpsim(proc, port):
     """Waits for the snmpsim process to answer SNMP queries."""
     for _ in range(10):
-        if _verify_localhost_snmp_response():
+        if _verify_localhost_snmp_response(port):
             return
         if proc.poll() is not None:
             pytest.fail(
@@ -427,7 +431,7 @@ def _wait_for_snmpsim(proc):
     raise TimeoutError("snmpsimd did not start in time")
 
 
-def _verify_localhost_snmp_response(port=SNMP_TEST_PORT):
+def _verify_localhost_snmp_response(port):
     """Verifies that the snmpsimd fixture process is responding, by using NAV's own
     SNMP framework to query it.
     """
@@ -459,7 +463,7 @@ def _kill_process_group(proc):
 
 
 @pytest.fixture()
-def snmp_agent_proxy(snmpsim, snmp_ports):
+def snmp_agent_proxy(snmpsim, snmp_ports, snmp_test_port):
     """Returns an AgentProxy instance prepared to talk to localhost. The open() method
     has not been called, so its attributes can be changed before the socket is opened.
     """
@@ -469,7 +473,7 @@ def snmp_agent_proxy(snmpsim, snmp_ports):
     port = next(snmp_ports)
     agent = AgentProxy(
         '127.0.0.1',
-        SNMP_TEST_PORT,
+        snmp_test_port,
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
