@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -343,8 +344,15 @@ def snmpsim(snmp_test_port):
 
 @pytest.fixture(scope='session')
 def snmp_test_port():
-    """Returns the UDP port the snmpsim fixture listens on."""
-    return 1024
+    """Returns a free UDP port on localhost for the snmpsim fixture to listen on.
+
+    A fixed port may already be held by another process, such as a leftover
+    simulator. The simulator then cannot bind to it. If the other process answers
+    SNMP, the tests silently query it instead. Otherwise, the fixture fails.
+    """
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.bind(('127.0.0.1', 0))
+        return sock.getsockname()[1]
 
 
 def _build_snmpsim_command(workspace, port):
