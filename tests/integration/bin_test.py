@@ -29,14 +29,16 @@ def test_script_runs(script):
 
 
 @pytest.mark.timeout(20)
-def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
+def test_when_given_ip_address_and_port_then_naventity_should_exit_without_error(
+    localhost, snmpsim, snmp_test_port
+):
     """
     Verifies that naventity runs with a zero exit code when given an
     ip address and a port
 
     Added in regards to: https://github.com/Uninett/nav/issues/2433
     """
-    params = ["naventity", localhost.ip, "-p", "1024"]
+    params = ["naventity", localhost.ip, "-p", str(snmp_test_port)]
     if sys.version_info[0:2] == (3, 12):  # Python 3.12 is weird
         params += ["-t", "5.0"]
     proc = subprocess.Popen(
