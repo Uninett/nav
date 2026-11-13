@@ -346,13 +346,8 @@ SESSION_COOKIE_SECURE = _needs_tls
 CSRF_COOKIE_SECURE = _needs_tls
 X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 
-_csrf_trusted_origins = _websecurity_config.get_csrf_trusted_origins()
-CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins
-
-_proxy_tls_terminated = _websecurity_config.get_secure_proxy_ssl_header()
-SECURE_PROXY_SSL_HEADER = (
-    ('HTTP_X_FORWARDED_PROTO', 'https') if _proxy_tls_terminated else None
-)
+CSRF_TRUSTED_ORIGINS = _websecurity_config.get_csrf_trusted_origins()
+SECURE_PROXY_SSL_HEADER = _websecurity_config.get_secure_proxy_ssl_header()
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
