@@ -47,13 +47,13 @@ For this to be safe, all of the following must hold:
 
 You still need ``needs_tls = yes`` to enable secure cookies.
 
-As an example, an nginx configuration serving NAV through uWSGI could look
+As an example, an nginx configuration forwarding requests to NAV could look
 like this::
 
     location / {
-        include uwsgi_params;
-        uwsgi_param HTTP_X_FORWARDED_PROTO $scheme;
-        uwsgi_pass 127.0.0.1:7900;
+        proxy_pass http://nav-backend.example.org;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
 ``csrf_trusted_origins`` is a space-separated list of additional origins
