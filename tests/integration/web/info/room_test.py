@@ -1,5 +1,4 @@
 import pytest
-from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
@@ -269,13 +268,6 @@ def test_sensor(db, localhost):
     sensor.save()
     yield sensor
     sensor.delete()
-
-
-@pytest.fixture(scope='function')
-def non_admin_client(client, non_admin_account, log_in):
-    client_ = Client()
-    log_in(client_, non_admin_account.login, 'password')
-    return client_
 
 
 @pytest.fixture
