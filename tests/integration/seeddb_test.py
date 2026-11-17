@@ -8,8 +8,18 @@ from mock import MagicMock
 
 from django.utils.encoding import smart_str
 from nav.auditlog.models import LogEntry
-from nav.models.manage import Interface, Netbox, NetboxInfo, Room
+from nav.models.manage import (
+    Interface,
+    ManagementProfile,
+    Netbox,
+    NetboxGroup,
+    NetboxInfo,
+    Prefix,
+    Room,
+    Vlan,
+)
 from nav.models.cabling import Cabling, Patch
+from nav.models.service import Service
 from nav.web.auth.utils import set_account
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
@@ -434,6 +444,144 @@ class TestRemovePatchView:
         response = client.post(url, data=data)
         assert f'tr data-interfaceid="{interface.pk}"' in smart_str(response.content)
         assert 'Add patch' in smart_str(response.content)
+
+
+class TestRoomEditAuditLog:
+    """Audit log integration tests for editing rooms"""
+
+    def test_given_new_room_it_should_log_creation(self, db, client):
+        location = Room.objects.get(id='myroom').location_id
+        client.post(
+            reverse('seeddb-room-edit'),
+            data={'id': 'newroom', 'location': location},
+        )
+
+        assert LogEntry.objects.filter(verb='create-room', object_pk='newroom').exists()
+
+    def test_given_copied_room_it_should_log_creation(self, db, client):
+        url = reverse(
+            'seeddb-room-copy', kwargs={'action': 'copy', 'room_id': 'myroom'}
+        )
+        location = Room.objects.get(id='myroom').location_id
+        client.post(url, data={'id': 'copiedroom', 'location': location})
+
+        assert LogEntry.objects.filter(
+            verb='create-room', object_pk='copiedroom'
+        ).exists()
+
+    def test_given_existing_room_it_should_not_log_creation(self, db, client):
+        url = reverse('seeddb-room-edit', args=('myroom',))
+        location = Room.objects.get(id='myroom').location_id
+        client.post(url, data={'id': 'myroom', 'location': location})
+
+        assert not LogEntry.objects.filter(verb='create-room').exists()
+
+    def test_given_bulk_imported_room_it_should_log_creation(self, db, client):
+        location = Room.objects.get(id='myroom').location_id
+        client.post(
+            reverse('seeddb-room-bulk'),
+            data={'bulk_data': f'bulkroom:{location}', 'confirm': '1'},
+        )
+
+        assert LogEntry.objects.filter(
+            verb='create-room', object_pk='bulkroom'
+        ).exists()
+
+
+class TestCreateAuditLog:
+    """Audit log integration tests for object creation"""
+
+    def test_given_new_patch_it_should_log_creation(self, db, client, interface, cable):
+        client.post(
+            reverse('seeddb-patch-save'),
+            data={'interfaceid': interface.id, 'cableid': cable.id},
+        )
+
+        patch = Patch.objects.get(interface=interface, cabling=cable)
+        assert LogEntry.objects.filter(
+            verb='create-patch', object_pk=str(patch.pk)
+        ).exists()
+
+    def test_given_new_prefix_it_should_log_creation_of_prefix_and_vlan(
+        self, db, client
+    ):
+        client.post(
+            reverse('seeddb-prefix-edit'),
+            data={'net_address': '10.254.0.0/24', 'net_type': 'reserved'},
+        )
+
+        prefix = Prefix.objects.get(net_address='10.254.0.0/24')
+        assert LogEntry.objects.filter(
+            verb='create-prefix', object_pk=str(prefix.pk)
+        ).exists()
+        assert LogEntry.objects.filter(
+            verb='create-vlan', object_pk=str(prefix.vlan.pk)
+        ).exists()
+
+    def test_given_existing_prefix_it_should_not_log_creation(self, db, client):
+        vlan = Vlan.objects.create(net_type_id='reserved')
+        prefix = Prefix.objects.create(net_address='10.254.1.0/24', vlan=vlan)
+
+        client.post(
+            reverse('seeddb-prefix-edit', args=(prefix.pk,)),
+            data={'net_address': '10.254.1.0/24', 'net_type': 'reserved'},
+        )
+
+        assert not LogEntry.objects.filter(
+            verb__in=['create-prefix', 'create-vlan']
+        ).exists()
+
+    def test_given_bulk_imported_prefix_it_should_log_creation_of_prefix(
+        self, db, client
+    ):
+        client.post(
+            reverse('seeddb-prefix-bulk'),
+            data={'bulk_data': '10.254.2.0/24:lan', 'confirm': '1'},
+        )
+
+        prefix = Prefix.objects.get(net_address='10.254.2.0/24')
+        assert LogEntry.objects.filter(
+            verb='create-prefix', object_pk=str(prefix.pk)
+        ).exists()
+
+    def test_given_new_service_it_should_log_creation(self, db, client, localhost):
+        client.post(
+            reverse('seeddb-service-edit'),
+            data={'save': '1', 'netbox': localhost.pk, 'handler': 'ssh'},
+        )
+
+        service = Service.objects.get(netbox=localhost, handler='ssh')
+        assert LogEntry.objects.filter(
+            verb='create-service', object_pk=str(service.pk)
+        ).exists()
+
+    def test_given_new_management_profile_it_should_log_creation(self, db, client):
+        client.post(
+            reverse('seeddb-management-profile-edit'),
+            data={
+                'name': 'Audit log test profile',
+                'protocol': ManagementProfile.PROTOCOL_DEBUG,
+                'foo': 'bar',
+            },
+        )
+
+        profile = ManagementProfile.objects.get(name='Audit log test profile')
+        assert LogEntry.objects.filter(
+            verb='create-managementprofile', object_pk=str(profile.pk)
+        ).exists()
+
+    def test_given_changed_netboxgroup_id_it_should_log_creation(self, db, client):
+        NetboxGroup.objects.create(id='oldgroup', description='Audit log test')
+
+        client.post(
+            reverse('seeddb-netboxgroup-edit', args=('oldgroup',)),
+            data={'id': 'newgroup', 'description': 'Audit log test'},
+        )
+
+        assert NetboxGroup.objects.filter(id='newgroup').exists()
+        assert LogEntry.objects.filter(
+            verb='create-netboxgroup', object_pk='newgroup'
+        ).exists()
 
 
 @pytest.fixture

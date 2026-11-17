@@ -22,8 +22,10 @@ from django.http import HttpResponseRedirect
 from django.db import transaction
 from django.urls import reverse
 
+from nav.auditlog.models import LogEntry
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
+from nav.web.auth.utils import get_account
 from nav.web.crispyforms import (
     FlatFieldset,
     SubmitField,
@@ -223,6 +225,9 @@ def service_save(request, service_form, property_form):
     for prop, value in property_form.cleaned_data.items():
         if value:
             ServiceProperty.objects.create(service=service, property=prop, value=value)
+    if not service_id:
+        # Log creation of new service in Audit log
+        LogEntry.add_create_entry(get_account(request), service)
     new_message(
         request,
         "Saved service for handler %s on %s" % (service.handler, netbox),

@@ -24,6 +24,8 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 
+from nav.auditlog.models import LogEntry
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 
 from nav.models.manage import Prefix, NetType, Vlan
@@ -152,10 +154,16 @@ def prefix_edit(request, prefix_id=None):
         prefix_form = PrefixForm(request.POST, instance=prefix)
         vlan_form = PrefixVlanForm(request.POST, instance=vlan)
         if prefix_form.is_valid() and vlan_form.is_valid():
+            is_new = prefix is None
             vlan = vlan_form.save()
             prefix = prefix_form.save(commit=False)
             prefix.vlan = vlan
             prefix.save()
+            if is_new:
+                # A new prefix always gets a new vlan
+                account = get_account(request)
+                LogEntry.add_create_entry(account, vlan)
+                LogEntry.add_create_entry(account, prefix)
             msg = "Saved prefix %s" % prefix.net_address
             new_message(request, msg, Messages.SUCCESS)
             return HttpResponseRedirect(
