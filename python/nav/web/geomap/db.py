@@ -43,7 +43,7 @@ from nav.metrics.templates import (
     metric_path_for_cpu_utilization,
 )
 from nav.web.geomap.utils import lazy_dict, subdict, is_nan
-from nav.util import chunks
+from nav.util import chunks, dictfetchall
 
 _logger = logging.getLogger(__name__)
 
@@ -290,14 +290,13 @@ def get_data(db_cursor, bounds, time_interval=None):
     connections = {}
 
     db_cursor.execute(LAYER_3_QUERY, network_query_args)
-    # Expect DictRows, but want to work with updateable dicts:
-    results = [lazy_dict(row) for row in db_cursor.fetchall()]
+    results = [lazy_dict(row) for row in dictfetchall(db_cursor)]
     db_cursor.execute(LAYER_2_QUERY_1, network_query_args)
-    results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
+    results.extend([lazy_dict(row) for row in dictfetchall(db_cursor)])
     db_cursor.execute(LAYER_2_QUERY_2, network_query_args)
-    results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
+    results.extend([lazy_dict(row) for row in dictfetchall(db_cursor)])
     db_cursor.execute(LAYER_2_QUERY_3, network_query_args)
-    results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
+    results.extend([lazy_dict(row) for row in dictfetchall(db_cursor)])
 
     for res in results:
         assert (
@@ -368,7 +367,7 @@ def get_data(db_cursor, bounds, time_interval=None):
                         connections[existing_id] = connection
 
     db_cursor.execute(QUERY_NETBOXES)
-    netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
+    netboxes = [lazy_dict(row) for row in dictfetchall(db_cursor)]
     for netbox in netboxes:
         netbox['load'] = float('nan')
         netbox['real_sysname'] = netbox['sysname']
