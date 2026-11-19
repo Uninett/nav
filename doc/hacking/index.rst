@@ -6,6 +6,7 @@
    :maxdepth: 1
 
    hacking
+   writing-documentation
    hacking-with-pycharm
    using-devcontainers
    using-minimal-docker

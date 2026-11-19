@@ -28,6 +28,7 @@ dependencies = [
     "sphinx==9.0.4",
     "sphinxcontrib-programoutput",
     "sphinxcontrib-django",
+    "sphinx-reredirects",
     "Markdown==3.8.1",
 
     "feedparser==6.0.11",
