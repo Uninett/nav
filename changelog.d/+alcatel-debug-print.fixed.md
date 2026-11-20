@@ -1,0 +1,1 @@
+Removed a leftover debug `print()` from the ALCATEL-IND1-PORT-MIB sensor discovery. In multiprocess mode it wrote to the ipdevpoll worker's AMP channel, corrupting it and causing workers to be lost and jobs to fail.
