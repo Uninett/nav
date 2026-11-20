@@ -83,8 +83,6 @@ class AlcatelInd1PortMib(MibRetriever):
                 internal_name="{ifc}." + column,
                 ifindex=row[-2],
             )
-            print("SENSOR:")
-            print(sensor)
             sensor.update(config)
             result.append(sensor)
         return result
