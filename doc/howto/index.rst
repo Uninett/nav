@@ -22,3 +22,4 @@ Howtos
    api_parameters
    securing-nav-in-production
    migrate-dhcpstats
+   setup-and-configure-dhcpstats
