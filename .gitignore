@@ -53,7 +53,6 @@ python/nav/web/static/css
 
 # Javascript Testing libraries
 python/nav/web/static/js/node_modules
-python/nav/web/static/js/require_config.dev.js
 python/nav/web/static/js/coverage
 
 # Javascript libraries
