@@ -49,6 +49,7 @@ Tells us whether a network-unit is down or up.
 
 
 
+
 *serviceState* events
 ---------------------
 Tells us whether a service on a server is up or down.
@@ -63,6 +64,7 @@ Tells us whether a service on a server is up or down.
      - http service not responding.
    * - ``httpUp``
      - http service responding.
+
 
 
 
@@ -87,6 +89,7 @@ Tells us whether a module in a device is working or not.
 
 
 
+
 *thresholdState* events
 -----------------------
 Tells us whether the load has passed a certain threshold.
@@ -101,6 +104,7 @@ Tells us whether the load has passed a certain threshold.
      - Threshold exceeded.
    * - ``belowThreshold``
      - Value below threshold.
+
 
 
 
@@ -123,6 +127,7 @@ Tells us whether a link is up or down.
 
 
 
+
 *boxRestart* events
 -------------------
 Tells us that a network-unit has done a restart
@@ -137,6 +142,7 @@ Tells us that a network-unit has done a restart
      - The IP device has coldstarted
    * - ``warmStart``
      - The IP device has warmstarted
+
 
 
 
@@ -161,16 +167,13 @@ Basic information
 
 
 
+
 *notification* events
 ---------------------
 Notification event, typically between NAV systems
 
-.. list-table:: Alerts associated with notification events
-   :widths: 25 75
-   :header-rows: 1
 
-   * - Alert type name
-     - Description
+This event type has no registered alert types.
 
 
 
@@ -179,12 +182,8 @@ Notification event, typically between NAV systems
 ---------------------
 Lifetime event for a device
 
-.. list-table:: Alerts associated with deviceActive events
-   :widths: 25 75
-   :header-rows: 1
 
-   * - Alert type name
-     - Description
+This event type has no registered alert types.
 
 
 
@@ -225,6 +224,7 @@ Registers the state of a device
 
 
 
+
 *deviceNotice* events
 ---------------------
 Registers a notice on a device
@@ -247,6 +247,7 @@ Registers a notice on a device
 
 
 
+
 *maintenanceState* events
 -------------------------
 Tells us if something is set on maintenance
@@ -262,23 +263,6 @@ Tells us if something is set on maintenance
    * - ``offMaintenance``
      - Box taken off maintenance.
 
-
-
-
-*apState* events
-----------------
-Tells us whether an access point has disassociated or associated from the controller
-
-.. list-table:: Alerts associated with apState events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``apUp``
-     - AP associated with controller
-   * - ``apDown``
-     - AP disassociated from controller
 
 
 
@@ -307,6 +291,7 @@ Tells us whether an access point has disassociated or associated from the contro
 
 
 
+
 *weathergoose_sound* events
 ---------------------------
 
@@ -327,6 +312,7 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Sound Sensor Clear Trap
    * - ``gstClimateSoundNOTIFY``
      - Climate Sound Sensor Trap
+
 
 
 
@@ -355,6 +341,7 @@ Tells us whether an access point has disassociated or associated from the contro
 
 
 
+
 *weathergoose_light* events
 ---------------------------
 
@@ -375,6 +362,7 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Light Sensor Clear Trap
    * - ``gstClimateLightNOTIFY``
      - Climate Light Sensor Trap
+
 
 
 
@@ -411,6 +399,7 @@ Tells us whether an access point has disassociated or associated from the contro
 
 
 
+
 *hobbitServiceState* events
 ---------------------------
 Hobbit service state
@@ -427,6 +416,7 @@ Hobbit service state
      - Hobbit RED service state
    * - ``hobbitServiceWarning``
      - Hobbit yellow service state
+
 
 
 
@@ -449,6 +439,7 @@ Tells us whether the SNMP agent on a device is down or up.
 
 
 
+
 *upsPowerState* events
 ----------------------
 UPS running on battery or utility power
@@ -463,6 +454,7 @@ UPS running on battery or utility power
      - Ups running on battery power
    * - ``upsOnUtilityPower``
      - Ups running on utility power
+
 
 
 
@@ -485,6 +477,7 @@ Reports state changes in power supply units
 
 
 
+
 *fanState* events
 -----------------
 Reports state changes in fan units
@@ -499,6 +492,7 @@ Reports state changes in fan units
      - A fan unit has entered a non-OK state
    * - ``fanOK``
      - A fan unit has returned to an OK state
+
 
 
 
@@ -521,6 +515,7 @@ The state of this chassis has changed
 
 
 
+
 *aggregateLinkState* events
 ---------------------------
 The state of this aggregated link changed
@@ -535,6 +530,7 @@ The state of this aggregated link changed
      - This aggregate link has been degraded
    * - ``linkRestored``
      - This aggregate link has been restored
+
 
 
 
@@ -559,6 +555,7 @@ The state of this BGP peering session changed
 
 
 
+
 *juniperYellowAlarmState* events
 --------------------------------
 Tells us if a Juniper device has any open yellow alarms.
@@ -577,6 +574,7 @@ Tells us if a Juniper device has any open yellow alarms.
 
 
 
+
 *juniperRedAlarmState* events
 -----------------------------
 Tells us if a Juniper device has any open red alarms.
@@ -591,3 +589,22 @@ Tells us if a Juniper device has any open red alarms.
      - The Juniper device has some red alarms.
    * - ``juniperRedAlarmOff``
      - The Juniper device has no red alarms.
+
+
+
+
+
+*apState* events
+----------------
+Tells us whether an access point has disassociated or associated from the controller
+
+.. list-table:: Alerts associated with apState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``apUp``
+     - AP associated with controller
+   * - ``apDown``
+     - AP disassociated from controller

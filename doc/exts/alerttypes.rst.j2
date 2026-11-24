@@ -27,7 +27,7 @@ and alert types that come pre-defined with NAV:
 {{ '-' * event.id|length }}---------
 {{ event.description }}
 
-.. list-table:: Alerts associated with {{ event.id }} events
+{% if alerts %}.. list-table:: Alerts associated with {{ event.id }} events
    :widths: 25 75
    :header-rows: 1
 
@@ -36,6 +36,9 @@ and alert types that come pre-defined with NAV:
 {% for alert in alerts %}   * - ``{{ alert.name }}``
      - {{ alert.description }}
 {% endfor %}
+{% else %}
+This event type has no registered alert types.
+{% endif %}
 
 
 {% endfor %}
