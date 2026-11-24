@@ -22,28 +22,19 @@ which follows the *module pattern*. NAV's JavaScript code uses
 dependencies. RequireJS provides a
 `rationale for why using AMD is a good idea <http://requirejs.org/docs/whyamd.html>`__.
 
-
+.. _javascript-avoiding-caching:
 
 Avoiding caching
 ================
 
-We highly suggest you create :file:`python/nav/web/static/js/require_config.dev.js` and enable
-Django debug in :file:`etc/nav.conf` when developing.
+Browsers often serve cached copies of JavaScript files, so your changes may
+not show up. To avoid this when developing, turn on *Disable cache* in your
+browser's developer tools. The setting only applies while the developer tools
+are open.
 
-Make sure to put this in your RequireJS configuration file:
-
-.. code-block:: javascript
-
-  require.urlArgs = "bust=" +  (new Date()).getTime();
-
-This makes sure you're **not using** cached resources in your browser when
-developing, something many browsers love to do! See `the RequireJS
-documentation on using urlArgs <http://requirejs.org/docs/api.html#config-urlArgs>`_
-for details.
-
-The :file:`python/nav/web/static/js/require_config.dev.js` is in the global Git ignore
-list (file:`.gitignore`).
-
+The development server also needs Django debug (``DJANGO_DEBUG=True`` in
+:file:`etc/nav.conf`) to serve static files at all. The devcontainer (see
+:doc:`using-devcontainers`) enables it for you when it starts.
 
 Javascript testing
 ==================

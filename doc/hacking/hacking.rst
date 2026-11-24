@@ -273,18 +273,8 @@ needed elements are not present.
 NAV's Javascript uses RequireJS_ - use this to create modules and specify
 dependencies.
 
-Pro tip is to create :file:`require_config.dev.js` in :file:`python/nav/web/static/js/``
-and add the following configuration to RequireJS:
-
-.. code-block:: javascript
-
-   require.urlArgs = "bust=" +  (new Date()).getTime();
-
-This makes sure your not using cached resources in your browser when
-developing, something browsers love to do! See `config-urlArgs
-<http://requirejs.org/docs/api.html#config-urlArgs>`_ in the RequireJS
-documentation for details. :file:`require_config.dev.js` is listed in the
-repository :file:`.gitignore` file.
+To avoid stale cached JavaScript while developing, see
+:ref:`javascript-avoiding-caching`.
 
 CSS
 ---
