@@ -64,6 +64,16 @@ PAGES = [
 # Fail fast rather than eat the default 30s per page if one hangs.
 NETWORKIDLE_TIMEOUT_MS = 10_000
 
+# Console messages from vendored libraries that we cannot fix here. Match the
+# exact text, so that new or different errors still fail the test.
+IGNORED_CONSOLE_MESSAGES = {
+    # OpenLayers 2 adds a window "unload" listener when it loads. Chrome 159
+    # and later block unload listeners by default and log this instead. The
+    # listener only worked around memory leaks in old Internet Explorer, so
+    # losing it is harmless.
+    "Permissions policy violation: unload is not allowed in this document.",
+}
+
 
 @pytest.mark.parametrize("path", [pytest.param(path, id=name) for name, path in PAGES])
 def test_when_loading_page_then_it_should_have_no_console_errors(
@@ -94,7 +104,8 @@ def _watch_console_errors(page) -> list[str]:
 
     Catches uncaught exceptions (pageerror) and error/warning-level console
     messages. jQuery's own Deferred exception reporting logs at "warning"
-    level rather than "error", which is why both are watched here.
+    level rather than "error", which is why both are watched here. Messages
+    in IGNORED_CONSOLE_MESSAGES are skipped.
     """
     errors: list[str] = []
     page.on("pageerror", lambda error: errors.append(str(error)))
@@ -103,6 +114,7 @@ def _watch_console_errors(page) -> list[str]:
         lambda msg: (
             errors.append(f"[console.{msg.type}] {msg.text}")
             if msg.type in ("error", "warning")
+            and msg.text not in IGNORED_CONSOLE_MESSAGES
             else None
         ),
     )
