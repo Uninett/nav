@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinxcontrib_django',
     'sphinxcontrib.programoutput',
+    'strict_programoutput',
     'xref',
 ]
 
