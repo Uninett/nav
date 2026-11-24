@@ -19,6 +19,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.abspath('..'), 'python'))
 sys.path.insert(0, os.path.abspath("exts"))
 
+# The program-output directive captures stderr along with stdout. Keep Python
+# warnings, like the one about a missing db.conf, out of the embedded output.
+os.environ["PYTHONWARNINGS"] = "ignore"
+
 from nav import buildconf
 from nav import bootstrap
 
