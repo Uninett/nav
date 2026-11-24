@@ -12,6 +12,7 @@
 # serve to show the default.
 import os
 import sys
+import sysconfig
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,6 +23,12 @@ sys.path.insert(0, os.path.abspath("exts"))
 # The program-output directive captures stderr along with stdout. Keep Python
 # warnings, like the one about a missing db.conf, out of the embedded output.
 os.environ["PYTHONWARNINGS"] = "ignore"
+# program-output finds its commands on PATH. Look first where the environment
+# running this build keeps its scripts, i.e. NAV's programs. In a virtualenv,
+# that is also where its Python interpreter is.
+os.environ["PATH"] = os.pathsep.join(
+    [sysconfig.get_path("scripts"), os.environ.get("PATH", os.defpath)]
+)
 
 from nav import buildconf
 from nav import bootstrap
