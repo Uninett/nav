@@ -1,4 +1,4 @@
-.PHONY: dummy clean distclean testclean docclean doc cssclean sassbuild sasswatch setup-playwright local-setup local-up local-down .FORCE
+.PHONY: dummy clean distclean testclean docclean doc freshdoc cssclean sassbuild sasswatch setup-playwright local-setup local-up local-down .FORCE
 
 dummy:
 	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
@@ -24,6 +24,9 @@ docclean:
 
 doc: doc/reference/alerttypes.rst
 	sphinx-build doc/ build/sphinx/html/
+
+freshdoc: doc/reference/alerttypes.rst
+	sphinx-build -E doc/ build/sphinx/html/
 
 docwatch:
 	@while inotifywait -e modify -e move -e create -e delete -r --exclude \# doc/ NOTES.rst; \
