@@ -84,3 +84,4 @@ nav.models.event.AlertHistory
 .. autoclass:: nav.models.event.AlertHistory
    :members:
    :undoc-members:
+   :no-index:
