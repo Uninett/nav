@@ -79,7 +79,9 @@ class BulkImporter:
     def _create_objects_from_row(self, row):
         """Hook to create Django ORM objects from a row.
 
-        Must be overridden in descendant classes.
+        Must be overridden in descendant classes. The first object in the
+        returned list must be the primary object the row describes, as that is
+        the object whose creation is recorded in the audit log.
 
         """
         raise NotImplementedError
@@ -324,7 +326,7 @@ class PrefixImporter(BulkImporter):
             description=row['description'],
         )
         prefix = Prefix(net_address=row['netaddr'], vlan=vlan)
-        return [vlan, prefix]
+        return [prefix, vlan]
 
 
 class UsageImporter(BulkImporter):
