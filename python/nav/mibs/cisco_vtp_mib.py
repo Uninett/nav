@@ -22,6 +22,13 @@ from .types import LogicalMibInstance
 
 CHARS_IN_1024_BITS = 128
 
+# Usable 802.1Q VLAN IDs. Some Cisco agents (e.g. FXOS supervisors) advertise
+# bogus vtpVlanState rows indexed by impossible VLAN numbers like 16777216,
+# which NAV would otherwise turn into community-indexed BRIDGE-MIB instances
+# that only ever answer noAccess.
+MIN_VLAN_ID = 1
+MAX_VLAN_ID = 4094
+
 
 class CiscoVTPMib(mibretriever.MibRetriever):
     mib = get_mib('CISCO-VTP-MIB')
@@ -89,7 +96,7 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         result = {
             vlan: row['vtpVlanState']
             for (_domain, vlan), row in states.items()
-            if row['vtpVlanType'] == 'ethernet'
+            if row['vtpVlanType'] == 'ethernet' and MIN_VLAN_ID <= vlan <= MAX_VLAN_ID
         }
         return result
 
