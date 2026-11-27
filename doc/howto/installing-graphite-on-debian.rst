@@ -3,8 +3,7 @@ Installing Graphite for use with NAV on Debian
 ==============================================
 
 This is a short how-to guide for installing and configuring a simple Graphite
-installation, dedicated to NAV, on a **Debian 10 (Buster)** or a **Debian 11
-(Bullseye)** server.
+installation, dedicated to NAV, on a **Debian 13 (Trixie)** server.
 
 .. warning:: **Do not start NAV** until you have properly configured your
              carbon-cache's storage schemas with NAV's provided storage schema
@@ -26,18 +25,9 @@ send to the former, while utilizing the latter to retrieve metrics and render
 graphs.
 
 Assuming you will be running Graphite on the same Debian server as you are
-running NAV, all you need to do to install Graphite on **Debian 10 or 11** is::
+running NAV, all you need to do to install Graphite on **Debian 13** is::
 
   apt-get install python3-psycopg2 graphite-carbon graphite-web
-
-.. note:: Unfortunately, the ``graphite-web`` package has been removed from the
-   official **Debian 11** distro. It is not clear why this happened, but it
-   seems it will return in the next Debian stable release.
-
-   We therefore provide a backported ``graphite-web`` package in NAV's official
-   Debian APT repositories. If you don't already have this repository
-   configured as a source in your Debian server, instructions to do so can be
-   found at https://nav.uninett.no/install-instructions/#debian
 
 Configuring Carbon
 ==================
@@ -74,7 +64,6 @@ from NAV::
 
   cd /etc/carbon/
   mv storage-schemas.conf storage-schemas.conf.bak
-  mv storage-aggregation.conf storage-aggregation.conf.bak
   ln -s /etc/nav/graphite/*.conf /etc/carbon/
 
 Finally, restart the ``carbon-cache`` daemon::
@@ -127,7 +116,7 @@ make to set these three settings:
    DATABASES = {
        'default': {
            'NAME': 'graphite',
-           'ENGINE': 'django.db.backends.postgresql_psycopg2',
+           'ENGINE': 'django.db.backends.postgresql',
            'USER': 'graphite',
            'PASSWORD': 'the password you made note of above',
            'HOST': 'localhost',
@@ -135,6 +124,9 @@ make to set these three settings:
        }
    }
 
+.. note:: If you are upgrading from an older Debian release, change
+   ``postgresql_psycopg2`` to ``postgresql`` in your existing
+   :file:`/etc/graphite/local_settings.py`.
 
 Now make ``graphite-web`` initialize its database schema::
 
@@ -182,8 +174,8 @@ package in :file:`/usr/share/graphite-web/apache2-graphite.conf`):
            WSGIImportScript /usr/share/graphite-web/graphite.wsgi process-group=_graphite application-group=%{GLOBAL}
            WSGIScriptAlias / /usr/share/graphite-web/graphite.wsgi
 
-           Alias /content/ /usr/share/graphite-web/static/
-           <Location "/content/">
+           Alias /static/ /usr/share/graphite-web/static/
+           <Location "/static/">
                    SetHandler None
            </Location>
 
@@ -201,10 +193,9 @@ Graphite-web will still need its own virtualhost, but in this example, we will
 we will run the app using a uWSGI container, and define an Apache virtual host
 to proxy requests to this container.
 
-First, install uWSGI and the necessary Apache modules to set up a uWSGI request
-proxy::
+First, install uWSGI and its Python 3 plugin::
 
-  apt-get install uwsgi uwsgi-plugin-python3 libapache2-mod-proxy-uwsgi libapache2-mod-uwsgi
+  apt-get install uwsgi uwsgi-plugin-python3
 
 Then proceed to add a new uWSGI application definition:
 
@@ -266,7 +257,7 @@ Now you're ready to add an Apache site definition for this app:
 
 Then make sure to enable the required Apache modules to use this site config::
 
-  a2enmod uwsgi proxy proxy_uwsgi
+  a2enmod proxy proxy_uwsgi
 
 
 Finally, in both configuration options
