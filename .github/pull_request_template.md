@@ -23,7 +23,7 @@ More information about contributing to NAV can be found in the
 
 * [ ] Added a changelog fragment for [towncrier](https://nav.readthedocs.io/en/latest/hacking/hacking.html#adding-a-changelog-entry)
 * [ ] Added/amended tests for new/changed code
-* [ ] Added/changed documentation
+* [ ] Added/changed documentation, following the [guide to writing NAV documentation](https://nav.readthedocs.io/en/latest/hacking/writing-documentation.html)
 * [ ] Linted/formatted the code with ruff, easiest by using [pre-commit](https://nav.readthedocs.io/en/latest/hacking/hacking.html#pre-commit-hooks-and-ruff)
 * [ ] Wrote the commit message so that the first line continues the sentence "If applied, this commit will ...", starts with a capital letter, does not end with punctuation and is 50 characters or less long. See https://cbea.ms/git-commit/
 * [ ] Based this pull request on the correct upstream branch: For a patch/bugfix affecting the latest stable version, it should be based on that version's branch (`<major>.<minor>.x`). For a new feature or other additions, it should be based on `master`.

@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinxcontrib_django',
     'sphinxcontrib.programoutput',
+    'sphinx_reredirects',
     'xref',
 ]
 
@@ -248,6 +249,13 @@ xref_links = {
     "Graphite": ("Graphite", "https://graphiteapp.org"),
     "PostgreSQL": ("PostgreSQL", "https://www.postgresql.org"),
 }
+
+
+# -- Options for sphinx_reredirects --------------------------------------------
+
+# Maps the names of moved or renamed pages to their new URLs, so that old links
+# keep working. See doc/hacking/writing-documentation.rst.
+redirects = {}
 
 
 def setup(app):
