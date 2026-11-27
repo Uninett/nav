@@ -5,9 +5,14 @@
 		<link rel="stylesheet" href="/static/css/nav.css" />
 		<link rel="stylesheet" href="/static/css/nav/errorpages.css" />
 
+		<script src="/static/js/libs/jquery-4.0.0.min.js"></script>
 		<script src="/static/js/require_config.js"></script>
-    	<script src="/static/js/libs/require-2.0.4.min.js" data-main='src/main'></script>
-    	<script>require(['src/500']);</script>
+		<script src="/static/js/libs/require-2.0.4.min.js" data-main='src/main'></script>
+		<script>
+			// Reuse the jQuery loaded by the script tag above, so RequireJS never loads a second copy (#4187).
+			define('jquery', [], function () { return jQuery; });
+			require(['src/500']);
+		</script>
 	</head>
 	<body>
 		<div class="row hero">

@@ -61,5 +61,4 @@ var require = {
             exports: 'Tablesort'
         },
     },
-    deps: ['jquery']
 };

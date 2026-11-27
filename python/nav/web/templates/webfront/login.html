@@ -8,6 +8,7 @@
   <title>NAV Login</title>
   <link rel="stylesheet" href="/static/css/nav.css"/>
   <link rel="stylesheet" href="/static/css/nav/login.css"/>
+  <script src="{{ STATIC_URL }}js/libs/jquery-4.0.0.min.js"></script>
   <script src="{{ STATIC_URL }}js/libs/htmx-2.0.4.min.js"></script>
   <script src="{{ STATIC_URL }}js/require_config.js"></script>
   {% if debug %}
@@ -15,6 +16,8 @@
   {% endif %}
   <script src="{{ STATIC_URL }}js/libs/require-2.0.4.min.js" data-main='src/main'></script>
   <script>
+   // Reuse the jQuery loaded by the script tag above, so RequireJS never loads a second copy (#4187).
+   define('jquery', [], function () { return jQuery; });
    require.config({ urlArgs: 'bust={{ nav_version }}' });
   </script>
   {% include 'navurls.html' %}

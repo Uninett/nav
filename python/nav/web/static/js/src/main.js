@@ -1,7 +1,3 @@
-define('jquery', [], function() {
-    return jQuery;
-});
-
 // Global CSRF token setup for all jQuery AJAX requests.
 // This approach is used because we have 17+ locations in the codebase with
 // jQuery $.post() calls that lack CSRF tokens, which would break when CSRF
