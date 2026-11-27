@@ -184,10 +184,13 @@ class PrivilegeForm(forms.Form):
         self.fields['type'].widget.attrs.update({"class": "select2"})
         self.attrs = set_flat_form_attributes(
             form_fields=[
+                # The type gets a row of its own, so that long privilege names fit
+                FormRow(
+                    fields=[FormColumn(fields=[self["type"]], css_classes="medium-12")]
+                ),
                 FormRow(
                     fields=[
-                        FormColumn(fields=[self["type"]], css_classes="medium-3"),
-                        FormColumn(fields=[self["target"]], css_classes="medium-6"),
+                        FormColumn(fields=[self["target"]], css_classes="medium-9"),
                         FormColumn(
                             fields=[
                                 SubmitField(
@@ -197,7 +200,7 @@ class PrivilegeForm(forms.Form):
                             css_classes="medium-3",
                         ),
                     ]
-                )
+                ),
             ]
         )
 
