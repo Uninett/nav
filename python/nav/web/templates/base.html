@@ -39,6 +39,8 @@
     {% endif %}
     <script src="{{ STATIC_URL }}js/libs/require-2.0.4.min.js" data-main='src/main'></script>
     <script>
+      // Reuse the jQuery loaded by the script tag above, so RequireJS never loads a second copy (#4187).
+      define('jquery', [], function () { return jQuery; });
       require.config({ urlArgs: 'bust={{ nav_version }}' });
     </script>
     {% block base_header_additional_head %}
