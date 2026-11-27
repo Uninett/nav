@@ -43,6 +43,7 @@ from .adjacency import AdjacencyCandidate, UnrecognizedNeighbor
 from .entity import NetboxEntity
 from .prefix import Prefix
 from .gwpeers import GatewayPeerSession
+from .access_session import InterfaceAccessSession
 
 __all__ = [
     "NetboxType",
@@ -74,6 +75,7 @@ __all__ = [
     "UnrecognizedNeighbor",
     "NetboxEntity",
     "GatewayPeerSession",
+    "InterfaceAccessSession",
 ]
 
 # Shadow classes.  Not all of these will be used to store data, but
