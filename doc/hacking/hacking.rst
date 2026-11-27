@@ -523,13 +523,14 @@ make running NAV for development smoother.
    popular IDEs for Python developers (such as PyCharm or VS Code). This is the
    setup most NAV developers use today. Read :doc:`using-devcontainers` for
    further instructions.
-2. A third, more lightweight variant uses docker compose only for graphite and
+2. A more lightweight variant uses docker compose only for graphite and
    the database, while NAV itself runs in a local virtualenv.  It suits
    developers who prefer to work without an IDE or with an IDE that does not
    support devcontainers. Read :doc:`using-minimal-docker` for further
    instructions.
-3. The oldest of these is a plain docker compose specification. Read
-   :doc:`using-legacy-docker` for further instructions.
+3. The oldest of these is a plain docker compose specification running
+   everything in containters. Read :doc:`using-legacy-docker` for further
+   instructions.
 
    .. note:: This method is deprecated, please switch to one of the others.
 
