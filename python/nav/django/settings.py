@@ -334,7 +334,9 @@ SEARCHPROVIDERS = [
 # Configured in etc/webfront/webfront.conf:
 #  [security]
 #  needs_tls = yes
-#  frames_allow = self
+#  allow_frames = self
+#  proxy_tls_terminated = no
+#  csrf_trusted_origins = https://nav.example.com https://nav.example2.com
 
 SECURE_BROWSER_XSS_FILTER = True  # Does no harm
 
@@ -343,6 +345,9 @@ _needs_tls = bool(_websecurity_config.getboolean('needs_tls'))
 SESSION_COOKIE_SECURE = _needs_tls
 CSRF_COOKIE_SECURE = _needs_tls
 X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
+
+CSRF_TRUSTED_ORIGINS = _websecurity_config.get_csrf_trusted_origins()
+SECURE_PROXY_SSL_HEADER = _websecurity_config.get_secure_proxy_ssl_header()
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
