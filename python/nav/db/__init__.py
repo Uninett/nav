@@ -73,8 +73,19 @@ class ConnectionObject(nav.CacheableObject):
         Executes a simple query, like SELECT 1.  If no exceptions are
         raised, the database connection should still be up.
         """
-        cursor = self.object.cursor()
-        cursor.execute('SELECT 1')
+        was_idle = (
+            self.object.info.transaction_status
+            == psycopg2.extensions.TRANSACTION_STATUS_IDLE
+        )
+        with self.object.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        # Only roll back if the ping itself opened the transaction. Leaving it
+        # idle pins the xmin horizon and blocks VACUUM (#4135). If the
+        # connection was already in a transaction, another caller is using it
+        # (all db.conf aliases share one cached connection), so rolling back
+        # would discard their uncommitted writes.
+        if was_idle:
+            self.object.rollback()
         # If we got this far withouth exceptions, we did OK
         return 1
 
