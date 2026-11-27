@@ -174,8 +174,8 @@ package in :file:`/usr/share/graphite-web/apache2-graphite.conf`):
            WSGIImportScript /usr/share/graphite-web/graphite.wsgi process-group=_graphite application-group=%{GLOBAL}
            WSGIScriptAlias / /usr/share/graphite-web/graphite.wsgi
 
-           Alias /content/ /usr/share/graphite-web/static/
-           <Location "/content/">
+           Alias /static/ /usr/share/graphite-web/static/
+           <Location "/static/">
                    SetHandler None
            </Location>
 
