@@ -88,25 +88,22 @@ Specific to Kea DHCPv4 Servers (IPv4)
 
 .. note::
 
-   NAV does not require that any hook libraries have been installed into the Kea
-   DHCPv4 server (see *Hook Libraries* in `kea.readthedocs.io
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#hook-libraries>`_).
-   Kea offers a hook that adds extra API commands which become necessary to use
-   if one wants reliable stats when using a setup where multiple Kea servers share
-   the same underlying lease database (see *Statistics Commands for
-   Supplemental Lease Statistics* in `kea.readthedocs.io
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-stat-cmds-so-statistics-commands-for-supplemental-lease-statistics>`_);
-   if you run such a setup, keep in mind that NAV does not make use of this hook,
-   so stats may in this case be unreliable. [#f1]_
+   NAV does not require that any hook libraries have been installed into the
+   Kea DHCPv4 server (see `Hook Libraries`_ in the KEA docs). Kea offers a hook
+   that adds extra API commands which become necessary to use if one wants
+   reliable stats when using a setup where multiple Kea servers share the same
+   underlying lease database (see `Statistics Commands for Supplemental Lease
+   Statistics`_ in the Kea docs); if you run such a setup, keep in mind that
+   NAV does not make use of this hook, so stats may in this case be unreliable.
+   [#f1]_
 
 .. note::
    A pool in Kea is a range in NAV. NAV collects IPv4 stats from Kea DHCPv4
    servers on a per-Kea-pool-basis (or, from NAVs perspective: a
    per-range-basis).
 
-We'll
-walk through the steps needed to configure the Kea DHCPv4 server and NAV in
-order to start collecting stats. Repeat the steps for each Kea DHCPv4 server
+We'll walk through the steps needed to configure the Kea DHCPv4 server and NAV
+in order to start collecting stats. Repeat the steps for each Kea DHCPv4 server
 you'd like to collect stats from.
 
 Configuring a Kea DHCPv4 Server
@@ -121,58 +118,36 @@ Configuring a Kea DHCPv4 Server
     both :ref:`Kea versions 3.x.x <kea_3_x_x_configuration_example>` and
     :ref:`Kea versions 2.x.x <kea_2_x_x_configuration_example>` further below.
 
-1. A control socket that serves the Kea API of the Kea DHCPv4 server needs to be
-   set up with a ``socket-type`` of ``http`` or ``https`` and a
-   ``socket-address`` plus ``socket-port`` combination reachable either directly
-   or through a reverse proxy by NAV (see *Control Socket* in
-   `kea.readthedocs.io
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/dhcp4-srv.html#http-https-control-socket>`_).
-   NAV needs access to the three Kea API commands `config-get
-   <https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-get>`_,
-   `config-hash-get
-   <https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-hash-get>`_ and
-   `statistic-get-all
-   <https://kea.readthedocs.io/en/kea-3.0.1/api.html#statistic-get-all>`_. For
-   security purposes, consider disabling access to any other API command or at
-   least disabling write access over the control socket (as of Kea version
-   3.0.0, these security settings only seem to be available
-   through the `RBAC premium hook
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-rbac-so-role-based-access-control>`_).
-   Also consider enabling client SSL certificate authentication (see either your
-   reverse proxy's TLS documentation or *TLS/HTTPS Configuration* in `kea.readthedocs.io
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/security.html#tls-https-configuration>`_).
-   As stated above, `config-get
-   <https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-get>`_ must be
-   available for NAV to use; therefore you should consider whether there's information in
-   the Kea configuration (such as user passwords) that are too sensitive to be
-   served.
+1. A control socket that serves the Kea API of the Kea DHCPv4 server needs to
+   be set up with a ``socket-type`` of ``http`` or ``https`` and
+   a ``socket-address`` plus ``socket-port`` combination reachable either
+   directly or through a reverse proxy by NAV (see `Control Socket`_ in the Kea
+   docs). NAV needs access to the three Kea API commands `config-get`_,
+   `config-hash-get`_ and `statistic-get-all`_. For security purposes, consider
+   disabling access to any other API command or at least disabling write access
+   over the control socket (as of Kea version 3.0.0, these security settings
+   only seem to be available through the `RBAC premium hook`_). Also consider
+   enabling client SSL certificate authentication (see either your reverse
+   proxy's TLS documentation or `TLS/HTTPS Configuration`_ in the Kea docs). As
+   stated above, `config-get`_ must be available for NAV to use; therefore you
+   should consider whether there's information in the Kea configuration (such
+   as user passwords) that are too sensitive to be served.
 
    .. note::
 
-      The `config-get
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-get>`_ API
-      command is needed to collect stats from each Kea pool since pool IDs are
-      not known beforehand by NAV (and as of the latest Kea version, version
-      3.0.0, no fit for purpose API command exist to obtain pool IDs). The
-      `network4-list
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#network4-list>`_ and
-      `subnet4-list
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#subnet4-list>`_ API
-      commands (open-sourced in Kea starting with version 3.0.0) could
-      alternatively have been used to instead collect stats from each Kea subnet
-      if access to the `config-get
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-get>`_ API
-      command is disabled by an administrator. Neither defaulting to nor falling
-      back to using `network4-list
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#network4-list>`_ and
-      `subnet4-list
-      <https://kea.readthedocs.io/en/kea-3.0.1/api.html#subnet4-list>`_ is
-      however currently supported by NAV.
+      The `config-get`_ API command is needed to collect stats from each Kea
+      pool since pool IDs are not known beforehand by NAV (and as of the latest
+      Kea version, version 3.0.0, no fit for purpose API command exist to
+      obtain pool IDs). The `network4-list`_ and `subnet4-list`_ API commands
+      (open-sourced in Kea starting with version 3.0.0) could alternatively
+      have been used to instead collect stats from each Kea subnet if access to
+      the `config-get`_ API command is disabled by an administrator. Neither
+      defaulting to nor falling back to using `network4-list`_ and
+      `subnet4-list`_ is however currently supported by NAV.
 
 2. Each pool in the Kea DHCPv4 configuration **must** be manually assigned a
-   unique pool ID (see the note on pool IDs under *Statistics in the DHCPv4
-   Server* in `kea.readthedocs.io
-   <https://kea.readthedocs.io/en/kea-3.0.1/arm/dhcp4-srv.html#statistics-in-the-dhcpv4-server>`_).
+   unique pool ID (see the note on pool IDs under `Statistics in the DHCPv4 Server`_
+   in the KEA docs).
 
 3. Each pool in the Kea DHCPv4 configuration
    **may** be manually assigned a user-context containing the key ``group``
@@ -400,3 +375,15 @@ configured Kea DHCPv4 server section:
          are more coarse-grained (stats are per subnet) than those provided
          through standard API commands used by NAV (where stats are per Kea
          pool).
+
+.. _Statistics in the DHCPv4 Server: https://kea.readthedocs.io/en/kea-3.0.1/arm/dhcp4-srv.html#statistics-in-the-dhcpv4-server
+.. _config-get: https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-get
+.. _config-hash-get: https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-hash-get
+.. _Control Socket: https://kea.readthedocs.io/en/kea-3.0.1/arm/dhcp4-srv.html#http-https-control-socket
+.. _Hook Libraries: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#hook-libraries
+.. _network4-list: https://kea.readthedocs.io/en/kea-3.0.1/api.html#network4-list
+.. _RBAC premium hook: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-rbac-so-role-based-access-control
+.. _statistic-get-all: https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-hash-get
+.. _Statistics Commands for Supplemental Lease Statistics: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-stat-cmds-so-statistics-commands-for-supplemental-lease-statistics
+.. _subnet4-list: https://kea.readthedocs.io/en/kea-3.0.1/api.html#subnet4-list
+.. _TLS/HTTPS Configuration: https://kea.readthedocs.io/en/kea-3.0.1/arm/security.html#tls-https-configuration
