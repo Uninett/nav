@@ -63,7 +63,7 @@ class PowerSupplyOrFanStateWatcher(Plugin):
             new_state = yield self._retrieve_current_unit_state(unit)
             state_map[unit] = new_state
             if old_state != new_state:
-                yield self._handle_state_change(unit, new_state)
+                yield self._handle_state_change(unit, old_state, new_state)
 
         return True
 
@@ -87,12 +87,12 @@ class PowerSupplyOrFanStateWatcher(Plugin):
         return STATE_UNKNOWN
 
     @defer.inlineCallbacks
-    def _handle_state_change(self, unit, new_state):
+    def _handle_state_change(self, unit, old_state, new_state):
         self._logger.info(
-            "%s state changed from %s to %s", unit.name, unit.up, new_state
+            "%s state changed from %s to %s", unit.name, old_state, new_state
         )
         yield db.run_in_thread(self._update_internal_state, unit, new_state)
-        yield db.run_in_thread(self._post_event, unit, new_state)
+        yield db.run_in_thread(self._post_event, unit, old_state, new_state)
 
     #
     # Synchronous database access methods
@@ -117,11 +117,22 @@ class PowerSupplyOrFanStateWatcher(Plugin):
             up=new_state, downsince=unit.downsince
         )
 
-    def _post_event(self, unit, new_state):
+    def _post_event(self, unit, old_state, new_state):
         factory = EVENT_MAP.get(unit.physical_class)
         assert factory is not None
 
         if new_state in (STATE_DOWN, STATE_WARNING):
+            # A unit transitioning straight from UNKNOWN to a non-working state
+            # was never observed working in the first place. This is typically an
+            # empty (uninstalled) PSU bay, which Cisco lists in entPhysicalTable
+            # and reports as offEnvOther; there is no genuine failure to alert on.
+            # Only raise an alert once a unit that was actually seen working goes
+            # down.
+            if old_state == STATE_UNKNOWN:
+                self._logger.debug(
+                    "not alerting on %s: never observed in a working state", unit.name
+                )
+                return
             construct = factory.start
         else:
             construct = factory.end
