@@ -520,11 +520,13 @@ therefore built two different development environment specifications based on
 Docker Compose, which should make running NAV for development smoother.
 
 1. The oldest of these is a plain Docker Compose specification. Read
-   :doc:`using-docker` for further instructions.
+   :doc:`using-legacy-docker` for further instructions.
 2. The newest of them is a `devcontainers`_ specification, which should
    integrate more smoothly into most popular IDEs for Python developers (such
    as PyCharm or VS Code).  Read :doc:`using-devcontainers` for further
    instructions.
+3. A third, more lightweight variant, using docker compose only for graphite
+   and the databse. Read :doc:`using-minimal-docker` for further instructions.
 
 Tips and tricks
 ===============
