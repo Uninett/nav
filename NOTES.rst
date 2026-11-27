@@ -1366,7 +1366,7 @@ External authentication through the REMOTE_USER header
 
 NAV now supports external authentication by honoring the `REMOTE_USER` HTTP
 header / environment variable. See the :doc:`reference documentation for
-external web authentication </reference/web_authentication>` for details.
+external web authentication </reference/remote_user>` for details.
 
 Exporting a continuous stream of NAV alerts to third party software
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
