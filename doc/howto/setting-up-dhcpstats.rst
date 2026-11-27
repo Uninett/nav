@@ -1,12 +1,12 @@
-======================================
-Setup and configure DHCP Stats support
-======================================
+================================
+Setting up DHCP stats collection
+================================
 
 Usually, for each DHCP server you want to collect stats from, both NAV
 *and* the DHCP server needs to be configured.
 
-The first subsection below describes how to configure NAV the first time you
-start collecting DHCP stats. The following subsections describe how both NAV and
+The first section below describes how to configure NAV the first time you
+start collecting DHCP stats. The following sections describe how both NAV and
 a specific DHCP server implementation's server needs to be configured for NAV to
 start collecting stats from that server.
 
@@ -89,7 +89,7 @@ Specific to Kea DHCPv4 Servers (IPv4)
 .. note::
 
    NAV does not require that any hook libraries have been installed into the
-   Kea DHCPv4 server (see `Hook Libraries`_ in the KEA docs). Kea offers a hook
+   Kea DHCPv4 server (see `Hook Libraries`_ in the Kea docs). Kea offers a hook
    that adds extra API commands which become necessary to use if one wants
    reliable stats when using a setup where multiple Kea servers share the same
    underlying lease database (see `Statistics Commands for Supplemental Lease
@@ -147,7 +147,7 @@ Configuring a Kea DHCPv4 Server
 
 2. Each pool in the Kea DHCPv4 configuration **must** be manually assigned a
    unique pool ID (see the note on pool IDs under `Statistics in the DHCPv4 Server`_
-   in the KEA docs).
+   in the Kea docs).
 
 3. Each pool in the Kea DHCPv4 configuration
    **may** be manually assigned a user-context containing the key ``group``
@@ -383,7 +383,7 @@ configured Kea DHCPv4 server section:
 .. _Hook Libraries: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#hook-libraries
 .. _network4-list: https://kea.readthedocs.io/en/kea-3.0.1/api.html#network4-list
 .. _RBAC premium hook: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-rbac-so-role-based-access-control
-.. _statistic-get-all: https://kea.readthedocs.io/en/kea-3.0.1/api.html#config-hash-get
+.. _statistic-get-all: https://kea.readthedocs.io/en/kea-3.0.1/api.html#statistics-get-all
 .. _Statistics Commands for Supplemental Lease Statistics: https://kea.readthedocs.io/en/kea-3.0.1/arm/hooks.html#libdhcp-stat-cmds-so-statistics-commands-for-supplemental-lease-statistics
 .. _subnet4-list: https://kea.readthedocs.io/en/kea-3.0.1/api.html#subnet4-list
 .. _TLS/HTTPS Configuration: https://kea.readthedocs.io/en/kea-3.0.1/arm/security.html#tls-https-configuration

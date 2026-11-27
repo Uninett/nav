@@ -123,4 +123,4 @@ name.)
 Configuration
 =============
 
-See the howto: :doc:`/howto/setup-and-configure-dhcpstats`.
+See the howto: :doc:`/howto/setting-up-dhcpstats`.
