@@ -102,6 +102,33 @@ def test_unauthenticated_user_can_access_api_root(db):
     assert response.status_code == 200
 
 
+@pytest.mark.parametrize("name", ["api:schema", "api:swagger-ui", "api:redoc"])
+def test_when_requesting_openapi_endpoints_then_it_should_return_200(db, name):
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    response = client.get(reverse(name))
+    assert response.status_code == 200
+
+
+def test_when_generating_schema_then_it_should_contain_versioned_paths_only(db):
+    import yaml
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+    response = client.get(reverse("api:schema"))
+    assert response.status_code == 200
+
+    schema = yaml.safe_load(response.content)
+    assert schema["openapi"].startswith("3")
+    paths = schema["paths"]
+    # Versioned endpoints are kept by the public_schema_filter hook
+    assert "/api/1/netbox/" in paths
+    assert "/api/1/cam/" in paths
+    # The unversioned double-mount must be filtered out
+    assert "/api/netbox/" not in paths
+
+
 @pytest.mark.parametrize(
     "endpoint", ['account', 'location', 'organization', 'room', 'vlan']
 )
