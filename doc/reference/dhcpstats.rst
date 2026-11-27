@@ -19,7 +19,7 @@ maintenance for the administrator.
 
 NAV currently supports collecting stats from one DHCP server implementations:
 
-:ref:`kea_dhcpv4_servers`
+:ref:`Kea DHCPv4 servers <kea_dhcpv4_servers>`
    Configure at minimum a Kea DHCPv4 HTTP/HTTPS control socket, and assign each
    pool in the Kea DHCPv4 configuration unique pool IDs, and NAV can start
    collecting IPv4 stats from each Kea DHCPv4 pool over the control socket.
