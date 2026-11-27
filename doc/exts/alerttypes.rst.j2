@@ -21,12 +21,12 @@ All legal event- and alert-types are registered in the NAV database (and can
 thus be extended, even by the user, if need be). The following are the event-
 and alert types that come pre-defined with NAV:
 
-
 {% for event, alerts in types %}
 *{{ event.id }}* events
 {{ '-' * event.id|length }}---------
-{{ event.description }}
 
+{{ event.description }}
+{% if alerts %}
 .. list-table:: Alerts associated with {{ event.id }} events
    :widths: 25 75
    :header-rows: 1
@@ -36,6 +36,7 @@ and alert types that come pre-defined with NAV:
 {% for alert in alerts %}   * - ``{{ alert.name }}``
      - {{ alert.description }}
 {% endfor %}
-
-
-{% endfor %}
+{% else %}
+This event type has no registered alert types.
+{% endif %}
+{%- endfor -%}

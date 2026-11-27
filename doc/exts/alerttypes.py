@@ -20,6 +20,7 @@ documentation for NAV's event- and alert type hierarchy.
 It should only be necessary to re-run this in the event of changes to the supported
 event/alert types, or in the templates used to generate this doc.
 """
+
 import os
 
 from jinja2 import FileSystemLoader, Environment  # Jinja is a sub-dependency of Sphinx
@@ -40,7 +41,7 @@ def main():
         (eventtype, AlertType.objects.filter(event_type=eventtype))
         for eventtype in EventType.objects.all()
     ]
-    print(template.render(types=types))
+    print(template.render(types=types).strip())
 
 
 if __name__ == '__main__':

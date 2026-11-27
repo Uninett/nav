@@ -22,9 +22,9 @@ thus be extended, even by the user, if need be). The following are the event-
 and alert types that come pre-defined with NAV:
 
 
-
 *boxState* events
 -----------------
+
 Tells us whether a network-unit is down or up.
 
 .. list-table:: Alerts associated with boxState events
@@ -47,10 +47,9 @@ Tells us whether a network-unit is down or up.
      - Box declared up from a previous shadow state.
 
 
-
-
 *serviceState* events
 ---------------------
+
 Tells us whether a service on a server is up or down.
 
 .. list-table:: Alerts associated with serviceState events
@@ -65,10 +64,9 @@ Tells us whether a service on a server is up or down.
      - http service responding.
 
 
-
-
 *moduleState* events
 --------------------
+
 Tells us whether a module in a device is working or not.
 
 .. list-table:: Alerts associated with moduleState events
@@ -85,10 +83,9 @@ Tells us whether a module in a device is working or not.
      - Module declared up.
 
 
-
-
 *thresholdState* events
 -----------------------
+
 Tells us whether the load has passed a certain threshold.
 
 .. list-table:: Alerts associated with thresholdState events
@@ -103,10 +100,9 @@ Tells us whether the load has passed a certain threshold.
      - Value below threshold.
 
 
-
-
 *linkState* events
 ------------------
+
 Tells us whether a link is up or down.
 
 .. list-table:: Alerts associated with linkState events
@@ -121,10 +117,9 @@ Tells us whether a link is up or down.
      - Link inactive
 
 
-
-
 *boxRestart* events
 -------------------
+
 Tells us that a network-unit has done a restart
 
 .. list-table:: Alerts associated with boxRestart events
@@ -139,10 +134,9 @@ Tells us that a network-unit has done a restart
      - The IP device has warmstarted
 
 
-
-
 *info* events
 -------------
+
 Basic information
 
 .. list-table:: Alerts associated with info events
@@ -159,38 +153,23 @@ Basic information
      - Mac appeared on port
 
 
-
-
 *notification* events
 ---------------------
+
 Notification event, typically between NAV systems
 
-.. list-table:: Alerts associated with notification events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-
-
-
+This event type has no registered alert types.
 
 *deviceActive* events
 ---------------------
+
 Lifetime event for a device
 
-.. list-table:: Alerts associated with deviceActive events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-
-
-
+This event type has no registered alert types.
 
 *deviceState* events
 --------------------
+
 Registers the state of a device
 
 .. list-table:: Alerts associated with deviceState events
@@ -223,10 +202,9 @@ Registers the state of a device
      - The device has been removed as a module.
 
 
-
-
 *deviceNotice* events
 ---------------------
+
 Registers a notice on a device
 
 .. list-table:: Alerts associated with deviceNotice events
@@ -245,10 +223,9 @@ Registers a notice on a device
      - Firmware upgrade on device.
 
 
-
-
 *maintenanceState* events
 -------------------------
+
 Tells us if something is set on maintenance
 
 .. list-table:: Alerts associated with maintenanceState events
@@ -263,28 +240,9 @@ Tells us if something is set on maintenance
      - Box taken off maintenance.
 
 
-
-
-*apState* events
-----------------
-Tells us whether an access point has disassociated or associated from the controller
-
-.. list-table:: Alerts associated with apState events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-   * - ``apUp``
-     - AP associated with controller
-   * - ``apDown``
-     - AP disassociated from controller
-
-
-
-
 *weathergoose_airflow* events
 -----------------------------
+
 
 
 .. list-table:: Alerts associated with weathergoose_airflow events
@@ -305,10 +263,9 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Air Flow Sensor Trap
 
 
-
-
 *weathergoose_sound* events
 ---------------------------
+
 
 
 .. list-table:: Alerts associated with weathergoose_sound events
@@ -329,10 +286,9 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Sound Sensor Trap
 
 
-
-
 *weathergoose_humidity* events
 ------------------------------
+
 
 
 .. list-table:: Alerts associated with weathergoose_humidity events
@@ -353,10 +309,9 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Humidity Sensor Trap
 
 
-
-
 *weathergoose_light* events
 ---------------------------
+
 
 
 .. list-table:: Alerts associated with weathergoose_light events
@@ -377,10 +332,9 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Light Sensor Trap
 
 
-
-
 *weathergoose_temperature* events
 ---------------------------------
+
 
 
 .. list-table:: Alerts associated with weathergoose_temperature events
@@ -409,10 +363,9 @@ Tells us whether an access point has disassociated or associated from the contro
      - Climate Temperature Sensor Clear Trap
 
 
-
-
 *hobbitServiceState* events
 ---------------------------
+
 Hobbit service state
 
 .. list-table:: Alerts associated with hobbitServiceState events
@@ -429,10 +382,9 @@ Hobbit service state
      - Hobbit yellow service state
 
 
-
-
 *snmpAgentState* events
 -----------------------
+
 Tells us whether the SNMP agent on a device is down or up.
 
 .. list-table:: Alerts associated with snmpAgentState events
@@ -447,10 +399,9 @@ Tells us whether the SNMP agent on a device is down or up.
      - SNMP agent is up.
 
 
-
-
 *upsPowerState* events
 ----------------------
+
 UPS running on battery or utility power
 
 .. list-table:: Alerts associated with upsPowerState events
@@ -465,10 +416,9 @@ UPS running on battery or utility power
      - Ups running on utility power
 
 
-
-
 *psuState* events
 -----------------
+
 Reports state changes in power supply units
 
 .. list-table:: Alerts associated with psuState events
@@ -483,10 +433,9 @@ Reports state changes in power supply units
      - A PSU has returned to an OK state
 
 
-
-
 *fanState* events
 -----------------
+
 Reports state changes in fan units
 
 .. list-table:: Alerts associated with fanState events
@@ -501,10 +450,9 @@ Reports state changes in fan units
      - A fan unit has returned to an OK state
 
 
-
-
 *chassisState* events
 ---------------------
+
 The state of this chassis has changed
 
 .. list-table:: Alerts associated with chassisState events
@@ -519,10 +467,9 @@ The state of this chassis has changed
      - This chassis is visible in the stack again
 
 
-
-
 *aggregateLinkState* events
 ---------------------------
+
 The state of this aggregated link changed
 
 .. list-table:: Alerts associated with aggregateLinkState events
@@ -537,10 +484,9 @@ The state of this aggregated link changed
      - This aggregate link has been restored
 
 
-
-
 *bgpState* events
 -----------------
+
 The state of this BGP peering session changed
 
 .. list-table:: Alerts associated with bgpState events
@@ -557,10 +503,9 @@ The state of this BGP peering session changed
      - This BGP peering session is administratively down
 
 
-
-
 *juniperYellowAlarmState* events
 --------------------------------
+
 Tells us if a Juniper device has any open yellow alarms.
 
 .. list-table:: Alerts associated with juniperYellowAlarmState events
@@ -575,10 +520,9 @@ Tells us if a Juniper device has any open yellow alarms.
      - The Juniper device has no yellow alarms.
 
 
-
-
 *juniperRedAlarmState* events
 -----------------------------
+
 Tells us if a Juniper device has any open red alarms.
 
 .. list-table:: Alerts associated with juniperRedAlarmState events
@@ -591,3 +535,20 @@ Tells us if a Juniper device has any open red alarms.
      - The Juniper device has some red alarms.
    * - ``juniperRedAlarmOff``
      - The Juniper device has no red alarms.
+
+
+*apState* events
+----------------
+
+Tells us whether an access point has disassociated or associated from the controller
+
+.. list-table:: Alerts associated with apState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``apUp``
+     - AP associated with controller
+   * - ``apDown``
+     - AP disassociated from controller
