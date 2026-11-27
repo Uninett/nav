@@ -124,6 +124,9 @@ make to set these three settings:
        }
    }
 
+.. note:: If you are upgrading from an older Debian release, change
+   ``postgresql_psycopg2`` to ``postgresql`` in your existing
+   :file:`/etc/graphite/local_settings.py`.
 
 Now make ``graphite-web`` initialize its database schema::
 
