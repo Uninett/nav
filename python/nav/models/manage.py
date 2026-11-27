@@ -2441,7 +2441,7 @@ class Interface(models.Model):
         lands on the physical. So the aggregate (and any intermediate layer) has
         no ``to_netbox`` of its own while the topology lives further down.
 
-        The hierarchy is returned as a list of root :class:`TopologyTreeNode`s
+        The hierarchy is returned as a list of root :class:`TopologyTreeNode`\s
         so the details page can render it from any layer; an interface with no
         layering yields a single childless root, itself. Containment combines
         both relations, since which one exposes each hop varies by vendor -- the
