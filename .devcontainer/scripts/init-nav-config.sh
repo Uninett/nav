@@ -21,10 +21,34 @@ update_nav_conf() {
   SECRET_KEY="$(gpg -a --gen-random 1 51)"
   mkdir -p "$NAV_UPLOAD_DIR"
   echo "Updating $NAV_CONF"
-  sed -i "s/^NAV_USER=.*/NAV_USER=${NAV_USER}/" "$NAV_CONF"
-  sed -i '/^#DJANGO_DEBUG=True/s/^#//' "$NAV_CONF" || echo "DJANGO_DEBUG=True" >> "$NAV_CONF"
-  sed -i "s,^#UPLOAD_DIR=.*,UPLOAD_DIR=${NAV_UPLOAD_DIR}," "$NAV_CONF" || echo "UPLOAD_DIR=${NAV_UPLOAD_DIR}" >> "$NAV_CONF"
-  sed -i "s/^SECRET_KEY=.*/SECRET_KEY=${SECRET_KEY}/" "$NAV_CONF"
+  set_nav_conf NAV_USER "$NAV_USER"
+  default_nav_conf DJANGO_DEBUG True
+  default_nav_conf UPLOAD_DIR "$NAV_UPLOAD_DIR"
+  set_nav_conf SECRET_KEY "$SECRET_KEY"
+}
+
+# Sets KEY to VALUE in nav.conf, unless the developer has already set KEY.
+# A commented-out KEY, as shipped in the default config, is replaced in place.
+default_nav_conf() {
+  local key="$1" value="$2"
+  grep -q "^${key}=" "$NAV_CONF" && return
+  sed -i "s,^#${key}=,${key}=," "$NAV_CONF"
+  set_nav_conf "$key" "$value"
+}
+
+# Sets KEY to VALUE in nav.conf, replacing any active KEY or appending one.
+# `sed` exits 0 even when nothing matches, so `grep` decides which applies.
+set_nav_conf() {
+  local key="$1" value="$2"
+  if grep -q "^${key}=" "$NAV_CONF"; then
+    sed -i "s,^${key}=.*,${key}=$(escape_sed_replacement "$value")," "$NAV_CONF"
+  else
+    echo "${key}=${value}" >> "$NAV_CONF"
+  fi
+}
+
+escape_sed_replacement() {
+  printf '%s' "$1" | sed 's/[\\,&]/\\&/g'
 }
 
 update_graphite_conf() {
