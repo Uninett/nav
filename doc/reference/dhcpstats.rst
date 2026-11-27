@@ -108,7 +108,7 @@ Below is an example depicting how stats collected for two groups of ranges,
 "Guest" and "Admin" on the DHCP server "kea-trd", are displayed on the page for
 the prefix ``172.16.0.0/24``. (Note how "Guest" and "Admin" are two separate
 private networks occupying the same private address space on the DHCP server;
-but since the range ``127.16.0.1-127.16.0.255`` is collected under the group
+but since the range ``172.16.0.1-172.16.0.255`` is collected under the group
 name "Guest", and the rest of the ranges are collected under the group name
 "Admin", the stats from the different private networks are separated correctly
 and won't interfere with each other. This separation would also have worked if
