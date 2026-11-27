@@ -516,15 +516,24 @@ Development environments
 
 A complete NAV development environment has many dependencies, and not all are
 necessarily easy to satisfy on an arbitrary developer's computer.  We have
-therefore built two different development environment specifications based on
-Docker Compose, which should make running NAV for development smoother.
+therefore built different development environment specifications, which should
+make running NAV for development smoother.
 
-1. The oldest of these is a plain Docker Compose specification. Read
-   :doc:`using-docker` for further instructions.
-2. The newest of them is a `devcontainers`_ specification, which should
-   integrate more smoothly into most popular IDEs for Python developers (such
-   as PyCharm or VS Code).  Read :doc:`using-devcontainers` for further
+1. A `devcontainers`_ specification, which integrates more smoothly into most
+   popular IDEs for Python developers (such as PyCharm or VS Code). This is the
+   setup most NAV developers use today. Read :doc:`using-devcontainers` for
+   further instructions.
+2. A more lightweight variant uses docker compose only for graphite and
+   the database, while NAV itself runs in a local virtualenv.  It suits
+   developers who prefer to work without an IDE or with an IDE that does not
+   support devcontainers. Read :doc:`using-minimal-docker` for further
    instructions.
+3. The oldest of these is a plain docker compose specification running
+   everything in containters. Read :doc:`using-legacy-docker` for further
+   instructions.
+
+   .. note:: This method is deprecated, please switch to one of the others.
+
 
 Tips and tricks
 ===============
