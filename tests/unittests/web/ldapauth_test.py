@@ -350,14 +350,14 @@ class TestLdapUserBind:
 
 
 class TestLdapUserDn:
-    def test_direct_lookup_should_construct_the_dn_from_config(
+    def test_direct_lookup_it_should_construct_the_dn_from_config(
         self, configure_ldap, connection
     ):
         configure_ldap(lookupmethod="direct")
         assert LDAPUser('rudolf', connection).get_user_dn() == USER_DN
         connection.search_s.assert_not_called()
 
-    def test_search_lookup_should_use_dn_and_username_from_the_directory(
+    def test_search_lookup_it_should_use_dn_and_username_from_the_directory(
         self, configure_ldap, connection
     ):
         configure_ldap(lookupmethod="search")
@@ -368,7 +368,7 @@ class TestLdapUserDn:
         assert user.get_user_dn() == 'uid=Rudolf,' + BASE_DN
         assert user.username == 'Rudolf'
 
-    def test_dn_should_only_be_looked_up_once(self, configure_ldap, connection):
+    def test_dn_it_should_only_be_looked_up_once(self, configure_ldap, connection):
         configure_ldap(lookupmethod="search")
         connection.search_s.return_value = [(USER_DN, {})]
         user = LDAPUser('rudolf', connection)
@@ -405,7 +405,7 @@ class TestLdapUserDn:
             "cn=admin,dc=example,dc=org", "managerpw"
         )
 
-    def test_search_should_escape_special_characters_in_the_username(
+    def test_search_it_should_escape_special_characters_in_the_username(
         self, configure_ldap, connection
     ):
         configure_ldap(lookupmethod="search")
@@ -415,7 +415,7 @@ class TestLdapUserDn:
         assert filter_ == r"(uid=rudolf\29\28uid=\2a)"
 
     @pytest.mark.parametrize("result", [[], [None], [(None, {})]])
-    def test_search_should_raise_user_not_found_for_empty_results(
+    def test_search_it_should_raise_user_not_found_for_empty_results(
         self, configure_ldap, connection, result
     ):
         configure_ldap(lookupmethod="search")
@@ -425,21 +425,21 @@ class TestLdapUserDn:
 
 
 class TestLdapUserAttributes:
-    def test_get_real_name_should_return_the_decoded_name_attribute(
+    def test_get_real_name_it_should_return_the_decoded_name_attribute(
         self, configure_ldap, connection
     ):
         configure_ldap()
         connection.search_s.return_value = [(USER_DN, {'cn': ['Rudolf Räv'.encode()]})]
         assert LDAPUser('rudolf', connection).get_real_name() == 'Rudolf Räv'
 
-    def test_get_real_name_should_return_none_on_ldap_errors(
+    def test_get_real_name_it_should_return_none_on_ldap_errors(
         self, configure_ldap, connection
     ):
         configure_ldap()
         connection.search_s.side_effect = ldap.LDAPError
         assert LDAPUser('rudolf', connection).get_real_name() is None
 
-    def test_is_group_member_should_match_group_of_names_first(
+    def test_is_group_member_it_should_match_group_of_names_first(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -447,7 +447,7 @@ class TestLdapUserAttributes:
         assert LDAPUser('rudolf', connection).is_group_member(GROUP_DN) is True
         assert connection.search_s.call_count == 1
 
-    def test_is_group_member_should_fall_back_to_posix_group_matching(
+    def test_is_group_member_it_should_fall_back_to_posix_group_matching(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -462,7 +462,7 @@ class TestLdapUserAttributes:
         connection.search_s.return_value = []
         assert LDAPUser('rudolf', connection).is_group_member(GROUP_DN) is False
 
-    def test_is_group_member_should_raise_timeout_error_on_timeout(
+    def test_is_group_member_it_should_raise_timeout_error_on_timeout(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -470,21 +470,21 @@ class TestLdapUserAttributes:
         with pytest.raises(LdapTimeoutError):
             LDAPUser('rudolf', connection).is_group_member(GROUP_DN)
 
-    def test_get_entitlements_should_return_the_decoded_entitlements(
+    def test_get_entitlements_it_should_return_the_decoded_entitlements(
         self, configure_ldap, connection
     ):
         configure_ldap()
         connection.search_s.return_value = entitlement_result("urn:a", "urn:b")
         assert LDAPUser('rudolf', connection).get_entitlements() == ["urn:a", "urn:b"]
 
-    def test_get_entitlements_should_be_empty_without_a_result(
+    def test_get_entitlements_it_should_be_empty_without_a_result(
         self, configure_ldap, connection
     ):
         configure_ldap()
         connection.search_s.return_value = []
         assert LDAPUser('rudolf', connection).get_entitlements() == []
 
-    def test_get_entitlements_should_ignore_results_for_other_dns(
+    def test_get_entitlements_it_should_ignore_results_for_other_dns(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -500,7 +500,7 @@ class TestLdapUserAttributes:
         connection.search_s.return_value = [(USER_DN, {})]
         assert LDAPUser('rudolf', connection).get_entitlements() == []
 
-    def test_get_entitlements_should_raise_timeout_error_on_timeout(
+    def test_get_entitlements_it_should_raise_timeout_error_on_timeout(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -508,7 +508,7 @@ class TestLdapUserAttributes:
         with pytest.raises(LdapTimeoutError):
             LDAPUser('rudolf', connection).get_entitlements()
 
-    def test_has_entitlement_should_check_the_users_entitlements(
+    def test_has_entitlement_it_should_check_the_users_entitlements(
         self, configure_ldap, connection
     ):
         configure_ldap()
@@ -517,7 +517,7 @@ class TestLdapUserAttributes:
         assert user.has_entitlement("urn:a")
         assert not user.has_entitlement("urn:b")
 
-    def test_is_admin_should_be_none_without_an_admin_entitlement_configured(
+    def test_is_admin_it_should_be_none_without_an_admin_entitlement_configured(
         self, configure_ldap, connection
     ):
         configure_ldap(admin_entitlement="")
@@ -526,7 +526,7 @@ class TestLdapUserAttributes:
     @pytest.mark.parametrize(
         "granted, expected", [("urn:admin", True), ("urn:user", False)]
     )
-    def test_is_admin_should_reflect_the_admin_entitlement(
+    def test_is_admin_it_should_reflect_the_admin_entitlement(
         self, configure_ldap, connection, granted, expected
     ):
         configure_ldap(admin_entitlement="urn:admin")
