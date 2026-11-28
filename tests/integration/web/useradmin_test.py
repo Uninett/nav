@@ -88,7 +88,7 @@ def test_when_creating_new_user_then_user_should_be_active(db, client, admin_acc
     assert account.is_active
 
 
-def test_account_detail_page_should_render_for_existing_account(
+def test_account_detail_page_it_should_render_for_existing_account(
     db, client, non_admin_account
 ):
     response = client.get(
@@ -163,7 +163,7 @@ def test_when_sudoing_to_nonexistent_account_then_it_should_redirect(db, client)
     assert response.status_code == 302
 
 
-def test_account_delete_should_ask_for_confirmation_on_get(
+def test_account_delete_it_should_ask_for_confirmation_on_get(
     db, client, non_admin_account
 ):
     response = client.get(
@@ -286,7 +286,7 @@ def test_when_removing_admin_from_admin_group_then_it_should_be_refused(
     assert admin_group in admin_account.groups.all()
 
 
-def test_group_list_should_include_existing_groups(db, client, group):
+def test_group_list_it_should_include_existing_groups(db, client, group):
     response = client.get(reverse('useradmin-group_list'))
     assert response.status_code == 200
     assert group in response.context['groups']
@@ -411,13 +411,13 @@ def test_when_revoking_privilege_then_group_should_lose_it(
     assert not Privilege.objects.filter(pk=privilege.pk).exists()
 
 
-def test_token_list_should_include_existing_tokens(db, client, api_token):
+def test_token_list_it_should_include_existing_tokens(db, client, api_token):
     response = client.get(reverse('useradmin-token_list'))
     assert response.status_code == 200
     assert api_token in response.context['object_list']
 
 
-def test_token_detail_should_render(db, client, api_token):
+def test_token_detail_it_should_render(db, client, api_token):
     response = client.get(reverse('useradmin-token_detail', args=(api_token.pk,)))
     assert response.status_code == 200
     assert response.context['object'] == api_token
@@ -430,7 +430,7 @@ def test_when_expiring_token_then_it_should_no_longer_be_valid(db, client, api_t
     assert api_token.is_expired()
 
 
-def test_token_expire_should_reject_get_requests(db, client, api_token):
+def test_token_expire_it_should_reject_get_requests(db, client, api_token):
     response = client.get(reverse('useradmin-token_expire', args=(api_token.pk,)))
     assert response.status_code == 405
     api_token.refresh_from_db()
@@ -549,13 +549,13 @@ def test_when_revoking_privilege_from_nonexistent_group_then_it_should_redirect(
     assert response.url == reverse('useradmin-group_list')
 
 
-def test_jwt_token_list_should_include_existing_tokens(db, client, jwt_token):
+def test_jwt_token_list_it_should_include_existing_tokens(db, client, jwt_token):
     response = client.get(reverse('useradmin-jwt_list'))
     assert response.status_code == 200
     assert jwt_token in response.context['object_list']
 
 
-def test_jwt_token_detail_should_render(db, client, jwt_token):
+def test_jwt_token_detail_it_should_render(db, client, jwt_token):
     response = client.get(reverse('useradmin-jwt_detail', args=(jwt_token.pk,)))
     assert response.status_code == 200
     assert response.context['object'] == jwt_token
@@ -570,7 +570,7 @@ def test_when_revoking_jwt_token_then_it_should_be_marked_revoked(
     assert jwt_token.revoked
 
 
-def test_jwt_revoke_should_reject_get_requests(db, client, jwt_token):
+def test_jwt_revoke_it_should_reject_get_requests(db, client, jwt_token):
     response = client.get(reverse('useradmin-jwt_revoke', args=(jwt_token.pk,)))
     assert response.status_code == 405
     jwt_token.refresh_from_db()
